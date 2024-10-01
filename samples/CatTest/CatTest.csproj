@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <CatUseAngle>true</CatUseAngle>
+  </PropertyGroup>
+
+  <Target Name="DefineAngle" BeforeTargets="Build">
+    <Message Text="Building with CatUseAngle" />
+    <!--<MSBuild Projects="CatTest.csproj" Properties="CatUseAngle=true" />-->
+    <PropertyGroup>
+      <CatUseAngle>true</CatUseAngle>
+    </PropertyGroup>
+  </Target>
+
+  <ItemGroup>
+    <None Remove="Assets\search_128px.png" />
+    <None Remove="Assets\settings_128px.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\search_128px.png" />
+    <EmbeddedResource Include="Assets\settings_128px.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTK.Graphics" Version="4.8.2" />
+    <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.8.2" />
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CatUI\CatUI.csproj" />
+  </ItemGroup>
+  
+</Project>
