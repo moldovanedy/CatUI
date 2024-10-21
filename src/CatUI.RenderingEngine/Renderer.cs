@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using CatUI.Data;
 using CatUI.Data.Brushes;
@@ -170,7 +171,20 @@ namespace CatUI.RenderingEngine
         /// </param>
         public void DrawRect(Rect rect, IBrush fillBrush, CornerInset roundedCorners = default)
         {
-            SKPaint paint = fillBrush.ToSkiaPaint();
+            SKPaint paint;
+            if (fillBrush is ColorBrush colorBrush)
+            {
+                if (!PaintDatabase.TryGetPaint(colorBrush.Color, PaintMode.Fill, 0f, out paint!))
+                {
+                    paint = fillBrush.ToSkiaPaint();
+                    PaintDatabase.CacheNewPaint(paint);
+                }
+            }
+            else
+            {
+                paint = fillBrush.ToSkiaPaint();
+            }
+
             if (roundedCorners.HasNonTrivialValues)
             {
                 SKRoundRect roundRect = new SKRoundRect();
@@ -196,9 +210,23 @@ namespace CatUI.RenderingEngine
         /// <param name="roundedCorners">
         /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless of the measuring unit.
         /// </param>
-        public void DrawRectOutline(Rect rect, IBrush strokeBrush, CornerInset roundedCorners = default)
+        /// <param name="outlineWidth">The width of the outline in pixels.</param>
+        public void DrawRectOutline(Rect rect, IBrush strokeBrush, float outlineWidth, CornerInset roundedCorners = default)
         {
-            SKPaint paint = strokeBrush.ToSkiaPaint();
+            SKPaint paint;
+            if (strokeBrush is ColorBrush colorBrush)
+            {
+                if (!PaintDatabase.TryGetPaint(colorBrush.Color, PaintMode.Stroke, outlineWidth, out paint!))
+                {
+                    paint = strokeBrush.ToSkiaPaint();
+                    PaintDatabase.CacheNewPaint(paint);
+                }
+            }
+            else
+            {
+                paint = strokeBrush.ToSkiaPaint();
+            }
+
             if (roundedCorners.HasNonTrivialValues)
             {
                 SKRoundRect roundRect = new SKRoundRect();
@@ -211,6 +239,44 @@ namespace CatUI.RenderingEngine
             {
                 this.Canvas?.DrawRect(rect, paint);
             }
+        }
+
+        public void DrawEllipse(Point2D center, float rx, float ry, IBrush fillBrush)
+        {
+            SKPaint paint;
+            if (fillBrush is ColorBrush colorBrush)
+            {
+                if (!PaintDatabase.TryGetPaint(colorBrush.Color, PaintMode.Fill, 0f, out paint!))
+                {
+                    paint = fillBrush.ToSkiaPaint();
+                    PaintDatabase.CacheNewPaint(paint);
+                }
+            }
+            else
+            {
+                paint = fillBrush.ToSkiaPaint();
+            }
+
+            this.Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
+        }
+
+        public void DrawEllipseOutline(Point2D center, float rx, float ry, IBrush fillBrush, float outlineWidth)
+        {
+            SKPaint paint;
+            if (fillBrush is ColorBrush colorBrush)
+            {
+                if (!PaintDatabase.TryGetPaint(colorBrush.Color, PaintMode.Stroke, outlineWidth, out paint!))
+                {
+                    paint = fillBrush.ToSkiaPaint();
+                    PaintDatabase.CacheNewPaint(paint);
+                }
+            }
+            else
+            {
+                paint = fillBrush.ToSkiaPaint();
+            }
+
+            this.Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
         }
 
         /// <summary>
@@ -246,6 +312,7 @@ namespace CatUI.RenderingEngine
                     color,
                     PaintMode.Fill,
                     horizontalAlignment,
+                    0f,
                     out SKPaint? painter))
             {
                 painter = PaintDatabase.DefaultPainter.Clone();
@@ -272,11 +339,7 @@ namespace CatUI.RenderingEngine
             SKPoint drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
 
             StringBuilder sb = new StringBuilder();
-#if NET8_0_OR_GREATER
-            List<int> shyPositions = [];
-#else
             List<int> shyPositions = new List<int>();
-#endif
 
             bool hasNewLine = false;
             for (int i = 0; i < text.Length; i++)
@@ -336,8 +399,7 @@ namespace CatUI.RenderingEngine
                     else if (breakMode == TextBreakMode.SoftBreak)
                     {
                         int shyChar;
-                        //start from the second to last character, so the potential hyphen to fit the content and to not overflow
-                        for (shyChar = Math.Max(charsOnThisRow - 2, 0); shyChar > 0; shyChar--)
+                        for (shyChar = Math.Max(charsOnThisRow - 1, 0); shyChar > 0; shyChar--)
                         {
                             if (shyPositions.Contains(shyChar) || drawableText[shyChar] == ' ')
                             {

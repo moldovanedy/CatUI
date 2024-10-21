@@ -1,4 +1,5 @@
-﻿using CatUI.Data;
+﻿using System.Diagnostics;
+using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Elements;
@@ -23,9 +24,11 @@ namespace CatTest
 
         public const int EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE = 0x3450;
 
+        private static Window? window;
+
         private unsafe static void Main()
         {
-            Window window = new Window(800, 600, "Title", Window.WindowFlags.Default, Window.WindowMode.Windowed)
+            window = new Window(800, 600, "Title")
             {
                 MinHeight = 200,
                 MinWidth = 300,
@@ -34,6 +37,12 @@ namespace CatTest
                 Width = 800,
                 Height = 600,
             };
+
+            // Environment.SpecialFolder[] valuesArray = Enum.GetValues<Environment.SpecialFolder>();
+            // foreach (Environment.SpecialFolder value in valuesArray)
+            // {
+            //     Debug.WriteLine(value + ": " + Environment.GetFolderPath(value));
+            // }
 
             //string resourcePath = "/Assets/search_128px.png";
             //Asset? asset = AssetsManager.Load(Assembly.GetExecutingAssembly(), resourcePath);
@@ -91,7 +100,16 @@ namespace CatTest
                                 ),
                             ]),
                     ]);
+
+            window.RequestAnimationFrame(CallbackTest);
+
             window.Run();
+        }
+
+        private static void CallbackTest(double delta)
+        {
+            Debug.WriteLine(delta);
+            window?.RequestAnimationFrame(CallbackTest);
         }
     }
 }

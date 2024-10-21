@@ -66,11 +66,8 @@ namespace CatUI.Elements
         }
         private Color _background;
 
-#if NET8_0_OR_GREATER
-        private readonly Dictionary<string, Element> _cachedElements = [];
-#else
         private readonly Dictionary<string, Element> _cachedElements = new Dictionary<string, Element>();
-#endif
+
         public void DrawAllElements()
         {
             Root?.InvokeDraw();

@@ -6,6 +6,8 @@
     /// </summary>
     public readonly struct NumericKey
     {
+        public static NumericKey Zero => new NumericKey();
+
         private readonly ulong _low;
         private readonly ulong _high;
 

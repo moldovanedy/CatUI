@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CatUI.Data;
 using CatUI.Data.Enums;
 using SkiaSharp;
 
@@ -27,9 +28,11 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// <item>Byte 6: bit 0 is 0 for fill, 1 for stroke,
         /// bits 1-2 are 00 for align left, 01 for align center and 10 for align right</item>
         /// <item>Byte 7: the font used (max. 256)</item>
+        /// <item>Byte 8: fractional part of the stroke width (0-99)</item>
+        /// <item>Byte 9: whole part of the stroke width (0-255)</item>
         /// </list>
         /// </remarks>
-        private static readonly Dictionary<ulong, SKPaint> _paints = new Dictionary<ulong, SKPaint>();
+        private static readonly Dictionary<NumericKey, SKPaint> _paints = new Dictionary<NumericKey, SKPaint>();
 
         /// <summary>
         /// Searches the internal cache for a font paint to be used by Skia.
@@ -45,13 +48,14 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             SKColor color,
             PaintMode textPaintMode,
             HorizontalAlignmentType alignmentType,
+            float strokeWidth,
             out SKPaint? paint)
         {
             paint = null;
 
             //will only get the fractional part, multiply it by 100 (2 decimals) and then use it as the final byte
             //(converting to byte will leave only 2 decimals as a byte, as it's always between 0-99)
-            ulong searchedKey = (byte)(textSize % 1f * 100);
+            ulong searchedKeyLow = (byte)(textSize % 1f * 100);
 
             //the whole part must be less than 256, converting it to a ulong will remove the fractional part,
             //this will be the second byte
@@ -59,40 +63,81 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             {
                 return false;
             }
-            searchedKey |= ((ulong)textSize) << 8;
+            searchedKeyLow |= ((ulong)textSize) << 8;
 
             //the color
-            searchedKey |= (ulong)color.Red << 16;
-            searchedKey |= (ulong)color.Green << 24;
-            searchedKey |= (ulong)color.Blue << 32;
-            searchedKey |= (ulong)color.Alpha << 40;
+            searchedKeyLow |= (ulong)color.Red << 16;
+            searchedKeyLow |= (ulong)color.Green << 24;
+            searchedKeyLow |= (ulong)color.Blue << 32;
+            searchedKeyLow |= (ulong)color.Alpha << 40;
 
             //the paint mode
             if (textPaintMode == PaintMode.FillAndStroke)
             {
                 textPaintMode = PaintMode.Fill;
             }
-            searchedKey |= ((ulong)textPaintMode & 0b1) << 48;
+            searchedKeyLow |= ((ulong)textPaintMode & 0b1) << 48;
 
             //the alignment
             if (alignmentType == HorizontalAlignmentType.Stretch)
             {
                 alignmentType = HorizontalAlignmentType.Left;
             }
-            searchedKey |= ((ulong)(alignmentType - 1) & 0b11) << 49;
+            searchedKeyLow |= ((ulong)(alignmentType - 1) & 0b11) << 49;
 
-            return _paints.TryGetValue(searchedKey, out paint);
+            ulong searchedKeyHigh = 0;
+            if (strokeWidth > 0)
+            {
+                //will only get the fractional part, multiply it by 100 (2 decimals) and then use it as the final byte
+                //(converting to byte will leave only 2 decimals as a byte, as it's always between 0-99)
+                searchedKeyHigh = (byte)(strokeWidth % 1f * 100);
+
+                //the whole part must be less than 256, converting it to a ulong will remove the fractional part,
+                //this will be the second byte
+                if (strokeWidth >= 256f)
+                {
+                    return false;
+                }
+                searchedKeyHigh |= ((ulong)strokeWidth) << 8;
+            }
+
+            return _paints.TryGetValue(new NumericKey(searchedKeyLow, searchedKeyHigh), out paint);
         }
 
 
-        public static bool TryGetPaint(SKColor color, out SKPaint? paint)
+        public static bool TryGetPaint(SKColor color, PaintMode paintMode, float strokeWidth, out SKPaint? paint)
         {
-            ulong searchedKey = 0;
-            searchedKey |= (ulong)color.Red << 16;
-            searchedKey |= (ulong)color.Green << 24;
-            searchedKey |= (ulong)color.Blue << 32;
-            searchedKey |= (ulong)color.Alpha << 40;
-            return _paints.TryGetValue(searchedKey, out paint);
+            ulong searchedKeyLow = 0;
+            searchedKeyLow |= (ulong)color.Red << 16;
+            searchedKeyLow |= (ulong)color.Green << 24;
+            searchedKeyLow |= (ulong)color.Blue << 32;
+            searchedKeyLow |= (ulong)color.Alpha << 40;
+
+            //the paint mode
+            if (paintMode == PaintMode.FillAndStroke)
+            {
+                paintMode = PaintMode.Fill;
+            }
+            searchedKeyLow |= ((ulong)paintMode & 0b1) << 48;
+
+            ulong searchedKeyHigh = 0;
+            if (strokeWidth > 0)
+            {
+                //will only get the fractional part, multiply it by 100 (2 decimals) and then use it as the final byte
+                //(converting to byte will leave only 2 decimals as a byte, as it's always between 0-99)
+                searchedKeyHigh = (byte)(strokeWidth % 1f * 100);
+
+                //the whole part must be less than 256, converting it to a ulong will remove the fractional part,
+                //this will be the second byte
+                if (strokeWidth >= 256f)
+                {
+                    paint = null;
+                    return false;
+                }
+                searchedKeyHigh |= ((ulong)strokeWidth) << 8;
+            }
+
+            return _paints.TryGetValue(new NumericKey(searchedKeyLow, searchedKeyHigh), out paint);
         }
 
         /// <summary>
@@ -106,8 +151,8 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// <returns>True if the paint was valid or the paint was already cached, false if some parameters were invalid (such as the TextSize).</returns>
         public static bool CacheNewPaint(SKPaint paint)
         {
-            ulong newKey = GenerateKeyFromPaint(paint);
-            if (newKey == 0)
+            NumericKey newKey = GenerateKeyFromPaint(paint);
+            if (newKey == new NumericKey(0L, 0L))
             {
                 return false;
             }
@@ -125,7 +170,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
 
         public static void RemovePaint(SKPaint paint)
         {
-            ulong newKey = GenerateKeyFromPaint(paint);
+            NumericKey newKey = GenerateKeyFromPaint(paint);
             _paints.Remove(newKey);
         }
 
@@ -134,34 +179,50 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             _paints.Clear();
         }
 
-        private static ulong GenerateKeyFromPaint(SKPaint paint)
+        private static NumericKey GenerateKeyFromPaint(SKPaint paint)
         {
             //will only get the fractional part, multiply it by 100 (2 decimals) and then use it as the final byte
             //(converting to byte will leave only 2 decimals as a byte, as it's always between 0-99)
-            ulong newKey = (byte)(paint.TextSize % 1f * 100);
+            ulong newKeyLow = (byte)(paint.TextSize % 1f * 100);
 
             //the whole part must be less than 256, converting it to a ulong will remove the fractional part,
             //this will be the second byte
             if (paint.TextSize >= 256f)
             {
-                return 0;
+                return NumericKey.Zero;
             }
-            newKey |= ((ulong)paint.TextSize) << 8;
+            newKeyLow |= ((ulong)paint.TextSize) << 8;
 
             //the color
-            newKey |= (ulong)paint.Color.Red << 16;
-            newKey |= (ulong)paint.Color.Green << 24;
-            newKey |= (ulong)paint.Color.Blue << 32;
-            newKey |= (ulong)paint.Color.Alpha << 40;
+            newKeyLow |= (ulong)paint.Color.Red << 16;
+            newKeyLow |= (ulong)paint.Color.Green << 24;
+            newKeyLow |= (ulong)paint.Color.Blue << 32;
+            newKeyLow |= (ulong)paint.Color.Alpha << 40;
 
             //the paint mode
             PaintMode textPaintMode = paint.IsStroke ? PaintMode.Stroke : PaintMode.Fill;
-            newKey |= (ulong)textPaintMode << 48;
+            newKeyLow |= (ulong)textPaintMode << 48;
 
             //the alignment
-            newKey |= ((ulong)paint.TextAlign & 0b11) << 49;
+            newKeyLow |= ((ulong)paint.TextAlign & 0b11) << 49;
 
-            return newKey;
+            ulong newKeyHigh = 0;
+            if (paint.StrokeWidth > 0)
+            {
+                //will only get the fractional part, multiply it by 100 (2 decimals) and then use it as the final byte
+                //(converting to byte will leave only 2 decimals as a byte, as it's always between 0-99)
+                newKeyHigh = (byte)(paint.StrokeWidth % 1f * 100);
+
+                //the whole part must be less than 256, converting it to a ulong will remove the fractional part,
+                //this will be the second byte
+                if (paint.StrokeWidth >= 256f)
+                {
+                    return NumericKey.Zero;
+                }
+                newKeyHigh |= ((ulong)paint.StrokeWidth) << 8;
+            }
+
+            return new NumericKey(newKeyLow, newKeyHigh);
         }
     }
 }
