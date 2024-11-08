@@ -1,21 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CatUI.Data;
-using CatUI.Elements.Styles;
+using CatUI.Data.Enums;
+using CatUI.Elements.Themes.Text;
 
 namespace CatUI.Elements.Text
 {
     public abstract class TextElement : Element
     {
-        public new TextElementStyle Style { get; set; } = new TextElementStyle();
         public string Text { get; set; } = string.Empty;
-        public Dimension FontSize { get; set; } = new Dimension(16);
+        public bool WordWrap { get; set; } = true;
+        public TextOverflowMode TextOverflowMode { get; set; } = TextOverflowMode.Ellipsis;
+
+        public TextElement(string text)
+        {
+            Text = text;
+        }
 
         public TextElement(
             string text,
-            Dimension fontSize = default(Dimension),
+            TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
+            bool wordWrap = true,
             UIDocument? doc = null,
             List<Element>? children = null,
-            TextElementStyle? style = null,
+            Dictionary<string, TextElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
             Dimension? width = null,
             Dimension? height = null,
@@ -34,20 +42,47 @@ namespace CatUI.Elements.Text
                  maxWidth: maxWidth)
         {
             Text = text;
-            if (fontSize.IsUnset())
-            {
-                fontSize = new Dimension(16);
-            }
-            FontSize = fontSize;
+            WordWrap = wordWrap;
 
-            if (style != null)
+            if (themeOverrides != null)
             {
-                Style = style;
+                base.SetElementThemeOverrides<TextElementThemeData>(themeOverrides);
             }
-            else
+
+            TextOverflowMode = textOverflowMode;
+        }
+
+        public TextElement SetInitialText(string text)
+        {
+            if (IsInstantiated)
             {
-                Style = new TextElementStyle();
+                throw new Exception("Element is already instantiated, use direct properties instead");
             }
+
+            Text = text;
+            return this;
+        }
+
+        public TextElement SetInitialWordWrap(bool wordWrap)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            WordWrap = wordWrap;
+            return this;
+        }
+
+        public TextElement SetInitialTextOverflowMode(TextOverflowMode overflowMode)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            TextOverflowMode = overflowMode;
+            return this;
         }
     }
 }

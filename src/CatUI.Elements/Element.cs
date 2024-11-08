@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CatUI.Data;
 using CatUI.Data.Enums;
-using CatUI.Elements.Styles;
+using CatUI.Elements.Themes;
 
 namespace CatUI.Elements
 {
@@ -25,7 +25,10 @@ namespace CatUI.Elements
         public event Action? PointerExitEvent;
         public event Action? PointerMoveEvent;
 
-        public ElementStyle Style { get; set; } = new ElementStyle();
+        public const string STYLE_NORMAL = "normal";
+        public const string STYLE_HOVER = "hover";
+        private Dictionary<string, ElementThemeData> _themeOverrides = new Dictionary<string, ElementThemeData>();
+
         public Dimension2 Position
         {
             get
@@ -200,16 +203,13 @@ namespace CatUI.Elements
         public bool IsInternal { get; private set; } = false;
         public UIDocument? Document { get; private set; }
 
+        protected bool IsInstantiated { get; private set; } = false;
         private Element? _parent;
 
         /// <summary>
         /// Contains a list of all children (public and internal).
         /// </summary>
-#if NET8_0_OR_GREATER
-        private readonly List<Element> _children = [];
-#else
         private readonly List<Element> _children = new List<Element>();
-#endif
 
         /// <summary>
         /// It's a cache of public children only.
@@ -224,7 +224,7 @@ namespace CatUI.Elements
         public Element(
             UIDocument? doc = null,
             List<Element>? children = null,
-            ElementStyle? style = null,
+            Dictionary<string, ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
             Dimension? width = null,
             Dimension? height = null,
@@ -236,29 +236,43 @@ namespace CatUI.Elements
             Init();
             this.Document = doc;
 
-            if (style != null)
+            if (themeOverrides != null)
             {
-                this.Style = style;
+                SetInitialThemeOverrides(themeOverrides);
             }
-            else
+            if (position != null)
             {
-                this.Style = new ElementStyle();
+                SetInitialPosition(position ?? new Dimension2(0, 0));
             }
-
-            Position = position ?? new Dimension2(0, 0);
-            Width = width ?? new Dimension(0);
-            Height = height ?? new Dimension(0);
-            MinHeight = minHeight ?? Dimension.Unset;
-            MinWidth = minWidth ?? Dimension.Unset;
-            MaxHeight = maxHeight ?? Dimension.Unset;
-            MaxWidth = maxWidth ?? Dimension.Unset;
+            if (width != null)
+            {
+                SetInitialWidth(width ?? new Dimension(0));
+            }
+            if (height != null)
+            {
+                SetInitialHeight(height ?? new Dimension(0));
+            }
+            if (minHeight != null)
+            {
+                SetInitialMinHeight(minHeight ?? Dimension.Unset);
+            }
+            if (minWidth != null)
+            {
+                SetInitialMinWidth(minWidth ?? Dimension.Unset);
+            }
+            if (maxHeight != null)
+            {
+                SetInitialMaxHeight(maxHeight ?? Dimension.Unset);
+            }
+            if (maxWidth != null)
+            {
+                SetInitialMaxWidth(maxWidth ?? Dimension.Unset);
+            }
+            Instantiate();
 
             if (children != null)
             {
-                foreach (Element child in children)
-                {
-                    AddChild(child);
-                }
+                AddChildren(children);
             }
         }
 
@@ -286,6 +300,147 @@ namespace CatUI.Elements
 
             Document = null;
             _parent = null;
+        }
+
+        /// <summary>
+        /// Sets the document of this element and all its children. It should generally be called only for elements
+        /// that will have children at creation time.
+        /// Will not actually add the element to the document 
+        /// (see <see cref="AddChild(Element, bool)"/> or <see cref="AddChildren(List{Element}, bool)"/>).
+        /// </summary>
+        /// <remarks>
+        /// If the element already belongs to a document, this will remove the element, along with all its children, 
+        /// then add this element along with its previous children to the specified document.
+        /// </remarks>
+        /// <param name="document">The document to which this element should be added</param>
+        public Element SetDocument(UIDocument document)
+        {
+            if (Document != null && Document != document)
+            {
+                GetParent()?.RemoveChild(this);
+            }
+
+            Document = document;
+            for (int i = 0; i < _children.Count; i++)
+            {
+                _children[i].SetDocument(document);
+            }
+            return this;
+        }
+
+        public Element SetInitialThemeOverrides<T>(Dictionary<string, T> themeOverrides) where T : ElementThemeData, new()
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            SetElementThemeOverrides(themeOverrides);
+            return this;
+        }
+
+        public Element SetInitialPosition(Dimension2 position)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _position = position;
+            return this;
+        }
+
+        public Element SetInitialWidth(Dimension width)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _width = width;
+            return this;
+        }
+
+        public Element SetInitialHeight(Dimension height)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _height = height;
+            return this;
+        }
+
+        public Element SetInitialMinWidth(Dimension minWidth)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _minWidth = minWidth;
+            return this;
+        }
+
+        public Element SetInitialMinHeight(Dimension minHeight)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _minHeight = minHeight;
+            return this;
+        }
+
+        public Element SetInitialMaxWidth(Dimension maxWidth)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _maxWidth = maxWidth;
+            return this;
+        }
+
+        public Element SetInitialMaxHeight(Dimension maxHeight)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _maxHeight = maxHeight;
+            return this;
+        }
+
+        /// <summary>
+        /// This sets up the element for the eventual addition to the document tree. If the document is set, 
+        /// this will automatically add the element to the document.
+        /// </summary>
+        /// <remarks>
+        /// Always call this before setting the children. Otherwise, you will get an exception in <see cref="SetChildren(Element[])"/>.
+        /// This method does not act on already added children.
+        /// Calling this method more than once will not have any effect.
+        /// </remarks>
+        /// <returns>The element itself.</returns>
+        public virtual Element Instantiate()
+        {
+            if (IsInstantiated)
+            {
+                return this;
+            }
+
+            IsInstantiated = true;
+            RecalculateBounds();
+
+            if (Document != null)
+            {
+                GetParent()?.AddChild(this);
+            }
+            return this;
         }
 
         #region Internal invoke
@@ -398,11 +553,7 @@ namespace CatUI.Elements
             {
                 if (_cachedPublicChildren == null)
                 {
-#if NET8_0_OR_GREATER
-                    _cachedPublicChildren = [child];
-#else
                     _cachedPublicChildren = new List<Element>() { child };
-#endif
                 }
                 else
                 {
@@ -415,11 +566,35 @@ namespace CatUI.Elements
             child.InvokeEnterDocument();
         }
 
-        public void AddChildren(List<Element> children, bool areInternal = false)
+        public void AddChildren(params Element[] children)
         {
             foreach (Element child in children)
             {
-                AddChild(child, areInternal);
+                AddChild(child);
+            }
+        }
+
+        public void AddChildren(List<Element> children)
+        {
+            foreach (Element child in children)
+            {
+                AddChild(child);
+            }
+        }
+
+        public void AddInternalChildren(params Element[] children)
+        {
+            foreach (Element child in children)
+            {
+                AddChild(child, true);
+            }
+        }
+
+        public void AddInternalChildren(List<Element> children)
+        {
+            foreach (Element child in children)
+            {
+                AddChild(child);
             }
         }
 
@@ -514,9 +689,10 @@ namespace CatUI.Elements
                 _cachedPublicChildren?.Remove(child);
             }
 
-            child.SetParent(null);
+            child._parent = null;
             child.Document = null;
             child.InvokeExitDocument();
+            child.RemoveAllChildren();
         }
 
         public void RemoveAllChildren()
@@ -526,6 +702,7 @@ namespace CatUI.Elements
                 child.SetParent(null);
                 child.Document = null;
                 child.InvokeExitDocument();
+                child.RemoveAllChildren();
             }
             _children.Clear();
             _cachedPublicChildren = null;
@@ -541,6 +718,59 @@ namespace CatUI.Elements
             return Document != null;
         }
 
+        public ElementThemeData? GetElementThemeOverride(string state)
+        {
+            _themeOverrides.TryGetValue(state, out ElementThemeData? themeOverride);
+            return themeOverride;
+        }
+
+        public T? GetElementThemeOverride<T>(string state) where T : ThemeData, new()
+        {
+            _themeOverrides.TryGetValue(state, out ElementThemeData? themeOverride);
+            if (themeOverride is T castedTheme)
+            {
+                return castedTheme;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public T GetElementThemeOverrideOrDefault<T>(string state) where T : ThemeData, new()
+        {
+            _themeOverrides.TryGetValue(state, out ElementThemeData? themeOverride);
+            if (themeOverride is T castedTheme)
+            {
+                return castedTheme;
+            }
+            else
+            {
+                return new T();
+            }
+        }
+
+        public void SetElementThemeOverride(string state, ElementThemeData themeOverride)
+        {
+            _themeOverrides[state] = themeOverride;
+        }
+
+        public void SetElementThemeOverrides(Dictionary<string, ElementThemeData> themeOverrides)
+        {
+            _themeOverrides = themeOverrides;
+        }
+
+        public void SetElementThemeOverrides<T>(Dictionary<string, T> themeOverrides) where T : ElementThemeData, new()
+        {
+            foreach (string state in themeOverrides.Keys)
+            {
+                if (themeOverrides.TryGetValue(state, out T? themeData))
+                {
+                    _themeOverrides[state] = themeData;
+                }
+            }
+        }
+
         /// <summary>
         /// Will return the actual pixel value of the given dimension.
         /// </summary>
@@ -553,7 +783,7 @@ namespace CatUI.Elements
         /// If dimension is unset, this method returns 0.
         /// </remarks>
         /// <returns>The pixel value of the given dimension.</returns>
-        public float CalculateDimension(Dimension dimension, float pixelDimensionForPercent = 0)
+        public int CalculateDimension(Dimension dimension, float pixelDimensionForPercent = 0)
         {
             if (dimension.IsUnset())
             {
@@ -565,8 +795,7 @@ namespace CatUI.Elements
                 default:
                 case Unit.Dp:
                     {
-                        //TODO: get the screen DPI
-                        return (int)dimension.Value;
+                        return (int)(dimension.Value * (Document?.ContentScale ?? 1));
                     }
                 case Unit.Pixels:
                     {
@@ -605,7 +834,7 @@ namespace CatUI.Elements
         {
             this.Document?.Renderer?.DrawRect(
                 this.Bounds.GetContentBox(),
-                Style.Background
+                _themeOverrides.GetValueOrDefault(Element.STYLE_NORMAL, new ElementThemeData("")).Background
                 );
         }
         #endregion //Visual
@@ -618,21 +847,6 @@ namespace CatUI.Elements
             }
 
             _parent = parent;
-        }
-
-        /// <summary>
-        /// Sets the document of this element and all its children.
-        /// Should only be called from <see cref="UIDocument"/> when <see cref="UIDocument.Root"/> is changed.
-        /// </summary>
-        /// <param name="document"></param>
-        internal void SetDocument(UIDocument document)
-        {
-            Document = document;
-
-            foreach (Element child in _children)
-            {
-                child.SetDocument(document);
-            }
         }
 
         private void DrawChildren()

@@ -6,7 +6,7 @@ namespace CatUI.Data
     /// Represents the bounds of an element in device pixels, including the margins and padding.
     /// </summary>
     /// <remarks>
-    /// It's not axis-aligned, meaning that the actual display might be differrent if the element is a child of a TransformControl.
+    /// It's not axis-aligned, meaning that the actual display might be different if the element is a child of a TransformControl.
     /// </remarks>
     public class ElementBounds : ICloneable
     {
@@ -42,6 +42,20 @@ namespace CatUI.Data
         /// in the following order: top, right, bottom, left.
         /// </summary>
         public float[] Margins { get; private set; } = new float[4];
+
+        public override string ToString()
+        {
+            string paddingText = "(", marginText = "(";
+            for (int i = 0; i < 4; i++)
+            {
+                paddingText += Paddings[i] + ", ";
+                marginText += Margins[i] + ", ";
+            }
+            paddingText += ')';
+            marginText += ')';
+
+            return $"{{O:{StartPoint}, W:{Width}, H:{Height}, Pad:{paddingText}, Margin:{marginText}}}";
+        }
 
         /// <summary>
         /// Will deep clone the given element. This will also clone the margins and paddings.

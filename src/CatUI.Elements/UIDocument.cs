@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CatUI.Data;
 using CatUI.RenderingEngine;
@@ -25,6 +26,7 @@ namespace CatUI.Elements
                 {
                     wasDifferentElement = true;
                     _root?.InvokeExitDocument();
+                    _root?.RemoveAllChildren();
                 }
 
                 _root = value;
@@ -37,6 +39,7 @@ namespace CatUI.Elements
             }
         }
         private Element? _root;
+
         public Size ViewportSize
         {
             get
@@ -50,8 +53,10 @@ namespace CatUI.Elements
             }
         }
         private Size _viewportSize;
+
         public Renderer Renderer { get; private set; } = new Renderer();
         public int ElementCacheSize { get; set; } = 4096;
+
         public Color BackgroundColor
         {
             get
@@ -65,6 +70,20 @@ namespace CatUI.Elements
             }
         }
         private Color _background;
+
+        public float ContentScale
+        {
+            get
+            {
+                return _contentScale;
+            }
+            set
+            {
+                _contentScale = value;
+                Renderer.SetContentScale(value);
+            }
+        }
+        private float _contentScale = 1f;
 
         private readonly Dictionary<string, Element> _cachedElements = new Dictionary<string, Element>();
 
@@ -111,7 +130,7 @@ namespace CatUI.Elements
                 {
                     if (_cachedElements.Count <= ElementCacheSize)
                     {
-                        _cachedElements.Add(child.Name, child);
+                        CacheElement(child.Name, child);
                     }
 
                     return child;

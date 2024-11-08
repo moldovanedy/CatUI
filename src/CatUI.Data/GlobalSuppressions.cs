@@ -5,4 +5,5 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>", Scope = "member", Target = "~M:CatUI.Data.CatUInt128.#ctor(System.UInt64,System.UInt64)")]
+[assembly: SuppressMessage("Style", "IDE0028:Simplify collection initialization", Justification = "Using .NET6, which does not support this")]
+[assembly: SuppressMessage("Style", "IDE0002:Simplify member access")]

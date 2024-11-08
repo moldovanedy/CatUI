@@ -18,50 +18,76 @@ namespace CatUI.RenderingEngine
         /// </summary>
         public static ushort NumberOfLoadedAssetFiles { get; private set; }
 
-        private static Dictionary<string, Asset> CachedAssets { get; } = new Dictionary<string, Asset>();
+        private static readonly Dictionary<string, Asset> _cachedAssets = new Dictionary<string, Asset>();
         /// <summary>
         /// Represent the actual asset paths, the value is composed of most significant 2 bytes
-        /// which are an index in the <see cref="AssetFilesPaths"/> and a 6 byte position of the
+        /// which are an index in the <see cref="_assetFilesPaths"/> and a 6 byte position of the
         /// asset data beginning in the file.
         /// </summary>
-        private static Dictionary<string, ulong> AssetPaths { get; } = new Dictionary<string, ulong>();
-        private static List<string> AssetFilesPaths { get; } = new List<string>();
+        private static readonly Dictionary<string, ulong> _assetPaths = new Dictionary<string, ulong>();
+        private static readonly List<string> _assetFilesPaths = new List<string>();
+        private static readonly List<Assembly> _assemblies = new List<Assembly>();
 
         /// <summary>
-        /// Loads an asset from the given assembly, specified by the asset path that is always relative to the "Assets" folder.
+        /// Marks the given assembly as an "asset assembly", meaning that the methods specific for asset loading from assembly
+        /// will look into this assembly for the specified asset (those assemblies are kept in a list to make loading faster).
+        /// </summary>
+        /// <param name="assembly">The assembly to add. See the static methods of <see cref="Assembly"/> for more information.</param>
+        /// <returns>True if the method succeeded, false otherwise.</returns>
+        public static bool AddAssetAssembly(Assembly assembly)
+        {
+            if (assembly == null)
+            {
+                return false;
+            }
+            if (_assemblies.Contains(assembly))
+            {
+                return false;
+            }
+
+            _assemblies?.Add(assembly);
+            return true;
+        }
+
+        /// <summary>
+        /// Loads an asset from the assembly of the given type, specified by the asset path that is always relative to the "Assets" folder.
         /// All the files must be set as "Embedded resource" in order to be retrievable.
         /// </summary>
         /// <remarks>
-        /// Because of the complexity of setting each file as "Embedded resource" and getting the right assembly to load assets from,
-        /// it is recommended to use .dat files for resources, together with methods like
+        /// You can also use .dat files for resources, together with methods like
         /// <see cref="LoadAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, AsyncRef{long})"/>
         /// for efficient asset handling.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
-        /// <param name="mainAssembly">
-        /// A reference to the assembly that holds the resources, usually retrieved from
-        /// <see cref="Assembly.GetExecutingAssembly()"/>, but this is not always the case.
-        /// </param>
         /// <param name="assetPath">The path of the assembly, always beginning with "/Assets"</param>
+        /// <param name="classFromAssembly">
+        /// A class type from the desired assembly. This will try to get the assembly by using <see cref="Assembly.GetAssembly(Type)"/>
+        /// on the given type.
+        /// </param>
         /// <param name="shouldCache">
         /// If true, will hold a reference to the asset internally, so subsequent calls
         /// will return the asset much faster.
         /// </param>
         /// <returns>The asset from the specified path if one was found, null otherwise.</returns>
-        public static T? LoadFromAssembly<T>(Assembly mainAssembly, string assetPath, bool shouldCache = true) where T : Asset, new()
+        public static T? LoadFromAssembly<T>(string assetPath, Type classFromAssembly, bool shouldCache = true)
+            where T : Asset, new()
         {
-            if (CachedAssets.TryGetValue(assetPath, out Asset? asset))
+            if (_cachedAssets.TryGetValue(assetPath, out Asset? asset))
             {
                 return (T)asset;
+            }
+
+            Assembly? mainAssembly = Assembly.GetAssembly(classFromAssembly);
+            if (mainAssembly == null)
+            {
+                return null;
             }
 
             assetPath = assetPath.Replace('/', '.');
             string asmName = mainAssembly.GetName().ToString();
             asmName = asmName.Split(',')[0];
 
-            Stream? fs =
-                mainAssembly
-                    .GetManifestResourceStream($"{asmName}{assetPath}");
+            Stream? fs = mainAssembly.GetManifestResourceStream($"{asmName}{assetPath}");
             if (fs == null)
             {
                 return null;
@@ -71,10 +97,60 @@ namespace CatUI.RenderingEngine
             finalAsset.LoadFromRawData(fs);
             if (shouldCache)
             {
-                CachedAssets.Add(assetPath, finalAsset);
+                _cachedAssets.Add(assetPath, finalAsset);
             }
 
             return finalAsset;
+        }
+
+        /// <summary>
+        /// Loads an asset from one of the loaded "asset assemblies", which can incur a small performance penalty when you have
+        /// a lot of loaded asset assemblies (see <see cref="AddAssetAssembly(Assembly)"/>).
+        /// All the files must be set as "Embedded resource" in order to be retrievable.
+        /// </summary>
+        /// <remarks>
+        /// You can also use .dat files for resources, together with methods like
+        /// <see cref="LoadAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, AsyncRef{long})"/>
+        /// for efficient asset handling.
+        /// </remarks>
+        /// <typeparam name="T">The type of asset desired.</typeparam>
+        /// <param name="assetPath">The path of the assembly, always beginning with "/Assets"</param>
+        /// <param name="shouldCache">
+        /// If true, will hold a reference to the asset internally, so subsequent calls
+        /// will return the asset much faster.
+        /// </param>
+        /// <returns>The asset from the specified path if one was found, null otherwise.</returns>
+        public static T? LoadFromAssembly<T>(string assetPath, bool shouldCache = true)
+            where T : Asset, new()
+        {
+            if (_cachedAssets.TryGetValue(assetPath, out Asset? asset))
+            {
+                return (T)asset;
+            }
+
+            foreach (Assembly asm in _assemblies)
+            {
+                assetPath = assetPath.Replace('/', '.');
+                string asmName = asm.GetName().ToString();
+                asmName = asmName.Split(',')[0];
+
+                Stream? fs = asm.GetManifestResourceStream($"{asmName}{assetPath}");
+                if (fs == null)
+                {
+                    return null;
+                }
+
+                T finalAsset = new T();
+                finalAsset.LoadFromRawData(fs);
+                if (shouldCache)
+                {
+                    _cachedAssets.Add(assetPath, finalAsset);
+                }
+
+                return finalAsset;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -94,7 +170,7 @@ namespace CatUI.RenderingEngine
         /// <returns>The task containing an asset from the specified path if one was found, a task containing null otherwise.</returns>
         public static async Task<T?> LoadAsync<T>(string path, bool shouldCache = true) where T : Asset, new()
         {
-            if (CachedAssets.TryGetValue(path, out Asset? asset))
+            if (_cachedAssets.TryGetValue(path, out Asset? asset))
             {
                 return (T)asset;
             }
@@ -124,7 +200,7 @@ namespace CatUI.RenderingEngine
             finalAsset.LoadFromRawData(assetRawData);
             if (shouldCache)
             {
-                CachedAssets.Add(path, finalAsset);
+                _cachedAssets.Add(path, finalAsset);
             }
             return finalAsset;
         }
@@ -148,18 +224,18 @@ namespace CatUI.RenderingEngine
         /// <returns>A FileStream configured as specified above if the asset was found, null otherwise.</returns>
         public static FileStream? GetAssetFileStream(string path, AsyncRef<long> endPosition)
         {
-            if (!AssetPaths.TryGetValue(path, out ulong value))
+            if (!_assetPaths.TryGetValue(path, out ulong value))
             {
                 return null;
             }
 
             int fileIndex = (int)(value >> 48);
-            if (AssetFilesPaths.Count < fileIndex)
+            if (_assetFilesPaths.Count < fileIndex)
             {
                 return null;
             }
 
-            FileStream fs = new FileStream(AssetFilesPaths[fileIndex], FileMode.Open, FileAccess.Read);
+            FileStream fs = new FileStream(_assetFilesPaths[fileIndex], FileMode.Open, FileAccess.Read);
             long position = (long)(value & 0xff_ff_ff_ff_ff_ff);
             fs.Seek(position, SeekOrigin.Begin);
 
@@ -356,7 +432,7 @@ namespace CatUI.RenderingEngine
                     ulong savedValue = (ulong)NumberOfLoadedAssetFiles << 48;
                     savedValue |= (ulong)BinaryUtils.ConvertBytesToLong(assetPositionRaw, 0) & 0xff_ff_ff_ff_ff_ff;
 
-                    AssetPaths.Add(
+                    _assetPaths.Add(
                         Encoding.UTF8.GetString(assetPathRaw),
                         savedValue);
                     assetPathRaw = null;

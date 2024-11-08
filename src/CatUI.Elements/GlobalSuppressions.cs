@@ -5,4 +5,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor", Justification = "<Pending>", Scope = "member", Target = "~M:CatUI.Elements.Text.TextElement.#ctor(System.String,CatUI.Data.Color,CatUI.Data.Color,CatUI.Elements.UIDocument,System.Collections.Generic.List{CatUI.Elements.Element},System.Nullable{CatUI.Data.Dimension2},System.Nullable{CatUI.Data.Dimension},System.Nullable{CatUI.Data.Dimension},System.Nullable{CatUI.Data.Dimension},System.Nullable{CatUI.Data.Dimension},System.Nullable{CatUI.Data.Dimension},System.Nullable{CatUI.Data.Dimension})")]
+[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor")]
+[assembly: SuppressMessage("Style", "IDE0028:Simplify collection initialization", Justification = "Using .NET6, which does not support this")]
+[assembly: SuppressMessage("Style", "IDE0002:Simplify member access")]

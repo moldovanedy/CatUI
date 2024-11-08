@@ -24,4 +24,24 @@
         Stroke = 1,
         FillAndStroke = 2,
     }
+
+    public enum TextOverflowMode
+    {
+        /// <summary>
+        /// When the text reaches the element's size limits, it will end the displayed text with an \u2026
+        /// (horizontal ellipsis, similar to "...") or a custom string if the element allows it,
+        /// even if that ellipsis will overflow (will only happen when the given space is too small, for example 15px, which will
+        /// only display the ellipsis instead of other text).
+        /// </summary>
+        Ellipsis = 0,
+        /// <summary>
+        /// The text will appear as if it continues to render beyond the element's size limit, but it is clipped and might show only portions
+        /// of characters.
+        /// </summary>
+        Clip = 1,
+        /// <summary>
+        /// The text will not account for the element's size and overflow the element and possibly only be clipped by the surface's size.
+        /// </summary>
+        Overflow = 2,
+    }
 }

@@ -5,7 +5,7 @@ using SkiaSharp;
 
 namespace CatUI.RenderingEngine.GraphicsCaching
 {
-    public static class PaintDatabase
+    public static class PaintCache
     {
         public static SKPaint DefaultPainter { get; } = new SKPaint()
         {
@@ -20,11 +20,11 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// Use the "TryGet" methods of this class to get a paint to be used in Skia.
         /// </summary>
         /// <remarks>
-        /// For the numeric key, the usage is as follows (from most significant bits to least significant bits):
+        /// For the numeric key, the usage is as follows (from least significant bits to most significant bits):
         /// <list type="bullet">
         /// <item>Byte 0: fractional part of the font size (0-99)</item>
         /// <item>Byte 1: whole part of the font size (0-255)</item>
-        /// <item>Bytes 2-5: fill (paint) color (RGBA as big-endian, so R is 5th byte, G is 4th etc.)</item>
+        /// <item>Bytes 2-5: fill (paint) color (RGBA as little-endian, so R is 2nd byte, G is 3rd etc.)</item>
         /// <item>Byte 6: bit 0 is 0 for fill, 1 for stroke,
         /// bits 1-2 are 00 for align left, 01 for align center and 10 for align right</item>
         /// <item>Byte 7: the font used (max. 256)</item>
@@ -170,8 +170,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
 
         public static void RemovePaint(SKPaint paint)
         {
-            NumericKey newKey = GenerateKeyFromPaint(paint);
-            _paints.Remove(newKey);
+            _paints.Remove(GenerateKeyFromPaint(paint));
         }
 
         public static void PurgeCache()

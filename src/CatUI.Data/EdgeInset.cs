@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CatUI.Data
 {
@@ -13,6 +14,7 @@ namespace CatUI.Data
     public struct EdgeInset
     {
         public EdgeInset() { }
+
         public EdgeInset(Dimension dimension)
         {
             Top = dimension;
@@ -20,6 +22,16 @@ namespace CatUI.Data
             Bottom = dimension;
             Left = dimension;
         }
+
+        public EdgeInset(string literal)
+        {
+            EdgeInset inset = literal;
+            Top = inset.Top;
+            Right = inset.Right;
+            Bottom = inset.Bottom;
+            Left = inset.Left;
+        }
+
         public EdgeInset(Dimension topBottom, Dimension leftRight)
         {
             Top = topBottom;
@@ -27,6 +39,7 @@ namespace CatUI.Data
             Left = leftRight;
             Right = leftRight;
         }
+
         public EdgeInset(Dimension top, Dimension right, Dimension bottom, Dimension left)
         {
             Top = top;
@@ -73,9 +86,35 @@ namespace CatUI.Data
             return this == (EdgeInset)obj;
         }
 
+        public static implicit operator EdgeInset(string literal)
+        {
+            string[] substrings = literal.Split(' ');
+            if (substrings.Length == 1)
+            {
+                return new EdgeInset(substrings[0]);
+            }
+            else if (substrings.Length == 2)
+            {
+                return new EdgeInset(substrings[0], substrings[1]);
+            }
+            else if (substrings.Length == 4)
+            {
+                return new EdgeInset(substrings[0], substrings[1], substrings[2], substrings[3]);
+            }
+            else
+            {
+                throw new FormatException($"Couldn't parse the \"{literal}\" EdgeInset literal");
+            }
+        }
+
         public override readonly int GetHashCode()
         {
             return System.HashCode.Combine(this.Top, this.Right, this.Bottom, this.Left);
+        }
+
+        public override readonly string ToString()
+        {
+            return $"({Top}, {Right}, {Bottom}, {Left})";
         }
     }
 }

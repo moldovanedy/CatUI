@@ -26,6 +26,11 @@ namespace CatUI.Data
             Height = height;
         }
 
+        public override readonly string ToString()
+        {
+            return $"{{X: {X}, Y: {Y}, W:{Width}, H:{Height}}}";
+        }
+
         public readonly float CenterX
         {
             get

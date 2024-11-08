@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using CatUI.Data;
 using CatUI.Data.Enums;
-using CatUI.Elements.Styles;
+using CatUI.Elements.Themes.Text;
 
 namespace CatUI.Elements.Text
 {
@@ -16,14 +18,16 @@ namespace CatUI.Elements.Text
         {
             DrawEvent += PrivateDraw;
         }
+
         public Label(
             string text,
-            Dimension fontSize,
             HorizontalAlignmentType horizontalAlignment = HorizontalAlignmentType.Left,
             VerticalAlignmentType verticalAlignment = VerticalAlignmentType.Top,
+            bool wordWrap = true,
+            TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
             UIDocument? doc = null,
             List<Element>? children = null,
-            TextElementStyle? style = null,
+            Dictionary<string, LabelThemeData>? themeOverrides = null,
             Dimension2? position = null,
             Dimension? width = null,
             Dimension? height = null,
@@ -32,9 +36,10 @@ namespace CatUI.Elements.Text
             Dimension? maxHeight = null,
             Dimension? maxWidth = null) :
             base(text: text,
+                 wordWrap: wordWrap,
+                 textOverflowMode: textOverflowMode,
                  doc: doc,
                  children: children,
-                 style: style,
                  position: position,
                  width: width,
                  height: height,
@@ -45,14 +50,62 @@ namespace CatUI.Elements.Text
         {
             DrawEvent += PrivateDraw;
 
-            FontSize = fontSize;
             HorizontalAlignment = horizontalAlignment;
             VerticalAlignment = verticalAlignment;
+
+            if (themeOverrides != null)
+            {
+                base.SetElementThemeOverrides<LabelThemeData>(themeOverrides);
+            }
         }
 
         ~Label()
         {
             DrawEvent -= PrivateDraw;
+        }
+
+        public Label SetInitialHorizontalAlignment(HorizontalAlignmentType horizontalAlignment)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            HorizontalAlignment = horizontalAlignment;
+            return this;
+        }
+
+        public Label SetInitialVerticalAlignment(VerticalAlignmentType verticalAlignment)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            VerticalAlignment = verticalAlignment;
+            return this;
+        }
+
+        public Label SetInitialTextBreakMode(TextBreakMode textBreakMode)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            TextBreakMode = textBreakMode;
+            return this;
+        }
+
+        public Label SetInitialHyphenCharacter(char hyphenCharacter)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            HyphenCharacter = hyphenCharacter;
+            return this;
         }
 
         private void PrivateDraw()
@@ -87,27 +140,43 @@ namespace CatUI.Elements.Text
                 new float[4],
                 new float[4]);
 
-            Point2D rowPosition = this.Bounds.StartPoint;
-            int charactersDrawn = 0;
-            while (charactersDrawn < Text.Length)
+            LabelThemeData currentTheme = base.GetElementThemeOverrideOrDefault<LabelThemeData>(Label.STYLE_NORMAL);
+            if (WordWrap)
             {
-                int thisRowChars =
-                    base.Document?.Renderer?.DrawTextRow(
-                        //TODO: find ways to optimize this
-                        Text.Substring(charactersDrawn),
-                        rowPosition,
-                        FontSize,
-                        size,
-                        base.Style.TextColor,
-                        HorizontalAlignment,
-                        TextBreakMode,
-                        HyphenCharacter) ??
-                    1;
-                charactersDrawn += thisRowChars;
-                rowPosition = new Point2D(
-                    rowPosition.X,
-                    rowPosition.Y +
-                    (this.Document?.Renderer?.CalculateDimension(FontSize) ?? 0));
+                Point2D rowPosition = this.Bounds.StartPoint;
+                int charactersDrawn = 0;
+                while (charactersDrawn < Text.Length)
+                {
+
+                    int thisRowChars =
+                        base.Document?.Renderer?.DrawTextRow(
+                            //TODO: find ways to optimize this, preferably inside the rendering engine
+                            Text.Substring(charactersDrawn),
+                            rowPosition,
+                            currentTheme.FontSize,
+                            size,
+                            currentTheme.TextColor,
+                            HorizontalAlignment,
+                            TextBreakMode,
+                            HyphenCharacter) ??
+                        1;
+                    charactersDrawn += thisRowChars;
+                    rowPosition = new Point2D(
+                        rowPosition.X,
+                        rowPosition.Y +
+                        CalculateDimension(currentTheme.FontSize));
+                }
+            }
+            else
+            {
+                base.Document?.Renderer?.DrawTextRow(
+                    text: Text,
+                    topLeftPoint: this.Bounds.StartPoint,
+                    fontSize: currentTheme.FontSize,
+                    elementSize: size,
+                    color: base.GetElementThemeOverrideOrDefault<LabelThemeData>(Label.STYLE_NORMAL).TextColor,
+                    horizontalAlignment: HorizontalAlignment,
+                    overflowMode: base.TextOverflowMode);
             }
         }
     }

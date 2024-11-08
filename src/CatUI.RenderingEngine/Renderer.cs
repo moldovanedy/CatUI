@@ -30,6 +30,12 @@ namespace CatUI.RenderingEngine
         private int _framebufferBinding = 0;
         private int _stencilBits = 0;
         private int _samples = 0;
+        private float _scale = 1;
+
+        public void SetContentScale(float scale)
+        {
+            _scale = scale;
+        }
 
         public void SetFramebufferData(int fbBinding, int stencilBits, int samples)
         {
@@ -122,38 +128,31 @@ namespace CatUI.RenderingEngine
             IsCanvasDirty = false;
         }
 
-        public float CalculateDimension(Dimension dimension)
+        public int CalculateDimension(Dimension dimension)
         {
-            float value = 0f;
             switch (dimension.MeasuringUnit)
             {
+                default:
                 case Unit.Dp:
-                    value = dimension.Value;
-                    break;
+                    return (int)(dimension.Value * _scale);
                 case Unit.Pixels:
-                    value = dimension.Value;
-                    break;
+                    return (int)dimension.Value;
                 case Unit.Percent:
-                    value =
-                        dimension.Value *
+                    return
+                        (int)(dimension.Value *
                         (Canvas?.DeviceClipBounds.Size.Width ?? 0) /
-                        100f;
-                    break;
+                        100f);
                 case Unit.ViewportWidth:
-                    value =
-                        dimension.Value *
+                    return
+                        (int)(dimension.Value *
                         (Canvas?.DeviceClipBounds.Size.Width ?? 0) /
-                        100f;
-                    break;
+                        100f);
                 case Unit.ViewportHeight:
-                    value =
-                        dimension.Value *
+                    return
+                        (int)(dimension.Value *
                         (Canvas?.DeviceClipBounds.Size.Height ?? 0) /
-                        100f;
-                    break;
+                        100f);
             }
-
-            return value;
         }
 
         #region Drawing
@@ -174,10 +173,10 @@ namespace CatUI.RenderingEngine
             SKPaint paint;
             if (fillBrush is ColorBrush colorBrush)
             {
-                if (!PaintDatabase.TryGetPaint(colorBrush.Color, PaintMode.Fill, 0f, out paint!))
+                if (!PaintCache.TryGetPaint(colorBrush.Color, PaintMode.Fill, 0f, out paint!))
                 {
                     paint = fillBrush.ToSkiaPaint();
-                    PaintDatabase.CacheNewPaint(paint);
+                    PaintCache.CacheNewPaint(paint);
                 }
             }
             else
@@ -216,10 +215,10 @@ namespace CatUI.RenderingEngine
             SKPaint paint;
             if (strokeBrush is ColorBrush colorBrush)
             {
-                if (!PaintDatabase.TryGetPaint(colorBrush.Color, PaintMode.Stroke, outlineWidth, out paint!))
+                if (!PaintCache.TryGetPaint(colorBrush.Color, PaintMode.Stroke, outlineWidth, out paint!))
                 {
                     paint = strokeBrush.ToSkiaPaint();
-                    PaintDatabase.CacheNewPaint(paint);
+                    PaintCache.CacheNewPaint(paint);
                 }
             }
             else
@@ -246,10 +245,10 @@ namespace CatUI.RenderingEngine
             SKPaint paint;
             if (fillBrush is ColorBrush colorBrush)
             {
-                if (!PaintDatabase.TryGetPaint(colorBrush.Color, PaintMode.Fill, 0f, out paint!))
+                if (!PaintCache.TryGetPaint(colorBrush.Color, PaintMode.Fill, 0f, out paint!))
                 {
                     paint = fillBrush.ToSkiaPaint();
-                    PaintDatabase.CacheNewPaint(paint);
+                    PaintCache.CacheNewPaint(paint);
                 }
             }
             else
@@ -265,10 +264,10 @@ namespace CatUI.RenderingEngine
             SKPaint paint;
             if (fillBrush is ColorBrush colorBrush)
             {
-                if (!PaintDatabase.TryGetPaint(colorBrush.Color, PaintMode.Stroke, outlineWidth, out paint!))
+                if (!PaintCache.TryGetPaint(colorBrush.Color, PaintMode.Stroke, outlineWidth, out paint!))
                 {
                     paint = fillBrush.ToSkiaPaint();
-                    PaintDatabase.CacheNewPaint(paint);
+                    PaintCache.CacheNewPaint(paint);
                 }
             }
             else
@@ -288,7 +287,8 @@ namespace CatUI.RenderingEngine
         /// <param name="fontSize">The font size of the text.</param>
         /// <param name="elementSize">
         /// The size of the element that contains the text.
-        /// Use a very large width in order to guarantee the rendering of the whole text
+        /// Use a very large width in order to guarantee the rendering of the whole text (this will use word wrap).
+        /// This method does NOT account for vertical size, so vertical overflow is possible.
         /// </param>
         /// <param name="horizontalAlignment">
         /// The text alignment to use. <see cref="HorizontalAlignmentType.Stretch"/> won't have any effect
@@ -297,6 +297,7 @@ namespace CatUI.RenderingEngine
         /// <param name="breakMode">Specifies the text break mode. See <see cref="TextBreakMode"/> for more information.</param>
         /// <param name="hyphenCharacter">Specifies the character used as a hyphen if necessary. For no hyphens, set this to the null character.</param>
         /// <returns>The number of characters drawn.</returns>
+        /// <exception cref="ArgumentException">Thrown if the text contains an invalid newline (\r instead of \n or \r\n).</exception>
         public int DrawTextRow(
             string text,
             Point2D topLeftPoint,
@@ -307,7 +308,7 @@ namespace CatUI.RenderingEngine
             TextBreakMode breakMode = TextBreakMode.SoftBreak,
             char hyphenCharacter = '-')
         {
-            if (!PaintDatabase.TryGetFontPaint(
+            if (!PaintCache.TryGetFontPaint(
                     CalculateDimension(fontSize),
                     color,
                     PaintMode.Fill,
@@ -315,7 +316,7 @@ namespace CatUI.RenderingEngine
                     0f,
                     out SKPaint? painter))
             {
-                painter = PaintDatabase.DefaultPainter.Clone();
+                painter = PaintCache.DefaultPainter.Clone();
                 if (horizontalAlignment != HorizontalAlignmentType.Stretch)
                 {
                     painter.TextAlign = (SKTextAlign)(horizontalAlignment - 1);
@@ -323,7 +324,7 @@ namespace CatUI.RenderingEngine
                 painter.TextSize = CalculateDimension(fontSize);
                 painter.Color = color;
 
-                PaintDatabase.CacheNewPaint(painter);
+                PaintCache.CacheNewPaint(painter);
             }
 
 
@@ -344,7 +345,12 @@ namespace CatUI.RenderingEngine
             bool hasNewLine = false;
             for (int i = 0; i < text.Length; i++)
             {
-                if (text[i] == '\n' || (text[i] == '\r' && text[i] == '\n'))
+                if (text[i] == '\r' && i == text.Length - 1)
+                {
+                    throw new ArgumentException("Invalid text: found CR (\\r) without LF (\\n)", text);
+                }
+
+                if (text[i] == '\n' || (text[i] == '\r' && text[i + 1] == '\n'))
                 {
                     hasNewLine = true;
                     break;
@@ -461,6 +467,147 @@ namespace CatUI.RenderingEngine
             }
 
             return charactersDrawn;
+        }
+
+        /// <summary>
+        /// Draws the specified text until a newline is found or until the element size limit is reached and overflowMode
+        /// is <see cref="TextOverflowMode.Ellipsis"/> or <see cref="TextOverflowMode.Clip"/>.
+        /// </summary>
+        /// <param name="text">The text to render. This method MIGHT NOT render the whole text.</param>
+        /// <param name="topLeftPoint">The top-left point of the text that needs to be drawn.</param>
+        /// <param name="fontSize">The font size of the text.</param>
+        /// <param name="elementSize">
+        /// The size of the element that contains the text. This method does not use word wrapping.
+        /// This method does NOT account for vertical size, so vertical overflow is possible.
+        /// </param>
+        /// <param name="horizontalAlignment">
+        /// The text alignment to use. <see cref="HorizontalAlignmentType.Stretch"/> won't have any effect
+        /// and will work as <see cref="HorizontalAlignmentType.Left"/>.
+        /// </param>
+        /// <param name="overflowMode">Specifies the text overflow behavior.</param>
+        /// <param name="ellipsisStringOverride">
+        /// An alternative string to use instead of \u2026 when overflowMode is <see cref="TextOverflowMode.Ellipsis"/>.
+        /// Setting this to null (default) will display the \u2026 when ellipsis is necessary.
+        /// </param>
+        /// <returns>The number of characters drawn.</returns>
+        /// <exception cref="ArgumentException">Thrown if the text contains an invalid newline (\r instead of \n or \r\n).</exception>
+        public int DrawTextRow(
+            string text,
+            Point2D topLeftPoint,
+            Dimension fontSize,
+            Size elementSize,
+            Color color,
+            HorizontalAlignmentType horizontalAlignment = HorizontalAlignmentType.Left,
+            TextOverflowMode overflowMode = TextOverflowMode.Ellipsis,
+            string? ellipsisStringOverride = null)
+        {
+            if (!PaintCache.TryGetFontPaint(
+                    CalculateDimension(fontSize),
+                    color,
+                    PaintMode.Fill,
+                    horizontalAlignment,
+                    0f,
+                    out SKPaint? painter))
+            {
+                painter = PaintCache.DefaultPainter.Clone();
+                if (horizontalAlignment != HorizontalAlignmentType.Stretch)
+                {
+                    painter.TextAlign = (SKTextAlign)(horizontalAlignment - 1);
+                }
+                painter.TextSize = CalculateDimension(fontSize);
+                painter.Color = color;
+
+                PaintCache.CacheNewPaint(painter);
+            }
+
+            float drawPointX = topLeftPoint.X;
+            if (horizontalAlignment == HorizontalAlignmentType.Center)
+            {
+                drawPointX += elementSize.Width / 2;
+            }
+            else if (horizontalAlignment == HorizontalAlignmentType.Right)
+            {
+                drawPointX += elementSize.Width;
+            }
+            SKPoint drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] != '\u00ad')
+                {
+                    sb.Append(text[i]);
+                }
+            }
+            text = sb.ToString();
+
+            if (overflowMode == TextOverflowMode.Overflow)
+            {
+                this.Canvas?.DrawText(text, drawPoint, painter);
+                return text.Length;
+            }
+
+            string ellipsisString;
+            if (ellipsisStringOverride != null)
+            {
+                ellipsisString = ellipsisStringOverride;
+            }
+            else
+            {
+                ellipsisString = "\u2026";
+            }
+
+            float ellipsisSize = painter!.MeasureText(ellipsisString);
+            //exit early
+            if (elementSize.Width < ellipsisSize && overflowMode == TextOverflowMode.Ellipsis)
+            {
+                this.Canvas?.DrawText(ellipsisString, drawPoint, painter);
+                return 0;
+            }
+
+            int newLinePosition = -1;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\r' && i == text.Length - 1)
+                {
+                    throw new ArgumentException("Invalid text: found CR (\\r) without LF (\\n)", text);
+                }
+
+                if (text[i] == '\n' || (text[i] == '\r' && text[i + 1] == '\n'))
+                {
+                    newLinePosition = i;
+                    break;
+                }
+            }
+
+            if (newLinePosition != -1)
+            {
+                text = text.Substring(0, newLinePosition);
+            }
+
+            if (overflowMode == TextOverflowMode.Ellipsis)
+            {
+                long charactersToDraw = painter!.BreakText(text, elementSize.Width);
+                if (charactersToDraw == text.Length)
+                {
+                    this.Canvas?.DrawText(text, drawPoint, painter);
+                }
+                else
+                {
+                    charactersToDraw = painter!.BreakText(text, elementSize.Width - ellipsisSize);
+                    text = text.Substring(0, (int)charactersToDraw);
+
+                    this.Canvas?.DrawText(text + ellipsisString, drawPoint, painter);
+                }
+
+                return text.Length;
+            }
+            else if (overflowMode == TextOverflowMode.Clip)
+            {
+                //TODO
+            }
+
+            return 0;
         }
         #endregion
 

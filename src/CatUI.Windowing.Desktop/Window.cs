@@ -34,11 +34,14 @@ namespace CatUI.Windowing.Desktop
                 }
             }
         }
-        public UIDocument Document { get; private set; }
+        public UIDocument Document { get; private set; } = new UIDocument();
 
         internal OpenTK.Windowing.GraphicsLibraryFramework.Window* GlfwWindow { get; private set; }
 
         private bool _shouldCloseWindow = false;
+        private WindowFlags _flags = WindowFlags.Default;
+        private WindowMode _startupMode = WindowMode.Windowed;
+        private bool _isCreated = false;
 
 #if USE_ANGLE
         private nint eglDisplay;
@@ -49,20 +52,7 @@ namespace CatUI.Windowing.Desktop
         private GLFWCallbacks.WindowSizeCallback? _resizeCallback;
         private GLFWCallbacks.ErrorCallback? _errorCallback;
 
-        #region Object lifecycle
-        public Window(int width, int height, string title)
-            : this(
-                width: width,
-                height: height,
-                title: title,
-                windowFlags: WindowFlags.Resizable |
-                    WindowFlags.Visible |
-                    WindowFlags.Decorated |
-                    WindowFlags.DpiAware |
-                    WindowFlags.Focused,
-                startupMode: WindowMode.Windowed)
-        { }
-
+        #region Object creation
         public Window(
             int width = 800,
             int height = 600,
@@ -74,31 +64,143 @@ namespace CatUI.Windowing.Desktop
             WindowFlags windowFlags = WindowFlags.Default,
             WindowMode startupMode = WindowMode.Windowed)
         {
-            Init();
+            SetInitialWidth(width);
+            SetInitialHeight(height);
+            SetInitialTitle(title);
+            SetInitialMinWidth(minWidth);
+            SetInitialMaxWidth(maxWidth);
+            SetInitialMinHeight(minHeight);
+            SetInitialMaxHeight(maxHeight);
+            SetInitialWindowFlags(windowFlags);
+            SetInitialStartupMode(startupMode);
+
+            Create();
+        }
+
+        public Window SetInitialWidth(int width)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created, use direct properties instead");
+            }
+
             _width = width;
+            return this;
+        }
+
+        public Window SetInitialHeight(int height)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created, use direct properties instead");
+            }
+
             _height = height;
+            return this;
+        }
 
-            GLFW.WindowHint(WindowHintBool.Resizable, (windowFlags & WindowFlags.Resizable) != 0);
-            GLFW.WindowHint(WindowHintBool.Visible, (windowFlags & WindowFlags.Visible) != 0);
-            GLFW.WindowHint(WindowHintBool.Decorated, (windowFlags & WindowFlags.Decorated) != 0);
+        public Window SetInitialMinWidth(int minWidth)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created, use direct properties instead");
+            }
+
+            _minWidth = minWidth;
+            return this;
+        }
+
+        public Window SetInitialMinHeight(int minHeight)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created, use direct properties instead");
+            }
+
+            _minHeight = minHeight;
+            return this;
+        }
+
+        public Window SetInitialMaxWidth(int maxWidth)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created, use direct properties instead");
+            }
+
+            _maxWidth = maxWidth;
+            return this;
+        }
+
+        public Window SetInitialMaxHeight(int maxHeight)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created, use direct properties instead");
+            }
+
+            _maxHeight = maxHeight;
+            return this;
+        }
+
+        public Window SetInitialTitle(string title)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created, use direct properties instead");
+            }
+
+            _title = title;
+            return this;
+        }
+
+        public Window SetInitialWindowFlags(WindowFlags flags)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created");
+            }
+
+            _flags = flags;
+            return this;
+        }
+
+        public Window SetInitialStartupMode(WindowMode startupMode)
+        {
+            if (_isCreated)
+            {
+                throw new Exception("Window is already created, use direct properties instead");
+            }
+
+            _startupMode = startupMode;
+            return this;
+        }
+
+        public Window Create()
+        {
+            Init();
+
+            GLFW.WindowHint(WindowHintBool.Resizable, (_flags & WindowFlags.Resizable) != 0);
+            GLFW.WindowHint(WindowHintBool.Visible, (_flags & WindowFlags.Visible) != 0);
+            GLFW.WindowHint(WindowHintBool.Decorated, (_flags & WindowFlags.Decorated) != 0);
             //GLFW_SCALE_TO_MONITOR is 0x0002200C
-            GLFW.WindowHint((WindowHintBool)0x0002200C, (windowFlags & WindowFlags.DpiAware) != 0);
-            GLFW.WindowHint(WindowHintBool.Focused, (windowFlags & WindowFlags.Focused) != 0);
+            GLFW.WindowHint((WindowHintBool)0x0002200C, (_flags & WindowFlags.DpiAware) != 0);
+            GLFW.WindowHint(WindowHintBool.Focused, (_flags & WindowFlags.Focused) != 0);
 
-            GLFW.WindowHint(WindowHintBool.Floating, (windowFlags & WindowFlags.AlwaysOnTop) != 0);
-            GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (windowFlags & WindowFlags.TransparentFramebuffer) != 0);
+            GLFW.WindowHint(WindowHintBool.Floating, (_flags & WindowFlags.AlwaysOnTop) != 0);
+            GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (_flags & WindowFlags.TransparentFramebuffer) != 0);
 
-            switch (startupMode)
+            switch (_startupMode)
             {
                 case WindowMode.Windowed:
-                    GlfwWindow = GLFW.CreateWindow(width, height, title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                     break;
                 case WindowMode.Minimized:
-                    GlfwWindow = GLFW.CreateWindow(width, height, title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                     GLFW.IconifyWindow(GlfwWindow);
                     break;
                 case WindowMode.Maximized:
-                    GlfwWindow = GLFW.CreateWindow(width, height, title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                     GLFW.MaximizeWindow(GlfwWindow);
                     break;
                 case WindowMode.Fullscreen:
@@ -110,12 +212,12 @@ namespace CatUI.Windowing.Desktop
                         GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
                         GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
 
-                        width = videoMode->Width;
-                        height = videoMode->Height;
+                        _width = videoMode->Width;
+                        _height = videoMode->Height;
                         GlfwWindow = GLFW.CreateWindow(
                             videoMode->Width,
                             videoMode->Height,
-                            title,
+                            _title,
                             GLFW.GetPrimaryMonitor(),
                             (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                         break;
@@ -124,21 +226,17 @@ namespace CatUI.Windowing.Desktop
                     {
                         Monitor* monitor = GLFW.GetPrimaryMonitor();
                         VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        width = videoMode->Width;
-                        height = videoMode->Height;
+                        _width = videoMode->Width;
+                        _height = videoMode->Height;
 
-                        GlfwWindow = GLFW.CreateWindow(width, height, title, monitor, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                        GlfwWindow = GLFW.CreateWindow(_width, _height, _title, monitor, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                         break;
                     }
                 default:
                     break;
             }
 
-            GLFW.SetWindowSizeLimits(GlfwWindow, minWidth, minHeight, maxWidth, maxHeight);
-            _minWidth = minWidth;
-            _minHeight = minHeight;
-            _maxWidth = maxWidth;
-            _maxHeight = maxHeight;
+            GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
 
             CreateSurface();
 #if USE_ANGLE
@@ -164,9 +262,12 @@ namespace CatUI.Windowing.Desktop
 
             this.Document = new UIDocument
             {
-                ViewportSize = new Size(width, height)
+                ViewportSize = new Size(_width, _height)
             };
             FullyRedraw();
+
+            _isCreated = true;
+            return this;
         }
 
         ~Window()
@@ -265,6 +366,28 @@ namespace CatUI.Windowing.Desktop
             }
         }
         private int _maxHeight = ushort.MaxValue;
+
+        public string Title
+        {
+            get
+            {
+                return _title;
+            }
+            set
+            {
+                _title = value;
+                GLFW.SetWindowTitle(GlfwWindow, _title);
+            }
+        }
+        private string _title = string.Empty;
+
+        /// <summary>
+        /// This is the maximum number of frames per second the application is allowed to run. Lower values (like 30) 
+        /// will make the application use less resources but will have some "lag", as the visuals will look more sluggish.
+        /// Higher values will reduce visual "lag", but will utilize more CPU and GPU, thus potentially making the system slower.
+        /// The default value is 60, which is suitable for most applications.
+        /// </summary>
+        public int MaxFPS { get; set; } = 60;
         #endregion
 
         #region Events
@@ -326,11 +449,19 @@ namespace CatUI.Windowing.Desktop
         /// <summary>
         /// Runs through the whole application lifetime. When this function returns,
         /// the window is destroyed and any subsequent calls or properties setting on this window object will fail.
+        /// This will block the main thread when waiting for the next frame.
         /// </summary>
+        /// <remarks>
+        /// If an unhandled exception is thrown, the method will return, but without closing the window, so you can 
+        /// call this in a try/catch inside a loop because running this function multiple times is ok unless the window was terminated.
+        /// </remarks>
         public void Run()
         {
             //this.Document.Renderer.SetBgColor(Document.BackgroundColor);
             this.Document.Renderer.SetCanvasDirty();
+
+            GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out float xScale, out float _);
+            this.Document.ContentScale = xScale;
 
             //don't use Glfw.WindowShouldClose because that is handled by CloseRequested
             while (!_shouldCloseWindow)
@@ -356,6 +487,19 @@ namespace CatUI.Windowing.Desktop
             GLFW.PostEmptyEvent();
         }
 
+        /// <summary>
+        /// This function works similarly to the requestAnimationFrame web API. The given callback will be executed before starting
+        /// to draw the next frame. Beware that this must perform a full redraw of the content even if nothing has changed, so
+        /// beware of the eventual performance penalties.
+        /// </summary>
+        /// <remarks>
+        /// This is limited to <see cref="MaxFPS"/>, meaning that if the drawing happens faster than the minimum time a frame must take,
+        /// the main thread will sleep until that period is elapsed.
+        /// </remarks>
+        /// <param name="frameCallback">
+        /// A function that receives the time between the last frame and the current frame 
+        /// in seconds as a parameter.
+        /// </param>
         public void RequestAnimationFrame(Action<double> frameCallback)
         {
             GLFW.PostEmptyEvent();
@@ -403,11 +547,8 @@ namespace CatUI.Windowing.Desktop
 
             if (this.Document.Renderer.IsCanvasDirty || hadFrameCallbacks)
             {
-                //if (this.Document.Renderer.IsCanvasDirty)
-                {
-                    FrameUpdatedEvent?.Invoke(delta);
-                    FullyRedraw();
-                }
+                FrameUpdatedEvent?.Invoke(delta);
+                FullyRedraw();
                 _lastTime = GLFW.GetTime();
 
 #if USE_ANGLE
@@ -415,10 +556,16 @@ namespace CatUI.Windowing.Desktop
 #else
                 GLFW.SwapBuffers(GlfwWindow);
 #endif
-                //if (this.Document.Renderer.IsCanvasDirty)
-                {
-                    this.Document.Renderer.SkipCanvasPresentation();
-                }
+
+                this.Document.Renderer.SkipCanvasPresentation();
+                //Debug.WriteLine(delta);
+            }
+
+            double minFrameTime = 1.0 / MaxFPS;
+            double thisFrameTime = GLFW.GetTime() - _lastTime;
+            if (thisFrameTime < minFrameTime)
+            {
+                System.Threading.Thread.Sleep((int)((minFrameTime - thisFrameTime) * 1000));
             }
         }
 
@@ -516,12 +663,12 @@ namespace CatUI.Windowing.Desktop
             this.Document.Renderer.SetFramebufferData(frame, stencil, samples);
 
             this.Document.ViewportSize = new Size(width, height);
+            this.Document.Renderer.SetCanvasDirty();
             DoFrameActions();
         }
 
         private void FullyRedraw()
         {
-            Debug.WriteLine("Redraw!");
             this.Document.Renderer.ResetAndClear();
             Document.DrawAllElements();
             this.Document.Renderer.Flush();

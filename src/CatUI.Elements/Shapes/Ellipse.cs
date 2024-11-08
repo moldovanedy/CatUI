@@ -6,7 +6,7 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Shapes
 {
-    public class Rectangle : Element
+    public class Ellipse : Element
     {
         public IBrush Brush
         {
@@ -41,16 +41,19 @@ namespace CatUI.Elements.Shapes
             }
         }
 
-        public Rectangle() { }
+        public Ellipse()
+        {
+            base.DrawEvent += PrivateDraw;
+        }
 
-        public Rectangle(
+        public Ellipse(
             IBrush rectBrush,
+            Dimension2 position,
+            Dimension width,
+            Dimension height,
             UIDocument? doc = null,
             List<Element>? children = null,
             Dictionary<string, ElementThemeData>? themeOverrides = null,
-            Dimension2? position = null,
-            Dimension? width = null,
-            Dimension? height = null,
             Dimension? minHeight = null,
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
@@ -67,9 +70,15 @@ namespace CatUI.Elements.Shapes
                  maxWidth: maxWidth)
         {
             Brush = rectBrush;
+            base.DrawEvent += PrivateDraw;
         }
 
-        public Rectangle SetInitialBrush(IBrush brush)
+        ~Ellipse()
+        {
+            base.DrawEvent -= PrivateDraw;
+        }
+
+        public Ellipse SetInitialBrush(IBrush brush)
         {
             if (base.IsInstantiated)
             {
@@ -78,6 +87,16 @@ namespace CatUI.Elements.Shapes
 
             Brush = brush;
             return this;
+        }
+
+        private void PrivateDraw()
+        {
+            Rect rect = this.Bounds.GetContentBox();
+            this.Document?.Renderer?.DrawEllipse(
+                new Point2D(rect.CenterX, rect.CenterY),
+                rect.Width / 2f,
+                rect.Height / 2f,
+                Brush);
         }
     }
 }

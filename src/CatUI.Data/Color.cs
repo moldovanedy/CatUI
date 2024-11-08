@@ -95,5 +95,15 @@ namespace CatUI.Data
 
         public static implicit operator SKColor(Color color) => new SKColor(color.R, color.G, color.B, color.A);
         public static implicit operator Color(SKColor color) => new Color(color.Red, color.Green, color.Blue, color.Alpha);
+
+        public static implicit operator Color(string literal)
+        {
+            return new Color(literal);
+        }
+
+        public override readonly string ToString()
+        {
+            return $"#{R:X2}{G:X2}{B:X2}{A:X2}";
+        }
     }
 }

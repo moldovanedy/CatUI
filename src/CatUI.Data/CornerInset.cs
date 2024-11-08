@@ -1,4 +1,6 @@
-﻿namespace CatUI.Data
+﻿using System.ComponentModel;
+
+namespace CatUI.Data
 {
     /// <summary>
     /// A set of offsets in each of the 4 rectangle corners: top-left, top-right, bottom-right, bottom-left.
@@ -104,6 +106,12 @@
                     float.IsNaN(BottomLeftEllipse.X.Value) &&
                     float.IsNaN(BottomLeftEllipse.Y.Value));
             }
+        }
+
+        public override readonly string ToString()
+        {
+            //TODO: also add case for elliptic insets
+            return $"({TopLeft}, {TopRight}, {BottomRight}, {BottomLeft})";
         }
     }
 }
