@@ -4,14 +4,19 @@ using CatUI.Data.Brushes;
 
 namespace CatUI.Elements.Themes
 {
-    public class ElementThemeData : ThemeData
+    public class ElementThemeData
     {
+        public string ForState { get; }
         public IBrush Background { get; set; } = new ColorBrush();
         public CornerInset CornerRadius { get; set; } = new CornerInset();
 
-        public ElementThemeData() : base()
-        { }
-        public ElementThemeData(string forState) : base(forState)
-        { }
+        public ElementThemeData()
+        {
+            ForState = Element.STYLE_NORMAL;
+        }
+        public ElementThemeData(string forState)
+        {
+            ForState = forState;
+        }
     }
 }

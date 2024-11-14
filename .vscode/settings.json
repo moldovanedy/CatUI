@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "Argb",
         "buildsystems",
         "Cloneable",
         "ctest",
@@ -9,8 +10,10 @@
         "Iconify",
         "msvc",
         "OPENGLES",
+        "rects",
         "RENDERABLE",
         "Skia",
+        "Skippable",
         "VCPKG"
     ]
 }

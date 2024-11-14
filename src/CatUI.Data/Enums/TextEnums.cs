@@ -1,5 +1,13 @@
 ﻿namespace CatUI.Data.Enums
 {
+    public enum TextAlignmentType
+    {
+        Justify = 0,
+        Left = 1,
+        Center = 2,
+        Right = 3,
+    }
+
     public enum TextBreakMode
     {
         /// <summary>
@@ -21,8 +29,8 @@
     public enum PaintMode
     {
         Fill = 0,
-        Stroke = 1,
-        FillAndStroke = 2,
+        Outline = 1,
+        FillAndOutline = 2,
     }
 
     public enum TextOverflowMode

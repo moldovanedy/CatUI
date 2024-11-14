@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CatUI.Data;
+using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Elements.Themes;
 
@@ -27,7 +28,7 @@ namespace CatUI.Elements
 
         public const string STYLE_NORMAL = "normal";
         public const string STYLE_HOVER = "hover";
-        private Dictionary<string, ElementThemeData> _themeOverrides = new Dictionary<string, ElementThemeData>();
+        private ThemeDefinition<ElementThemeData> _themeDefinition = new ThemeDefinition<ElementThemeData>();
 
         public Dimension2 Position
         {
@@ -197,13 +198,47 @@ namespace CatUI.Elements
             }
         }
         private EdgeInset _margin = new EdgeInset();
-        public string Name { get; set; } = string.Empty;
 
+        public string Name { get; set; } = string.Empty;
         public ElementBounds Bounds { get; internal set; } = new ElementBounds();
-        public bool IsInternal { get; private set; } = false;
+        public bool IsInternal { get; private set; }
         public UIDocument? Document { get; private set; }
 
-        protected bool IsInstantiated { get; private set; } = false;
+        protected bool IsInstantiated { get; private set; }
+        protected float InternalWidth
+        {
+            get
+            {
+                return _internalWidth;
+            }
+            set
+            {
+                if (value != _internalWidth)
+                {
+                    _internalWidth = value;
+                    RecalculateBounds();
+                }
+            }
+        }
+        private float _internalWidth;
+
+        protected float InternalHeight
+        {
+            get
+            {
+                return _internalHeight;
+            }
+            set
+            {
+                if (value != _internalHeight)
+                {
+                    _internalHeight = value;
+                    RecalculateBounds();
+                }
+            }
+        }
+        private float _internalHeight;
+
         private Element? _parent;
 
         /// <summary>
@@ -214,7 +249,7 @@ namespace CatUI.Elements
         /// <summary>
         /// It's a cache of public children only.
         /// </summary>
-        private List<Element>? _cachedPublicChildren = null;
+        private List<Element>? _cachedPublicChildren;
 
         public Element()
         {
@@ -224,7 +259,7 @@ namespace CatUI.Elements
         public Element(
             UIDocument? doc = null,
             List<Element>? children = null,
-            Dictionary<string, ElementThemeData>? themeOverrides = null,
+            ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
             Dimension? width = null,
             Dimension? height = null,
@@ -234,7 +269,7 @@ namespace CatUI.Elements
             Dimension? maxWidth = null)
         {
             Init();
-            this.Document = doc;
+            Document = doc;
 
             if (themeOverrides != null)
             {
@@ -328,7 +363,8 @@ namespace CatUI.Elements
             return this;
         }
 
-        public Element SetInitialThemeOverrides<T>(Dictionary<string, T> themeOverrides) where T : ElementThemeData, new()
+        #region Builder
+        public Element SetInitialThemeOverrides<T>(ThemeDefinition<T> themeOverrides) where T : ElementThemeData, new()
         {
             if (IsInstantiated)
             {
@@ -442,6 +478,7 @@ namespace CatUI.Elements
             }
             return this;
         }
+        #endregion //Builder
 
         #region Internal invoke
         internal void InvokeDraw()
@@ -496,10 +533,10 @@ namespace CatUI.Elements
         private void RecalculateBounds()
         {
             float parentWidth, parentHeight, parentXPos, parentYPos;
-            if (this.Document?.Root == this)
+            if (Document?.Root == this)
             {
-                parentWidth = this.Document.ViewportSize.Width;
-                parentHeight = this.Document.ViewportSize.Height;
+                parentWidth = Document.ViewportSize.Width;
+                parentHeight = Document.ViewportSize.Height;
                 parentXPos = 0;
                 parentYPos = 0;
             }
@@ -520,7 +557,7 @@ namespace CatUI.Elements
                 MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
                 MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
 
-            this.Bounds = new ElementBounds(
+            Bounds = new ElementBounds(
                 new Point2D(
                     parentXPos + CalculateDimension(Position.X, parentWidth),
                     parentYPos + CalculateDimension(Position.Y, parentHeight)),
@@ -542,7 +579,7 @@ namespace CatUI.Elements
 
         public void AddChild(Element child, bool isInternal = false)
         {
-            if (this.Document == null)
+            if (Document == null)
             {
                 throw new Exception("The element is not inside the logical tree.");
             }
@@ -562,7 +599,7 @@ namespace CatUI.Elements
             }
 
             child.SetParent(this);
-            child.Document = this.Document;
+            child.Document = Document;
             child.InvokeEnterDocument();
         }
 
@@ -720,27 +757,26 @@ namespace CatUI.Elements
 
         public ElementThemeData? GetElementThemeOverride(string state)
         {
-            _themeOverrides.TryGetValue(state, out ElementThemeData? themeOverride);
-            return themeOverride;
+            return _themeDefinition.GetThemeDataForState(state);
         }
 
-        public T? GetElementThemeOverride<T>(string state) where T : ThemeData, new()
+        public T? GetElementThemeOverride<T>(string state) where T : ElementThemeData, new()
         {
-            _themeOverrides.TryGetValue(state, out ElementThemeData? themeOverride);
-            if (themeOverride is T castedTheme)
-            {
-                return castedTheme;
-            }
-            else
-            {
-                return null;
-            }
+            return (T?)_themeDefinition.GetThemeDataForState(state);
         }
 
-        public T GetElementThemeOverrideOrDefault<T>(string state) where T : ThemeData, new()
+        /// <summary>
+        /// Returns the element's ThemeData that should be applied and all styling should respect this theme.
+        /// If there is no Theme in the document tree hierarchy (not even at root level), this will return 
+        /// the default ThemeData of the specified type parameter.
+        /// </summary>
+        /// <typeparam name="T">The ThemeData type of the element.</typeparam>
+        /// <param name="state">The state for which the styling is applied.</param>
+        /// <returns>The ThemeData that should be respected by the element at the given state.</returns>
+        public T GetElementFinalThemeData<T>(string state) where T : ElementThemeData, new()
         {
-            _themeOverrides.TryGetValue(state, out ElementThemeData? themeOverride);
-            if (themeOverride is T castedTheme)
+            T? themeData = (T?)_themeDefinition.GetThemeDataForState(state);
+            if (themeData is T castedTheme)
             {
                 return castedTheme;
             }
@@ -752,22 +788,14 @@ namespace CatUI.Elements
 
         public void SetElementThemeOverride(string state, ElementThemeData themeOverride)
         {
-            _themeOverrides[state] = themeOverride;
+            _themeDefinition.SetThemeDataForState(state, themeOverride);
         }
 
-        public void SetElementThemeOverrides(Dictionary<string, ElementThemeData> themeOverrides)
+        public void SetElementThemeOverrides<T>(ThemeDefinition<T> themeOverrides) where T : ElementThemeData, new()
         {
-            _themeOverrides = themeOverrides;
-        }
-
-        public void SetElementThemeOverrides<T>(Dictionary<string, T> themeOverrides) where T : ElementThemeData, new()
-        {
-            foreach (string state in themeOverrides.Keys)
+            foreach (string state in themeOverrides.GetStates())
             {
-                if (themeOverrides.TryGetValue(state, out T? themeData))
-                {
-                    _themeOverrides[state] = themeData;
-                }
+                _themeDefinition.SetThemeDataForState(state, themeOverrides.GetThemeDataForState(state)!);
             }
         }
 
@@ -830,12 +858,14 @@ namespace CatUI.Elements
         #endregion //Public API
 
         #region Visual
-        private void DrawBackground()
+        protected virtual void DrawBackground()
         {
-            this.Document?.Renderer?.DrawRect(
-                this.Bounds.GetContentBox(),
-                _themeOverrides.GetValueOrDefault(Element.STYLE_NORMAL, new ElementThemeData("")).Background
-                );
+            IBrush fillBrush = GetElementFinalThemeData<ElementThemeData>(Element.STYLE_NORMAL).Background;
+
+            if (!fillBrush.IsSkippable)
+            {
+                Document?.Renderer?.DrawRect(Bounds.GetPaddingBox(), fillBrush);
+            }
         }
         #endregion //Visual
 

@@ -27,11 +27,11 @@ namespace CatUI.Data
         /// <summary>
         /// The width of the element's content, without margins and padding.
         /// </summary>
-        public float Width { get; private set; } = 0;
+        public float Width { get; private set; }
         /// <summary>
         /// The height of the element's content, without margins and padding.
         /// </summary>
-        public float Height { get; private set; } = 0;
+        public float Height { get; private set; }
         /// <summary>
         /// An array with 4 elements that represent the padding in the cardinal directions 
         /// in the following order: top, right, bottom, left.

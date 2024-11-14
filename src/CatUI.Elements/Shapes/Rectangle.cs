@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Shapes
 {
-    public class Rectangle : Element
+    public class Rectangle : Element, IGeometricShape
     {
-        public IBrush Brush
+        public IBrush FillBrush
         {
             get
             {
@@ -41,13 +42,15 @@ namespace CatUI.Elements.Shapes
             }
         }
 
-        public Rectangle() { }
+        public IBrush OutlineBrush { get; set; }
+        public OutlineParams OutlineParameters { get; set; } = new OutlineParams();
 
         public Rectangle(
-            IBrush rectBrush,
+            IBrush? fillBrush = null,
+            IBrush? outlineBrush = null,
             UIDocument? doc = null,
             List<Element>? children = null,
-            Dictionary<string, ElementThemeData>? themeOverrides = null,
+            ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
             Dimension? width = null,
             Dimension? height = null,
@@ -66,18 +69,43 @@ namespace CatUI.Elements.Shapes
                  maxHeight: maxHeight,
                  maxWidth: maxWidth)
         {
-            Brush = rectBrush;
+            FillBrush = fillBrush ?? new ColorBrush(new Color(0));
+            OutlineBrush = outlineBrush ?? new ColorBrush(new Color(0));
         }
 
-        public Rectangle SetInitialBrush(IBrush brush)
+        #region Builder
+        public Rectangle SetInitialFillBrush(IBrush fillBrush)
         {
             if (base.IsInstantiated)
             {
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
 
-            Brush = brush;
+            FillBrush = fillBrush;
             return this;
         }
+
+        public Rectangle SetInitialOutlineBrush(IBrush outlineBrush)
+        {
+            if (base.IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OutlineBrush = outlineBrush;
+            return this;
+        }
+
+        public Rectangle SetInitialOutlineParameters(OutlineParams outlineParameters)
+        {
+            if (base.IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OutlineParameters = outlineParameters;
+            return this;
+        }
+        #endregion //Builder
     }
 }

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using CatUI.Data;
 using SkiaSharp;
 
-namespace CatUI.RenderingEngine.GraphicsCaching
+namespace CatUI.Data.Managers
 {
     public static class PathCache
     {

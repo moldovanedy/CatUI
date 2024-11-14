@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using CatUI.Data.Assets;
 using CatUI.Shared;
 using Game.Shared.Utils;
 
-namespace CatUI.RenderingEngine
+namespace CatUI.Data.Managers
 {
+    /// <summary>
+    /// Handles asset loading, caching and saving. Supports both loading from assemblies (embedded resources in the app) and
+    /// loading from asset files (.dat files created at compile-time or even run-time).
+    /// </summary>
     public static class AssetsManager
     {
         /// <summary>
@@ -50,16 +53,17 @@ namespace CatUI.RenderingEngine
         }
 
         /// <summary>
-        /// Loads an asset from the assembly of the given type, specified by the asset path that is always relative to the "Assets" folder.
+        /// Loads an asset from the assembly of the given type, specified by the asset path that is always relative to the root directory
+        /// (the directory where the .csproj file is located, so for a directory named "Assets" the path would start with "/Assets/").
         /// All the files must be set as "Embedded resource" in order to be retrievable.
         /// </summary>
         /// <remarks>
         /// You can also use .dat files for resources, together with methods like
-        /// <see cref="LoadAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, AsyncRef{long})"/>
+        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, AsyncRef{long})"/>
         /// for efficient asset handling.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
-        /// <param name="assetPath">The path of the assembly, always beginning with "/Assets"</param>
+        /// <param name="assetPath">The path of the assembly, relative to the directory where the .csproj is located.</param>
         /// <param name="classFromAssembly">
         /// A class type from the desired assembly. This will try to get the assembly by using <see cref="Assembly.GetAssembly(Type)"/>
         /// on the given type.
@@ -107,14 +111,16 @@ namespace CatUI.RenderingEngine
         /// Loads an asset from one of the loaded "asset assemblies", which can incur a small performance penalty when you have
         /// a lot of loaded asset assemblies (see <see cref="AddAssetAssembly(Assembly)"/>).
         /// All the files must be set as "Embedded resource" in order to be retrievable.
+        /// The asset path is always relative to the root directory (the directory where the .csproj file is located, 
+        /// so for a directory named "Assets" the path would start with "/Assets/").
         /// </summary>
         /// <remarks>
         /// You can also use .dat files for resources, together with methods like
-        /// <see cref="LoadAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, AsyncRef{long})"/>
+        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, AsyncRef{long})"/>
         /// for efficient asset handling.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
-        /// <param name="assetPath">The path of the assembly, always beginning with "/Assets"</param>
+        /// <param name="assetPath">The path of the assembly, relative to the directory where the .csproj is located.</param>
         /// <param name="shouldCache">
         /// If true, will hold a reference to the asset internally, so subsequent calls
         /// will return the asset much faster.
@@ -155,7 +161,7 @@ namespace CatUI.RenderingEngine
 
         /// <summary>
         /// Loads an asset from one of the loaded asset files, specified by the asset path that is always relative
-        /// to the "Assets" folder. An asset file containing the asset must be loaded before calling this method using
+        /// to the "Assets" directory. An asset file containing the asset must be loaded before calling this method using
         /// <see cref="LoadMetadataFromFileAsync(string)"/> or <see cref="LoadMetadataFromStreamAsync(Stream)"/>.
         /// </summary>
         /// <remarks>
@@ -168,7 +174,7 @@ namespace CatUI.RenderingEngine
         /// will return the asset much faster.
         /// </param>
         /// <returns>The task containing an asset from the specified path if one was found, a task containing null otherwise.</returns>
-        public static async Task<T?> LoadAsync<T>(string path, bool shouldCache = true) where T : Asset, new()
+        public static async Task<T?> LoadFromFileAsync<T>(string path, bool shouldCache = true) where T : Asset, new()
         {
             if (_cachedAssets.TryGetValue(path, out Asset? asset))
             {
@@ -207,7 +213,7 @@ namespace CatUI.RenderingEngine
 
         /// <summary>
         /// Returns a stream from one of the loaded asset files, specified by the asset path that is always relative
-        /// to the "Assets" folder. An asset file containing the asset must be loaded before calling this method using
+        /// to the "Assets" directory. An asset file containing the asset must be loaded before calling this method using
         /// <see cref="LoadMetadataFromFileAsync(string)"/> or <see cref="LoadMetadataFromStreamAsync(Stream)"/>.
         /// </summary>
         /// <remarks>

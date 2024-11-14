@@ -6,9 +6,9 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Shapes
 {
-    public class Ellipse : Element
+    public class Ellipse : Element, IGeometricShape
     {
-        public IBrush Brush
+        public IBrush FillBrush
         {
             get
             {
@@ -41,19 +41,19 @@ namespace CatUI.Elements.Shapes
             }
         }
 
-        public Ellipse()
-        {
-            base.DrawEvent += PrivateDraw;
-        }
+        public IBrush OutlineBrush { get; set; }
+        public OutlineParams OutlineParameters { get; set; } = new OutlineParams();
 
         public Ellipse(
-            IBrush rectBrush,
             Dimension2 position,
             Dimension width,
             Dimension height,
+            IBrush? fillBrush = null,
+            IBrush? outlineBrush = null,
+            OutlineParams? outlineParameters = null,
             UIDocument? doc = null,
             List<Element>? children = null,
-            Dictionary<string, ElementThemeData>? themeOverrides = null,
+            ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension? minHeight = null,
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
@@ -69,34 +69,82 @@ namespace CatUI.Elements.Shapes
                  maxHeight: maxHeight,
                  maxWidth: maxWidth)
         {
-            Brush = rectBrush;
-            base.DrawEvent += PrivateDraw;
+            FillBrush = fillBrush ?? new ColorBrush(new Color(0));
+            OutlineBrush = outlineBrush ?? new ColorBrush(new Color(0));
+            OutlineParameters = outlineParameters ?? new OutlineParams();
+
+            base.DrawEvent += PrivateDrawOutline;
         }
 
         ~Ellipse()
         {
-            base.DrawEvent -= PrivateDraw;
+            base.DrawEvent -= PrivateDrawOutline;
         }
 
-        public Ellipse SetInitialBrush(IBrush brush)
+        #region Builder
+        public Ellipse SetInitialFillBrush(IBrush fillBrush)
         {
             if (base.IsInstantiated)
             {
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
 
-            Brush = brush;
+            FillBrush = fillBrush;
             return this;
         }
 
-        private void PrivateDraw()
+        public Ellipse SetInitialOutlineBrush(IBrush outlineBrush)
         {
+            if (base.IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OutlineBrush = outlineBrush;
+            return this;
+        }
+
+        public Ellipse SetInitialOutlineParameters(OutlineParams outlineParameters)
+        {
+            if (base.IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OutlineParameters = outlineParameters;
+            return this;
+        }
+        #endregion //Builder
+
+        protected override void DrawBackground()
+        {
+            if (FillBrush.IsSkippable)
+            {
+                return;
+            }
+
             Rect rect = this.Bounds.GetContentBox();
             this.Document?.Renderer?.DrawEllipse(
                 new Point2D(rect.CenterX, rect.CenterY),
                 rect.Width / 2f,
                 rect.Height / 2f,
-                Brush);
+                FillBrush);
+        }
+
+        private void PrivateDrawOutline()
+        {
+            if (OutlineBrush.IsSkippable || OutlineParameters.OutlineWidth == 0)
+            {
+                return;
+            }
+
+            Rect rect = this.Bounds.GetContentBox();
+            this.Document?.Renderer?.DrawEllipseOutline(
+                new Point2D(rect.CenterX, rect.CenterY),
+                rect.Width / 2f,
+                rect.Height / 2f,
+                OutlineBrush,
+                OutlineParameters);
         }
     }
 }

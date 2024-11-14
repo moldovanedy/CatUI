@@ -1,10 +1,10 @@
-﻿using SkiaSharp;
+﻿using System;
+using SkiaSharp;
 
 namespace CatUI.Data
 {
     public struct Rect
     {
-
         public float X { get; set; }
         public float Y { get; set; }
         public float Width { get; set; }
@@ -31,18 +31,40 @@ namespace CatUI.Data
             return $"{{X: {X}, Y: {Y}, W:{Width}, H:{Height}}}";
         }
 
-        public readonly float CenterX
+        public float CenterX
         {
-            get
+            readonly get => X + (Width / 2);
+            set => X += value - CenterX;
+        }
+        public float CenterY
+        {
+            readonly get => Y + (Height / 2);
+            set => Y += value - CenterY;
+        }
+
+        public float EndX
+        {
+            readonly get => X + Width;
+            set
             {
-                return (Width - X) / 2;
+                if (value < X)
+                {
+                    throw new ArgumentException("Cannot have end point X smaller than start point X", nameof(EndX));
+                }
+                Width = value - X;
             }
         }
-        public readonly float CenterY
+
+        public float EndY
         {
-            get
+            readonly get => Y + Height;
+            set
             {
-                return (Height - Y) / 2;
+                if (value < Y)
+                {
+                    throw new ArgumentException("Cannot have end point Y smaller than start point Y", nameof(EndY));
+                }
+                Height = value - Y;
             }
         }
 
@@ -59,5 +81,45 @@ namespace CatUI.Data
                 (int)skRect.Right,
                 (int)skRect.Size.Width,
                 (int)skRect.Size.Height);
+
+        /// <summary>
+        /// Will return the smallest rect containing all of the given rects. It is NOT an union because it will return areas 
+        /// that are not part of any of the given rects.
+        /// </summary>
+        /// <param name="rects">The rects for which to get the containing rect.</param>
+        /// <returns>The smallest rect that contains all of the given rects.</returns>
+        public static Rect GetCommonBoundingRect(params Rect[] rects)
+        {
+            if (rects.Length == 0)
+            {
+                return new Rect();
+            }
+
+            Rect boundingRect = rects[0];
+            for (int i = 1; i < rects.Length; i++)
+            {
+                if (boundingRect.X > rects[i].X)
+                {
+                    boundingRect.X = rects[i].X;
+                }
+
+                if (boundingRect.Y > rects[i].Y)
+                {
+                    boundingRect.Y = rects[i].Y;
+                }
+
+                if (boundingRect.EndX < rects[i].EndX)
+                {
+                    boundingRect.EndX = rects[i].EndX;
+                }
+
+                if (boundingRect.EndY < rects[i].EndY)
+                {
+                    boundingRect.EndY = rects[i].EndY;
+                }
+            }
+
+            return boundingRect;
+        }
     }
 }

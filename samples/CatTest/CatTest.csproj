@@ -21,13 +21,11 @@
   </Target>
 
   <ItemGroup>
-    <None Remove="Assets\search_128px.png" />
-    <None Remove="Assets\settings_128px.png" />
+    <None Remove="Assets/**/*.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Assets\search_128px.png" />
-    <EmbeddedResource Include="Assets\settings_128px.png" />
+    <EmbeddedResource Include="Assets/**/*.*" />
   </ItemGroup>
 
   <ItemGroup>

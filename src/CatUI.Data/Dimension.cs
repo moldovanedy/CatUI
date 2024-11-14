@@ -95,7 +95,7 @@ namespace CatUI.Data
             else if (char.IsAsciiDigit(lastChar))
             {
                 unit = Unit.Dp;
-                unitStartPos = literal.Length - 1;
+                unitStartPos = literal.Length;
             }
             else
             {
@@ -186,11 +186,20 @@ namespace CatUI.Data
             this.X = Dimension.Unset;
             this.Y = Dimension.Unset;
         }
+
+        public Dimension2(string literal)
+        {
+            Dimension2 dim = literal;
+            this.X = dim.X;
+            this.Y = dim.Y;
+        }
+
         public Dimension2(Dimension x, Dimension y)
         {
             this.X = x;
             this.Y = y;
         }
+
         public Dimension2(float x, float y)
         {
             X = new Dimension(x);

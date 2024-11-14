@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using CatUI.Data;
+using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
+using CatUI.Elements.Themes;
 using CatUI.Elements.Themes.Text;
 
 namespace CatUI.Elements.Text
 {
     public class Label : TextElement
     {
-        public HorizontalAlignmentType HorizontalAlignment { get; set; } = HorizontalAlignmentType.Left;
-        public VerticalAlignmentType VerticalAlignment { get; set; } = VerticalAlignmentType.Top;
         public TextBreakMode TextBreakMode { get; set; } = TextBreakMode.SoftBreak;
         public char HyphenCharacter { get; set; } = '-';
 
@@ -21,13 +21,17 @@ namespace CatUI.Elements.Text
 
         public Label(
             string text,
-            HorizontalAlignmentType horizontalAlignment = HorizontalAlignmentType.Left,
-            VerticalAlignmentType verticalAlignment = VerticalAlignmentType.Top,
-            bool wordWrap = true,
+
+            TextBreakMode breakMode = TextBreakMode.SoftBreak,
+            char hyphenCharacter = '-',
+
+            TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
+            bool wordWrap = true,
+
             UIDocument? doc = null,
             List<Element>? children = null,
-            Dictionary<string, LabelThemeData>? themeOverrides = null,
+            ThemeDefinition<LabelThemeData>? themeOverrides = null,
             Dimension2? position = null,
             Dimension? width = null,
             Dimension? height = null,
@@ -36,8 +40,10 @@ namespace CatUI.Elements.Text
             Dimension? maxHeight = null,
             Dimension? maxWidth = null) :
             base(text: text,
-                 wordWrap: wordWrap,
+                 textAlignment: textAlignment,
                  textOverflowMode: textOverflowMode,
+                 wordWrap: wordWrap,
+
                  doc: doc,
                  children: children,
                  position: position,
@@ -49,13 +55,12 @@ namespace CatUI.Elements.Text
                  maxWidth: maxWidth)
         {
             DrawEvent += PrivateDraw;
-
-            HorizontalAlignment = horizontalAlignment;
-            VerticalAlignment = verticalAlignment;
+            TextBreakMode = breakMode;
+            HyphenCharacter = hyphenCharacter;
 
             if (themeOverrides != null)
             {
-                base.SetElementThemeOverrides<LabelThemeData>(themeOverrides);
+                base.SetElementThemeOverrides(themeOverrides);
             }
         }
 
@@ -64,28 +69,7 @@ namespace CatUI.Elements.Text
             DrawEvent -= PrivateDraw;
         }
 
-        public Label SetInitialHorizontalAlignment(HorizontalAlignmentType horizontalAlignment)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            HorizontalAlignment = horizontalAlignment;
-            return this;
-        }
-
-        public Label SetInitialVerticalAlignment(VerticalAlignmentType verticalAlignment)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            VerticalAlignment = verticalAlignment;
-            return this;
-        }
-
+        #region Builder
         public Label SetInitialTextBreakMode(TextBreakMode textBreakMode)
         {
             if (IsInstantiated)
@@ -107,6 +91,7 @@ namespace CatUI.Elements.Text
             HyphenCharacter = hyphenCharacter;
             return this;
         }
+        #endregion //Builder
 
         private void PrivateDraw()
         {
@@ -140,31 +125,34 @@ namespace CatUI.Elements.Text
                 new float[4],
                 new float[4]);
 
-            LabelThemeData currentTheme = base.GetElementThemeOverrideOrDefault<LabelThemeData>(Label.STYLE_NORMAL);
+            LabelThemeData currentTheme = base.GetElementFinalThemeData<LabelThemeData>(Label.STYLE_NORMAL);
             if (WordWrap)
             {
-                Point2D rowPosition = this.Bounds.StartPoint;
-                int charactersDrawn = 0;
-                while (charactersDrawn < Text.Length)
-                {
+                float rowSize = CalculateDimension(currentTheme.FontSize) * currentTheme.LineHeight;
+                Point2D rowPosition = base.Bounds.StartPoint;
+                rowPosition.Y += rowSize / 2f;
 
+                int charactersDrawn = 0;
+                while (
+                    charactersDrawn < Text.Length &&
+                    //TODO: also take into account the line height and next row's vertical size on the left-hand expression
+                    rowPosition.Y < base.Bounds.StartPoint.Y + base.Bounds.Width)
+                {
                     int thisRowChars =
                         base.Document?.Renderer?.DrawTextRow(
                             //TODO: find ways to optimize this, preferably inside the rendering engine
-                            Text.Substring(charactersDrawn),
-                            rowPosition,
-                            currentTheme.FontSize,
-                            size,
-                            currentTheme.TextColor,
-                            HorizontalAlignment,
-                            TextBreakMode,
-                            HyphenCharacter) ??
+                            text: Text.Substring(charactersDrawn),
+                            topLeftPoint: rowPosition,
+                            fontSize: currentTheme.FontSize,
+                            elementSize: size,
+                            fillBrush: currentTheme.FillBrush,
+                            outlineBrush: currentTheme.OutlineBrush,
+                            textAlignment: base.TextAlignment,
+                            breakMode: TextBreakMode,
+                            hyphenCharacter: HyphenCharacter) ??
                         1;
                     charactersDrawn += thisRowChars;
-                    rowPosition = new Point2D(
-                        rowPosition.X,
-                        rowPosition.Y +
-                        CalculateDimension(currentTheme.FontSize));
+                    rowPosition = new Point2D(rowPosition.X, rowPosition.Y + rowSize);
                 }
             }
             else
@@ -174,8 +162,9 @@ namespace CatUI.Elements.Text
                     topLeftPoint: this.Bounds.StartPoint,
                     fontSize: currentTheme.FontSize,
                     elementSize: size,
-                    color: base.GetElementThemeOverrideOrDefault<LabelThemeData>(Label.STYLE_NORMAL).TextColor,
-                    horizontalAlignment: HorizontalAlignment,
+                    fillBrush: currentTheme.FillBrush,
+                    outlineBrush: currentTheme.OutlineBrush,
+                    textAlignment: base.TextAlignment,
                     overflowMode: base.TextOverflowMode);
             }
         }

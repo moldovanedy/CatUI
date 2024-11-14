@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using CatUI.Data;
+using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
+using CatUI.Elements.Themes;
 using CatUI.Elements.Themes.Text;
 
 namespace CatUI.Elements.Text
@@ -11,6 +13,7 @@ namespace CatUI.Elements.Text
         public string Text { get; set; } = string.Empty;
         public bool WordWrap { get; set; } = true;
         public TextOverflowMode TextOverflowMode { get; set; } = TextOverflowMode.Ellipsis;
+        public TextAlignmentType TextAlignment { get; set; } = TextAlignmentType.Left;
 
         public TextElement(string text)
         {
@@ -19,11 +22,13 @@ namespace CatUI.Elements.Text
 
         public TextElement(
             string text,
+            TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
             bool wordWrap = true,
+
             UIDocument? doc = null,
             List<Element>? children = null,
-            Dictionary<string, TextElementThemeData>? themeOverrides = null,
+            ThemeDefinition<TextElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
             Dimension? width = null,
             Dimension? height = null,
@@ -43,15 +48,17 @@ namespace CatUI.Elements.Text
         {
             Text = text;
             WordWrap = wordWrap;
+            TextAlignment = textAlignment;
 
             if (themeOverrides != null)
             {
-                base.SetElementThemeOverrides<TextElementThemeData>(themeOverrides);
+                base.SetElementThemeOverrides(themeOverrides);
             }
 
             TextOverflowMode = textOverflowMode;
         }
 
+        #region Builder
         public TextElement SetInitialText(string text)
         {
             if (IsInstantiated)
@@ -84,5 +91,17 @@ namespace CatUI.Elements.Text
             TextOverflowMode = overflowMode;
             return this;
         }
+
+        public TextElement SetInitialTextAlignment(TextAlignmentType textAlignment)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            TextAlignment = textAlignment;
+            return this;
+        }
+        #endregion //Builder
     }
 }

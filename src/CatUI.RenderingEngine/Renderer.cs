@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
-using CatUI.RenderingEngine.GraphicsCaching;
+using CatUI.Data.Managers;
 using SkiaSharp;
 
-namespace CatUI.RenderingEngine
+namespace CatUI.Data
 {
     public class Renderer
     {
@@ -27,9 +26,9 @@ namespace CatUI.RenderingEngine
         private SKSize _newSize;
 
         private Color _bgColor;
-        private int _framebufferBinding = 0;
-        private int _stencilBits = 0;
-        private int _samples = 0;
+        private int _framebufferBinding;
+        private int _stencilBits;
+        private int _samples;
         private float _scale = 1;
 
         public void SetContentScale(float scale)
@@ -128,7 +127,7 @@ namespace CatUI.RenderingEngine
             IsCanvasDirty = false;
         }
 
-        public int CalculateDimension(Dimension dimension)
+        public int CalculateDimension(Dimension dimension, float dimensionForPercent = 0)
         {
             switch (dimension.MeasuringUnit)
             {
@@ -140,7 +139,9 @@ namespace CatUI.RenderingEngine
                 case Unit.Percent:
                     return
                         (int)(dimension.Value *
-                        (Canvas?.DeviceClipBounds.Size.Width ?? 0) /
+                        (dimensionForPercent == 0 ?
+                            Canvas?.DeviceClipBounds.Size.Width ?? 0 :
+                            dimensionForPercent) /
                         100f);
                 case Unit.ViewportWidth:
                     return
@@ -155,13 +156,37 @@ namespace CatUI.RenderingEngine
             }
         }
 
+        /// <summary>
+        /// Returns the size of the row (in pixels) on which the text (or part of it if the text would exceed the given max width)
+        /// will be drawn.
+        /// </summary>
+        /// <param name="text">
+        /// The text to be measured. Only pass a small amount of text (200-300 characters maximum)
+        /// to avoid large performance penalties.
+        /// </param>
+        /// <param name="fontPaint">The paint used to draw the font.</param>
+        /// <param name="maxWidth">The row's maximum width.</param>
+        /// <param name="charactersToDraw">The number of characters that can be safely drawn. Does not account for hyphens!</param>
+        /// <returns>The row's width when rendering the given number of characters.</returns>
+        public static float MeasureTextRowSize(string text, SKPaint fontPaint, float maxWidth, out int charactersToDraw)
+        {
+            bool hasHyphens = RemoveSoftHyphens(text, out string textWithoutHyphens);
+            if (hasHyphens)
+            {
+                text = textWithoutHyphens;
+            }
+
+            charactersToDraw = (int)fontPaint.BreakText(text, maxWidth);
+            return fontPaint.MeasureText(text.AsSpan(0, charactersToDraw));
+        }
+
         #region Drawing
         /// <summary>
         /// Draws a rect directly on the canvas. The corners values are interpreted as pixels regardless of the measuring unit.
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
         /// </summary>
         /// <remarks>
-        /// This method can only draw a filled rectangle, for only drawing the outline (aka stroke), use <see cref="DrawRectOutline(Rect, IBrush, CornerInset)"/>
+        /// This method can only draw a filled rectangle, for only drawing the outline (aka outline), use <see cref="DrawRectOutline(Rect, IBrush, CornerInset)"/>
         /// </remarks>
         /// <param name="rect">The direct pixel measurements of the rect.</param>
         /// <param name="fillBrush">The brush to use to paint the rect.</param>
@@ -170,61 +195,39 @@ namespace CatUI.RenderingEngine
         /// </param>
         public void DrawRect(Rect rect, IBrush fillBrush, CornerInset roundedCorners = default)
         {
-            SKPaint paint;
-            if (fillBrush is ColorBrush colorBrush)
-            {
-                if (!PaintCache.TryGetPaint(colorBrush.Color, PaintMode.Fill, 0f, out paint!))
-                {
-                    paint = fillBrush.ToSkiaPaint();
-                    PaintCache.CacheNewPaint(paint);
-                }
-            }
-            else
-            {
-                paint = fillBrush.ToSkiaPaint();
-            }
+            SKPaint paint = fillBrush.ToSkiaPaint();
+            PaintManager.ModifyPaint(paint: paint, paintMode: PaintMode.Fill);
 
             if (roundedCorners.HasNonTrivialValues)
             {
                 SKRoundRect roundRect = new SKRoundRect();
                 SKPoint[] radii = SetupRectCorners(roundedCorners);
                 roundRect.SetRectRadii(rect, radii);
-                this.Canvas?.DrawRoundRect(roundRect, paint);
+                Canvas?.DrawRoundRect(roundRect, paint);
             }
             else
             {
-                this.Canvas?.DrawRect(rect, paint);
+                Canvas?.DrawRect(rect, paint);
             }
         }
 
         /// <summary>
-        /// Draws a rect outline (stroke) directly on the canvas. The corners values are interpreted as pixels regardless of the measuring unit.
+        /// Draws a rect outline (outline) directly on the canvas. The corners values are interpreted as pixels regardless of the measuring unit.
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
         /// </summary>
         /// <remarks>
-        /// This method can only draw a stroked rectangle, for drawing the rectangle as filled, use <see cref="DrawRect(Rect, IBrush, CornerInset)"/>
+        /// This method can only draw a outlined rectangle, for drawing the rectangle as filled, use <see cref="DrawRect(Rect, IBrush, CornerInset)"/>
         /// </remarks>
         /// <param name="rect">The direct pixel measurements of the rect.</param>
-        /// <param name="strokeBrush">The brush to use to paint the rect.</param>
+        /// <param name="outlineBrush">The brush to use to paint the rect.</param>
         /// <param name="roundedCorners">
         /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless of the measuring unit.
         /// </param>
         /// <param name="outlineWidth">The width of the outline in pixels.</param>
-        public void DrawRectOutline(Rect rect, IBrush strokeBrush, float outlineWidth, CornerInset roundedCorners = default)
+        public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams, CornerInset roundedCorners = default)
         {
-            SKPaint paint;
-            if (strokeBrush is ColorBrush colorBrush)
-            {
-                if (!PaintCache.TryGetPaint(colorBrush.Color, PaintMode.Stroke, outlineWidth, out paint!))
-                {
-                    paint = strokeBrush.ToSkiaPaint();
-                    PaintCache.CacheNewPaint(paint);
-                }
-            }
-            else
-            {
-                paint = strokeBrush.ToSkiaPaint();
-            }
+            SKPaint paint = outlineBrush.ToSkiaPaint();
+            PaintManager.ModifyPaint(paint: paint, paintMode: PaintMode.Outline, outlineParams: outlineParams);
 
             if (roundedCorners.HasNonTrivialValues)
             {
@@ -232,50 +235,30 @@ namespace CatUI.RenderingEngine
                 SKPoint[] radii = SetupRectCorners(roundedCorners);
                 roundRect.SetRectRadii(rect, radii);
 
-                this.Canvas?.DrawRoundRect(roundRect, paint);
+                Canvas?.DrawRoundRect(roundRect, paint);
             }
             else
             {
-                this.Canvas?.DrawRect(rect, paint);
+                Canvas?.DrawRect(rect, paint);
             }
         }
 
         public void DrawEllipse(Point2D center, float rx, float ry, IBrush fillBrush)
         {
-            SKPaint paint;
-            if (fillBrush is ColorBrush colorBrush)
-            {
-                if (!PaintCache.TryGetPaint(colorBrush.Color, PaintMode.Fill, 0f, out paint!))
-                {
-                    paint = fillBrush.ToSkiaPaint();
-                    PaintCache.CacheNewPaint(paint);
-                }
-            }
-            else
-            {
-                paint = fillBrush.ToSkiaPaint();
-            }
-
-            this.Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
+            SKPaint paint = fillBrush.ToSkiaPaint();
+            PaintManager.ModifyPaint(paint: paint, paintMode: PaintMode.Fill);
+            Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
         }
 
-        public void DrawEllipseOutline(Point2D center, float rx, float ry, IBrush fillBrush, float outlineWidth)
+        public void DrawEllipseOutline(Point2D center, float rx, float ry, IBrush outlineBrush, OutlineParams outlineParams)
         {
-            SKPaint paint;
-            if (fillBrush is ColorBrush colorBrush)
-            {
-                if (!PaintCache.TryGetPaint(colorBrush.Color, PaintMode.Stroke, outlineWidth, out paint!))
-                {
-                    paint = fillBrush.ToSkiaPaint();
-                    PaintCache.CacheNewPaint(paint);
-                }
-            }
-            else
-            {
-                paint = fillBrush.ToSkiaPaint();
-            }
+            SKPaint paint = outlineBrush.ToSkiaPaint();
+            PaintManager.ModifyPaint(
+                paint: paint,
+                paintMode: PaintMode.Outline,
+                outlineParams: outlineParams);
 
-            this.Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
+            Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
         }
 
         /// <summary>
@@ -303,37 +286,66 @@ namespace CatUI.RenderingEngine
             Point2D topLeftPoint,
             Dimension fontSize,
             Size elementSize,
-            Color color,
-            HorizontalAlignmentType horizontalAlignment = HorizontalAlignmentType.Left,
+            IBrush? fillBrush = null,
+            IBrush? outlineBrush = null,
+            TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextBreakMode breakMode = TextBreakMode.SoftBreak,
             char hyphenCharacter = '-')
         {
-            if (!PaintCache.TryGetFontPaint(
-                    CalculateDimension(fontSize),
-                    color,
-                    PaintMode.Fill,
-                    horizontalAlignment,
-                    0f,
-                    out SKPaint? painter))
-            {
-                painter = PaintCache.DefaultPainter.Clone();
-                if (horizontalAlignment != HorizontalAlignmentType.Stretch)
-                {
-                    painter.TextAlign = (SKTextAlign)(horizontalAlignment - 1);
-                }
-                painter.TextSize = CalculateDimension(fontSize);
-                painter.Color = color;
+            SKPaint? painter;
 
-                PaintCache.CacheNewPaint(painter);
+            if (fillBrush == null && outlineBrush == null)
+            {
+                return 0;
+            }
+            //fill, but no outline
+            else if (
+                fillBrush != null && !fillBrush.IsSkippable &&
+                (outlineBrush == null || outlineBrush.IsSkippable))
+            {
+                painter = fillBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.Fill,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            //outline, but no fill
+            else if (
+                outlineBrush != null && !outlineBrush.IsSkippable &&
+                (fillBrush == null || fillBrush.IsSkippable))
+            {
+                painter = outlineBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.Outline,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            //both fill and outline
+            else if (
+                outlineBrush != null && !outlineBrush.IsSkippable &&
+                fillBrush != null && !fillBrush.IsSkippable)
+            {
+                painter = fillBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.FillAndOutline,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            else
+            {
+                return 0;
             }
 
 
             float drawPointX = topLeftPoint.X;
-            if (horizontalAlignment == HorizontalAlignmentType.Center)
+            if (textAlignment == TextAlignmentType.Center)
             {
                 drawPointX += elementSize.Width / 2;
             }
-            else if (horizontalAlignment == HorizontalAlignmentType.Right)
+            else if (textAlignment == TextAlignmentType.Right)
             {
                 drawPointX += elementSize.Width;
             }
@@ -496,54 +508,79 @@ namespace CatUI.RenderingEngine
             Point2D topLeftPoint,
             Dimension fontSize,
             Size elementSize,
-            Color color,
-            HorizontalAlignmentType horizontalAlignment = HorizontalAlignmentType.Left,
+            IBrush? fillBrush = null,
+            IBrush? outlineBrush = null,
+            TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextOverflowMode overflowMode = TextOverflowMode.Ellipsis,
             string? ellipsisStringOverride = null)
         {
-            if (!PaintCache.TryGetFontPaint(
-                    CalculateDimension(fontSize),
-                    color,
-                    PaintMode.Fill,
-                    horizontalAlignment,
-                    0f,
-                    out SKPaint? painter))
-            {
-                painter = PaintCache.DefaultPainter.Clone();
-                if (horizontalAlignment != HorizontalAlignmentType.Stretch)
-                {
-                    painter.TextAlign = (SKTextAlign)(horizontalAlignment - 1);
-                }
-                painter.TextSize = CalculateDimension(fontSize);
-                painter.Color = color;
+            SKPaint? painter;
 
-                PaintCache.CacheNewPaint(painter);
+            if (fillBrush == null && outlineBrush == null)
+            {
+                return 0;
+            }
+            //fill, but no outline
+            else if (
+                fillBrush != null && !fillBrush.IsSkippable &&
+                (outlineBrush == null || !outlineBrush.IsSkippable))
+            {
+                painter = fillBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.Fill,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            //outline, but no fill
+            else if (
+                outlineBrush != null && !outlineBrush.IsSkippable &&
+                (fillBrush == null || !fillBrush.IsSkippable))
+            {
+                painter = outlineBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.Outline,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            //both fill and outline
+            else if (
+                outlineBrush != null && !outlineBrush.IsSkippable &&
+                fillBrush != null && !fillBrush.IsSkippable)
+            {
+                painter = fillBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.FillAndOutline,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            else
+            {
+                return 0;
             }
 
             float drawPointX = topLeftPoint.X;
-            if (horizontalAlignment == HorizontalAlignmentType.Center)
+            if (textAlignment == TextAlignmentType.Center)
             {
                 drawPointX += elementSize.Width / 2;
             }
-            else if (horizontalAlignment == HorizontalAlignmentType.Right)
+            else if (textAlignment == TextAlignmentType.Right)
             {
                 drawPointX += elementSize.Width;
             }
             SKPoint drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
 
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < text.Length; i++)
+            bool hasHyphens = RemoveSoftHyphens(text, out string textWithoutHyphens);
+            if (hasHyphens)
             {
-                if (text[i] != '\u00ad')
-                {
-                    sb.Append(text[i]);
-                }
+                text = textWithoutHyphens;
             }
-            text = sb.ToString();
 
             if (overflowMode == TextOverflowMode.Overflow)
             {
-                this.Canvas?.DrawText(text, drawPoint, painter);
+                Canvas?.DrawText(text, drawPoint, painter);
                 return text.Length;
             }
 
@@ -561,7 +598,7 @@ namespace CatUI.RenderingEngine
             //exit early
             if (elementSize.Width < ellipsisSize && overflowMode == TextOverflowMode.Ellipsis)
             {
-                this.Canvas?.DrawText(ellipsisString, drawPoint, painter);
+                Canvas?.DrawText(ellipsisString, drawPoint, painter);
                 return 0;
             }
 
@@ -590,14 +627,14 @@ namespace CatUI.RenderingEngine
                 long charactersToDraw = painter!.BreakText(text, elementSize.Width);
                 if (charactersToDraw == text.Length)
                 {
-                    this.Canvas?.DrawText(text, drawPoint, painter);
+                    Canvas?.DrawText(text, drawPoint, painter);
                 }
                 else
                 {
                     charactersToDraw = painter!.BreakText(text, elementSize.Width - ellipsisSize);
                     text = text.Substring(0, (int)charactersToDraw);
 
-                    this.Canvas?.DrawText(text + ellipsisString, drawPoint, painter);
+                    Canvas?.DrawText(text + ellipsisString, drawPoint, painter);
                 }
 
                 return text.Length;
@@ -609,7 +646,170 @@ namespace CatUI.RenderingEngine
 
             return 0;
         }
+
+        /// <summary>
+        /// Draws the specified text on one row without doing any checks or measurements for better performance. 
+        /// Only use this on sanitized text (no newlines, hyphens (because they will be drawn directly) 
+        /// or any kind of control characters, as the text will be drawn directly) and when you are sure that the text 
+        /// is not going to overflow the parent element or that overflowing doesn't matter.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="topLeftPoint"></param>
+        /// <param name="fontSize"></param>
+        /// <param name="elementSize"></param>
+        /// <param name="fillBrush"></param>
+        /// <param name="outlineBrush"></param>
+        /// <param name="textAlignment"></param>
+        public void DrawTextRowFast(
+            string text,
+            Point2D topLeftPoint,
+            Dimension fontSize,
+            Size elementSize,
+            IBrush? fillBrush = null,
+            IBrush? outlineBrush = null,
+            TextAlignmentType textAlignment = TextAlignmentType.Left)
+        {
+            SKPaint? painter;
+
+            if (fillBrush == null && outlineBrush == null)
+            {
+                return;
+            }
+            //fill, but no outline
+            else if (
+                fillBrush != null && !fillBrush.IsSkippable &&
+                (outlineBrush == null || !outlineBrush.IsSkippable))
+            {
+                painter = fillBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.Fill,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            //outline, but no fill
+            else if (
+                outlineBrush != null && !outlineBrush.IsSkippable &&
+                (fillBrush == null || !fillBrush.IsSkippable))
+            {
+                painter = outlineBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.Outline,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            //both fill and outline
+            else if (
+                outlineBrush != null && !outlineBrush.IsSkippable &&
+                fillBrush != null && !fillBrush.IsSkippable)
+            {
+                painter = fillBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: painter,
+                    paintMode: PaintMode.FillAndOutline,
+                    textAlignment: textAlignment,
+                    fontSize: CalculateDimension(fontSize));
+            }
+            else
+            {
+                return;
+            }
+
+            float drawPointX = topLeftPoint.X;
+            if (textAlignment == TextAlignmentType.Center)
+            {
+                drawPointX += elementSize.Width / 2;
+            }
+            else if (textAlignment == TextAlignmentType.Right)
+            {
+                drawPointX += elementSize.Width;
+            }
+            SKPoint drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
+
+            Canvas?.DrawText(text, drawPoint, painter);
+        }
+
+        /// <summary>
+        /// Draws the specified text on one row without doing any checks or measurements for better performance. 
+        /// Only use this on sanitized text (no newlines, hyphens (because they will be drawn directly) 
+        /// or any kind of control characters, as the text will be drawn directly) and when you are sure that the text 
+        /// is not going to overflow the parent element or that overflowing doesn't matter.
+        /// </summary>
+        public void DrawTextRowFast(
+            string text,
+            Point2D topLeftPoint,
+            SKPaint rawPaint)
+        {
+            SKPoint drawPoint = new SKPoint(topLeftPoint.X, topLeftPoint.Y);
+            Canvas?.DrawText(text, drawPoint, rawPaint);
+        }
+
+        public void DrawPath(
+            SKPath skiaPath,
+            IBrush fillBrush,
+            IBrush outlineBrush,
+            OutlineParams outlineParams)
+        {
+            if (!fillBrush.IsSkippable)
+            {
+                SKPaint fillPaint = fillBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: fillPaint,
+                    paintMode: PaintMode.Fill);
+
+                Canvas?.DrawPath(skiaPath, fillPaint);
+            }
+
+            if (!outlineBrush.IsSkippable && outlineParams.OutlineWidth != 0)
+            {
+                SKPaint outlinePaint = outlineBrush.ToSkiaPaint();
+                PaintManager.ModifyPaint(
+                    paint: outlinePaint,
+                    paintMode: PaintMode.Outline,
+                    outlineParams: outlineParams);
+
+                Canvas?.DrawPath(skiaPath, outlinePaint);
+            }
+        }
         #endregion
+
+        /// <summary>
+        /// Will remove the soft hyphens (U+00ad) if any, returning true if there were hyphens, false otherwise.
+        /// The text without the hyphens will be returned in clearText.
+        /// </summary>
+        /// <param name="textWithHyphens">The text that has hyphens.</param>
+        /// <param name="clearText">
+        /// The text cleared from any hyphens. Is an empty string when there were no hyphens (to avoid useless allocations).
+        /// </param>
+        /// <returns>True if there were hyphens, false otherwise.</returns>
+        private static bool RemoveSoftHyphens(string textWithHyphens, out string clearText)
+        {
+            bool hasHyphens = false;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < textWithHyphens.Length; i++)
+            {
+                if (textWithHyphens[i] != '\u00ad')
+                {
+                    sb.Append(textWithHyphens[i]);
+                }
+                else
+                {
+                    hasHyphens = true;
+                }
+            }
+
+            if (hasHyphens)
+            {
+                clearText = sb.ToString();
+                return true;
+            }
+            else
+            {
+                clearText = "";
+                return false;
+            }
+        }
 
         private static SKPoint[] SetupRectCorners(CornerInset roundedCorners)
         {

@@ -1,23 +1,34 @@
-﻿using SkiaSharp;
+﻿using System.Runtime.InteropServices;
+using CatUI.Data.Managers;
+using SkiaSharp;
 
 namespace CatUI.Data.Brushes
 {
     public class ColorBrush : IBrush
     {
+        public bool IsSkippable
+        {
+            get
+            {
+                return Color.A == 0;
+            }
+        }
+
+        public Color Color { get; set; }
+
+        /// <summary>
+        /// Creates a brush with a completely transparent color.
+        /// </summary>
         public ColorBrush() { }
+
         public ColorBrush(Color color)
         {
             Color = color;
         }
 
-        public Color Color { get; set; }
-
         public SKPaint ToSkiaPaint()
         {
-            return new SKPaint()
-            {
-                Color = this.Color,
-            };
+            return PaintManager.GetPaint(paintColor: Color);
         }
     }
 }

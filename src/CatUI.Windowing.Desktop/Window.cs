@@ -38,10 +38,10 @@ namespace CatUI.Windowing.Desktop
 
         internal OpenTK.Windowing.GraphicsLibraryFramework.Window* GlfwWindow { get; private set; }
 
-        private bool _shouldCloseWindow = false;
+        private bool _shouldCloseWindow;
         private WindowFlags _flags = WindowFlags.Default;
         private WindowMode _startupMode = WindowMode.Windowed;
-        private bool _isCreated = false;
+        private bool _isCreated;
 
 #if USE_ANGLE
         private nint eglDisplay;
@@ -674,7 +674,7 @@ namespace CatUI.Windowing.Desktop
             this.Document.Renderer.Flush();
         }
 
-        private class AngleBindingsContext : IBindingsContext
+        private sealed class AngleBindingsContext : IBindingsContext
         {
             public nint GetProcAddress(string function)
             {
