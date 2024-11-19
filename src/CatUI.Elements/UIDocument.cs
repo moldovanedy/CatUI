@@ -51,7 +51,7 @@ namespace CatUI.Elements
                 Renderer.SetNewSize(new SKSize(value.Width, value.Height));
             }
         }
-        private Size _viewportSize;
+        private Size _viewportSize = new Size();
 
         public Renderer Renderer { get; private set; } = new Renderer();
         public int ElementCacheSize { get; set; } = 4096;
@@ -68,7 +68,7 @@ namespace CatUI.Elements
                 Renderer.SetBgColor(value);
             }
         }
-        private Color _background;
+        private Color _background = Color.Default;
 
         public float ContentScale
         {

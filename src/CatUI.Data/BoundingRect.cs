@@ -4,8 +4,8 @@ namespace CatUI.Data
 {
     public struct BoundingRect
     {
-        public Point2D Begin { get; set; } = Point2D.Zero;
-        public Point2D End { get; set; } = Point2D.Zero;
+        public Point2D Begin = Point2D.Zero;
+        public Point2D End = Point2D.Zero;
 
         public BoundingRect() { }
 

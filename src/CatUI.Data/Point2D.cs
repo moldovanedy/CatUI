@@ -2,7 +2,7 @@
 
 namespace CatUI.Data
 {
-    public struct Point2D
+    public class Point2D
     {
         public float X { get; set; }
         public float Y { get; set; }
@@ -57,7 +57,7 @@ namespace CatUI.Data
             }
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             return $"({X}, {Y})";
         }

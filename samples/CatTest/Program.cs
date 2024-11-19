@@ -56,6 +56,7 @@ namespace CatTest
                 doc: window.Document,
                 width: new Dimension(100, Unit.Percent),
                 height: new Dimension(100, Unit.Percent));
+
             window.Document.Root.AddChildren(
                 new Rectangle(
                     position: new Dimension2(10, 5),
@@ -94,10 +95,9 @@ namespace CatTest
                             fillBrush: new ColorBrush(new Color(0x1d_ea_85_ff))
                         ),
                         new Label(
-                            text: "He\u00adllo wor\u00adld!",
-                            position: new Dimension2(
-                                10,
-                                new Dimension(55, Unit.Percent)),
+                            text: "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
+                            wordWrap: true,
+                            position: new Dimension2(0, 0),
                             width: new Dimension(25, Unit.Percent),
                             themeOverrides: new ThemeDefinition<LabelThemeData>(new Dictionary<string, LabelThemeData>()
                             {
@@ -105,7 +105,7 @@ namespace CatTest
                                     Label.STYLE_NORMAL,
                                     new LabelThemeData(Label.STYLE_NORMAL){
                                         FontSize = 32,
-                                        Background = new ColorBrush(new Color(0x00_ff_ff_ff))
+                                        Background = new ColorBrush(new Color(0x00_ff_ff_80))
                                     }
                                 }
                             })

@@ -8,7 +8,7 @@ namespace CatUI.Data
     /// <remarks>
     /// This is generally used for corner radius.
     /// </remarks>
-    public struct CornerInset
+    public class CornerInset
     {
         public CornerInset() { }
         public CornerInset(Dimension dimension)
@@ -73,7 +73,7 @@ namespace CatUI.Data
         /// <summary>
         /// If true, it means that at least one of the corners has a value that is NOT 0.
         /// </summary>
-        public readonly bool HasNonTrivialValues
+        public bool HasNonTrivialValues
         {
             get
             {
@@ -108,7 +108,7 @@ namespace CatUI.Data
             }
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             //TODO: also add case for elliptic insets
             return $"({TopLeft}, {TopRight}, {BottomRight}, {BottomLeft})";

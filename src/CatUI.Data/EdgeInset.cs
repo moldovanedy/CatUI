@@ -11,7 +11,7 @@ namespace CatUI.Data
     /// for margins, it represents the distance from the current element to the next one in one of the four directions (top, left, bottom, right);
     /// for position, it represents the distance from the current element to one or more of the containing element's border.
     /// </remarks>
-    public struct EdgeInset
+    public class EdgeInset
     {
         public EdgeInset() { }
 
@@ -77,7 +77,7 @@ namespace CatUI.Data
             }
         }
 
-        public override readonly bool Equals([NotNullWhen(true)] object? obj)
+        public override bool Equals([NotNullWhen(true)] object? obj)
         {
             if (obj == null)
             {
@@ -107,12 +107,12 @@ namespace CatUI.Data
             }
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return System.HashCode.Combine(this.Top, this.Right, this.Bottom, this.Left);
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             return $"({Top}, {Right}, {Bottom}, {Left})";
         }

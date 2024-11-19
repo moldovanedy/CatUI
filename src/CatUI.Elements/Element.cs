@@ -28,7 +28,7 @@ namespace CatUI.Elements
 
         public const string STYLE_NORMAL = "normal";
         public const string STYLE_HOVER = "hover";
-        private ThemeDefinition<ElementThemeData> _themeDefinition = new ThemeDefinition<ElementThemeData>();
+        private readonly ThemeDefinition<ElementThemeData> _themeDefinition = new ThemeDefinition<ElementThemeData>();
 
         public Dimension2 Position
         {
@@ -41,7 +41,7 @@ namespace CatUI.Elements
                 if (value != _position)
                 {
                     _position = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -58,7 +58,7 @@ namespace CatUI.Elements
                 if (value != _width)
                 {
                     _width = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -79,7 +79,7 @@ namespace CatUI.Elements
                 if (value != _minWidth)
                 {
                     _minWidth = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -100,7 +100,7 @@ namespace CatUI.Elements
                 if (value != _maxWidth)
                 {
                     _maxWidth = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -117,7 +117,7 @@ namespace CatUI.Elements
                 if (value != _height)
                 {
                     _height = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace CatUI.Elements
                 if (value != _minHeight)
                 {
                     _minHeight = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -159,7 +159,7 @@ namespace CatUI.Elements
                 if (value != _maxHeight)
                 {
                     _maxHeight = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -176,7 +176,7 @@ namespace CatUI.Elements
                 if (value != _padding)
                 {
                     _padding = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -193,7 +193,7 @@ namespace CatUI.Elements
                 if (value != _margin)
                 {
                     _margin = value;
-                    RecalculateBounds();
+                    RecalculateLayout();
                 }
             }
         }
@@ -205,6 +205,24 @@ namespace CatUI.Elements
         public UIDocument? Document { get; private set; }
 
         protected bool IsInstantiated { get; private set; }
+
+        protected Point2D InternalPosition
+        {
+            get
+            {
+                return _internalPosition;
+            }
+            set
+            {
+                if (value.X != _internalPosition.X || value.Y != _internalPosition.Y)
+                {
+                    _internalPosition = value;
+                    RecalculateBounds();
+                }
+            }
+        }
+        private Point2D _internalPosition = Point2D.Zero;
+
         protected float InternalWidth
         {
             get
@@ -340,26 +358,37 @@ namespace CatUI.Elements
         /// <summary>
         /// Sets the document of this element and all its children. It should generally be called only for elements
         /// that will have children at creation time.
-        /// Will not actually add the element to the document 
-        /// (see <see cref="AddChild(Element, bool)"/> or <see cref="AddChildren(List{Element}, bool)"/>).
+        /// Will also add the element to the document 
+        /// (like <see cref="AddChild(Element, bool)"/> or <see cref="AddChildren(Element[])"/>).
         /// </summary>
         /// <remarks>
         /// If the element already belongs to a document, this will remove the element, along with all its children, 
         /// then add this element along with its previous children to the specified document.
         /// </remarks>
         /// <param name="document">The document to which this element should be added</param>
-        public Element SetDocument(UIDocument document)
+        public Element SetDocument(UIDocument? document)
         {
-            if (Document != null && Document != document)
+            //the element is not in a document and the given document is non-null
+            if (Document == null && document != null)
+            {
+                InvokeEnterDocument();
+            }
+            //the element is in a document and the given document is another document or null
+            else if (Document != document)
             {
                 GetParent()?.RemoveChild(this);
+                Document = document;
+
+                if (document != null)
+                {
+                    GetParent()?.AddChild(this);
+                }
             }
 
-            Document = document;
-            for (int i = 0; i < _children.Count; i++)
-            {
-                _children[i].SetDocument(document);
-            }
+            // for (int i = 0; i < _children.Count; i++)
+            // {
+            //     _children[i].SetDocument(document);
+            // }
             return this;
         }
 
@@ -470,7 +499,7 @@ namespace CatUI.Elements
             }
 
             IsInstantiated = true;
-            RecalculateBounds();
+            RecalculateLayout();
 
             if (Document != null)
             {
@@ -526,11 +555,11 @@ namespace CatUI.Elements
         #region Internal event handlers
         private void PrivateDraw()
         {
-            RecalculateBounds();
+            RecalculateLayout();
             DrawBackground();
         }
 
-        private void RecalculateBounds()
+        protected virtual void RecalculateLayout()
         {
             float parentWidth, parentHeight, parentXPos, parentYPos;
             if (Document?.Root == this)
@@ -548,23 +577,47 @@ namespace CatUI.Elements
                 parentYPos = _parent?.Bounds.StartPoint.Y ?? 0;
             }
 
-            float elementFinalWidth = Math.Clamp(
-                CalculateDimension(Width, parentWidth),
-                MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
-                MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
-            float elementFinalHeight = Math.Clamp(
-                CalculateDimension(Height, parentHeight),
-                MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
-                MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
+            if (!Width.IsUnset())
+            {
+                InternalWidth = Math.Clamp(
+                    CalculateDimension(Width, parentWidth),
+                    MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
+                    MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
+            }
 
+            if (!Height.IsUnset())
+            {
+                InternalHeight = Math.Clamp(
+                    CalculateDimension(Height, parentHeight),
+                    MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
+                    MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
+            }
+
+            if (!Position.IsUnset())
+            {
+                InternalPosition = new Point2D(
+                     parentXPos + CalculateDimension(Position.X, parentWidth),
+                     parentYPos + CalculateDimension(Position.Y, parentHeight));
+            }
+
+            // Bounds = new ElementBounds(
+            //     new Point2D(
+            //         parentXPos + CalculateDimension(Position.X, parentWidth),
+            //         parentYPos + CalculateDimension(Position.Y, parentHeight)),
+            //     elementFinalWidth,
+            //     elementFinalHeight,
+            //     new float[4],
+            //     new float[4]);
+        }
+
+        private void RecalculateBounds()
+        {
             Bounds = new ElementBounds(
-                new Point2D(
-                    parentXPos + CalculateDimension(Position.X, parentWidth),
-                    parentYPos + CalculateDimension(Position.Y, parentHeight)),
-                elementFinalWidth,
-                elementFinalHeight,
-                new float[4],
-                new float[4]);
+                startPoint: InternalPosition,
+                width: InternalWidth,
+                height: InternalHeight,
+                paddings: new float[4],
+                margins: new float[4]);
         }
         #endregion
 
@@ -579,11 +632,6 @@ namespace CatUI.Elements
 
         public void AddChild(Element child, bool isInternal = false)
         {
-            if (Document == null)
-            {
-                throw new Exception("The element is not inside the logical tree.");
-            }
-
             _children.Add(child);
             child.IsInternal = isInternal;
             if (!isInternal)
@@ -598,9 +646,17 @@ namespace CatUI.Elements
                 }
             }
 
-            child.SetParent(this);
-            child.Document = Document;
-            child.InvokeEnterDocument();
+            child._parent = this;
+            if (Document != null)
+            {
+                child.Document = Document;
+                child.InvokeEnterDocument();
+
+                foreach (Element grandChild in child._children)
+                {
+                    grandChild.InvokeEnterDocument();
+                }
+            }
         }
 
         public void AddChildren(params Element[] children)
@@ -631,7 +687,7 @@ namespace CatUI.Elements
         {
             foreach (Element child in children)
             {
-                AddChild(child);
+                AddChild(child, true);
             }
         }
 
@@ -682,7 +738,7 @@ namespace CatUI.Elements
         {
             if (includeInternal)
             {
-                //clear cache, as it's too difficult to determine where to insert the element
+                //clear cache, as it's too difficult to determine (very fast) where to insert the element
                 _cachedPublicChildren = null;
 
                 if (toIndex > _children.Count || toIndex < -_children.Count)
@@ -728,20 +784,21 @@ namespace CatUI.Elements
 
             child._parent = null;
             child.Document = null;
-            child.InvokeExitDocument();
+
+            if (Document != null)
+            {
+                child.InvokeExitDocument();
+            }
             child.RemoveAllChildren();
         }
 
         public void RemoveAllChildren()
         {
-            foreach (Element child in _children)
+            while (_children.Count != 0)
             {
-                child.SetParent(null);
-                child.Document = null;
-                child.InvokeExitDocument();
-                child.RemoveAllChildren();
+                RemoveChild(_children[0]);
             }
-            _children.Clear();
+
             _cachedPublicChildren = null;
         }
 
@@ -868,16 +925,6 @@ namespace CatUI.Elements
             }
         }
         #endregion //Visual
-
-        internal void SetParent(Element? parent)
-        {
-            if (parent == null)
-            {
-                _parent?.RemoveChild(this);
-            }
-
-            _parent = parent;
-        }
 
         private void DrawChildren()
         {

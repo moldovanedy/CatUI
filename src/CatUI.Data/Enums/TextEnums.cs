@@ -8,15 +8,18 @@
         Right = 3,
     }
 
+    /// <summary>
+    /// Specifies the text breaking (i.e. rendering on multiple lines) behavior for text elements.
+    /// </summary>
     public enum TextBreakMode
     {
         /// <summary>
-        /// Doesn't break the text, meaning it might overflow if the word is larger than the width of the element.
+        /// Only breaks the text at space or newline, meaning it might overflow if the word is larger than the width of the element.
         /// </summary>
         NoBreak = 0,
         /// <summary>
-        /// Will break the text only at the \u00ad ("soft hyphen" or "shy") character. If the portion of the word between two "shy" or spaces
-        /// is larger than the width of the element, the content will overflow.
+        /// Will break the text only at the \u00ad ("soft hyphen" or "shy") character or at space. If the portion 
+        /// of the word between two "shy" or spaces is larger than the width of the element, the content will overflow.
         /// If there are no "shy" characters, it will behave as NoBreak.
         /// </summary>
         SoftBreak = 1,

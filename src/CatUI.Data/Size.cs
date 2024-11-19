@@ -2,7 +2,7 @@
 
 namespace CatUI.Data
 {
-    public struct Size
+    public class Size
     {
         public float Width { get; set; }
         public float Height { get; set; }
@@ -49,7 +49,7 @@ namespace CatUI.Data
             }
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             return $"{{W:{Width}, H:{Height}}}";
         }

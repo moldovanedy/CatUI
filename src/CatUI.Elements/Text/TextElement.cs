@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using CatUI.Data;
-using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Elements.Themes;
 using CatUI.Elements.Themes.Text;
@@ -11,9 +10,18 @@ namespace CatUI.Elements.Text
     public abstract class TextElement : Element
     {
         public string Text { get; set; } = string.Empty;
-        public bool WordWrap { get; set; } = true;
+        public bool WordWrap { get; set; }
         public TextOverflowMode TextOverflowMode { get; set; } = TextOverflowMode.Ellipsis;
         public TextAlignmentType TextAlignment { get; set; } = TextAlignmentType.Left;
+        /// <summary>
+        /// If true, the element will expand beyond the set <see cref="Element.Width"/> and <see cref="Element.Height"/>, but still
+        /// respecting the minimum and maximum width and height constraints (like <see cref="Element.MinHeight"/>).
+        /// </summary>
+        /// <remarks>
+        /// This expansion will generally happen when <see cref="WordWrap"/> is false, when a word's width is larger than 
+        /// the element's width or when the text is so large that it won't fit in the element's height (as it occupies more rows).
+        /// </remarks>
+        public bool AllowsExpansion { get; set; } = true;
 
         public TextElement(string text)
         {
@@ -24,7 +32,8 @@ namespace CatUI.Elements.Text
             string text,
             TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
-            bool wordWrap = true,
+            bool wordWrap = false,
+            bool allowsExpansion = true,
 
             UIDocument? doc = null,
             List<Element>? children = null,
@@ -47,15 +56,16 @@ namespace CatUI.Elements.Text
                  maxWidth: maxWidth)
         {
             Text = text;
-            WordWrap = wordWrap;
             TextAlignment = textAlignment;
+            TextOverflowMode = textOverflowMode;
+            WordWrap = wordWrap;
+            AllowsExpansion = allowsExpansion;
 
             if (themeOverrides != null)
             {
                 base.SetElementThemeOverrides(themeOverrides);
             }
 
-            TextOverflowMode = textOverflowMode;
         }
 
         #region Builder
@@ -70,14 +80,14 @@ namespace CatUI.Elements.Text
             return this;
         }
 
-        public TextElement SetInitialWordWrap(bool wordWrap)
+        public TextElement SetInitialTextAlignment(TextAlignmentType textAlignment)
         {
             if (IsInstantiated)
             {
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
 
-            WordWrap = wordWrap;
+            TextAlignment = textAlignment;
             return this;
         }
 
@@ -92,14 +102,25 @@ namespace CatUI.Elements.Text
             return this;
         }
 
-        public TextElement SetInitialTextAlignment(TextAlignmentType textAlignment)
+        public TextElement SetInitialWordWrap(bool wordWrap)
         {
             if (IsInstantiated)
             {
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
 
-            TextAlignment = textAlignment;
+            WordWrap = wordWrap;
+            return this;
+        }
+
+        public TextElement SetInitialAllowsExpansion(bool allowsExpansion)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            AllowsExpansion = allowsExpansion;
             return this;
         }
         #endregion //Builder

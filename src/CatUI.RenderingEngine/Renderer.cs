@@ -5,6 +5,7 @@ using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
+using CatUI.Shared;
 using SkiaSharp;
 
 namespace CatUI.Data
@@ -25,7 +26,7 @@ namespace CatUI.Data
         private SKSize _lastSize;
         private SKSize _newSize;
 
-        private Color _bgColor;
+        private Color _bgColor = new Color(0);
         private int _framebufferBinding;
         private int _stencilBits;
         private int _samples;
@@ -170,7 +171,7 @@ namespace CatUI.Data
         /// <returns>The row's width when rendering the given number of characters.</returns>
         public static float MeasureTextRowSize(string text, SKPaint fontPaint, float maxWidth, out int charactersToDraw)
         {
-            bool hasHyphens = RemoveSoftHyphens(text, out string textWithoutHyphens);
+            bool hasHyphens = TextUtils.RemoveSoftHyphens(text, out string textWithoutHyphens);
             if (hasHyphens)
             {
                 text = textWithoutHyphens;
@@ -193,12 +194,12 @@ namespace CatUI.Data
         /// <param name="roundedCorners">
         /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless of the measuring unit.
         /// </param>
-        public void DrawRect(Rect rect, IBrush fillBrush, CornerInset roundedCorners = default)
+        public void DrawRect(Rect rect, IBrush fillBrush, CornerInset? roundedCorners = null)
         {
             SKPaint paint = fillBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(paint: paint, paintMode: PaintMode.Fill);
 
-            if (roundedCorners.HasNonTrivialValues)
+            if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
             {
                 SKRoundRect roundRect = new SKRoundRect();
                 SKPoint[] radii = SetupRectCorners(roundedCorners);
@@ -224,12 +225,12 @@ namespace CatUI.Data
         /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless of the measuring unit.
         /// </param>
         /// <param name="outlineWidth">The width of the outline in pixels.</param>
-        public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams, CornerInset roundedCorners = default)
+        public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams, CornerInset? roundedCorners = null)
         {
             SKPaint paint = outlineBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(paint: paint, paintMode: PaintMode.Outline, outlineParams: outlineParams);
 
-            if (roundedCorners.HasNonTrivialValues)
+            if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
             {
                 SKRoundRect roundRect = new SKRoundRect();
                 SKPoint[] radii = SetupRectCorners(roundedCorners);
@@ -279,6 +280,10 @@ namespace CatUI.Data
         /// </param>
         /// <param name="breakMode">Specifies the text break mode. See <see cref="TextBreakMode"/> for more information.</param>
         /// <param name="hyphenCharacter">Specifies the character used as a hyphen if necessary. For no hyphens, set this to the null character.</param>
+        /// <param name="cachedMaxCharacters">
+        /// If larger than 0, will use this value instead of using more expensive calculations with Skia's BreakText functions.
+        /// If you already called BreakText and didn't modify the paint, you can safely pass the result here to avoid another call to BreakText.
+        /// </param>
         /// <returns>The number of characters drawn.</returns>
         /// <exception cref="ArgumentException">Thrown if the text contains an invalid newline (\r instead of \n or \r\n).</exception>
         public int DrawTextRow(
@@ -290,7 +295,8 @@ namespace CatUI.Data
             IBrush? outlineBrush = null,
             TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextBreakMode breakMode = TextBreakMode.SoftBreak,
-            char hyphenCharacter = '-')
+            char hyphenCharacter = '-',
+            int cachedMaxCharacters = 0)
         {
             SKPaint? painter;
 
@@ -339,7 +345,6 @@ namespace CatUI.Data
                 return 0;
             }
 
-
             float drawPointX = topLeftPoint.X;
             if (textAlignment == TextAlignmentType.Center)
             {
@@ -354,7 +359,6 @@ namespace CatUI.Data
             StringBuilder sb = new StringBuilder();
             List<int> shyPositions = new List<int>();
 
-            bool hasNewLine = false;
             for (int i = 0; i < text.Length; i++)
             {
                 if (text[i] == '\r' && i == text.Length - 1)
@@ -364,7 +368,6 @@ namespace CatUI.Data
 
                 if (text[i] == '\n' || (text[i] == '\r' && text[i + 1] == '\n'))
                 {
-                    hasNewLine = true;
                     break;
                 }
                 else if (text[i] == '\u00ad')
@@ -378,13 +381,17 @@ namespace CatUI.Data
 
             string drawableText = sb.ToString();
             bool needsHyphen = false;
-            int charactersDrawn = 0, charsOnThisRow = drawableText.Length;
-            if (hasNewLine)
+            int charactersDrawn = 0, charsOnThisRow;
+
+            if (cachedMaxCharacters > 0)
             {
-                goto Drawing;
+                charsOnThisRow = cachedMaxCharacters;
+            }
+            else
+            {
+                charsOnThisRow = (int)painter!.BreakText(drawableText, elementSize.Width);
             }
 
-            charsOnThisRow = (int)painter!.BreakText(drawableText, elementSize.Width);
             if (charsOnThisRow <= 0)
             {
                 charsOnThisRow = 1;
@@ -453,7 +460,7 @@ namespace CatUI.Data
                 }
             }
 
-        Drawing:
+            //actual drawing
             if (needsHyphen)
             {
                 string newString = new string(drawableText.AsSpan(charactersDrawn, charsOnThisRow));
@@ -523,7 +530,7 @@ namespace CatUI.Data
             //fill, but no outline
             else if (
                 fillBrush != null && !fillBrush.IsSkippable &&
-                (outlineBrush == null || !outlineBrush.IsSkippable))
+                (outlineBrush == null || outlineBrush.IsSkippable))
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
@@ -535,7 +542,7 @@ namespace CatUI.Data
             //outline, but no fill
             else if (
                 outlineBrush != null && !outlineBrush.IsSkippable &&
-                (fillBrush == null || !fillBrush.IsSkippable))
+                (fillBrush == null || fillBrush.IsSkippable))
             {
                 painter = outlineBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
@@ -572,7 +579,7 @@ namespace CatUI.Data
             }
             SKPoint drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
 
-            bool hasHyphens = RemoveSoftHyphens(text, out string textWithoutHyphens);
+            bool hasHyphens = TextUtils.RemoveSoftHyphens(text, out string textWithoutHyphens);
             if (hasHyphens)
             {
                 text = textWithoutHyphens;
@@ -774,42 +781,42 @@ namespace CatUI.Data
         }
         #endregion
 
-        /// <summary>
-        /// Will remove the soft hyphens (U+00ad) if any, returning true if there were hyphens, false otherwise.
-        /// The text without the hyphens will be returned in clearText.
-        /// </summary>
-        /// <param name="textWithHyphens">The text that has hyphens.</param>
-        /// <param name="clearText">
-        /// The text cleared from any hyphens. Is an empty string when there were no hyphens (to avoid useless allocations).
-        /// </param>
-        /// <returns>True if there were hyphens, false otherwise.</returns>
-        private static bool RemoveSoftHyphens(string textWithHyphens, out string clearText)
-        {
-            bool hasHyphens = false;
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < textWithHyphens.Length; i++)
-            {
-                if (textWithHyphens[i] != '\u00ad')
-                {
-                    sb.Append(textWithHyphens[i]);
-                }
-                else
-                {
-                    hasHyphens = true;
-                }
-            }
+        // /// <summary>
+        // /// Will remove the soft hyphens (U+00ad) if any, returning true if there were hyphens, false otherwise.
+        // /// The text without the hyphens will be returned in clearText.
+        // /// </summary>
+        // /// <param name="textWithHyphens">The text that has hyphens.</param>
+        // /// <param name="clearText">
+        // /// The text cleared from any hyphens. Is an empty string when there were no hyphens (to avoid useless allocations).
+        // /// </param>
+        // /// <returns>True if there were hyphens, false otherwise.</returns>
+        // private static bool RemoveSoftHyphens(string textWithHyphens, out string clearText)
+        // {
+        //     bool hasHyphens = false;
+        //     StringBuilder sb = new StringBuilder();
+        //     for (int i = 0; i < textWithHyphens.Length; i++)
+        //     {
+        //         if (textWithHyphens[i] != '\u00ad')
+        //         {
+        //             sb.Append(textWithHyphens[i]);
+        //         }
+        //         else
+        //         {
+        //             hasHyphens = true;
+        //         }
+        //     }
 
-            if (hasHyphens)
-            {
-                clearText = sb.ToString();
-                return true;
-            }
-            else
-            {
-                clearText = "";
-                return false;
-            }
-        }
+        //     if (hasHyphens)
+        //     {
+        //         clearText = sb.ToString();
+        //         return true;
+        //     }
+        //     else
+        //     {
+        //         clearText = "";
+        //         return false;
+        //     }
+        // }
 
         private static SKPoint[] SetupRectCorners(CornerInset roundedCorners)
         {

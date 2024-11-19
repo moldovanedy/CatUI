@@ -3,7 +3,7 @@ using SkiaSharp;
 
 namespace CatUI.Data
 {
-    public struct Rect
+    public class Rect
     {
         public float X { get; set; }
         public float Y { get; set; }
@@ -26,25 +26,25 @@ namespace CatUI.Data
             Height = height;
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             return $"{{X: {X}, Y: {Y}, W:{Width}, H:{Height}}}";
         }
 
         public float CenterX
         {
-            readonly get => X + (Width / 2);
+            get => X + (Width / 2);
             set => X += value - CenterX;
         }
         public float CenterY
         {
-            readonly get => Y + (Height / 2);
+            get => Y + (Height / 2);
             set => Y += value - CenterY;
         }
 
         public float EndX
         {
-            readonly get => X + Width;
+            get => X + Width;
             set
             {
                 if (value < X)
@@ -57,7 +57,7 @@ namespace CatUI.Data
 
         public float EndY
         {
-            readonly get => Y + Height;
+            get => Y + Height;
             set
             {
                 if (value < Y)

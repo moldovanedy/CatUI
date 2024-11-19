@@ -14,7 +14,7 @@ namespace CatUI.Data.Brushes
             }
         }
 
-        public Color Color { get; set; }
+        public Color Color { get; set; } = Color.Default;
 
         /// <summary>
         /// Creates a brush with a completely transparent color.
