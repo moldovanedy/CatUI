@@ -33,16 +33,16 @@ namespace CatTest
 
         private static void Main()
         {
-            AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
-            Image? image = AssetsManager.LoadFromAssembly<Image>("/Assets/search_128px.png");
-            if (image != null)
-            {
-                Debug.WriteLine(image.ToString());
-            }
-            else
-            {
-                Debug.WriteLine("NULL");
-            }
+            // AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
+            // Image? image = AssetsManager.LoadFromAssembly<Image>("/Assets/search_128px.png");
+            // if (image != null)
+            // {
+            //     Debug.WriteLine(image.ToString());
+            // }
+            // else
+            // {
+            //     Debug.WriteLine("NULL");
+            // }
 
             window = new Window(
                 width: 800,

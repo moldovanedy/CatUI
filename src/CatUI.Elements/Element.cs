@@ -4,6 +4,8 @@ using System.Linq;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
+using CatUI.Data.Events.Document;
+using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Themes;
 
 namespace CatUI.Elements
@@ -11,20 +13,20 @@ namespace CatUI.Elements
     public class Element
     {
         public Action? OnDraw;
-        public Action? OnEnterDocument;
-        public Action? OnExitDocument;
-        public Action? OnLoad;
-        public Action? OnPointerEnter;
-        public Action? OnPointerExit;
-        public Action? OnPointerMove;
+        public EnterDocumentEventHandler? OnEnterDocument;
+        public ExitDocumentEventHandler? OnExitDocument;
+        public LoadEventHandler? OnLoad;
+        public PointerEnterEventHandler? OnPointerEnter;
+        public PointerLeaveEventHandler? OnPointerExit;
+        public PointerMoveEventHandler? OnPointerMove;
 
         public event Action? DrawEvent;
-        public event Action? EnterDocumentEvent;
-        public event Action? ExitDocumentEvent;
-        public event Action? LoadEvent;
-        public event Action? PointerEnterEvent;
-        public event Action? PointerExitEvent;
-        public event Action? PointerMoveEvent;
+        public event EnterDocumentEventHandler? EnterDocumentEvent;
+        public event ExitDocumentEventHandler? ExitDocumentEvent;
+        public event LoadEventHandler? LoadEvent;
+        public event PointerEnterEventHandler? PointerEnterEvent;
+        public event PointerLeaveEventHandler? PointerExitEvent;
+        public event PointerMoveEventHandler? PointerMoveEvent;
 
         public const string STYLE_NORMAL = "normal";
         public const string STYLE_HOVER = "hover";
@@ -342,7 +344,7 @@ namespace CatUI.Elements
             PointerEnterEvent -= OnPointerEnter;
             PointerEnterEvent -= PointerEnter;
             PointerExitEvent -= OnPointerExit;
-            PointerExitEvent -= PointerExit;
+            PointerExitEvent -= PointerLeave;
             PointerMoveEvent -= OnPointerMove;
             PointerMoveEvent -= PointerMove;
 
@@ -518,12 +520,12 @@ namespace CatUI.Elements
 
         internal void InvokeEnterDocument()
         {
-            EnterDocumentEvent?.Invoke();
+            EnterDocumentEvent?.Invoke(this);
         }
 
         internal void InvokeExitDocument()
         {
-            ExitDocumentEvent?.Invoke();
+            ExitDocumentEvent?.Invoke(this);
         }
 
         internal void InvokeLoad()
@@ -533,22 +535,22 @@ namespace CatUI.Elements
                 child.InvokeLoad();
             }
 
-            LoadEvent?.Invoke();
+            LoadEvent?.Invoke(this);
         }
 
         internal void InvokePointerEnter()
         {
-            PointerEnterEvent?.Invoke();
+            PointerEnterEvent?.Invoke(this, new PointerEnterEventArgs(Point2D.Zero, false));
         }
 
-        internal void InvokePointerExit()
+        internal void InvokePointerLeave()
         {
-            PointerExitEvent?.Invoke();
+            PointerExitEvent?.Invoke(this, new PointerLeaveEventArgs(Point2D.Zero, false));
         }
 
         internal void InvokePointerMove()
         {
-            PointerMoveEvent?.Invoke();
+            PointerMoveEvent?.Invoke(this, new PointerMoveEventArgs(Point2D.Zero, false));
         }
         #endregion //Internal invoke
 
@@ -623,12 +625,12 @@ namespace CatUI.Elements
 
         #region Public API
         public virtual void Draw() { }
-        public virtual void EnterDocument() { }
-        public virtual void ExitDocument() { }
-        public virtual void Loaded() { }
-        public virtual void PointerEnter() { }
-        public virtual void PointerExit() { }
-        public virtual void PointerMove() { }
+        public virtual void EnterDocument(object sender) { }
+        public virtual void ExitDocument(object sender) { }
+        public virtual void Loaded(object sender) { }
+        public virtual void PointerEnter(object sender, PointerEnterEventArgs e) { }
+        public virtual void PointerLeave(object sender, PointerLeaveEventArgs e) { }
+        public virtual void PointerMove(object sender, PointerMoveEventArgs e) { }
 
         public void AddChild(Element child, bool isInternal = false)
         {
@@ -947,7 +949,7 @@ namespace CatUI.Elements
             PointerEnterEvent += OnPointerEnter;
             PointerEnterEvent += PointerEnter;
             PointerExitEvent += OnPointerExit;
-            PointerExitEvent += PointerExit;
+            PointerExitEvent += PointerLeave;
             PointerMoveEvent += OnPointerMove;
             PointerMoveEvent += PointerMove;
 

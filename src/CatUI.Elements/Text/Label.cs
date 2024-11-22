@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
 using CatUI.Data;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
@@ -14,6 +17,8 @@ namespace CatUI.Elements.Text
     {
         public TextBreakMode TextBreakMode { get; set; } = TextBreakMode.SoftBreak;
         public char HyphenCharacter { get; set; } = '-';
+
+        private List<KeyValuePair<string, float>>? _cachedRows;
 
         public Label() : base(string.Empty)
         {
@@ -144,12 +149,40 @@ namespace CatUI.Elements.Text
             //calculate the actual dimensions occupied by the text
             if (base.AllowsExpansion && !string.IsNullOrEmpty(Text))
             {
-                bool hadHyphens = TextUtils.RemoveSoftHyphens(Text, out string newString);
-                if (!hadHyphens)
+                if (_cachedRows == null)
                 {
-                    newString = Text;
+                    _cachedRows = new List<KeyValuePair<string, float>>();
                 }
 
+                StringBuilder sb = new StringBuilder();
+                List<int> shyPositions = new List<int>();
+                List<int> newlinePositions = new List<int>();
+
+                for (int i = 0; i < Text.Length; i++)
+                {
+                    if (Text[i] == '\r' && i == Text.Length - 1)
+                    {
+                        throw new ArgumentException("Invalid text: found CR (\\r) without LF (\\n)", Text);
+                    }
+
+                    if (Text[i] == '\n' || (Text[i] == '\r' && Text[i + 1] == '\n'))
+                    {
+                        newlinePositions.Add(sb.Length);
+                        continue;
+                    }
+                    else if (Text[i] == '\u00ad')
+                    {
+                        if (TextBreakMode == TextBreakMode.SoftBreak)
+                        {
+                            shyPositions.Add(sb.Length);
+                        }
+                        continue;
+                    }
+
+                    sb.Append(Text[i]);
+                }
+
+                string drawableText = sb.ToString();
                 float maxWidth = normalWidth;
                 float newHeight = normalHeight;
                 LabelThemeData currentTheme = base.GetElementFinalThemeData<LabelThemeData>(Label.STYLE_NORMAL);
@@ -163,14 +196,24 @@ namespace CatUI.Elements.Text
 
                 int characterPosition = 0;
                 bool isFirstRow = true;
-                ReadOnlySpan<char> textSpan = newString.AsSpan();
+                ReadOnlySpan<char> textSpan = drawableText.AsSpan();
 
                 while (characterPosition < textSpan.Length)
                 {
                     ReadOnlySpan<char> nextSlice = textSpan.Slice(characterPosition);
+                    float avgCharSize = Renderer.EstimateCharSizeSafe(nextSlice, paint);
+                    int safeCharacterNumber = Math.Min((int)(normalWidth / avgCharSize), nextSlice.Length);
 
-                    //TODO: when textSpan is very large, this has a significant performance penalty; use a heuristic function
-                    //to measure text for a smaller chunk
+                    for (int i = 0; i < newlinePositions.Count; i++)
+                    {
+                        if (newlinePositions[i] > characterPosition && newlinePositions[i] < characterPosition + safeCharacterNumber)
+                        {
+                            safeCharacterNumber = newlinePositions[i] - characterPosition;
+                            break;
+                        }
+                    }
+                    nextSlice = nextSlice.Slice(0, safeCharacterNumber);
+
                     int characterCount = (int)paint.BreakText(nextSlice, normalWidth);
                     int normalCharacterCount = characterCount;
                     if (characterCount == 0)
@@ -180,16 +223,25 @@ namespace CatUI.Elements.Text
                     }
                     else if (characterCount < nextSlice.Length)
                     {
-                        if (characterCount < nextSlice.Length - 1 && char.IsWhiteSpace(nextSlice[characterCount + 1]))
+                        //if (characterCount < nextSlice.Length - 1 && char.IsWhiteSpace(nextSlice[characterCount + 1]))
+                        if (characterCount > 0 && char.IsWhiteSpace(nextSlice[characterCount - 1]))
                         {
                             characterCount--;
                         }
                         else
                         {
                             int safeValue = characterCount;
-                            //TODO: also take SHY into account when TextBreakMode is SoftBreak
-                            while (characterCount > 0 && !char.IsWhiteSpace(nextSlice[characterCount]))
+                            while (characterCount > 0)
                             {
+                                if (TextBreakMode == TextBreakMode.SoftBreak && shyPositions.Contains(characterPosition + characterCount))
+                                {
+                                    break;
+                                }
+                                if (char.IsWhiteSpace(nextSlice[characterCount]))
+                                {
+                                    break;
+                                }
+
                                 characterCount--;
                             }
 
@@ -200,6 +252,7 @@ namespace CatUI.Elements.Text
                             }
                         }
                     }
+
                     characterPosition += characterCount;
 
                     if (normalCharacterCount < characterCount)
@@ -210,6 +263,17 @@ namespace CatUI.Elements.Text
                         {
                             maxWidth = newWidth;
                         }
+                        _cachedRows.Add(
+                            new KeyValuePair<string, float>(
+                                new string(nextSlice.Slice(0, characterCount)),
+                                newWidth));
+                    }
+                    else
+                    {
+                        _cachedRows.Add(
+                            new KeyValuePair<string, float>(
+                                new string(nextSlice.Slice(0, characterCount)),
+                                normalWidth));
                     }
 
                     if (isFirstRow)
@@ -220,6 +284,13 @@ namespace CatUI.Elements.Text
                     else
                     {
                         newHeight += lineHeightPixels;
+                    }
+
+                    //solves the case where the row is truncated right before a space, 
+                    //thus causing a blank space like an indent on the next row
+                    if (characterPosition < textSpan.Length && textSpan[characterPosition] == ' ')
+                    {
+                        characterPosition++;
                     }
                 }
 
@@ -234,6 +305,17 @@ namespace CatUI.Elements.Text
                 base.InternalWidth = normalWidth;
                 base.InternalHeight = normalHeight;
                 base.InternalPosition = normalPosition;
+            }
+
+            if (_cachedRows != null)
+            {
+                for (int i = 0; i < _cachedRows.Count; i++)
+                {
+                    Debug.WriteLine(_cachedRows[i].Key);
+                }
+
+                Debug.WriteLine("----------------------------");
+                _cachedRows.Clear();
             }
         }
 

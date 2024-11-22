@@ -37,6 +37,11 @@ namespace CatUI.Data
             _scale = scale;
         }
 
+        public float GetContentScale()
+        {
+            return _scale;
+        }
+
         public void SetFramebufferData(int fbBinding, int stencilBits, int samples)
         {
             _framebufferBinding = fbBinding;
@@ -158,27 +163,55 @@ namespace CatUI.Data
         }
 
         /// <summary>
-        /// Returns the size of the row (in pixels) on which the text (or part of it if the text would exceed the given max width)
-        /// will be drawn.
+        /// Will heuristically estimate the average size of a character using the given the paint. The estimate is smaller 
+        /// than an actual character width (generally half) to ensure that an eventual text span to not be smaller 
+        /// than the actual size of the element (although this estimation reduces that risk significantly, 
+        /// it does NOT GUARANTEE that this won't happen).
         /// </summary>
-        /// <param name="text">
-        /// The text to be measured. Only pass a small amount of text (200-300 characters maximum)
-        /// to avoid large performance penalties.
-        /// </param>
-        /// <param name="fontPaint">The paint used to draw the font.</param>
-        /// <param name="maxWidth">The row's maximum width.</param>
-        /// <param name="charactersToDraw">The number of characters that can be safely drawn. Does not account for hyphens!</param>
-        /// <returns>The row's width when rendering the given number of characters.</returns>
-        public static float MeasureTextRowSize(string text, SKPaint fontPaint, float maxWidth, out int charactersToDraw)
+        /// <param name="largeText">The large text string.</param>
+        /// <param name="painter">The paint that will be used to draw the text.</param>
+        /// <returns>The estimated average size of a character (estimation will generally be half of the actual average).</returns>
+        public static float EstimateCharSizeSafe(string largeText, SKPaint painter)
         {
-            bool hasHyphens = TextUtils.RemoveSoftHyphens(text, out string textWithoutHyphens);
-            if (hasHyphens)
+            return EstimateCharSizeSafe(largeText.AsSpan(), painter);
+        }
+
+        /// <summary>
+        /// Will heuristically estimate the average size of a character using the given the paint. The estimate is smaller 
+        /// than an actual character width (generally half) to ensure that an eventual text span to not be smaller 
+        /// than the actual size of the element (although this estimation reduces that risk significantly, 
+        /// it does NOT GUARANTEE that this won't happen).
+        /// </summary>
+        /// <param name="largeText">The large text as a character span.</param>
+        /// <param name="painter">The paint that will be used to draw the text.</param>
+        /// <returns>The estimated average size of a character (estimation will generally be half of the actual average).</returns>
+        public static float EstimateCharSizeSafe(ReadOnlySpan<char> largeText, SKPaint painter)
+        {
+            if (largeText.Length <= 5)
             {
-                text = textWithoutHyphens;
+                return painter.MeasureText(largeText) * 0.4f;
             }
 
-            charactersToDraw = (int)fontPaint.BreakText(text, maxWidth);
-            return fontPaint.MeasureText(text.AsSpan(0, charactersToDraw));
+            int upperLimit = largeText.Length;
+            int minMeasuredCharacters = Math.Clamp(upperLimit / 10, 3, 20);
+            int maxMeasuredCharacters = Math.Clamp(upperLimit / 10, 5, 35);
+            Random rand = new Random();
+
+            int values;
+            float sum = 0;
+            int limit = rand.Next(minMeasuredCharacters, maxMeasuredCharacters);
+            for (values = 0; values < limit; values++)
+            {
+                int index = rand.Next(0, upperLimit - 1);
+                sum += painter.MeasureText(largeText.Slice(index, 1));
+            }
+
+            int normalizedCharNumber = Math.Clamp(upperLimit, 100, 400);
+            float multiplicationFactor = NumberUtils.Remap(normalizedCharNumber, 100, 400, 0.35f, 0.6f);
+            //invert the scale (so small char number will have high multiplication factor)
+            multiplicationFactor = 0.6f - multiplicationFactor + 0.35f;
+
+            return sum / values * multiplicationFactor;
         }
 
         #region Drawing

@@ -1,24 +1,23 @@
 namespace CatUI.Data.Events.Input.Pointer
 {
+    public delegate void MouseButtonEventHandler(object sender, MouseButtonEventArgs e);
+
     public class MouseButtonEventArgs : AbstractPointerEventArgs
     {
         public MouseButtonType ButtonType { get; }
 
-        public MouseButtonEventArgs(object target, MouseButtonEventArgs other) :
+        public MouseButtonEventArgs(MouseButtonEventArgs other) :
             this(
-                target: target,
                 position: other.Position,
                 buttonType: other.ButtonType,
                 isPressed: other.IsPressed)
         { }
 
         public MouseButtonEventArgs(
-            object target,
             Point2D position,
             MouseButtonType buttonType,
             bool isPressed)
         {
-            base.Target = target;
             base.Position = position;
             base.IsPressed = isPressed;
             ButtonType = buttonType;

@@ -1,17 +1,17 @@
 namespace CatUI.Data.Events.Input.Pointer
 {
+    public delegate void PointerMoveEventHandler(object sender, PointerMoveEventArgs e);
+
     public class PointerMoveEventArgs : AbstractPointerEventArgs
     {
-        public PointerMoveEventArgs(object target, PointerMoveEventArgs other) :
+        public PointerMoveEventArgs(PointerMoveEventArgs other) :
             this(
-                target: target,
                 position: other.Position,
                 isPressed: other.IsPressed)
         { }
 
-        public PointerMoveEventArgs(object target, Point2D position, bool isPressed)
+        public PointerMoveEventArgs(Point2D position, bool isPressed)
         {
-            base.Target = target;
             base.Position = position;
             base.IsPressed = isPressed;
         }
