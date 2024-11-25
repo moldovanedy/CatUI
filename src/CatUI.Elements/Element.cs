@@ -1,34 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
+using CatUI.Data.Events.Document;
+using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Themes;
 
 namespace CatUI.Elements
 {
-    public class Element
+    public partial class Element
     {
         public Action? OnDraw;
-        public Action? OnEnterDocument;
-        public Action? OnExitDocument;
-        public Action? OnLoad;
-        public Action? OnPointerEnter;
-        public Action? OnPointerExit;
-        public Action? OnPointerMove;
+        public EnterDocumentEventHandler? OnEnterDocument;
+        public ExitDocumentEventHandler? OnExitDocument;
+        public LoadEventHandler? OnLoad;
+        public PointerEnterEventHandler? OnPointerEnter;
+        public PointerLeaveEventHandler? OnPointerExit;
+        public PointerMoveEventHandler? OnPointerMove;
 
         public event Action? DrawEvent;
-        public event Action? EnterDocumentEvent;
-        public event Action? ExitDocumentEvent;
-        public event Action? LoadEvent;
-        public event Action? PointerEnterEvent;
-        public event Action? PointerExitEvent;
-        public event Action? PointerMoveEvent;
+        public event EnterDocumentEventHandler? EnterDocumentEvent;
+        public event ExitDocumentEventHandler? ExitDocumentEvent;
+        public event LoadEventHandler? LoadEvent;
+        public event PointerEnterEventHandler? PointerEnterEvent;
+        public event PointerLeaveEventHandler? PointerExitEvent;
+        public event PointerMoveEventHandler? PointerMoveEvent;
 
         public const string STYLE_NORMAL = "normal";
         public const string STYLE_HOVER = "hover";
-        private ThemeDefinition<ElementThemeData> _themeDefinition = new ThemeDefinition<ElementThemeData>();
+        private readonly ThemeDefinition<ElementThemeData> _themeDefinition = new ThemeDefinition<ElementThemeData>();
 
         public Dimension2 Position
         {
@@ -41,28 +44,36 @@ namespace CatUI.Elements
                 if (value != _position)
                 {
                     _position = value;
-                    RecalculateBounds();
+                    PositionProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
         private Dimension2 _position = new Dimension2();
+        public ObservableProperty<Dimension2> PositionProperty { get; } = new ObservableProperty<Dimension2>();
 
-        public Dimension Width
+        /// <summary>
+        /// Represents the preferred width of the element. The layout engine will try to honor this value, but this might be influenced
+        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion"/>) or if the element is inside a container.
+        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that the element will be in.
+        /// </summary>
+        public Dimension PreferredWidth
         {
             get
             {
-                return _width;
+                return _preferredWidth;
             }
             set
             {
-                if (value != _width)
+                if (value != _preferredWidth)
                 {
-                    _width = value;
-                    RecalculateBounds();
+                    _preferredWidth = value;
+                    PreferredWidthProperty.Value = value;
                 }
             }
         }
-        private Dimension _width = new Dimension();
+        private Dimension _preferredWidth = new Dimension();
+        public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new ObservableProperty<Dimension>();
 
         /// <summary>
         /// Represents the minimum width that the element can have.
@@ -79,11 +90,13 @@ namespace CatUI.Elements
                 if (value != _minWidth)
                 {
                     _minWidth = value;
-                    RecalculateBounds();
+                    MinWidthProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
         private Dimension _minWidth = Dimension.Unset;
+        public ObservableProperty<Dimension> MinWidthProperty { get; } = new ObservableProperty<Dimension>();
 
         /// <summary>
         /// Represents the maximum width that the element can have.
@@ -100,28 +113,37 @@ namespace CatUI.Elements
                 if (value != _maxWidth)
                 {
                     _maxWidth = value;
-                    RecalculateBounds();
+                    MaxWidthProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
         private Dimension _maxWidth = Dimension.Unset;
+        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new ObservableProperty<Dimension>();
 
-        public Dimension Height
+        /// <summary>
+        /// Represents the preferred height of the element. The layout engine will try to honor this value, but this might be influenced
+        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion"/>) or if the element is inside a container.
+        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that the element will be in.
+        /// </summary>
+        public Dimension PreferredHeight
         {
             get
             {
-                return _height;
+                return _preferredHeight;
             }
             set
             {
-                if (value != _height)
+                if (value != _preferredHeight)
                 {
-                    _height = value;
-                    RecalculateBounds();
+                    _preferredHeight = value;
+                    PreferredHeightProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
-        private Dimension _height = new Dimension();
+        private Dimension _preferredHeight = new Dimension();
+        public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new ObservableProperty<Dimension>();
 
         /// <summary>
         /// Represents the minimum height that the element can have.
@@ -138,11 +160,13 @@ namespace CatUI.Elements
                 if (value != _minHeight)
                 {
                     _minHeight = value;
-                    RecalculateBounds();
+                    MinHeightProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
         private Dimension _minHeight = Dimension.Unset;
+        public ObservableProperty<Dimension> MinHeightProperty { get; } = new ObservableProperty<Dimension>();
 
         /// <summary>
         /// Represents the minimum height that the element can have.
@@ -159,11 +183,13 @@ namespace CatUI.Elements
                 if (value != _maxHeight)
                 {
                     _maxHeight = value;
-                    RecalculateBounds();
+                    MaxHeightProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
         private Dimension _maxHeight = Dimension.Unset;
+        public ObservableProperty<Dimension> MaxHeightProperty { get; } = new ObservableProperty<Dimension>();
 
         public EdgeInset Padding
         {
@@ -176,11 +202,13 @@ namespace CatUI.Elements
                 if (value != _padding)
                 {
                     _padding = value;
-                    RecalculateBounds();
+                    PaddingProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
         private EdgeInset _padding = new EdgeInset();
+        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new ObservableProperty<EdgeInset>();
 
         public EdgeInset Margin
         {
@@ -193,18 +221,54 @@ namespace CatUI.Elements
                 if (value != _margin)
                 {
                     _margin = value;
-                    RecalculateBounds();
+                    MarginProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
         private EdgeInset _margin = new EdgeInset();
+        public ObservableProperty<EdgeInset> MarginProperty { get; } = new ObservableProperty<EdgeInset>();
 
-        public string Name { get; set; } = string.Empty;
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                _name = value ?? throw new ArgumentNullException(
+                    "Name",
+                    "The name of an element can be empty, but not null.");
+                NameProperty.Value = value;
+            }
+        }
+        private string _name = string.Empty;
+        public ObservableProperty<string> NameProperty { get; } = new ObservableProperty<string>();
+
         public ElementBounds Bounds { get; internal set; } = new ElementBounds();
         public bool IsInternal { get; private set; }
         public UIDocument? Document { get; private set; }
 
         protected bool IsInstantiated { get; private set; }
+
+        protected Point2D InternalPosition
+        {
+            get
+            {
+                return _internalPosition;
+            }
+            set
+            {
+                if (value.X != _internalPosition.X || value.Y != _internalPosition.Y)
+                {
+                    _internalPosition = value;
+                    RecalculateBounds();
+                }
+            }
+        }
+        private Point2D _internalPosition = Point2D.Zero;
+
         protected float InternalWidth
         {
             get
@@ -261,8 +325,8 @@ namespace CatUI.Elements
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
-            Dimension? width = null,
-            Dimension? height = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null,
             Dimension? minHeight = null,
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
@@ -279,13 +343,13 @@ namespace CatUI.Elements
             {
                 SetInitialPosition(position ?? new Dimension2(0, 0));
             }
-            if (width != null)
+            if (preferredWidth != null)
             {
-                SetInitialWidth(width ?? new Dimension(0));
+                SetInitialWidth(preferredWidth ?? new Dimension(0));
             }
-            if (height != null)
+            if (preferredHeight != null)
             {
-                SetInitialHeight(height ?? new Dimension(0));
+                SetInitialHeight(preferredHeight ?? new Dimension(0));
             }
             if (minHeight != null)
             {
@@ -324,7 +388,7 @@ namespace CatUI.Elements
             PointerEnterEvent -= OnPointerEnter;
             PointerEnterEvent -= PointerEnter;
             PointerExitEvent -= OnPointerExit;
-            PointerExitEvent -= PointerExit;
+            PointerExitEvent -= PointerLeave;
             PointerMoveEvent -= OnPointerMove;
             PointerMoveEvent -= PointerMove;
 
@@ -340,26 +404,37 @@ namespace CatUI.Elements
         /// <summary>
         /// Sets the document of this element and all its children. It should generally be called only for elements
         /// that will have children at creation time.
-        /// Will not actually add the element to the document 
-        /// (see <see cref="AddChild(Element, bool)"/> or <see cref="AddChildren(List{Element}, bool)"/>).
+        /// Will also add the element to the document 
+        /// (like <see cref="AddChild(Element, bool)"/> or <see cref="AddChildren(Element[])"/>).
         /// </summary>
         /// <remarks>
         /// If the element already belongs to a document, this will remove the element, along with all its children, 
         /// then add this element along with its previous children to the specified document.
         /// </remarks>
         /// <param name="document">The document to which this element should be added</param>
-        public Element SetDocument(UIDocument document)
+        public Element SetDocument(UIDocument? document)
         {
-            if (Document != null && Document != document)
+            //the element is not in a document and the given document is non-null
+            if (Document == null && document != null)
+            {
+                InvokeEnterDocument();
+            }
+            //the element is in a document and the given document is another document or null
+            else if (Document != document)
             {
                 GetParent()?.RemoveChild(this);
+                Document = document;
+
+                if (document != null)
+                {
+                    GetParent()?.AddChild(this);
+                }
             }
 
-            Document = document;
-            for (int i = 0; i < _children.Count; i++)
-            {
-                _children[i].SetDocument(document);
-            }
+            // for (int i = 0; i < _children.Count; i++)
+            // {
+            //     _children[i].SetDocument(document);
+            // }
             return this;
         }
 
@@ -393,7 +468,7 @@ namespace CatUI.Elements
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
 
-            _width = width;
+            _preferredWidth = width;
             return this;
         }
 
@@ -404,7 +479,7 @@ namespace CatUI.Elements
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
 
-            _height = height;
+            _preferredHeight = height;
             return this;
         }
 
@@ -470,7 +545,7 @@ namespace CatUI.Elements
             }
 
             IsInstantiated = true;
-            RecalculateBounds();
+            RecalculateLayout();
 
             if (Document != null)
             {
@@ -489,12 +564,12 @@ namespace CatUI.Elements
 
         internal void InvokeEnterDocument()
         {
-            EnterDocumentEvent?.Invoke();
+            EnterDocumentEvent?.Invoke(this);
         }
 
         internal void InvokeExitDocument()
         {
-            ExitDocumentEvent?.Invoke();
+            ExitDocumentEvent?.Invoke(this);
         }
 
         internal void InvokeLoad()
@@ -504,33 +579,33 @@ namespace CatUI.Elements
                 child.InvokeLoad();
             }
 
-            LoadEvent?.Invoke();
+            LoadEvent?.Invoke(this);
         }
 
         internal void InvokePointerEnter()
         {
-            PointerEnterEvent?.Invoke();
+            PointerEnterEvent?.Invoke(this, new PointerEnterEventArgs(Point2D.Zero, false));
         }
 
-        internal void InvokePointerExit()
+        internal void InvokePointerLeave()
         {
-            PointerExitEvent?.Invoke();
+            PointerExitEvent?.Invoke(this, new PointerLeaveEventArgs(Point2D.Zero, false));
         }
 
         internal void InvokePointerMove()
         {
-            PointerMoveEvent?.Invoke();
+            PointerMoveEvent?.Invoke(this, new PointerMoveEventArgs(Point2D.Zero, false));
         }
         #endregion //Internal invoke
 
         #region Internal event handlers
         private void PrivateDraw()
         {
-            RecalculateBounds();
+            RecalculateLayout();
             DrawBackground();
         }
 
-        private void RecalculateBounds()
+        protected virtual void RecalculateLayout()
         {
             float parentWidth, parentHeight, parentXPos, parentYPos;
             if (Document?.Root == this)
@@ -548,42 +623,61 @@ namespace CatUI.Elements
                 parentYPos = _parent?.Bounds.StartPoint.Y ?? 0;
             }
 
-            float elementFinalWidth = Math.Clamp(
-                CalculateDimension(Width, parentWidth),
-                MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
-                MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
-            float elementFinalHeight = Math.Clamp(
-                CalculateDimension(Height, parentHeight),
-                MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
-                MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
+            if (!PreferredWidth.IsUnset())
+            {
+                InternalWidth = Math.Clamp(
+                    CalculateDimension(PreferredWidth, parentWidth),
+                    MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
+                    MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
+            }
 
+            if (!PreferredHeight.IsUnset())
+            {
+                InternalHeight = Math.Clamp(
+                    CalculateDimension(PreferredHeight, parentHeight),
+                    MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
+                    MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
+            }
+
+            if (!Position.IsUnset())
+            {
+                InternalPosition = new Point2D(
+                     parentXPos + CalculateDimension(Position.X, parentWidth),
+                     parentYPos + CalculateDimension(Position.Y, parentHeight));
+            }
+
+            // Bounds = new ElementBounds(
+            //     new Point2D(
+            //         parentXPos + CalculateDimension(Position.X, parentWidth),
+            //         parentYPos + CalculateDimension(Position.Y, parentHeight)),
+            //     elementFinalWidth,
+            //     elementFinalHeight,
+            //     new float[4],
+            //     new float[4]);
+        }
+
+        private void RecalculateBounds()
+        {
             Bounds = new ElementBounds(
-                new Point2D(
-                    parentXPos + CalculateDimension(Position.X, parentWidth),
-                    parentYPos + CalculateDimension(Position.Y, parentHeight)),
-                elementFinalWidth,
-                elementFinalHeight,
-                new float[4],
-                new float[4]);
+                startPoint: InternalPosition,
+                width: InternalWidth,
+                height: InternalHeight,
+                paddings: new float[4],
+                margins: new float[4]);
         }
         #endregion
 
         #region Public API
         public virtual void Draw() { }
-        public virtual void EnterDocument() { }
-        public virtual void ExitDocument() { }
-        public virtual void Loaded() { }
-        public virtual void PointerEnter() { }
-        public virtual void PointerExit() { }
-        public virtual void PointerMove() { }
+        public virtual void EnterDocument(object sender) { }
+        public virtual void ExitDocument(object sender) { }
+        public virtual void Loaded(object sender) { }
+        public virtual void PointerEnter(object sender, PointerEnterEventArgs e) { }
+        public virtual void PointerLeave(object sender, PointerLeaveEventArgs e) { }
+        public virtual void PointerMove(object sender, PointerMoveEventArgs e) { }
 
         public void AddChild(Element child, bool isInternal = false)
         {
-            if (Document == null)
-            {
-                throw new Exception("The element is not inside the logical tree.");
-            }
-
             _children.Add(child);
             child.IsInternal = isInternal;
             if (!isInternal)
@@ -598,9 +692,17 @@ namespace CatUI.Elements
                 }
             }
 
-            child.SetParent(this);
-            child.Document = Document;
-            child.InvokeEnterDocument();
+            child._parent = this;
+            if (Document != null)
+            {
+                child.Document = Document;
+                child.InvokeEnterDocument();
+
+                foreach (Element grandChild in child._children)
+                {
+                    grandChild.InvokeEnterDocument();
+                }
+            }
         }
 
         public void AddChildren(params Element[] children)
@@ -631,7 +733,7 @@ namespace CatUI.Elements
         {
             foreach (Element child in children)
             {
-                AddChild(child);
+                AddChild(child, true);
             }
         }
 
@@ -682,7 +784,7 @@ namespace CatUI.Elements
         {
             if (includeInternal)
             {
-                //clear cache, as it's too difficult to determine where to insert the element
+                //clear cache, as it's too difficult to determine (very fast) where to insert the element
                 _cachedPublicChildren = null;
 
                 if (toIndex > _children.Count || toIndex < -_children.Count)
@@ -728,20 +830,21 @@ namespace CatUI.Elements
 
             child._parent = null;
             child.Document = null;
-            child.InvokeExitDocument();
+
+            if (Document != null)
+            {
+                child.InvokeExitDocument();
+            }
             child.RemoveAllChildren();
         }
 
         public void RemoveAllChildren()
         {
-            foreach (Element child in _children)
+            while (_children.Count != 0)
             {
-                child.SetParent(null);
-                child.Document = null;
-                child.InvokeExitDocument();
-                child.RemoveAllChildren();
+                RemoveChild(_children[0]);
             }
-            _children.Clear();
+
             _cachedPublicChildren = null;
         }
 
@@ -869,16 +972,6 @@ namespace CatUI.Elements
         }
         #endregion //Visual
 
-        internal void SetParent(Element? parent)
-        {
-            if (parent == null)
-            {
-                _parent?.RemoveChild(this);
-            }
-
-            _parent = parent;
-        }
-
         private void DrawChildren()
         {
             foreach (Element child in _children)
@@ -900,7 +993,7 @@ namespace CatUI.Elements
             PointerEnterEvent += OnPointerEnter;
             PointerEnterEvent += PointerEnter;
             PointerExitEvent += OnPointerExit;
-            PointerExitEvent += PointerExit;
+            PointerExitEvent += PointerLeave;
             PointerMoveEvent += OnPointerMove;
             PointerMoveEvent += PointerMove;
 

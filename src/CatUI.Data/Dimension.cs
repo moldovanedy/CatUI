@@ -7,7 +7,7 @@ namespace CatUI.Data
     /// <summary>
     /// Represents any dimension by having a value and a measurement unit. It's used for widths, heights and more.
     /// </summary>
-    public struct Dimension
+    public class Dimension
     {
         /// <summary>
         /// Represents the actual value. NaN represents the "unset dimension".
@@ -45,7 +45,7 @@ namespace CatUI.Data
             MeasuringUnit = measuringUnit;
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             string measuringUnitText;
             switch (MeasuringUnit)
@@ -73,7 +73,7 @@ namespace CatUI.Data
             return $"{Value} {measuringUnitText}";
         }
 
-        public readonly bool IsUnset()
+        public bool IsUnset()
         {
             return float.IsNaN(Value);
         }
@@ -126,8 +126,32 @@ namespace CatUI.Data
             return new Dimension(value, unit);
         }
 
-        public static bool operator !=(Dimension x, Dimension y)
+        public static bool operator !=(Dimension? x, Dimension? y)
         {
+            //this will silence the nullable warnings
+            if (x is null)
+            {
+                if (y is null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else if (y is null)
+            {
+                if (x is null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
             if (x.Value != y.Value || x.MeasuringUnit != y.MeasuringUnit)
             {
                 return true;
@@ -138,8 +162,32 @@ namespace CatUI.Data
             }
         }
 
-        public static bool operator ==(Dimension x, Dimension y)
+        public static bool operator ==(Dimension? x, Dimension? y)
         {
+            //this will silence the nullable warnings
+            if (x is null)
+            {
+                if (y is null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else if (y is null)
+            {
+                if (x is null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
             if (x.Value == y.Value && x.MeasuringUnit == y.MeasuringUnit)
             {
                 return true;
@@ -150,7 +198,7 @@ namespace CatUI.Data
             }
         }
 
-        public override readonly bool Equals([NotNullWhen(true)] object? obj)
+        public override bool Equals([NotNullWhen(true)] object? obj)
         {
             if (obj == null)
             {
@@ -159,7 +207,7 @@ namespace CatUI.Data
             return this == (Dimension)obj;
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return System.HashCode.Combine(this.Value, this.MeasuringUnit);
         }
@@ -168,7 +216,7 @@ namespace CatUI.Data
     /// <summary>
     /// A set of 2 dimensions for X and Y. Generally used for setting the position of an element.
     /// </summary>
-    public struct Dimension2
+    public class Dimension2
     {
         public Dimension X { get; set; } = new Dimension();
         public Dimension Y { get; set; } = new Dimension();
@@ -206,23 +254,71 @@ namespace CatUI.Data
             Y = new Dimension(y);
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             return $"({X}, {Y})";
         }
 
-        public readonly bool IsUnset()
+        public bool IsUnset()
         {
             return X.IsUnset() && Y.IsUnset();
         }
 
-        public static bool operator !=(Dimension2 x, Dimension2 y)
+        public static bool operator ==(Dimension2? x, Dimension2? y)
         {
+            //this will silence the nullable warnings
+            if (x is null)
+            {
+                if (y is null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else if (y is null)
+            {
+                if (x is null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
             return x.X != y.X || x.Y != y.Y;
         }
 
-        public static bool operator ==(Dimension2 x, Dimension2 y)
+        public static bool operator !=(Dimension2? x, Dimension2? y)
         {
+            //this will silence the nullable warnings
+            if (x is null)
+            {
+                if (y is null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else if (y is null)
+            {
+                if (x is null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
             return x.X == y.X && x.Y == y.Y;
         }
 
@@ -243,7 +339,7 @@ namespace CatUI.Data
             }
         }
 
-        public override readonly bool Equals([NotNullWhen(true)] object? obj)
+        public override bool Equals([NotNullWhen(true)] object? obj)
         {
             if (obj == null)
             {
@@ -252,7 +348,7 @@ namespace CatUI.Data
             return this == (Dimension2)obj;
         }
 
-        public override readonly int GetHashCode()
+        public override int GetHashCode()
         {
             return System.HashCode.Combine(this.X, this.Y);
         }

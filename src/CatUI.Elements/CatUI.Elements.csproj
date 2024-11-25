@@ -6,6 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <IsTrimmable>True</IsTrimmable>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsTrimmable>True</IsTrimmable>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj" />
     <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj" />

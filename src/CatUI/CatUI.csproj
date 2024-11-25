@@ -24,15 +24,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>none</DebugType>
     <IsTrimmable>True</IsTrimmable>
-    <IsAotCompatible>True</IsAotCompatible>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>none</DebugType>
     <IsTrimmable>True</IsTrimmable>
-    <IsAotCompatible>True</IsAotCompatible>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

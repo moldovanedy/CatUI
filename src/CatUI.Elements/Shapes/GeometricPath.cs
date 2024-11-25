@@ -9,45 +9,10 @@ using SkiaSharp;
 
 namespace CatUI.Elements.Shapes
 {
-    public class GeometricPath : Element, IGeometricShape
+    public partial class GeometricPath : AbstractShape
     {
         private SKPath _skiaPath = new SKPath();
 
-        public IBrush FillBrush
-        {
-            get
-            {
-                ElementThemeData? theme = base.GetElementThemeOverride(Element.STYLE_NORMAL);
-                if (theme == null)
-                {
-                    theme = new ElementThemeData(Element.STYLE_NORMAL);
-                    base.SetElementThemeOverride(Element.STYLE_NORMAL, theme);
-                }
-
-                IBrush? brush = theme.Background;
-                if (brush == null)
-                {
-                    brush = new ColorBrush();
-                    theme.Background = brush;
-                }
-
-                return brush;
-            }
-            set
-            {
-                ElementThemeData? theme = base.GetElementThemeOverride(Element.STYLE_NORMAL);
-                if (theme == null)
-                {
-                    theme = new ElementThemeData(Element.STYLE_NORMAL);
-                    base.SetElementThemeOverride(Element.STYLE_NORMAL, theme);
-                }
-
-                theme.Background = value;
-            }
-        }
-
-        public IBrush OutlineBrush { get; set; }
-        public OutlineParams OutlineParameters { get; set; } = new OutlineParams();
         /// <summary>
         /// If true, the path will be scaled to respect the element's width and height. If false, no scaling will be applied,
         /// but the path might exceed the element's bounds (width and height).
@@ -59,8 +24,11 @@ namespace CatUI.Elements.Shapes
 
         public GeometricPath(
             Dimension2 position,
-            Dimension width,
-            Dimension height,
+            Dimension preferredWidth,
+            Dimension preferredHeight,
+
+            bool shouldApplyScaling = false,
+
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
             OutlineParams? outlineParameters = null,
@@ -72,30 +40,26 @@ namespace CatUI.Elements.Shapes
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null) :
-            base(doc: doc,
+            base(fillBrush: fillBrush,
+                 outlineBrush: outlineBrush,
+                 outlineParameters: outlineParameters,
+                 doc: doc,
                  children: children,
                  themeOverrides: themeOverrides,
                  position: position,
-                 width: width,
-                 height: height,
+                 preferredWidth: preferredWidth,
+                 preferredHeight: preferredHeight,
                  minHeight: minHeight,
                  minWidth: minWidth,
                  maxHeight: maxHeight,
                  maxWidth: maxWidth)
         {
-            FillBrush = fillBrush ?? new ColorBrush(new Color(0));
-            OutlineBrush = outlineBrush ?? new ColorBrush(new Color(0));
-            OutlineParameters = outlineParameters ?? new OutlineParams();
+            ShouldApplyScaling = shouldApplyScaling;
 
             if (!string.IsNullOrEmpty(svgPath))
             {
                 _skiaPath = SKPath.ParseSvgPathData(svgPath);
             }
-
-            _skiaPath.MoveTo(25, 35);
-            _skiaPath.LineTo(new SKPoint(45, 60));
-            _skiaPath.AddCircle(100, 120, 20);
-            _skiaPath.ArcTo(40, 40, 29, SKPathArcSize.Large, SKPathDirection.Clockwise, 25, 25);
         }
 
         ~GeometricPath()
@@ -128,63 +92,6 @@ namespace CatUI.Elements.Shapes
             PathCache.RemovePath(_skiaPath);
             _skiaPath = SKPath.ParseSvgPathData(svgPath);
         }
-
-        #region Builder
-        public GeometricPath SetInitialFillBrush(IBrush fillBrush)
-        {
-            if (base.IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            FillBrush = fillBrush;
-            return this;
-        }
-
-        public GeometricPath SetInitialOutlineBrush(IBrush outlineBrush)
-        {
-            if (base.IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OutlineBrush = outlineBrush;
-            return this;
-        }
-
-        public GeometricPath SetInitialOutlineParameters(OutlineParams outlineParameters)
-        {
-            if (base.IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OutlineParameters = outlineParameters;
-            return this;
-        }
-
-        public GeometricPath SetInitialSvgPath(string svgPath)
-        {
-            if (base.IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _skiaPath = SKPath.ParseSvgPathData(svgPath);
-            return this;
-        }
-
-        public GeometricPath SetInitialShouldApplyScaling(bool shouldApplyScaling)
-        {
-            if (base.IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            ShouldApplyScaling = shouldApplyScaling;
-            return this;
-        }
-        #endregion //Builder
 
         protected override void DrawBackground()
         {

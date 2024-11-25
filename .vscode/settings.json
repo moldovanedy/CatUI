@@ -14,6 +14,7 @@
         "RENDERABLE",
         "Skia",
         "Skippable",
+        "Trimmable",
         "VCPKG"
     ]
 }

@@ -33,16 +33,16 @@ namespace CatTest
 
         private static void Main()
         {
-            AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
-            Image? image = AssetsManager.LoadFromAssembly<Image>("/Assets/search_128px.png");
-            if (image != null)
-            {
-                Debug.WriteLine(image.ToString());
-            }
-            else
-            {
-                Debug.WriteLine("NULL");
-            }
+            // AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
+            // Image? image = AssetsManager.LoadFromAssembly<Image>("/Assets/search_128px.png");
+            // if (image != null)
+            // {
+            //     Debug.WriteLine(image.ToString());
+            // }
+            // else
+            // {
+            //     Debug.WriteLine("NULL");
+            // }
 
             window = new Window(
                 width: 800,
@@ -54,13 +54,14 @@ namespace CatTest
             window.Document.BackgroundColor = new Color(0x21_21_21_ff);
             window.Document.Root = new Element(
                 doc: window.Document,
-                width: new Dimension(100, Unit.Percent),
-                height: new Dimension(100, Unit.Percent));
+                preferredWidth: new Dimension(100, Unit.Percent),
+                preferredHeight: new Dimension(100, Unit.Percent));
+
             window.Document.Root.AddChildren(
                 new Rectangle(
                     position: new Dimension2(10, 5),
-                    width: new Dimension(80, Unit.Percent),
-                    height: new Dimension(20, Unit.Percent),
+                    preferredWidth: new Dimension(80, Unit.Percent),
+                    preferredHeight: new Dimension(20, Unit.Percent),
                     minWidth: 10,
                     maxWidth: 350,
                     minHeight: 20,
@@ -70,14 +71,16 @@ namespace CatTest
                     doc: window.Document,
                     position: new Dimension2(
                         10, new Dimension(60, Unit.Percent)),
-                    width: new Dimension(80, Unit.Percent),
-                    height: new Dimension(20, Unit.Percent),
+                    preferredWidth: new Dimension(80, Unit.Percent),
+                    preferredHeight: new Dimension(20, Unit.Percent),
                     fillBrush: new ColorBrush(new Color(0xff_ff_00_ff)),
                     children: [
                         new GeometricPath(
+                            svgPath:
+                                $"M25 35 L45 60 A40 40 29 1 1 25 25",
                             position: "5 10",
-                            width: new Dimension(25, Unit.Percent),
-                            height: new Dimension(15, Unit.Percent),
+                            preferredWidth: new Dimension(25, Unit.Percent),
+                            preferredHeight: new Dimension(15, Unit.Percent),
                             fillBrush: new ColorBrush(new Color(0xff_98_00_ff)),
                             outlineBrush: new ColorBrush(new Color(0x21_96_f3_ff)),
                             outlineParameters: new OutlineParams(
@@ -89,23 +92,24 @@ namespace CatTest
                             position: new Dimension2(
                                 new Dimension(55, Unit.Percent),
                                 new Dimension(10, Unit.Percent)),
-                            width: new Dimension(35, Unit.Percent),
-                            height: new Dimension(15, Unit.Percent),
+                            preferredWidth: new Dimension(35, Unit.Percent),
+                            preferredHeight: new Dimension(15, Unit.Percent),
                             fillBrush: new ColorBrush(new Color(0x1d_ea_85_ff))
                         ),
                         new Label(
-                            text: "He\u00adllo wor\u00adld!",
-                            position: new Dimension2(
-                                10,
-                                new Dimension(55, Unit.Percent)),
-                            width: new Dimension(25, Unit.Percent),
+                            text: "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
+                            wordWrap: true,
+                            position: new Dimension2(0, 0),
+                            preferredWidth: new Dimension(25, Unit.Percent),
+                            maxHeight: "150px",
+                            //allowsExpansion: false,
                             themeOverrides: new ThemeDefinition<LabelThemeData>(new Dictionary<string, LabelThemeData>()
                             {
                                 {
                                     Label.STYLE_NORMAL,
                                     new LabelThemeData(Label.STYLE_NORMAL){
                                         FontSize = 32,
-                                        Background = new ColorBrush(new Color(0x00_ff_ff_ff))
+                                        Background = new ColorBrush(new Color(0x00_ff_ff_80))
                                     }
                                 }
                             })

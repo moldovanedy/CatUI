@@ -3,12 +3,14 @@ using SkiaSharp;
 
 namespace CatUI.Data
 {
-    public struct Color
+    public class Color
     {
         public byte R { get; set; }
         public byte G { get; set; }
         public byte B { get; set; }
         public byte A { get; set; }
+
+        public static Color Default => new Color(0);
 
         public Color()
         {
@@ -101,7 +103,7 @@ namespace CatUI.Data
             return new Color(literal);
         }
 
-        public override readonly string ToString()
+        public override string ToString()
         {
             return $"#{R:X2}{G:X2}{B:X2}{A:X2}";
         }
