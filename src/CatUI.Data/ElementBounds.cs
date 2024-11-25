@@ -8,7 +8,7 @@ namespace CatUI.Data
     /// <remarks>
     /// It's not axis-aligned, meaning that the actual display might be different if the element is a child of a TransformControl.
     /// </remarks>
-    public class ElementBounds : ICloneable
+    public struct ElementBounds : ICloneable
     {
         public ElementBounds() { }
         public ElementBounds(Point2D startPoint, float width, float height, float[] paddings, float[] margins)
@@ -19,31 +19,41 @@ namespace CatUI.Data
             this.Paddings = paddings;
             this.Margins = margins;
         }
+        public ElementBounds(ElementBounds other)
+        {
+            ElementBounds newObject = (ElementBounds)other.Clone();
+
+            this.StartPoint = newObject.StartPoint;
+            this.Width = newObject.Width;
+            this.Height = newObject.Height;
+            this.Paddings = newObject.Paddings;
+            this.Margins = newObject.Margins;
+        }
 
         /// <summary>
         /// The top left corner of the element's content, without margins and padding.
         /// </summary>
-        public Point2D StartPoint { get; private set; } = Point2D.Zero;
+        public Point2D StartPoint = Point2D.Zero;
         /// <summary>
         /// The width of the element's content, without margins and padding.
         /// </summary>
-        public float Width { get; private set; }
+        public float Width = 0;
         /// <summary>
         /// The height of the element's content, without margins and padding.
         /// </summary>
-        public float Height { get; private set; }
+        public float Height = 0;
         /// <summary>
         /// An array with 4 elements that represent the padding in the cardinal directions 
         /// in the following order: top, right, bottom, left.
         /// </summary>
-        public float[] Paddings { get; private set; } = new float[4];
+        public float[] Paddings = new float[4];
         /// <summary>
         /// An array with 4 elements that represent the margins in the cardinal directions 
         /// in the following order: top, right, bottom, left.
         /// </summary>
-        public float[] Margins { get; private set; } = new float[4];
+        public float[] Margins = new float[4];
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             string paddingText = "(", marginText = "(";
             for (int i = 0; i < 4; i++)
@@ -86,7 +96,7 @@ namespace CatUI.Data
             return newObject;
         }
 
-        public Rect GetElementBox()
+        public readonly Rect GetElementBox()
         {
             Rect rect = new Rect
             {
@@ -98,7 +108,7 @@ namespace CatUI.Data
             return rect;
         }
 
-        public Rect GetPaddingBox()
+        public readonly Rect GetPaddingBox()
         {
             Rect rect = new Rect
             {
@@ -110,7 +120,7 @@ namespace CatUI.Data
             return rect;
         }
 
-        public Rect GetContentBox()
+        public readonly Rect GetContentBox()
         {
             Rect rect = new Rect
             {

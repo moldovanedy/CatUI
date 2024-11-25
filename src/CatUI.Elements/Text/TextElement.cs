@@ -9,24 +9,114 @@ namespace CatUI.Elements.Text
 {
     public abstract class TextElement : Element
     {
-        public string Text { get; set; } = string.Empty;
-        public bool WordWrap { get; set; }
-        public TextOverflowMode TextOverflowMode { get; set; } = TextOverflowMode.Ellipsis;
-        public TextAlignmentType TextAlignment { get; set; } = TextAlignmentType.Left;
+        public string Text
+        {
+            get
+            {
+                return _text;
+            }
+            set
+            {
+                _text = value;
+                TextProperty.Value = value;
+            }
+        }
+        private string _text = string.Empty;
+        public ObservableProperty<string> TextProperty { get; } = new ObservableProperty<string>();
+
+        public bool WordWrap
+        {
+            get
+            {
+                return _wordWrap;
+            }
+            set
+            {
+                _wordWrap = value;
+                WordWrapProperty.Value = value;
+            }
+        }
+        private bool _wordWrap;
+        public ObservableProperty<bool> WordWrapProperty { get; } = new ObservableProperty<bool>();
+
+        public TextOverflowMode TextOverflowMode
+        {
+            get
+            {
+                return _textOverflowMode;
+            }
+            set
+            {
+                _textOverflowMode = value;
+                TextOverflowModeProperty.Value = value;
+            }
+        }
+        private TextOverflowMode _textOverflowMode = TextOverflowMode.Ellipsis;
+        public ObservableProperty<TextOverflowMode> TextOverflowModeProperty { get; }
+           = new ObservableProperty<TextOverflowMode>();
+
+        public TextAlignmentType TextAlignment
+        {
+            get
+            {
+                return _textAlignmentType;
+            }
+            set
+            {
+                _textAlignmentType = value;
+                TextAlignmentProperty.Value = value;
+            }
+        }
+        private TextAlignmentType _textAlignmentType = TextAlignmentType.Left;
+        public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; }
+            = new ObservableProperty<TextAlignmentType>();
+
+        public string EllipsisString
+        {
+            get
+            {
+                return _ellipsisString;
+            }
+            set
+            {
+                _ellipsisString = value;
+                EllipsisStringProperty.Value = value;
+            }
+        }
+        private string _ellipsisString = "\u2026";
+        public ObservableProperty<string> EllipsisStringProperty { get; } = new ObservableProperty<string>();
+
         /// <summary>
-        /// If true, the element will expand beyond the set <see cref="Element.Width"/> and <see cref="Element.Height"/>, but still
-        /// respecting the minimum and maximum width and height constraints (like <see cref="Element.MinHeight"/>).
+        /// If true, the element will expand beyond the set <see cref="Element.PreferredWidth"/> and <see cref="Element.PreferredHeight"/> without
+        /// respecting the maximum width and height constraints (like <see cref="Element.MaxHeight"/>).
         /// </summary>
         /// <remarks>
-        /// This expansion will generally happen when <see cref="WordWrap"/> is false, when a word's width is larger than 
-        /// the element's width or when the text is so large that it won't fit in the element's height (as it occupies more rows).
+        /// This expansion will generally happen:
+        /// <list type="bullet">
+        /// <item>when <see cref="WordWrap"/> is false</item>
+        /// <item>when a word's width is larger than the element's width</item>
+        /// <item>when the text is so large that it won't fit in the element's height (as it occupies more rows)</item>
+        /// </list>
+        /// <para>
+        /// What exactly happens when this property is false and the text is larger than the element's size depends 
+        /// on each element that derives from this class. For example, <see cref="Label"/> will have the 
+        /// <see cref="EllipsisString"/> at the end of the last row.
+        /// </para>
         /// </remarks>
-        public bool AllowsExpansion { get; set; } = true;
-
-        public TextElement(string text)
+        public bool AllowsExpansion
         {
-            Text = text;
+            get
+            {
+                return _allowsExpansion;
+            }
+            set
+            {
+                _allowsExpansion = value;
+                AllowsExpansionProperty.Value = value;
+            }
         }
+        private bool _allowsExpansion;
+        public ObservableProperty<bool> AllowsExpansionProperty { get; } = new ObservableProperty<bool>();
 
         public TextElement(
             string text,
@@ -39,8 +129,8 @@ namespace CatUI.Elements.Text
             List<Element>? children = null,
             ThemeDefinition<TextElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
-            Dimension? width = null,
-            Dimension? height = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null,
             Dimension? minHeight = null,
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
@@ -48,8 +138,8 @@ namespace CatUI.Elements.Text
             base(doc: doc,
                  children: children,
                  position: position,
-                 width: width,
-                 height: height,
+                 preferredWidth: preferredWidth,
+                 preferredHeight: preferredHeight,
                  minHeight: minHeight,
                  minWidth: minWidth,
                  maxHeight: maxHeight,
@@ -65,7 +155,6 @@ namespace CatUI.Elements.Text
             {
                 base.SetElementThemeOverrides(themeOverrides);
             }
-
         }
 
         #region Builder

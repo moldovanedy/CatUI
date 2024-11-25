@@ -6,48 +6,13 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Shapes
 {
-    public class Ellipse : Element, IGeometricShape
+    public partial class Ellipse : AbstractShape
     {
-        public IBrush FillBrush
-        {
-            get
-            {
-                ElementThemeData? theme = base.GetElementThemeOverride(Element.STYLE_NORMAL);
-                if (theme == null)
-                {
-                    theme = new ElementThemeData(Element.STYLE_NORMAL);
-                    base.SetElementThemeOverride(Element.STYLE_NORMAL, theme);
-                }
-
-                IBrush? brush = theme.Background;
-                if (brush == null)
-                {
-                    brush = new ColorBrush();
-                    theme.Background = brush;
-                }
-
-                return brush;
-            }
-            set
-            {
-                ElementThemeData? theme = base.GetElementThemeOverride(Element.STYLE_NORMAL);
-                if (theme == null)
-                {
-                    theme = new ElementThemeData(Element.STYLE_NORMAL);
-                    base.SetElementThemeOverride(Element.STYLE_NORMAL, theme);
-                }
-
-                theme.Background = value;
-            }
-        }
-
-        public IBrush OutlineBrush { get; set; }
-        public OutlineParams OutlineParameters { get; set; } = new OutlineParams();
-
         public Ellipse(
             Dimension2 position,
-            Dimension width,
-            Dimension height,
+            Dimension preferredWidth,
+            Dimension preferredHeight,
+
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
             OutlineParams? outlineParameters = null,
@@ -58,21 +23,20 @@ namespace CatUI.Elements.Shapes
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null) :
-            base(doc: doc,
+            base(fillBrush: fillBrush,
+                 outlineBrush: outlineBrush,
+                 outlineParameters: outlineParameters,
+                 doc: doc,
                  children: children,
                  themeOverrides: themeOverrides,
                  position: position,
-                 width: width,
-                 height: height,
+                 preferredWidth: preferredWidth,
+                 preferredHeight: preferredHeight,
                  minHeight: minHeight,
                  minWidth: minWidth,
                  maxHeight: maxHeight,
                  maxWidth: maxWidth)
         {
-            FillBrush = fillBrush ?? new ColorBrush(new Color(0));
-            OutlineBrush = outlineBrush ?? new ColorBrush(new Color(0));
-            OutlineParameters = outlineParameters ?? new OutlineParams();
-
             base.DrawEvent += PrivateDrawOutline;
         }
 
@@ -80,41 +44,6 @@ namespace CatUI.Elements.Shapes
         {
             base.DrawEvent -= PrivateDrawOutline;
         }
-
-        #region Builder
-        public Ellipse SetInitialFillBrush(IBrush fillBrush)
-        {
-            if (base.IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            FillBrush = fillBrush;
-            return this;
-        }
-
-        public Ellipse SetInitialOutlineBrush(IBrush outlineBrush)
-        {
-            if (base.IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OutlineBrush = outlineBrush;
-            return this;
-        }
-
-        public Ellipse SetInitialOutlineParameters(OutlineParams outlineParameters)
-        {
-            if (base.IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OutlineParameters = outlineParameters;
-            return this;
-        }
-        #endregion //Builder
 
         protected override void DrawBackground()
         {

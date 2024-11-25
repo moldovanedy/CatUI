@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
@@ -10,7 +11,7 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements
 {
-    public class Element
+    public partial class Element
     {
         public Action? OnDraw;
         public EnterDocumentEventHandler? OnEnterDocument;
@@ -43,28 +44,36 @@ namespace CatUI.Elements
                 if (value != _position)
                 {
                     _position = value;
+                    PositionProperty.Value = value;
                     RecalculateLayout();
                 }
             }
         }
         private Dimension2 _position = new Dimension2();
+        public ObservableProperty<Dimension2> PositionProperty { get; } = new ObservableProperty<Dimension2>();
 
-        public Dimension Width
+        /// <summary>
+        /// Represents the preferred width of the element. The layout engine will try to honor this value, but this might be influenced
+        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion"/>) or if the element is inside a container.
+        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that the element will be in.
+        /// </summary>
+        public Dimension PreferredWidth
         {
             get
             {
-                return _width;
+                return _preferredWidth;
             }
             set
             {
-                if (value != _width)
+                if (value != _preferredWidth)
                 {
-                    _width = value;
-                    RecalculateLayout();
+                    _preferredWidth = value;
+                    PreferredWidthProperty.Value = value;
                 }
             }
         }
-        private Dimension _width = new Dimension();
+        private Dimension _preferredWidth = new Dimension();
+        public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new ObservableProperty<Dimension>();
 
         /// <summary>
         /// Represents the minimum width that the element can have.
@@ -81,11 +90,13 @@ namespace CatUI.Elements
                 if (value != _minWidth)
                 {
                     _minWidth = value;
+                    MinWidthProperty.Value = value;
                     RecalculateLayout();
                 }
             }
         }
         private Dimension _minWidth = Dimension.Unset;
+        public ObservableProperty<Dimension> MinWidthProperty { get; } = new ObservableProperty<Dimension>();
 
         /// <summary>
         /// Represents the maximum width that the element can have.
@@ -102,28 +113,37 @@ namespace CatUI.Elements
                 if (value != _maxWidth)
                 {
                     _maxWidth = value;
+                    MaxWidthProperty.Value = value;
                     RecalculateLayout();
                 }
             }
         }
         private Dimension _maxWidth = Dimension.Unset;
+        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new ObservableProperty<Dimension>();
 
-        public Dimension Height
+        /// <summary>
+        /// Represents the preferred height of the element. The layout engine will try to honor this value, but this might be influenced
+        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion"/>) or if the element is inside a container.
+        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that the element will be in.
+        /// </summary>
+        public Dimension PreferredHeight
         {
             get
             {
-                return _height;
+                return _preferredHeight;
             }
             set
             {
-                if (value != _height)
+                if (value != _preferredHeight)
                 {
-                    _height = value;
+                    _preferredHeight = value;
+                    PreferredHeightProperty.Value = value;
                     RecalculateLayout();
                 }
             }
         }
-        private Dimension _height = new Dimension();
+        private Dimension _preferredHeight = new Dimension();
+        public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new ObservableProperty<Dimension>();
 
         /// <summary>
         /// Represents the minimum height that the element can have.
@@ -140,11 +160,13 @@ namespace CatUI.Elements
                 if (value != _minHeight)
                 {
                     _minHeight = value;
+                    MinHeightProperty.Value = value;
                     RecalculateLayout();
                 }
             }
         }
         private Dimension _minHeight = Dimension.Unset;
+        public ObservableProperty<Dimension> MinHeightProperty { get; } = new ObservableProperty<Dimension>();
 
         /// <summary>
         /// Represents the minimum height that the element can have.
@@ -161,11 +183,13 @@ namespace CatUI.Elements
                 if (value != _maxHeight)
                 {
                     _maxHeight = value;
+                    MaxHeightProperty.Value = value;
                     RecalculateLayout();
                 }
             }
         }
         private Dimension _maxHeight = Dimension.Unset;
+        public ObservableProperty<Dimension> MaxHeightProperty { get; } = new ObservableProperty<Dimension>();
 
         public EdgeInset Padding
         {
@@ -178,11 +202,13 @@ namespace CatUI.Elements
                 if (value != _padding)
                 {
                     _padding = value;
+                    PaddingProperty.Value = value;
                     RecalculateLayout();
                 }
             }
         }
         private EdgeInset _padding = new EdgeInset();
+        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new ObservableProperty<EdgeInset>();
 
         public EdgeInset Margin
         {
@@ -195,13 +221,31 @@ namespace CatUI.Elements
                 if (value != _margin)
                 {
                     _margin = value;
+                    MarginProperty.Value = value;
                     RecalculateLayout();
                 }
             }
         }
         private EdgeInset _margin = new EdgeInset();
+        public ObservableProperty<EdgeInset> MarginProperty { get; } = new ObservableProperty<EdgeInset>();
 
-        public string Name { get; set; } = string.Empty;
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                _name = value ?? throw new ArgumentNullException(
+                    "Name",
+                    "The name of an element can be empty, but not null.");
+                NameProperty.Value = value;
+            }
+        }
+        private string _name = string.Empty;
+        public ObservableProperty<string> NameProperty { get; } = new ObservableProperty<string>();
+
         public ElementBounds Bounds { get; internal set; } = new ElementBounds();
         public bool IsInternal { get; private set; }
         public UIDocument? Document { get; private set; }
@@ -281,8 +325,8 @@ namespace CatUI.Elements
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
-            Dimension? width = null,
-            Dimension? height = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null,
             Dimension? minHeight = null,
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
@@ -299,13 +343,13 @@ namespace CatUI.Elements
             {
                 SetInitialPosition(position ?? new Dimension2(0, 0));
             }
-            if (width != null)
+            if (preferredWidth != null)
             {
-                SetInitialWidth(width ?? new Dimension(0));
+                SetInitialWidth(preferredWidth ?? new Dimension(0));
             }
-            if (height != null)
+            if (preferredHeight != null)
             {
-                SetInitialHeight(height ?? new Dimension(0));
+                SetInitialHeight(preferredHeight ?? new Dimension(0));
             }
             if (minHeight != null)
             {
@@ -424,7 +468,7 @@ namespace CatUI.Elements
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
 
-            _width = width;
+            _preferredWidth = width;
             return this;
         }
 
@@ -435,7 +479,7 @@ namespace CatUI.Elements
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
 
-            _height = height;
+            _preferredHeight = height;
             return this;
         }
 
@@ -579,18 +623,18 @@ namespace CatUI.Elements
                 parentYPos = _parent?.Bounds.StartPoint.Y ?? 0;
             }
 
-            if (!Width.IsUnset())
+            if (!PreferredWidth.IsUnset())
             {
                 InternalWidth = Math.Clamp(
-                    CalculateDimension(Width, parentWidth),
+                    CalculateDimension(PreferredWidth, parentWidth),
                     MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
                     MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
             }
 
-            if (!Height.IsUnset())
+            if (!PreferredHeight.IsUnset())
             {
                 InternalHeight = Math.Clamp(
-                    CalculateDimension(Height, parentHeight),
+                    CalculateDimension(PreferredHeight, parentHeight),
                     MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
                     MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
             }
