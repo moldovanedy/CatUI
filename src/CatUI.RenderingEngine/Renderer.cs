@@ -8,7 +8,7 @@ using CatUI.Data.Managers;
 using CatUI.Shared;
 using SkiaSharp;
 
-namespace CatUI.Data
+namespace CatUI.RenderingEngine
 {
     public class Renderer
     {

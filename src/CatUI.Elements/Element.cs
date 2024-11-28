@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using CatUI.Data;
 using CatUI.Data.Brushes;
@@ -18,7 +19,7 @@ namespace CatUI.Elements
         public ExitDocumentEventHandler? OnExitDocument;
         public LoadEventHandler? OnLoad;
         public PointerEnterEventHandler? OnPointerEnter;
-        public PointerLeaveEventHandler? OnPointerExit;
+        public PointerLeaveEventHandler? OnPointerLeave;
         public PointerMoveEventHandler? OnPointerMove;
 
         public event Action? DrawEvent;
@@ -26,7 +27,7 @@ namespace CatUI.Elements
         public event ExitDocumentEventHandler? ExitDocumentEvent;
         public event LoadEventHandler? LoadEvent;
         public event PointerEnterEventHandler? PointerEnterEvent;
-        public event PointerLeaveEventHandler? PointerExitEvent;
+        public event PointerLeaveEventHandler? PointerLeaveEvent;
         public event PointerMoveEventHandler? PointerMoveEvent;
 
         public const string STYLE_NORMAL = "normal";
@@ -317,11 +318,10 @@ namespace CatUI.Elements
 
         public Element()
         {
-            Init();
+            InitEvents();
         }
 
         public Element(
-            UIDocument? doc = null,
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -330,43 +330,79 @@ namespace CatUI.Elements
             Dimension? minHeight = null,
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
-            Dimension? maxWidth = null)
-        {
-            Init();
-            Document = doc;
+            Dimension? maxWidth = null,
 
+            Action? onDraw = null,
+            EnterDocumentEventHandler? onEnterDocument = null,
+            ExitDocumentEventHandler? onExitDocument = null,
+            LoadEventHandler? onLoad = null,
+            PointerEnterEventHandler? onPointerEnter = null,
+            PointerLeaveEventHandler? onPointerLeave = null,
+            PointerMoveEventHandler? onPointerMove = null)
+        {
             if (themeOverrides != null)
             {
                 SetInitialThemeOverrides(themeOverrides);
             }
             if (position != null)
             {
-                SetInitialPosition(position ?? new Dimension2(0, 0));
+                SetInitialPosition(position);
             }
             if (preferredWidth != null)
             {
-                SetInitialWidth(preferredWidth ?? new Dimension(0));
+                SetInitialWidth(preferredWidth);
             }
             if (preferredHeight != null)
             {
-                SetInitialHeight(preferredHeight ?? new Dimension(0));
+                SetInitialHeight(preferredHeight);
             }
             if (minHeight != null)
             {
-                SetInitialMinHeight(minHeight ?? Dimension.Unset);
+                SetInitialMinHeight(minHeight);
             }
             if (minWidth != null)
             {
-                SetInitialMinWidth(minWidth ?? Dimension.Unset);
+                SetInitialMinWidth(minWidth);
             }
             if (maxHeight != null)
             {
-                SetInitialMaxHeight(maxHeight ?? Dimension.Unset);
+                SetInitialMaxHeight(maxHeight);
             }
             if (maxWidth != null)
             {
-                SetInitialMaxWidth(maxWidth ?? Dimension.Unset);
+                SetInitialMaxWidth(maxWidth);
             }
+
+            if (onDraw != null)
+            {
+                SetInitialOnDrawAction(onDraw);
+            }
+            if (onEnterDocument != null)
+            {
+                SetInitialOnEnterDocumentAction(onEnterDocument);
+            }
+            if (onExitDocument != null)
+            {
+                SetInitialOnExitDocumentAction(onExitDocument);
+            }
+            if (onLoad != null)
+            {
+                SetInitialOnLoadAction(onLoad);
+            }
+            if (onPointerEnter != null)
+            {
+                SetInitialOnPointerEnterAction(onPointerEnter);
+            }
+            if (onPointerLeave != null)
+            {
+                SetInitialOnPointerLeaveAction(onPointerLeave);
+            }
+            if (onPointerMove != null)
+            {
+                SetInitialOnPointerMoveAction(onPointerMove);
+            }
+
+            InitEvents();
             Instantiate();
 
             if (children != null)
@@ -387,8 +423,8 @@ namespace CatUI.Elements
             LoadEvent -= Loaded;
             PointerEnterEvent -= OnPointerEnter;
             PointerEnterEvent -= PointerEnter;
-            PointerExitEvent -= OnPointerExit;
-            PointerExitEvent -= PointerLeave;
+            PointerLeaveEvent -= OnPointerLeave;
+            PointerLeaveEvent -= PointerLeave;
             PointerMoveEvent -= OnPointerMove;
             PointerMoveEvent -= PointerMove;
 
@@ -417,6 +453,7 @@ namespace CatUI.Elements
             //the element is not in a document and the given document is non-null
             if (Document == null && document != null)
             {
+                Document = document;
                 InvokeEnterDocument();
             }
             //the element is in a document and the given document is another document or null
@@ -430,11 +467,6 @@ namespace CatUI.Elements
                     GetParent()?.AddChild(this);
                 }
             }
-
-            // for (int i = 0; i < _children.Count; i++)
-            // {
-            //     _children[i].SetDocument(document);
-            // }
             return this;
         }
 
@@ -527,6 +559,83 @@ namespace CatUI.Elements
             return this;
         }
 
+        public Element SetInitialOnDrawAction(Action onDraw)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OnDraw = onDraw;
+            return this;
+        }
+
+        public Element SetInitialOnEnterDocumentAction(EnterDocumentEventHandler onEnterDocument)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OnEnterDocument = onEnterDocument;
+            return this;
+        }
+
+        public Element SetInitialOnExitDocumentAction(ExitDocumentEventHandler onExitDocument)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OnExitDocument = onExitDocument;
+            return this;
+        }
+
+        public Element SetInitialOnLoadAction(LoadEventHandler onLoad)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OnLoad = onLoad;
+            return this;
+        }
+
+        public Element SetInitialOnPointerEnterAction(PointerEnterEventHandler onPointerEnter)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OnPointerEnter = onPointerEnter;
+            return this;
+        }
+
+        public Element SetInitialOnPointerLeaveAction(PointerLeaveEventHandler onPointerLeave)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OnPointerLeave = onPointerLeave;
+            return this;
+        }
+
+        public Element SetInitialOnPointerMoveAction(PointerMoveEventHandler onPointerMove)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            OnPointerMove = onPointerMove;
+            return this;
+        }
+
         /// <summary>
         /// This sets up the element for the eventual addition to the document tree. If the document is set, 
         /// this will automatically add the element to the document.
@@ -589,7 +698,7 @@ namespace CatUI.Elements
 
         internal void InvokePointerLeave()
         {
-            PointerExitEvent?.Invoke(this, new PointerLeaveEventArgs(Point2D.Zero, false));
+            PointerLeaveEvent?.Invoke(this, new PointerLeaveEventArgs(Point2D.Zero, false));
         }
 
         internal void InvokePointerMove()
@@ -698,10 +807,18 @@ namespace CatUI.Elements
                 child.Document = Document;
                 child.InvokeEnterDocument();
 
-                foreach (Element grandChild in child._children)
-                {
-                    grandChild.InvokeEnterDocument();
-                }
+                MakeChildrenEnterDocument(child._children);
+            }
+        }
+
+        private void MakeChildrenEnterDocument(List<Element> children)
+        {
+            foreach (Element child in children)
+            {
+                child.Document = Document;
+                child.InvokeEnterDocument();
+
+                MakeChildrenEnterDocument(child._children);
             }
         }
 
@@ -828,14 +945,14 @@ namespace CatUI.Elements
                 _cachedPublicChildren?.Remove(child);
             }
 
-            child._parent = null;
-            child.Document = null;
-
             if (Document != null)
             {
                 child.InvokeExitDocument();
             }
             child.RemoveAllChildren();
+
+            child._parent = null;
+            child.Document = null;
         }
 
         public void RemoveAllChildren()
@@ -980,7 +1097,7 @@ namespace CatUI.Elements
             }
         }
 
-        private void Init()
+        private void InitEvents()
         {
             DrawEvent += OnDraw;
             DrawEvent += Draw;
@@ -992,8 +1109,8 @@ namespace CatUI.Elements
             LoadEvent += Loaded;
             PointerEnterEvent += OnPointerEnter;
             PointerEnterEvent += PointerEnter;
-            PointerExitEvent += OnPointerExit;
-            PointerExitEvent += PointerLeave;
+            PointerLeaveEvent += OnPointerLeave;
+            PointerLeaveEvent += PointerLeave;
             PointerMoveEvent += OnPointerMove;
             PointerMoveEvent += PointerMove;
 

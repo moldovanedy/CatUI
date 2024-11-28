@@ -528,7 +528,7 @@ namespace CatUI.Windowing.Desktop
             double delta = GLFW.GetTime() - _lastTime;
             _lastTime = GLFW.GetTime();
 
-            bool hadFrameCallbacks = false;
+            //bool hadFrameCallbacks = false;
             if (_animationFrameCallbacks.Count > 0)
             {
                 //if a callback registers another callback, this will effectively become an infinite loop,
@@ -539,13 +539,13 @@ namespace CatUI.Windowing.Desktop
                 for (int i = 0; i < thisFrameCount; i++)
                 {
                     _animationFrameCallbacks[i].Invoke(delta);
-                    hadFrameCallbacks = true;
+                    //hadFrameCallbacks = true;
                 }
 
                 _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
             }
 
-            if (this.Document.Renderer.IsCanvasDirty || hadFrameCallbacks)
+            if (this.Document.Renderer.IsCanvasDirty)
             {
                 FrameUpdatedEvent?.Invoke(delta);
                 FullyRedraw();
@@ -558,15 +558,15 @@ namespace CatUI.Windowing.Desktop
 #endif
 
                 this.Document.Renderer.SkipCanvasPresentation();
-                //Debug.WriteLine(delta);
+                // Debug.WriteLine(delta);
             }
 
-            double minFrameTime = 1.0 / MaxFPS;
-            double thisFrameTime = GLFW.GetTime() - _lastTime;
-            if (thisFrameTime < minFrameTime)
-            {
-                System.Threading.Thread.Sleep((int)((minFrameTime - thisFrameTime) * 1000));
-            }
+            // double minFrameTime = 1.0 / MaxFPS;
+            // double thisFrameTime = GLFW.GetTime() - _lastTime;
+            // if (thisFrameTime < minFrameTime)
+            // {
+            //     System.Threading.Thread.Sleep((int)((minFrameTime - thisFrameTime) * 1000));
+            // }
         }
 
 #pragma warning disable CA1822 // Mark members as static
@@ -636,6 +636,8 @@ namespace CatUI.Windowing.Desktop
 
         private void Terminate()
         {
+            //remove all the elements from the document
+            Document.Root = null;
             GLFW.SetErrorCallback(null);
 
 #if USE_ANGLE
@@ -660,10 +662,10 @@ namespace CatUI.Windowing.Desktop
             GL.GetInteger(GetPName.FramebufferBinding, out int frame);
             GL.GetInteger(GetPName.StencilBits, out int stencil);
             GL.GetInteger(GetPName.Samples, out int samples);
-            this.Document.Renderer.SetFramebufferData(frame, stencil, samples);
+            Document.Renderer.SetFramebufferData(frame, stencil, samples);
 
-            this.Document.ViewportSize = new Size(width, height);
-            this.Document.Renderer.SetCanvasDirty();
+            Document.ViewportSize = new Size(width, height);
+            Document.Renderer.SetCanvasDirty();
             DoFrameActions();
         }
 

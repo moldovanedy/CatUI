@@ -6,6 +6,8 @@ using CatUI.Data.Brushes;
 using CatUI.Elements.Themes;
 using CatUI.Data.Managers;
 using SkiaSharp;
+using CatUI.Data.Events.Document;
+using CatUI.Data.Events.Input.Pointer;
 
 namespace CatUI.Elements.Shapes
 {
@@ -33,17 +35,23 @@ namespace CatUI.Elements.Shapes
             IBrush? outlineBrush = null,
             OutlineParams? outlineParameters = null,
             string svgPath = "",
-            UIDocument? doc = null,
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension? minHeight = null,
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
-            Dimension? maxWidth = null) :
+            Dimension? maxWidth = null,
+
+            Action? onDraw = null,
+            EnterDocumentEventHandler? onEnterDocument = null,
+            ExitDocumentEventHandler? onExitDocument = null,
+            LoadEventHandler? onLoad = null,
+            PointerEnterEventHandler? onPointerEnter = null,
+            PointerLeaveEventHandler? onPointerLeave = null,
+            PointerMoveEventHandler? onPointerMove = null) :
             base(fillBrush: fillBrush,
                  outlineBrush: outlineBrush,
                  outlineParameters: outlineParameters,
-                 doc: doc,
                  children: children,
                  themeOverrides: themeOverrides,
                  position: position,
@@ -52,7 +60,15 @@ namespace CatUI.Elements.Shapes
                  minHeight: minHeight,
                  minWidth: minWidth,
                  maxHeight: maxHeight,
-                 maxWidth: maxWidth)
+                 maxWidth: maxWidth,
+
+                 onDraw: onDraw,
+                 onEnterDocument: onEnterDocument,
+                 onExitDocument: onExitDocument,
+                 onLoad: onLoad,
+                 onPointerEnter: onPointerEnter,
+                 onPointerLeave: onPointerLeave,
+                 onPointerMove: onPointerMove)
         {
             ShouldApplyScaling = shouldApplyScaling;
 

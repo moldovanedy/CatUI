@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using CatUI.Data;
 using CatUI.Data.Enums;
+using CatUI.Data.Events.Document;
+using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Themes;
 using CatUI.Elements.Themes.Text;
 
@@ -125,7 +127,6 @@ namespace CatUI.Elements.Text
             bool wordWrap = false,
             bool allowsExpansion = true,
 
-            UIDocument? doc = null,
             List<Element>? children = null,
             ThemeDefinition<TextElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -134,16 +135,31 @@ namespace CatUI.Elements.Text
             Dimension? minHeight = null,
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
-            Dimension? maxWidth = null) :
-            base(doc: doc,
-                 children: children,
+            Dimension? maxWidth = null,
+
+            Action? onDraw = null,
+            EnterDocumentEventHandler? onEnterDocument = null,
+            ExitDocumentEventHandler? onExitDocument = null,
+            LoadEventHandler? onLoad = null,
+            PointerEnterEventHandler? onPointerEnter = null,
+            PointerLeaveEventHandler? onPointerLeave = null,
+            PointerMoveEventHandler? onPointerMove = null) :
+            base(children: children,
                  position: position,
                  preferredWidth: preferredWidth,
                  preferredHeight: preferredHeight,
                  minHeight: minHeight,
                  minWidth: minWidth,
                  maxHeight: maxHeight,
-                 maxWidth: maxWidth)
+                 maxWidth: maxWidth,
+
+                 onDraw: onDraw,
+                 onEnterDocument: onEnterDocument,
+                 onExitDocument: onExitDocument,
+                 onLoad: onLoad,
+                 onPointerEnter: onPointerEnter,
+                 onPointerLeave: onPointerLeave,
+                 onPointerMove: onPointerMove)
         {
             Text = text;
             TextAlignment = textAlignment;

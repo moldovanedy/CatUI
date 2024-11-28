@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CatUI.Data;
+using CatUI.RenderingEngine;
 using SkiaSharp;
 
 namespace CatUI.Elements
@@ -12,6 +13,11 @@ namespace CatUI.Elements
     /// </summary>
     public class UIDocument
     {
+        /// <summary>
+        /// Represents the root element of the document/window. All other elements are children of this element or one of its descendants.
+        /// Setting this to another element will remove the previous one with all the children (invoking ExitDocument) and 
+        /// attach this element to the document, along with its children (calling EnterDocument).
+        /// </summary>
         public Element? Root
         {
             get
@@ -20,21 +26,14 @@ namespace CatUI.Elements
             }
             set
             {
-                bool wasDifferentElement = false;
                 if (_root != value)
                 {
-                    wasDifferentElement = true;
                     _root?.InvokeExitDocument();
                     _root?.RemoveAllChildren();
                 }
 
                 _root = value;
                 _root?.SetDocument(this);
-
-                if (wasDifferentElement)
-                {
-                    _root?.InvokeEnterDocument();
-                }
             }
         }
         private Element? _root;

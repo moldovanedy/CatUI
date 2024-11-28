@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
+using CatUI.Data.Events.Document;
 using CatUI.Data.Managers;
 using CatUI.Elements;
 using CatUI.Elements.Shapes;
@@ -53,7 +55,6 @@ namespace CatTest
 
             window.Document.BackgroundColor = new Color(0x21_21_21_ff);
             window.Document.Root = new Element(
-                doc: window.Document,
                 preferredWidth: new Dimension(100, Unit.Percent),
                 preferredHeight: new Dimension(100, Unit.Percent));
 
@@ -68,12 +69,13 @@ namespace CatTest
                     maxHeight: 250,
                     fillBrush: new ColorBrush(new Color(0x00_ff_ff_ff))),
                 new Rectangle(
-                    doc: window.Document,
+                    //doc: window.Document,
                     position: new Dimension2(
                         10, new Dimension(60, Unit.Percent)),
                     preferredWidth: new Dimension(80, Unit.Percent),
                     preferredHeight: new Dimension(20, Unit.Percent),
                     fillBrush: new ColorBrush(new Color(0xff_ff_00_ff)),
+
                     children: [
                         new GeometricPath(
                             svgPath:
