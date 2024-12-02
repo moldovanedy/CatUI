@@ -9,6 +9,12 @@
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/samples/CatTest/CatTest.csproj"
+        },
+        {
+            "name": "C#: BoxContainersExample Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/samples/BoxContainersExample/BoxContainersExample.csproj"
         }
     ]
 }

@@ -5,7 +5,7 @@ namespace CatUI.Elements.Themes.Text
 {
     public class TextElementThemeData : ElementThemeData
     {
-        public IBrush FillBrush { get; set; } = new ColorBrush(new Color(0x00_00_00_ff));
+        public IBrush FillBrush { get; set; } = new ColorBrush(new Color(0x00_00_00));
         public IBrush OutlineBrush { get; set; } = new ColorBrush();
         public Dimension FontSize { get; set; } = new Dimension(16);
         /// <summary>

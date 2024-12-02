@@ -1,4 +1,5 @@
 ﻿using System;
+
 using SkiaSharp;
 
 namespace CatUI.Data
@@ -10,31 +11,32 @@ namespace CatUI.Data
         public byte B { get; set; }
         public byte A { get; set; }
 
-        public static Color Default => new Color(0);
+        public static Color Default => new Color(0, ColorType.RGBA);
 
-        public Color()
-        {
-            R = 0;
-            G = 0;
-            B = 0;
-            A = 0;
-        }
+        public Color() { }
 
-        public Color(uint value, bool isArgb = false)
+        public Color(uint value, ColorType colorType = ColorType.RGB)
         {
-            if (isArgb)
+            switch (colorType)
             {
-                B = (byte)(value & 0xff);
-                G = (byte)((value >> 8) & 0xff);
-                R = (byte)((value >> 16) & 0xff);
-                A = (byte)((value >> 24) & 0xff);
-            }
-            else
-            {
-                A = (byte)(value & 0xff);
-                B = (byte)((value >> 8) & 0xff);
-                G = (byte)((value >> 16) & 0xff);
-                R = (byte)((value >> 24) & 0xff);
+                case ColorType.RGB:
+                    B = (byte)(value & 0xff);
+                    G = (byte)((value >> 8) & 0xff);
+                    R = (byte)((value >> 16) & 0xff);
+                    A = 255;
+                    break;
+                case ColorType.RGBA:
+                    A = (byte)(value & 0xff);
+                    B = (byte)((value >> 8) & 0xff);
+                    G = (byte)((value >> 16) & 0xff);
+                    R = (byte)((value >> 24) & 0xff);
+                    break;
+                case ColorType.ARGB:
+                    B = (byte)(value & 0xff);
+                    G = (byte)((value >> 8) & 0xff);
+                    R = (byte)((value >> 16) & 0xff);
+                    A = (byte)((value >> 24) & 0xff);
+                    break;
             }
         }
 
@@ -50,10 +52,6 @@ namespace CatUI.Data
         {
             if (!hexString.StartsWith('#'))
             {
-                A = 255;
-                R = 0;
-                G = 0;
-                B = 0;
                 return;
             }
 
@@ -106,6 +104,13 @@ namespace CatUI.Data
         public override string ToString()
         {
             return $"#{R:X2}{G:X2}{B:X2}{A:X2}";
+        }
+
+        public enum ColorType
+        {
+            RGB = 0,
+            RGBA = 1,
+            ARGB = 2
         }
     }
 }

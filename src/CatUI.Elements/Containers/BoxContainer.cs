@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using CatUI.Data;
@@ -8,9 +8,9 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Containers
 {
-    public abstract class Container : Element
+    public abstract class BoxContainer : Container
     {
-        public Container(
+        public BoxContainer(
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,

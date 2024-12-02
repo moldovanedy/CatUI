@@ -1,4 +1,3 @@
-using System;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 

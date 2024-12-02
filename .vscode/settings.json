@@ -8,6 +8,7 @@
         "Fullscreen",
         "GLFW",
         "Iconify",
+        "Lerp",
         "msvc",
         "OPENGLES",
         "rects",

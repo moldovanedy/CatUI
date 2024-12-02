@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Elements.Themes;
-using CatUI.Data.Managers;
-using SkiaSharp;
+using CatUI.Data.Containers;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
+using CatUI.Elements.Themes;
+using CatUI.RenderingEngine.GraphicsCaching;
+
+using SkiaSharp;
 
 namespace CatUI.Elements.Shapes
 {
@@ -25,9 +27,9 @@ namespace CatUI.Elements.Shapes
         private Point2D _lastAppliedScale = new Point2D(1, 1);
 
         public GeometricPath(
-            Dimension2 position,
-            Dimension preferredWidth,
-            Dimension preferredHeight,
+            Dimension2? position = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null,
 
             bool shouldApplyScaling = false,
 
@@ -41,6 +43,7 @@ namespace CatUI.Elements.Shapes
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            ContainerSizing? elementContainerSizing = null,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -61,6 +64,7 @@ namespace CatUI.Elements.Shapes
                  minWidth: minWidth,
                  maxHeight: maxHeight,
                  maxWidth: maxWidth,
+                 elementContainerSizing: elementContainerSizing,
 
                  onDraw: onDraw,
                  onEnterDocument: onEnterDocument,

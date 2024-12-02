@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using CatUI.Data.Managers;
+﻿using CatUI.Data.Managers;
+
 using SkiaSharp;
 
 namespace CatUI.Data.Brushes

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Shared;
+
 using SkiaSharp;
 
 namespace CatUI.RenderingEngine
@@ -26,7 +28,7 @@ namespace CatUI.RenderingEngine
         private SKSize _lastSize;
         private SKSize _newSize;
 
-        private Color _bgColor = new Color(0);
+        private Color _bgColor = new Color(0, Color.ColorType.RGB);
         private int _framebufferBinding;
         private int _stencilBits;
         private int _samples;

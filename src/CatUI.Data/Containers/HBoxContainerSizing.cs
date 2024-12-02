@@ -2,7 +2,7 @@ using CatUI.Data.Enums;
 
 namespace CatUI.Data.Containers
 {
-    public class HBoxContainerSizing : IContainerSizing
+    public class HBoxContainerSizing : ContainerSizing
     {
         /// <summary>
         /// Controls the growth factor of the element. The growth factor is the portion of the HBoxContainer that is allocated to
@@ -20,8 +20,15 @@ namespace CatUI.Data.Containers
         /// A "sector" is 150dp (600 / 4), as the sum of the growth factors is 4.
         /// The elements with the growth factor of 1 will have 150dp each (150 * 1), while the other element will have 300dp (150 * 2).
         /// </example>
-        public float HorizontalGrow { get; set; }
-
+        public float HGrowthFactor { get; set; }
         public VerticalAlignmentType VerticalAlignment { get; set; } = VerticalAlignmentType.Stretch;
+
+        public HBoxContainerSizing(
+            float hGrowthFactor = 1,
+            VerticalAlignmentType verticalAlignment = VerticalAlignmentType.Stretch)
+        {
+            HGrowthFactor = hGrowthFactor;
+            VerticalAlignment = verticalAlignment;
+        }
     }
 }

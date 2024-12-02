@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using CatUI.Data;
+using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
@@ -136,6 +138,7 @@ namespace CatUI.Elements.Text
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            ContainerSizing? elementContainerSizing = null,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -152,6 +155,7 @@ namespace CatUI.Elements.Text
                  minWidth: minWidth,
                  maxHeight: maxHeight,
                  maxWidth: maxWidth,
+                 elementContainerSizing: elementContainerSizing,
 
                  onDraw: onDraw,
                  onEnterDocument: onEnterDocument,

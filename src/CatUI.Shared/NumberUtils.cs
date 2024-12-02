@@ -2,6 +2,16 @@ namespace CatUI.Shared
 {
     public static class NumberUtils
     {
+        public static float Lerp(float start, float end, float t)
+        {
+            return (start * (1 - t)) + (end * t);
+        }
+
+        public static double Lerp(double start, double end, double t)
+        {
+            return (start * (1 - t)) + (end * t);
+        }
+
         public static float Remap(
             float value,
             float previousMin,
