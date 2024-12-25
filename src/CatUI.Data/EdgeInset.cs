@@ -89,27 +89,18 @@ namespace CatUI.Data
         public static implicit operator EdgeInset(string literal)
         {
             string[] substrings = literal.Split(' ');
-            if (substrings.Length == 1)
+            return substrings.Length switch
             {
-                return new EdgeInset(substrings[0]);
-            }
-            else if (substrings.Length == 2)
-            {
-                return new EdgeInset(substrings[0], substrings[1]);
-            }
-            else if (substrings.Length == 4)
-            {
-                return new EdgeInset(substrings[0], substrings[1], substrings[2], substrings[3]);
-            }
-            else
-            {
-                throw new FormatException($"Couldn't parse the \"{literal}\" EdgeInset literal");
-            }
+                1 => new EdgeInset(substrings[0]),
+                2 => new EdgeInset(substrings[0], substrings[1]),
+                4 => new EdgeInset(substrings[0], substrings[1], substrings[2], substrings[3]),
+                _ => throw new FormatException($"Couldn't parse the \"{literal}\" EdgeInset literal")
+            };
         }
 
         public override int GetHashCode()
         {
-            return System.HashCode.Combine(this.Top, this.Right, this.Bottom, this.Left);
+            throw new NotSupportedException("Using EdgeInset as a key in a dictionary/hash map is not supported.");
         }
 
         public override string ToString()

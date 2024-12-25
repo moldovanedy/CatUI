@@ -12,7 +12,11 @@ namespace CatUI.Elements.Containers
 {
     public class HBoxContainer : BoxContainer
     {
+        public override Orientation BoxOrientation { get => Orientation.Horizontal; }
+        
         public HBoxContainer(
+            Dimension? spacing = null,
+            
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -22,6 +26,8 @@ namespace CatUI.Elements.Containers
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -30,28 +36,33 @@ namespace CatUI.Elements.Containers
             PointerEnterEventHandler? onPointerEnter = null,
             PointerLeaveEventHandler? onPointerLeave = null,
             PointerMoveEventHandler? onPointerMove = null) :
-            base(children: children,
-                 themeOverrides: themeOverrides,
-                 position: position,
-                 preferredWidth: preferredWidth,
-                 preferredHeight: preferredHeight,
-                 minHeight: minHeight,
-                 minWidth: minWidth,
-                 maxHeight: maxHeight,
-                 maxWidth: maxWidth,
-
-                 onDraw: onDraw,
-                 onEnterDocument: onEnterDocument,
-                 onExitDocument: onExitDocument,
-                 onLoad: onLoad,
-                 onPointerEnter: onPointerEnter,
-                 onPointerLeave: onPointerLeave,
-                 onPointerMove: onPointerMove)
+            base(
+                spacing: spacing,
+                    
+                children: children,
+                themeOverrides: themeOverrides,
+                position: position,
+                preferredWidth: preferredWidth,
+                preferredHeight: preferredHeight,
+                minHeight: minHeight,
+                minWidth: minWidth,
+                maxHeight: maxHeight,
+                maxWidth: maxWidth,
+                visible: visible,
+                enabled: enabled,
+                
+                onDraw: onDraw,
+                onEnterDocument: onEnterDocument,
+                onExitDocument: onExitDocument,
+                onLoad: onLoad,
+                onPointerEnter: onPointerEnter,
+                onPointerLeave: onPointerLeave,
+                onPointerMove: onPointerMove)
         { }
 
         internal override void RecalculateLayout()
         {
-            if (IsChildOfContainer == true)
+            if (IsChildOfContainer || !Enabled)
             {
                 return;
             }
@@ -75,6 +86,12 @@ namespace CatUI.Elements.Containers
                 parentYPos = GetParent()?.Bounds.StartPoint.Y ?? 0;
             }
 
+            //this is in order to recalculate the Bounds
+            AbsoluteWidth = Math.Clamp(
+                PreferredWidth.IsUnset() ? parentWidth : CalculateDimension(PreferredWidth, parentWidth),
+                MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
+                MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
+
             Point2D finalPosition = Point2D.Zero;
             if (!Position.IsUnset())
             {
@@ -88,7 +105,7 @@ namespace CatUI.Elements.Containers
                 finalHeight = Math.Clamp(
                     CalculateDimension(PreferredHeight, parentHeight),
                     MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
-                    MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentHeight));
+                    MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
             }
             else if (!MinHeight.IsUnset())
             {
@@ -100,16 +117,24 @@ namespace CatUI.Elements.Containers
 
             foreach (Element child in children)
             {
-                float prefWidth = CalculateDimension(child.PreferredWidth, Bounds.Width);
+                if (!child.Enabled)
+                {
+                    return;
+                }
+
                 float minWidth = CalculateDimension(child.MinWidth, Bounds.Width);
+                float maxWidth = CalculateDimension(child.MaxWidth, Bounds.Width);
+                float prefWidth =
+                    Math.Clamp(
+                        CalculateDimension(child.PreferredWidth, Bounds.Width),
+                        minWidth != 0 ? minWidth : float.MinValue,
+                        maxWidth != 0 ? maxWidth : float.MaxValue);
 
                 if (child.ElementContainerSizing == null ||
-                    (
-                        (child.ElementContainerSizing is HBoxContainerSizing boxContainerSizing) &&
+                    (child.ElementContainerSizing is HBoxContainerSizing boxContainerSizing &&
                         boxContainerSizing.HGrowthFactor == 0))
                 {
                     minimumPreferredWidth += prefWidth;
-                    minimumMinWidth += minWidth;
                     allocatedPreferredWidth += prefWidth;
                 }
                 else
@@ -118,30 +143,26 @@ namespace CatUI.Elements.Containers
                     {
                         totalGrowthFactors += containerSizing.HGrowthFactor;
                     }
-                    minimumPreferredWidth += minWidth;
+
+                    minimumPreferredWidth += prefWidth;
                 }
+
+                minimumMinWidth += minWidth;
             }
 
             //calculate the container's final width
             bool elementsNeedShrinking = false;
             float containerPrefWidth =
                 PreferredWidth.IsUnset() ? Bounds.Width : CalculateDimension(PreferredWidth, parentWidth);
-            //it means that the container's preferred width is smaller that the minimum width of the content, so expand the container
+            //it means that the container's preferred width is smaller that the minimum pref width of the content, so shrink the container
             if (minimumPreferredWidth > containerPrefWidth)
             {
                 elementsNeedShrinking = true;
                 float containerMaxWidth =
-                    MaxWidth.IsUnset() ? Bounds.Width : CalculateDimension(MaxWidth, parentHeight);
+                    MaxWidth.IsUnset() ? Bounds.Width : CalculateDimension(MaxWidth, parentWidth);
                 //it means that the container's max width is smaller that the minimum width of the content, 
-                //so set the the value as the max stretch of the content
-                if (minimumPreferredWidth > containerMaxWidth)
-                {
-                    finalWidth = containerMaxWidth;
-                }
-                else
-                {
-                    finalWidth = minimumPreferredWidth;
-                }
+                //so set the value as the max stretch of the content
+                finalWidth = minimumPreferredWidth > containerMaxWidth ? containerMaxWidth : minimumPreferredWidth;
             }
             else
             {
@@ -149,27 +170,66 @@ namespace CatUI.Elements.Containers
             }
 
             float currentPosX = finalPosition.X, currentPosY = finalPosition.Y;
+            float t = (finalWidth - minimumMinWidth) / (minimumPreferredWidth - minimumMinWidth);
+            float growthSectionWidth = (finalWidth - allocatedPreferredWidth) / totalGrowthFactors;
+
             foreach (Element child in children)
             {
+                if (!child.Enabled)
+                {
+                    return;
+                }
+
                 child.AbsolutePosition.X = currentPosX;
                 child.AbsolutePosition.Y = currentPosY;
 
                 //TODO: handle vertical positioning
                 child.AbsoluteHeight = finalHeight;
 
+                float minWidth = CalculateDimension(child.MinWidth, Bounds.Width);
+                float maxWidth = CalculateDimension(child.MaxWidth, Bounds.Width);
+                float prefWidth =
+                    Math.Clamp(
+                        CalculateDimension(child.PreferredWidth, Bounds.Width),
+                        minWidth != 0 ? minWidth : float.MinValue,
+                        maxWidth != 0 ? maxWidth : float.MaxValue);
+
                 if (elementsNeedShrinking)
                 {
-                    float minWidth =
-                        child.MinWidth.IsUnset() ? 0 : CalculateDimension(child.MinWidth, Bounds.Width);
-
+                    //if the elements need to be shrunk, but they CAN be shrunk because the minWidth
+                    //was smaller than prefWidth for at least one element
                     if (minimumPreferredWidth > minimumMinWidth)
                     {
-                        float t = (finalWidth - minimumMinWidth) / (minimumPreferredWidth - minimumMinWidth);
-                        float prefWidth =
-                            child.PreferredWidth.IsUnset() ? 0 : CalculateDimension(child.PreferredWidth, Bounds.Width);
-
-                        child.AbsoluteWidth = NumberUtils.Lerp(minWidth, prefWidth, t);
+                        if (child.ElementContainerSizing is HBoxContainerSizing boxContainerSizing)
+                        {
+                            if (boxContainerSizing.HGrowthFactor > 0)
+                            {
+                                //make it proportional with the shrinking of the other elements
+                                growthSectionWidth = (finalWidth - (allocatedPreferredWidth * t)) / totalGrowthFactors;
+                                child.AbsoluteWidth = boxContainerSizing.HGrowthFactor * growthSectionWidth;
+                                
+                                //if the result was smaller than the minWidth, set it to minWidth and update the allocated
+                                //width accordingly (so that other elements can shrink correctly)
+                                if (child.AbsoluteWidth < minWidth)
+                                {
+                                    allocatedPreferredWidth += minWidth - child.AbsoluteWidth;
+                                    child.AbsoluteWidth = minWidth;
+                                }
+                            }
+                            else
+                            {
+                                child.AbsoluteWidth = prefWidth;
+                            }
+                        }
+                        else
+                        {
+                            //if the pref width wasn't set, only the min width, just set it as the min width
+                            child.AbsoluteWidth = prefWidth <= minWidth
+                                ? minWidth
+                                : NumberUtils.Lerp(minWidth, prefWidth, t);
+                        }
                     }
+                    //when the elements can no longer be shrunk
                     else
                     {
                         child.AbsoluteWidth = minWidth;
@@ -177,33 +237,28 @@ namespace CatUI.Elements.Containers
                 }
                 else
                 {
-                    float unallocatedWidth = finalWidth - allocatedPreferredWidth;
-                    float growthSectionWidth = unallocatedWidth / totalGrowthFactors;
-
                     if (child.ElementContainerSizing is HBoxContainerSizing boxContainerSizing)
                     {
-                        if (boxContainerSizing.HGrowthFactor != 0)
+                        if (boxContainerSizing.HGrowthFactor > 0)
                         {
                             child.AbsoluteWidth = boxContainerSizing.HGrowthFactor * growthSectionWidth;
-                        }
-                        else
-                        {
-                            child.AbsoluteWidth = 0;
-                        }
-                    }
-                    else
-                    {
-                        if (child.PreferredWidth.IsUnset())
-                        {
-                            if (!child.MinWidth.IsUnset())
+                            
+                            //if the result was smaller than the minWidth, set it to minWidth and update the allocated
+                            //width accordingly (so that other elements can shrink correctly)
+                            if (child.AbsoluteWidth < minWidth)
                             {
-                                child.AbsoluteWidth = CalculateDimension(child.PreferredWidth, Bounds.Width);
+                                allocatedPreferredWidth += minWidth - child.AbsoluteWidth;
+                                child.AbsoluteWidth = minWidth;
                             }
                         }
                         else
                         {
-                            child.AbsoluteWidth = CalculateDimension(child.PreferredWidth, Bounds.Width);
+                            child.AbsoluteWidth = prefWidth;
                         }
+                    }
+                    else
+                    {
+                        child.AbsoluteWidth = prefWidth;
                     }
                 }
 

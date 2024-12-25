@@ -40,6 +40,11 @@ namespace CatUI.Elements
                 }
                 _root.SetDocument(this);
 
+                _root.MinHeight = "100%";
+                _root.MinWidth = "100%";
+                _root.PreferredHeight = "100%";
+                _root.PreferredWidth = "100%";
+
                 _root.AbsolutePosition = Point2D.Zero;
                 _root.AbsoluteWidth = ViewportSize.Width;
                 _root.AbsoluteHeight = ViewportSize.Height;

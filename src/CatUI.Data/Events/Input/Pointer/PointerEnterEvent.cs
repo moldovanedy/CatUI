@@ -12,8 +12,8 @@ namespace CatUI.Data.Events.Input.Pointer
 
         public PointerEnterEventArgs(Point2D position, bool isPressed)
         {
-            base.Position = position;
-            base.IsPressed = isPressed;
+            Position = position;
+            IsPressed = isPressed;
         }
     }
 }

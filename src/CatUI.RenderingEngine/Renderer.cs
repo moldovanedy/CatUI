@@ -28,7 +28,7 @@ namespace CatUI.RenderingEngine
         private SKSize _lastSize;
         private SKSize _newSize;
 
-        private Color _bgColor = new Color(0, Color.ColorType.RGB);
+        private Color _bgColor;
         private int _framebufferBinding;
         private int _stencilBits;
         private int _samples;
@@ -222,7 +222,7 @@ namespace CatUI.RenderingEngine
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
         /// </summary>
         /// <remarks>
-        /// This method can only draw a filled rectangle, for only drawing the outline (aka outline), use <see cref="DrawRectOutline(Rect, IBrush, CornerInset)"/>
+        /// This method can only draw a filled rectangle, for only drawing the outline (aka outline), use <see cref="DrawRectOutline(Rect, IBrush, OutlineParams, CornerInset)"/>
         /// </remarks>
         /// <param name="rect">The direct pixel measurements of the rect.</param>
         /// <param name="fillBrush">The brush to use to paint the rect.</param>
@@ -252,14 +252,14 @@ namespace CatUI.RenderingEngine
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
         /// </summary>
         /// <remarks>
-        /// This method can only draw a outlined rectangle, for drawing the rectangle as filled, use <see cref="DrawRect(Rect, IBrush, CornerInset)"/>
+        /// This method can only draw an outlined rectangle, for drawing the rectangle as filled, use <see cref="DrawRect(Rect, IBrush, CornerInset)"/>
         /// </remarks>
         /// <param name="rect">The direct pixel measurements of the rect.</param>
         /// <param name="outlineBrush">The brush to use to paint the rect.</param>
+        /// <param name="outlineParams">The parameters that define the outline.</param>
         /// <param name="roundedCorners">
         /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless of the measuring unit.
         /// </param>
-        /// <param name="outlineWidth">The width of the outline in pixels.</param>
         public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams, CornerInset? roundedCorners = null)
         {
             SKPaint paint = outlineBrush.ToSkiaPaint();
@@ -309,9 +309,11 @@ namespace CatUI.RenderingEngine
         /// Use a very large width in order to guarantee the rendering of the whole text (this will use word wrap).
         /// This method does NOT account for vertical size, so vertical overflow is possible.
         /// </param>
-        /// <param name="horizontalAlignment">
-        /// The text alignment to use. <see cref="HorizontalAlignmentType.Stretch"/> won't have any effect
-        /// and will work as <see cref="HorizontalAlignmentType.Left"/>.
+        /// <param name="fillBrush"></param>
+        /// <param name="outlineBrush"></param>
+        /// <param name="textAlignment">
+        /// The text alignment to use. <see cref="TextAlignmentType.Justify"/> won't have any effect
+        /// and will work as <see cref="TextAlignmentType.Left"/>.
         /// </param>
         /// <param name="breakMode">Specifies the text break mode. See <see cref="TextBreakMode"/> for more information.</param>
         /// <param name="hyphenCharacter">Specifies the character used as a hyphen if necessary. For no hyphens, set this to the null character.</param>
@@ -424,7 +426,7 @@ namespace CatUI.RenderingEngine
             }
             else
             {
-                charsOnThisRow = (int)painter!.BreakText(drawableText, elementSize.Width);
+                charsOnThisRow = (int)painter.BreakText(drawableText, elementSize.Width);
             }
 
             if (charsOnThisRow <= 0)
@@ -477,7 +479,7 @@ namespace CatUI.RenderingEngine
                             }
                             else
                             {
-                                //skip the space so as to not show it on the next row
+                                //skip the space to not show it on the next row
                                 charsOnThisRow++;
                             }
                         }
@@ -488,7 +490,7 @@ namespace CatUI.RenderingEngine
                         needsHyphen = true;
                     }
                 }
-                //if the next character is a space, skip it so as to not show it on the next row
+                //if the next character is a space, skip it to not show it on the next row
                 else if (drawableText[charsOnThisRow] == ' ')
                 {
                     charsOnThisRow++;
@@ -499,18 +501,18 @@ namespace CatUI.RenderingEngine
             if (needsHyphen)
             {
                 string newString = new string(drawableText.AsSpan(charactersDrawn, charsOnThisRow));
-                this.Canvas?.DrawText(newString + hyphenCharacter, drawPoint, painter);
+                Canvas?.DrawText(newString + hyphenCharacter, drawPoint, painter);
             }
             else
             {
-                this.Canvas?.DrawText(drawableText.Substring(charactersDrawn, charsOnThisRow), drawPoint, painter);
+                Canvas?.DrawText(drawableText.Substring(charactersDrawn, charsOnThisRow), drawPoint, painter);
             }
             charactersDrawn += charsOnThisRow;
 
             //also add all the shy characters in the count
-            for (int i = 0; i < shyPositions.Count; i++)
+            foreach (int t in shyPositions)
             {
-                if (shyPositions[i] < charsOnThisRow)
+                if (t < charsOnThisRow)
                 {
                     charactersDrawn++;
                 }
@@ -534,10 +536,12 @@ namespace CatUI.RenderingEngine
         /// The size of the element that contains the text. This method does not use word wrapping.
         /// This method does NOT account for vertical size, so vertical overflow is possible.
         /// </param>
-        /// <param name="horizontalAlignment">
-        /// The text alignment to use. <see cref="HorizontalAlignmentType.Stretch"/> won't have any effect
-        /// and will work as <see cref="HorizontalAlignmentType.Left"/>.
+        /// <param name="textAlignment">
+        /// The text alignment to use. <see cref="TextAlignmentType.Justify"/> won't have any effect
+        /// and will work as <see cref="TextAlignmentType.Left"/>.
         /// </param>
+        /// <param name="fillBrush"></param>
+        /// <param name="outlineBrush"></param>
         /// <param name="overflowMode">Specifies the text overflow behavior.</param>
         /// <param name="ellipsisStringOverride">
         /// An alternative string to use instead of \u2026 when overflowMode is <see cref="TextOverflowMode.Ellipsis"/>.
@@ -626,17 +630,9 @@ namespace CatUI.RenderingEngine
                 return text.Length;
             }
 
-            string ellipsisString;
-            if (ellipsisStringOverride != null)
-            {
-                ellipsisString = ellipsisStringOverride;
-            }
-            else
-            {
-                ellipsisString = "\u2026";
-            }
+            string ellipsisString = ellipsisStringOverride ?? "\u2026";
 
-            float ellipsisSize = painter!.MeasureText(ellipsisString);
+            float ellipsisSize = painter.MeasureText(ellipsisString);
             //exit early
             if (elementSize.Width < ellipsisSize && overflowMode == TextOverflowMode.Ellipsis)
             {
@@ -664,26 +660,28 @@ namespace CatUI.RenderingEngine
                 text = text.Substring(0, newLinePosition);
             }
 
-            if (overflowMode == TextOverflowMode.Ellipsis)
+            switch (overflowMode)
             {
-                long charactersToDraw = painter!.BreakText(text, elementSize.Width);
-                if (charactersToDraw == text.Length)
-                {
-                    Canvas?.DrawText(text, drawPoint, painter);
-                }
-                else
-                {
-                    charactersToDraw = painter!.BreakText(text, elementSize.Width - ellipsisSize);
-                    text = text.Substring(0, (int)charactersToDraw);
+                case TextOverflowMode.Ellipsis:
+                    {
+                        long charactersToDraw = painter.BreakText(text, elementSize.Width);
+                        if (charactersToDraw == text.Length)
+                        {
+                            Canvas?.DrawText(text, drawPoint, painter);
+                        }
+                        else
+                        {
+                            charactersToDraw = painter.BreakText(text, elementSize.Width - ellipsisSize);
+                            text = text.Substring(0, (int)charactersToDraw);
 
-                    Canvas?.DrawText(text + ellipsisString, drawPoint, painter);
-                }
+                            Canvas?.DrawText(text + ellipsisString, drawPoint, painter);
+                        }
 
-                return text.Length;
-            }
-            else if (overflowMode == TextOverflowMode.Clip)
-            {
-                //TODO
+                        return text.Length;
+                    }
+                case TextOverflowMode.Clip:
+                    //TODO
+                    break;
             }
 
             return 0;

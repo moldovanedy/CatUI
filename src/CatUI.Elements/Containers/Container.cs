@@ -20,6 +20,8 @@ namespace CatUI.Elements.Containers
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -28,23 +30,26 @@ namespace CatUI.Elements.Containers
             PointerEnterEventHandler? onPointerEnter = null,
             PointerLeaveEventHandler? onPointerLeave = null,
             PointerMoveEventHandler? onPointerMove = null) :
-            base(children: children,
-                 themeOverrides: themeOverrides,
-                 position: position,
-                 preferredWidth: preferredWidth,
-                 preferredHeight: preferredHeight,
-                 minHeight: minHeight,
-                 minWidth: minWidth,
-                 maxHeight: maxHeight,
-                 maxWidth: maxWidth,
+            base(
+                children: children,
+                themeOverrides: themeOverrides,
+                position: position,
+                preferredWidth: preferredWidth,
+                preferredHeight: preferredHeight,
+                minHeight: minHeight,
+                minWidth: minWidth,
+                maxHeight: maxHeight,
+                maxWidth: maxWidth,
+                visible: visible,
+                enabled: enabled,
 
-                 onDraw: onDraw,
-                 onEnterDocument: onEnterDocument,
-                 onExitDocument: onExitDocument,
-                 onLoad: onLoad,
-                 onPointerEnter: onPointerEnter,
-                 onPointerLeave: onPointerLeave,
-                 onPointerMove: onPointerMove)
+                onDraw: onDraw,
+                onEnterDocument: onEnterDocument,
+                onExitDocument: onExitDocument,
+                onLoad: onLoad,
+                onPointerEnter: onPointerEnter,
+                onPointerLeave: onPointerLeave,
+                onPointerMove: onPointerMove)
         { }
     }
 }

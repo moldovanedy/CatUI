@@ -44,6 +44,8 @@ namespace CatUI.Elements.Shapes
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
             ContainerSizing? elementContainerSizing = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -65,6 +67,8 @@ namespace CatUI.Elements.Shapes
                  maxHeight: maxHeight,
                  maxWidth: maxWidth,
                  elementContainerSizing: elementContainerSizing,
+                 visible: visible,
+                 enabled: enabled,
 
                  onDraw: onDraw,
                  onEnterDocument: onEnterDocument,
@@ -120,8 +124,8 @@ namespace CatUI.Elements.Shapes
             if (ShouldApplyScaling)
             {
                 _lastAppliedScale = new Point2D(
-                    this.Bounds.Width / _skiaPath.TightBounds.Width,
-                    this.Bounds.Height / _skiaPath.TightBounds.Height);
+                    Bounds.Width / _skiaPath.TightBounds.Width,
+                    Bounds.Height / _skiaPath.TightBounds.Height);
             }
             else
             {
@@ -131,8 +135,8 @@ namespace CatUI.Elements.Shapes
             _skiaPath.Transform(SKMatrix.CreateScaleTranslation(
                 _lastAppliedScale.X,
                 _lastAppliedScale.Y,
-                base.Bounds.StartPoint.X - _lastStartPoint.X,
-                base.Bounds.StartPoint.Y - _lastStartPoint.Y));
+                Bounds.StartPoint.X - _lastStartPoint.X,
+                Bounds.StartPoint.Y - _lastStartPoint.Y));
 
             Document?.Renderer?.DrawPath(_skiaPath, FillBrush, OutlineBrush, OutlineParameters);
         }

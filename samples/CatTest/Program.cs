@@ -14,19 +14,19 @@ namespace CatTest
 {
     internal sealed class Program
     {
-        public const int GLFW_ANGLE_PLATFORM_TYPE = 0x00050002;
+        private const int GLFW_ANGLE_PLATFORM_TYPE = 0x00050002;
 
-        public const int GLFW_ANGLE_PLATFORM_TYPE_NONE = 0x00037001;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_OPENGL = 0x00037002;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_OPENGLES = 0x00037003;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_D3D9 = 0x00037004;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_D3D11 = 0x00037005;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_VULKAN = 0x00037007;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_METAL = 0x00037008;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_NONE = 0x00037001;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_OPENGL = 0x00037002;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_OPENGLES = 0x00037003;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_D3D9 = 0x00037004;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_D3D11 = 0x00037005;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_VULKAN = 0x00037007;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_METAL = 0x00037008;
 
-        public const int EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE = 0x3450;
+        private const int EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE = 0x3450;
 
-        private static Window? window;
+        private static Window? _window;
 
         private static void Main()
         {
@@ -41,19 +41,19 @@ namespace CatTest
             //     Debug.WriteLine("NULL");
             // }
 
-            window = new Window(
+            _window = new Window(
                 width: 800,
                 height: 600,
                 minWidth: 300,
                 minHeight: 200,
                 title: "Test");
 
-            window.Document.BackgroundColor = new Color(0x21_21_21);
-            window.Document.Root = new Element(
+            _window.Document.BackgroundColor = new Color(0x21_21_21);
+            _window.Document.Root = new Element(
                 preferredWidth: new Dimension(100, Unit.Percent),
                 preferredHeight: new Dimension(100, Unit.Percent));
 
-            window.Document.Root.AddChildren(
+            _window.Document.Root.AddChildren(
                 new Rectangle(
                     position: new Dimension2(10, 5),
                     preferredWidth: new Dimension(80, Unit.Percent),
@@ -115,7 +115,7 @@ namespace CatTest
                 )
             );
 
-            window.Run();
+            _window.Run();
         }
     }
 }

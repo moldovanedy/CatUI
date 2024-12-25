@@ -75,6 +75,8 @@ namespace CatUI.Elements.Text
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
             ContainerSizing? elementContainerSizing = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -98,6 +100,8 @@ namespace CatUI.Elements.Text
                  maxHeight: maxHeight,
                  maxWidth: maxWidth,
                  elementContainerSizing: elementContainerSizing,
+                 visible: visible,
+                 enabled: enabled,
 
                  onDraw: onDraw,
                  onEnterDocument: onEnterDocument,
@@ -108,21 +112,21 @@ namespace CatUI.Elements.Text
                  onPointerMove: onPointerMove)
         {
             DrawEvent += DrawText;
-            base.TextProperty.ValueChangedEvent += OnTextChanged;
+            TextProperty.ValueChangedEvent += OnTextChanged;
 
             TextBreakMode = breakMode;
             HyphenCharacter = hyphenCharacter;
 
             if (themeOverrides != null)
             {
-                base.SetElementThemeOverrides(themeOverrides);
+                SetElementThemeOverrides(themeOverrides);
             }
         }
 
         ~Label()
         {
             DrawEvent -= DrawText;
-            base.TextProperty.ValueChangedEvent -= OnTextChanged;
+            TextProperty.ValueChangedEvent -= OnTextChanged;
         }
 
         #region Builder
@@ -200,25 +204,25 @@ namespace CatUI.Elements.Text
             }
 
             //TODO: optimize this so that a recalculation doesn't happen on resizing, but only when it's necessary
-            if (MathF.Round(base.AbsoluteHeight, 1) != MathF.Round(normalHeight, 1) ||
-                MathF.Round(base.AbsoluteWidth, 1) != MathF.Round(normalWidth, 1))
+            if (MathF.Round(AbsoluteHeight, 1) != MathF.Round(normalHeight, 1) ||
+                MathF.Round(AbsoluteWidth, 1) != MathF.Round(normalWidth, 1))
             {
                 _cachedRows = null;
             }
 
             if (string.IsNullOrEmpty(Text))
             {
-                base.AbsoluteWidth = normalWidth;
-                base.AbsoluteHeight = normalHeight;
-                base.AbsolutePosition = normalPosition;
+                AbsoluteWidth = normalWidth;
+                AbsoluteHeight = normalHeight;
+                AbsolutePosition = normalPosition;
                 goto ChildRecalculation;
             }
 
-            if (_cachedRows != null || !base.WordWrap)
+            if (_cachedRows != null || !WordWrap)
             {
-                base.AbsoluteWidth = normalWidth;
-                base.AbsoluteHeight = normalHeight;
-                base.AbsolutePosition = normalPosition;
+                AbsoluteWidth = normalWidth;
+                AbsoluteHeight = normalHeight;
+                AbsolutePosition = normalPosition;
                 goto ChildRecalculation;
             }
 
@@ -256,7 +260,7 @@ namespace CatUI.Elements.Text
             string drawableText = sb.ToString();
             float maxWidth = normalWidth;
             float newHeight = 0;
-            LabelThemeData currentTheme = base.GetElementFinalThemeData<LabelThemeData>(Label.STYLE_NORMAL);
+            LabelThemeData currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
 
             float fontSize = CalculateDimension(currentTheme.FontSize);
             float lineHeightPixels = fontSize * currentTheme.LineHeight;
@@ -339,11 +343,11 @@ namespace CatUI.Elements.Text
 
                 float rowHeight = (lineHeightPixels / 2f) + (fontSize / 2f);
                 //if the element doesn't allow expansion we just break the loop
-                if (!base.AllowsExpansion && newHeight + rowHeight > CalculateDimension(base.MaxHeight))
+                if (!AllowsExpansion && newHeight + rowHeight > CalculateDimension(MaxHeight))
                 {
                     //replace the last characters of the last row with an ellipsis
                     string lastRow = _cachedRows[_cachedRows.Count - 1].Key;
-                    float ellipsisWidth = paint.MeasureText(base.EllipsisString);
+                    float ellipsisWidth = paint.MeasureText(EllipsisString);
 
                     int charactersToTrim = 0;
                     float widthToTrim = 0;
@@ -429,7 +433,7 @@ namespace CatUI.Elements.Text
 
         private void DrawText()
         {
-            LabelThemeData currentTheme = GetElementFinalThemeData<LabelThemeData>(Label.STYLE_NORMAL);
+            LabelThemeData currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
             float fontSize = CalculateDimension(currentTheme.FontSize);
             float rowSize = fontSize * currentTheme.LineHeight;
             Point2D rowPosition = Bounds.StartPoint;

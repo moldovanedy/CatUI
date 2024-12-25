@@ -8,38 +8,44 @@ using CatUI.Windowing.Desktop;
 
 namespace BoxContainersExample
 {
-    sealed class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
             Window window = new Window(
                 width: 900,
                 height: 600,
                 title: "BoxContainers example",
-                minWidth: 250,
+                minWidth: 150,
                 minHeight: 200);
 
             window.Document.BackgroundColor = new Color(0x21_21_21);
-            window.Document.Root = new HBoxContainer(
-                preferredWidth: "100%",
-                preferredHeight: "100%");
+            window.Document.Root = new VBoxContainer();
 
             window.Document.Root.AddChildren(
                 new List<Element>() {
                     new Rectangle(
-                        preferredWidth: "50dp",
-                        fillBrush: new ColorBrush(new Color(0xff_00_ff))
+                        preferredHeight: "50dp",
+                        fillBrush: new ColorBrush(new Color(0x80_00_ff))
                     ),
                     new Rectangle(
-                        preferredWidth: "100dp",
-                        minWidth: "250dp",
-                        fillBrush: new ColorBrush(new Color(0xff_ff_ff)),
-                        elementContainerSizing: new HBoxContainerSizing(hGrowthFactor: 1)
+                        //maxHeight: "400dp",
+                        //preferredHeight: "5%",
+                        minHeight: "250dp",
+                        fillBrush: new ColorBrush(new Color(0x75_75_75)),
+                        elementContainerSizing: new VBoxContainerSizing(vGrowthFactor: 1f)
                     ),
                     new Rectangle(
-                        preferredWidth: "75dp",
-                        fillBrush: new ColorBrush(new Color(0xff_00_00))
-                    )
+                        preferredHeight: "15%",
+                        fillBrush: new ColorBrush(new Color(0x40_00_80))
+                    ),
+                    // new Rectangle(
+                    //     maxHeight: "400dp",
+                    //     preferredHeight: "5%",
+                    //     minHeight: "250dp",
+                    //     fillBrush: new ColorBrush(new Color(0x75_75_75)),
+                    //     elementContainerSizing: new VBoxContainerSizing(vGrowthFactor: 3)
+                    // ),
                 });
 
             window.Run();

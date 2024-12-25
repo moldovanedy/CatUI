@@ -139,6 +139,8 @@ namespace CatUI.Elements.Text
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
             ContainerSizing? elementContainerSizing = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -156,6 +158,8 @@ namespace CatUI.Elements.Text
                  maxHeight: maxHeight,
                  maxWidth: maxWidth,
                  elementContainerSizing: elementContainerSizing,
+                 visible: visible,
+                 enabled: enabled,
 
                  onDraw: onDraw,
                  onEnterDocument: onEnterDocument,
@@ -173,7 +177,7 @@ namespace CatUI.Elements.Text
 
             if (themeOverrides != null)
             {
-                base.SetElementThemeOverrides(themeOverrides);
+                SetElementThemeOverrides(themeOverrides);
             }
         }
 

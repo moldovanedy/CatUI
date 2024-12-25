@@ -13,6 +13,8 @@
         "OPENGLES",
         "rects",
         "RENDERABLE",
+        "RRGGBB",
+        "RRGGBBAA",
         "Skia",
         "Skippable",
         "Trimmable",

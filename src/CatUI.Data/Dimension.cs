@@ -12,7 +12,7 @@ namespace CatUI.Data
         /// <summary>
         /// Represents the actual value. NaN represents the "unset dimension".
         /// </summary>
-        public float Value { get; set; } = float.NaN;
+        public float Value { get; set; }
         public Unit MeasuringUnit { get; set; } = Unit.Dp;
 
         public static Dimension Unset
@@ -47,28 +47,15 @@ namespace CatUI.Data
 
         public override string ToString()
         {
-            string measuringUnitText;
-            switch (MeasuringUnit)
+            string measuringUnitText = MeasuringUnit switch
             {
-                case Unit.Dp:
-                    measuringUnitText = "dp";
-                    break;
-                case Unit.Pixels:
-                    measuringUnitText = "px";
-                    break;
-                case Unit.Percent:
-                    measuringUnitText = "%";
-                    break;
-                case Unit.ViewportWidth:
-                    measuringUnitText = "vw";
-                    break;
-                case Unit.ViewportHeight:
-                    measuringUnitText = "vh";
-                    break;
-                default:
-                    measuringUnitText = "?";
-                    break;
-            }
+                Unit.Dp => "dp",
+                Unit.Pixels => "px",
+                Unit.Percent => "%",
+                Unit.ViewportWidth => "vw",
+                Unit.ViewportHeight => "vh",
+                _ => "?"
+            };
 
             return $"{Value} {measuringUnitText}";
         }
@@ -86,13 +73,13 @@ namespace CatUI.Data
             Unit unit;
 
             int unitStartPos;
-            char lastChar = literal[literal.Length - 1];
+            char lastChar = literal[^1];
             if (lastChar == '%')
             {
                 unit = Unit.Percent;
                 unitStartPos = literal.Length - 1;
             }
-            else if (char.IsAsciiDigit(lastChar))
+            else if (char.IsDigit(lastChar))
             {
                 unit = Unit.Dp;
                 unitStartPos = literal.Length;
@@ -131,35 +118,14 @@ namespace CatUI.Data
             //this will silence the nullable warnings
             if (x is null)
             {
-                if (y is null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
+                return y is not null;
             }
             else if (y is null)
             {
-                if (x is null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-
-            if (x.Value != y.Value || x.MeasuringUnit != y.MeasuringUnit)
-            {
                 return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return Math.Abs(x.Value - y.Value) > 0.001 || x.MeasuringUnit != y.MeasuringUnit;
         }
 
         public static bool operator ==(Dimension? x, Dimension? y)
@@ -167,35 +133,14 @@ namespace CatUI.Data
             //this will silence the nullable warnings
             if (x is null)
             {
-                if (y is null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return y is null;
             }
             else if (y is null)
             {
-                if (x is null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            if (x.Value == y.Value && x.MeasuringUnit == y.MeasuringUnit)
-            {
-                return true;
-            }
-            else
-            {
                 return false;
             }
+
+            return Math.Abs(x.Value - y.Value) < 0.001 && x.MeasuringUnit == y.MeasuringUnit;
         }
 
         public override bool Equals([NotNullWhen(true)] object? obj)
@@ -206,10 +151,10 @@ namespace CatUI.Data
             }
             return this == (Dimension)obj;
         }
-
+        
         public override int GetHashCode()
         {
-            return System.HashCode.Combine(this.Value, this.MeasuringUnit);
+            throw new NotSupportedException("Using Dimension as a key in a dictionary/hash map is not supported.");
         }
     }
 
@@ -218,8 +163,8 @@ namespace CatUI.Data
     /// </summary>
     public class Dimension2
     {
-        public Dimension X { get; set; } = new Dimension();
-        public Dimension Y { get; set; } = new Dimension();
+        public Dimension X { get; set; }
+        public Dimension Y { get; set; }
 
         public static Dimension2 Unset
         {
@@ -231,21 +176,21 @@ namespace CatUI.Data
 
         public Dimension2()
         {
-            this.X = Dimension.Unset;
-            this.Y = Dimension.Unset;
+            X = Dimension.Unset;
+            Y = Dimension.Unset;
         }
 
         public Dimension2(string literal)
         {
             Dimension2 dim = literal;
-            this.X = dim.X;
-            this.Y = dim.Y;
+            X = dim.X;
+            Y = dim.Y;
         }
 
         public Dimension2(Dimension x, Dimension y)
         {
-            this.X = x;
-            this.Y = y;
+            X = x;
+            Y = y;
         }
 
         public Dimension2(float x, float y)
@@ -269,25 +214,11 @@ namespace CatUI.Data
             //this will silence the nullable warnings
             if (x is null)
             {
-                if (y is null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return y is null;
             }
             else if (y is null)
             {
-                if (x is null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return false;
             }
 
             return x.X != y.X || x.Y != y.Y;
@@ -298,25 +229,11 @@ namespace CatUI.Data
             //this will silence the nullable warnings
             if (x is null)
             {
-                if (y is null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
+                return y is not null;
             }
             else if (y is null)
             {
-                if (x is null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
+                return true;
             }
 
             return x.X == y.X && x.Y == y.Y;
@@ -325,18 +242,12 @@ namespace CatUI.Data
         public static implicit operator Dimension2(string literal)
         {
             string[] substrings = literal.Split(' ');
-            if (substrings.Length == 1)
+            return substrings.Length switch
             {
-                return new Dimension2(substrings[0], substrings[0]);
-            }
-            else if (substrings.Length == 2)
-            {
-                return new Dimension2(substrings[0], substrings[1]);
-            }
-            else
-            {
-                throw new FormatException($"Couldn't parse the \"{literal}\" Dimension2 literal");
-            }
+                1 => new Dimension2(substrings[0], substrings[0]),
+                2 => new Dimension2(substrings[0], substrings[1]),
+                _ => throw new FormatException($"Couldn't parse the \"{literal}\" Dimension2 literal")
+            };
         }
 
         public override bool Equals([NotNullWhen(true)] object? obj)
@@ -350,7 +261,7 @@ namespace CatUI.Data
 
         public override int GetHashCode()
         {
-            return System.HashCode.Combine(this.X, this.Y);
+            throw new NotSupportedException("Using Dimension as a key in a dictionary/hash map is not supported.");
         }
     }
 }

@@ -1,10 +1,12 @@
-﻿namespace CatUI.Data
+﻿using System;
+
+namespace CatUI.Data
 {
     /// <summary>
     /// A struct similar to UInt128 (which is not available in .net6 and prior)
     /// that is used as a key in the internal cache dictionaries.
     /// </summary>
-    public readonly struct NumericKey
+    public readonly struct NumericKey : IEquatable<NumericKey>
     {
         public static NumericKey Zero => new NumericKey();
 
@@ -31,7 +33,7 @@
         {
             if (other is NumericKey key)
             {
-                return this._low == key._low && this._high == key._high;
+                return _low == key._low && _high == key._high;
             }
             return false;
         }
@@ -44,6 +46,11 @@
         public static bool operator !=(NumericKey left, NumericKey right)
         {
             return !(left == right);
+        }
+
+        public bool Equals(NumericKey other)
+        {
+            return _low == other._low && _high == other._high;
         }
     }
 }

@@ -13,21 +13,21 @@ namespace CatUI.Data
         public ElementBounds() { }
         public ElementBounds(Point2D startPoint, float width, float height, float[] paddings, float[] margins)
         {
-            this.StartPoint = startPoint;
-            this.Width = width;
-            this.Height = height;
-            this.Paddings = paddings;
-            this.Margins = margins;
+            StartPoint = startPoint;
+            Width = width;
+            Height = height;
+            Paddings = paddings;
+            Margins = margins;
         }
         public ElementBounds(ElementBounds other)
         {
             ElementBounds newObject = (ElementBounds)other.Clone();
 
-            this.StartPoint = newObject.StartPoint;
-            this.Width = newObject.Width;
-            this.Height = newObject.Height;
-            this.Paddings = newObject.Paddings;
-            this.Margins = newObject.Margins;
+            StartPoint = newObject.StartPoint;
+            Width = newObject.Width;
+            Height = newObject.Height;
+            Paddings = newObject.Paddings;
+            Margins = newObject.Margins;
         }
 
         /// <summary>
@@ -74,22 +74,22 @@ namespace CatUI.Data
         {
             ElementBounds newObject = new ElementBounds
             {
-                StartPoint = this.StartPoint,
-                Width = this.Width,
-                Height = this.Height
+                StartPoint = StartPoint,
+                Width = Width,
+                Height = Height
             };
 
             float[] paddingsClone = new float[4];
             for (int i = 0; i < 5; i++)
             {
-                paddingsClone[i] = this.Paddings[i];
+                paddingsClone[i] = Paddings[i];
             }
             newObject.Paddings = paddingsClone;
 
             float[] marginsClone = new float[4];
             for (int i = 0; i < 5; i++)
             {
-                marginsClone[i] = this.Margins[i];
+                marginsClone[i] = Margins[i];
             }
             newObject.Margins = marginsClone;
 
@@ -100,10 +100,10 @@ namespace CatUI.Data
         {
             Rect rect = new Rect
             {
-                X = this.StartPoint.X - this.Paddings[3] - this.Margins[3],
-                Y = this.StartPoint.Y - this.Paddings[0] - this.Margins[0],
-                Width = this.Width + this.Paddings[1] + this.Margins[1],
-                Height = this.Height + this.Paddings[2] + this.Margins[2]
+                X = StartPoint.X - Paddings[3] - Margins[3],
+                Y = StartPoint.Y - Paddings[0] - Margins[0],
+                Width = Width + Paddings[1] + Margins[1],
+                Height = Height + Paddings[2] + Margins[2]
             };
             return rect;
         }
@@ -112,10 +112,10 @@ namespace CatUI.Data
         {
             Rect rect = new Rect
             {
-                X = this.StartPoint.X - this.Paddings[3],
-                Y = this.StartPoint.Y - this.Paddings[0],
-                Width = this.Width + this.Paddings[1],
-                Height = this.Height + this.Paddings[2]
+                X = StartPoint.X - Paddings[3],
+                Y = StartPoint.Y - Paddings[0],
+                Width = Width + Paddings[1],
+                Height = Height + Paddings[2]
             };
             return rect;
         }
@@ -124,10 +124,10 @@ namespace CatUI.Data
         {
             Rect rect = new Rect
             {
-                X = this.StartPoint.X,
-                Y = this.StartPoint.Y,
-                Width = this.Width,
-                Height = this.Height
+                X = StartPoint.X,
+                Y = StartPoint.Y,
+                Width = Width,
+                Height = Height
             };
             return rect;
         }

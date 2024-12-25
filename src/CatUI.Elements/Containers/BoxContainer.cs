@@ -10,7 +10,18 @@ namespace CatUI.Elements.Containers
 {
     public abstract class BoxContainer : Container
     {
+        /// <summary>
+        /// Specifies the dimension of the space left between each of the elements in the container. By default, it's 0.
+        /// </summary>
+        public Dimension Spacing { get; set; } = Dimension.Unset;
+        /// <summary>
+        /// Specifies the orientation of this BoxContainer. Can be vertical or horizontal.
+        /// </summary>
+        public abstract Orientation BoxOrientation { get; }
+
         public BoxContainer(
+            Dimension? spacing = null,
+
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -20,6 +31,8 @@ namespace CatUI.Elements.Containers
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -28,23 +41,48 @@ namespace CatUI.Elements.Containers
             PointerEnterEventHandler? onPointerEnter = null,
             PointerLeaveEventHandler? onPointerLeave = null,
             PointerMoveEventHandler? onPointerMove = null) :
-            base(children: children,
-                 themeOverrides: themeOverrides,
-                 position: position,
-                 preferredWidth: preferredWidth,
-                 preferredHeight: preferredHeight,
-                 minHeight: minHeight,
-                 minWidth: minWidth,
-                 maxHeight: maxHeight,
-                 maxWidth: maxWidth,
+            base(
+                children: children,
+                themeOverrides: themeOverrides,
+                position: position,
+                preferredWidth: preferredWidth,
+                preferredHeight: preferredHeight,
+                minHeight: minHeight,
+                minWidth: minWidth,
+                maxHeight: maxHeight,
+                maxWidth: maxWidth,
+                visible: visible,
+                enabled: enabled,
 
-                 onDraw: onDraw,
-                 onEnterDocument: onEnterDocument,
-                 onExitDocument: onExitDocument,
-                 onLoad: onLoad,
-                 onPointerEnter: onPointerEnter,
-                 onPointerLeave: onPointerLeave,
-                 onPointerMove: onPointerMove)
-        { }
+                onDraw: onDraw,
+                onEnterDocument: onEnterDocument,
+                onExitDocument: onExitDocument,
+                onLoad: onLoad,
+                onPointerEnter: onPointerEnter,
+                onPointerLeave: onPointerLeave,
+                onPointerMove: onPointerMove)
+        {
+            if (spacing != null)
+            {
+                SetInitialSpacing(spacing);
+            }
+        }
+        
+        public BoxContainer SetInitialSpacing(Dimension spacing)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            Spacing = spacing;
+            return this;
+        }
+
+        public enum Orientation
+        {
+            Horizontal = 0,
+            Vertical = 1
+        }
     }
 }

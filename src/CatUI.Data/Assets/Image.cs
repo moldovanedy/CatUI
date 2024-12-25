@@ -9,12 +9,12 @@ namespace CatUI.Data.Assets
 
         public override void LoadFromRawData(Stream stream)
         {
-            this.SkiaImage = SKImage.FromEncodedData(stream);
+            SkiaImage = SKImage.FromEncodedData(stream);
         }
 
         public override void LoadFromRawData(byte[] rawData)
         {
-            this.SkiaImage = SKImage.FromEncodedData(rawData);
+            SkiaImage = SKImage.FromEncodedData(rawData);
         }
     }
 }
