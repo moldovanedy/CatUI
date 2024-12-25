@@ -1,13 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
-using System.Threading.Tasks;
+
 using CatUI.Data;
-using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
-using CatUI.Data.Events.Document;
-using CatUI.Data.Managers;
 using CatUI.Elements;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
@@ -19,19 +14,19 @@ namespace CatTest
 {
     internal sealed class Program
     {
-        public const int GLFW_ANGLE_PLATFORM_TYPE = 0x00050002;
+        private const int GLFW_ANGLE_PLATFORM_TYPE = 0x00050002;
 
-        public const int GLFW_ANGLE_PLATFORM_TYPE_NONE = 0x00037001;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_OPENGL = 0x00037002;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_OPENGLES = 0x00037003;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_D3D9 = 0x00037004;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_D3D11 = 0x00037005;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_VULKAN = 0x00037007;
-        public const int GLFW_ANGLE_PLATFORM_TYPE_METAL = 0x00037008;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_NONE = 0x00037001;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_OPENGL = 0x00037002;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_OPENGLES = 0x00037003;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_D3D9 = 0x00037004;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_D3D11 = 0x00037005;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_VULKAN = 0x00037007;
+        private const int GLFW_ANGLE_PLATFORM_TYPE_METAL = 0x00037008;
 
-        public const int EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE = 0x3450;
+        private const int EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE = 0x3450;
 
-        private static Window? window;
+        private static Window? _window;
 
         private static void Main()
         {
@@ -46,19 +41,19 @@ namespace CatTest
             //     Debug.WriteLine("NULL");
             // }
 
-            window = new Window(
+            _window = new Window(
                 width: 800,
                 height: 600,
                 minWidth: 300,
                 minHeight: 200,
                 title: "Test");
 
-            window.Document.BackgroundColor = new Color(0x21_21_21_ff);
-            window.Document.Root = new Element(
+            _window.Document.BackgroundColor = new Color(0x21_21_21);
+            _window.Document.Root = new Element(
                 preferredWidth: new Dimension(100, Unit.Percent),
                 preferredHeight: new Dimension(100, Unit.Percent));
 
-            window.Document.Root.AddChildren(
+            _window.Document.Root.AddChildren(
                 new Rectangle(
                     position: new Dimension2(10, 5),
                     preferredWidth: new Dimension(80, Unit.Percent),
@@ -67,14 +62,13 @@ namespace CatTest
                     maxWidth: 350,
                     minHeight: 20,
                     maxHeight: 250,
-                    fillBrush: new ColorBrush(new Color(0x00_ff_ff_ff))),
+                    fillBrush: new ColorBrush(new Color(0x00_ff_ff))),
                 new Rectangle(
-                    //doc: window.Document,
                     position: new Dimension2(
                         10, new Dimension(60, Unit.Percent)),
                     preferredWidth: new Dimension(80, Unit.Percent),
                     preferredHeight: new Dimension(20, Unit.Percent),
-                    fillBrush: new ColorBrush(new Color(0xff_ff_00_ff)),
+                    fillBrush: new ColorBrush(new Color(0xff_ff_00)),
 
                     children: [
                         new GeometricPath(
@@ -83,8 +77,8 @@ namespace CatTest
                             position: "5 10",
                             preferredWidth: new Dimension(25, Unit.Percent),
                             preferredHeight: new Dimension(15, Unit.Percent),
-                            fillBrush: new ColorBrush(new Color(0xff_98_00_ff)),
-                            outlineBrush: new ColorBrush(new Color(0x21_96_f3_ff)),
+                            fillBrush: new ColorBrush(new Color(0xff_98_00)),
+                            outlineBrush: new ColorBrush(new Color(0x21_96_f3)),
                             outlineParameters: new OutlineParams(
                                 outlineWidth: 4,
                                 lineCap: LineCapType.Round,
@@ -96,7 +90,7 @@ namespace CatTest
                                 new Dimension(10, Unit.Percent)),
                             preferredWidth: new Dimension(35, Unit.Percent),
                             preferredHeight: new Dimension(15, Unit.Percent),
-                            fillBrush: new ColorBrush(new Color(0x1d_ea_85_ff))
+                            fillBrush: new ColorBrush(new Color(0x1d_ea_85))
                         ),
                         new Label(
                             text: "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
@@ -109,9 +103,10 @@ namespace CatTest
                             {
                                 {
                                     Label.STYLE_NORMAL,
-                                    new LabelThemeData(Label.STYLE_NORMAL){
+                                    new LabelThemeData(Label.STYLE_NORMAL)
+                                    {
                                         FontSize = 32,
-                                        Background = new ColorBrush(new Color(0x00_ff_ff_80))
+                                        Background = new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA))
                                     }
                                 }
                             })
@@ -120,7 +115,7 @@ namespace CatTest
                 )
             );
 
-            window.Run();
+            _window.Run();
         }
     }
 }

@@ -10,9 +10,9 @@ namespace CatUI.Data.Events.Input.Pointer
 
         public PointerDownEventArgs(Point2D position)
         {
-            base.Position = position;
+            Position = position;
 
-            base.IsPressed = true;
+            IsPressed = true;
         }
     }
 }

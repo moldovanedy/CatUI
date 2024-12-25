@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+
 using CatUI.Data;
 using CatUI.RenderingEngine;
+
 using SkiaSharp;
 
 namespace CatUI.Elements
@@ -33,7 +34,20 @@ namespace CatUI.Elements
                 }
 
                 _root = value;
-                _root?.SetDocument(this);
+                if (_root == null)
+                {
+                    return;
+                }
+                _root.SetDocument(this);
+
+                _root.MinHeight = "100%";
+                _root.MinWidth = "100%";
+                _root.PreferredHeight = "100%";
+                _root.PreferredWidth = "100%";
+
+                _root.AbsolutePosition = Point2D.Zero;
+                _root.AbsoluteWidth = ViewportSize.Width;
+                _root.AbsoluteHeight = ViewportSize.Height;
             }
         }
         private Element? _root;
@@ -48,6 +62,7 @@ namespace CatUI.Elements
             {
                 _viewportSize = value;
                 Renderer.SetNewSize(new SKSize(value.Width, value.Height));
+                Root?.RecalculateLayout();
             }
         }
         private Size _viewportSize = new Size();
@@ -67,7 +82,7 @@ namespace CatUI.Elements
                 Renderer.SetBgColor(value);
             }
         }
-        private Color _background = Color.Default;
+        private Color _background = new Color(0xff_ff_ff);
 
         public float ContentScale
         {

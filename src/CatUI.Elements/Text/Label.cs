@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+
 using CatUI.Data;
+using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
@@ -10,6 +12,7 @@ using CatUI.Data.Managers;
 using CatUI.Elements.Themes;
 using CatUI.Elements.Themes.Text;
 using CatUI.RenderingEngine;
+
 using SkiaSharp;
 
 namespace CatUI.Elements.Text
@@ -71,6 +74,9 @@ namespace CatUI.Elements.Text
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            ContainerSizing? elementContainerSizing = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -93,6 +99,9 @@ namespace CatUI.Elements.Text
                  minWidth: minWidth,
                  maxHeight: maxHeight,
                  maxWidth: maxWidth,
+                 elementContainerSizing: elementContainerSizing,
+                 visible: visible,
+                 enabled: enabled,
 
                  onDraw: onDraw,
                  onEnterDocument: onEnterDocument,
@@ -103,21 +112,21 @@ namespace CatUI.Elements.Text
                  onPointerMove: onPointerMove)
         {
             DrawEvent += DrawText;
-            base.TextProperty.ValueChangedEvent += OnTextChanged;
+            TextProperty.ValueChangedEvent += OnTextChanged;
 
             TextBreakMode = breakMode;
             HyphenCharacter = hyphenCharacter;
 
             if (themeOverrides != null)
             {
-                base.SetElementThemeOverrides(themeOverrides);
+                SetElementThemeOverrides(themeOverrides);
             }
         }
 
         ~Label()
         {
             DrawEvent -= DrawText;
-            base.TextProperty.ValueChangedEvent -= OnTextChanged;
+            TextProperty.ValueChangedEvent -= OnTextChanged;
         }
 
         #region Builder
@@ -144,8 +153,13 @@ namespace CatUI.Elements.Text
         }
         #endregion //Builder
 
-        protected override void RecalculateLayout()
+        internal override void RecalculateLayout()
         {
+            if (IsChildOfContainer == true)
+            {
+                return;
+            }
+
             float parentWidth, parentHeight, parentXPos, parentYPos;
             if (Document?.Root == this)
             {
@@ -190,26 +204,26 @@ namespace CatUI.Elements.Text
             }
 
             //TODO: optimize this so that a recalculation doesn't happen on resizing, but only when it's necessary
-            if (MathF.Round(base.InternalHeight, 1) != MathF.Round(normalHeight, 1) ||
-                MathF.Round(base.InternalWidth, 1) != MathF.Round(normalWidth, 1))
+            if (MathF.Round(AbsoluteHeight, 1) != MathF.Round(normalHeight, 1) ||
+                MathF.Round(AbsoluteWidth, 1) != MathF.Round(normalWidth, 1))
             {
                 _cachedRows = null;
             }
 
             if (string.IsNullOrEmpty(Text))
             {
-                base.InternalWidth = normalWidth;
-                base.InternalHeight = normalHeight;
-                base.InternalPosition = normalPosition;
-                return;
+                AbsoluteWidth = normalWidth;
+                AbsoluteHeight = normalHeight;
+                AbsolutePosition = normalPosition;
+                goto ChildRecalculation;
             }
 
-            if (_cachedRows != null || !base.WordWrap)
+            if (_cachedRows != null || !WordWrap)
             {
-                base.InternalWidth = normalWidth;
-                base.InternalHeight = normalHeight;
-                base.InternalPosition = normalPosition;
-                return;
+                AbsoluteWidth = normalWidth;
+                AbsoluteHeight = normalHeight;
+                AbsolutePosition = normalPosition;
+                goto ChildRecalculation;
             }
 
             //calculate the actual dimensions occupied by the text
@@ -246,7 +260,7 @@ namespace CatUI.Elements.Text
             string drawableText = sb.ToString();
             float maxWidth = normalWidth;
             float newHeight = 0;
-            LabelThemeData currentTheme = base.GetElementFinalThemeData<LabelThemeData>(Label.STYLE_NORMAL);
+            LabelThemeData currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
 
             float fontSize = CalculateDimension(currentTheme.FontSize);
             float lineHeightPixels = fontSize * currentTheme.LineHeight;
@@ -329,11 +343,11 @@ namespace CatUI.Elements.Text
 
                 float rowHeight = (lineHeightPixels / 2f) + (fontSize / 2f);
                 //if the element doesn't allow expansion we just break the loop
-                if (!base.AllowsExpansion && newHeight + rowHeight > CalculateDimension(base.MaxHeight))
+                if (!AllowsExpansion && newHeight + rowHeight > CalculateDimension(MaxHeight))
                 {
                     //replace the last characters of the last row with an ellipsis
                     string lastRow = _cachedRows[_cachedRows.Count - 1].Key;
-                    float ellipsisWidth = paint.MeasureText(base.EllipsisString);
+                    float ellipsisWidth = paint.MeasureText(EllipsisString);
 
                     int charactersToTrim = 0;
                     float widthToTrim = 0;
@@ -396,10 +410,10 @@ namespace CatUI.Elements.Text
 
 
             newHeight += (lineHeightPixels / 2f) - (fontSize / 2f);
-            base.InternalHeight = Math.Max(newHeight, normalHeight);
+            AbsoluteHeight = Math.Max(newHeight, normalHeight);
 
-            base.InternalWidth = base.AllowsExpansion ? maxWidth : normalWidth;
-            base.InternalPosition = normalPosition;
+            AbsoluteWidth = AllowsExpansion ? maxWidth : normalWidth;
+            AbsolutePosition = normalPosition;
 
             //determine the largest's row width
             for (int i = 0; i < _cachedRows.Count; i++)
@@ -409,14 +423,20 @@ namespace CatUI.Elements.Text
                     _maxRowWidth = _cachedRows[i].Value;
                 }
             }
+
+        ChildRecalculation:
+            foreach (Element child in GetChildren(true))
+            {
+                child.RecalculateLayout();
+            }
         }
 
         private void DrawText()
         {
-            LabelThemeData currentTheme = base.GetElementFinalThemeData<LabelThemeData>(Label.STYLE_NORMAL);
+            LabelThemeData currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
             float fontSize = CalculateDimension(currentTheme.FontSize);
             float rowSize = fontSize * currentTheme.LineHeight;
-            Point2D rowPosition = base.Bounds.StartPoint;
+            Point2D rowPosition = Bounds.StartPoint;
             //half of line width + 0.5 (so for line height of 2 it is 1 + 0.5, for 4 is 2 + 0.5 etc.)
             rowPosition.Y += (rowSize / 2f) + (fontSize / 2f);
 
@@ -433,14 +453,14 @@ namespace CatUI.Elements.Text
                     rowsDrawn < _cachedRows.Count &&
                     charactersDrawn < Text.Length &&
                     //TODO: also take into account the line height and next row's vertical size on the left-hand expression
-                    (AllowsExpansion ? true : rowPosition.Y < base.Bounds.StartPoint.Y + base.Bounds.Width))
+                    (AllowsExpansion ? true : rowPosition.Y < Bounds.StartPoint.Y + Bounds.Width))
                 {
                     SKPaint painter = PaintManager.GetPaint(
                         paintMode: PaintMode.Fill,
                         fontSize: fontSize);
                     painter.Color = currentTheme.FillBrush.ToSkiaPaint().Color;
 
-                    base.Document?.Renderer?.DrawTextRowFast(_cachedRows[rowsDrawn].Key, rowPosition, painter);
+                    Document?.Renderer?.DrawTextRowFast(_cachedRows[rowsDrawn].Key, rowPosition, painter);
                     charactersDrawn += _cachedRows[rowsDrawn].Key.Length;
                     rowPosition = new Point2D(rowPosition.X, rowPosition.Y + rowSize);
                     rowsDrawn++;
@@ -448,16 +468,16 @@ namespace CatUI.Elements.Text
             }
             else
             {
-                base.Document?.Renderer?.DrawTextRow(
+                Document?.Renderer?.DrawTextRow(
                     text: Text,
-                    topLeftPoint: this.Bounds.StartPoint,
+                    topLeftPoint: Bounds.StartPoint,
                     fontSize: currentTheme.FontSize,
-                    elementSize: new Size(base.InternalWidth, base.InternalHeight),
+                    elementSize: new Size(AbsoluteWidth, AbsoluteHeight),
                     fillBrush: currentTheme.FillBrush,
                     outlineBrush: currentTheme.OutlineBrush,
-                    textAlignment: base.TextAlignment,
-                    overflowMode: base.TextOverflowMode,
-                    ellipsisStringOverride: base.EllipsisString);
+                    textAlignment: TextAlignment,
+                    overflowMode: TextOverflowMode,
+                    ellipsisStringOverride: EllipsisString);
             }
         }
 

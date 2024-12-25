@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+
 using CatUI.Data;
 using CatUI.Elements;
+
 using OpenTK;
 using OpenTK.Graphics.Egl;
 using OpenTK.Graphics.OpenGL;
@@ -260,7 +261,7 @@ namespace CatUI.Windowing.Desktop
             };
             GLFW.SetErrorCallback(_errorCallback);
 
-            this.Document = new UIDocument
+            Document = new UIDocument
             {
                 ViewportSize = new Size(_width, _height)
             };
@@ -458,10 +459,10 @@ namespace CatUI.Windowing.Desktop
         public void Run()
         {
             //this.Document.Renderer.SetBgColor(Document.BackgroundColor);
-            this.Document.Renderer.SetCanvasDirty();
+            Document.Renderer.SetCanvasDirty();
 
             GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out float xScale, out float _);
-            this.Document.ContentScale = xScale;
+            Document.ContentScale = xScale;
 
             //don't use Glfw.WindowShouldClose because that is handled by CloseRequested
             while (!_shouldCloseWindow)
@@ -477,7 +478,7 @@ namespace CatUI.Windowing.Desktop
                 }
 
                 DoFrameActions();
-                GLFW.WaitEvents();
+                GLFW.WaitEventsTimeout(0.02);
             }
         }
 
@@ -545,7 +546,7 @@ namespace CatUI.Windowing.Desktop
                 _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
             }
 
-            if (this.Document.Renderer.IsCanvasDirty)
+            if (Document.Renderer.IsCanvasDirty)
             {
                 FrameUpdatedEvent?.Invoke(delta);
                 FullyRedraw();
@@ -557,7 +558,7 @@ namespace CatUI.Windowing.Desktop
                 GLFW.SwapBuffers(GlfwWindow);
 #endif
 
-                this.Document.Renderer.SkipCanvasPresentation();
+                Document.Renderer.SkipCanvasPresentation();
                 // Debug.WriteLine(delta);
             }
 
@@ -671,9 +672,9 @@ namespace CatUI.Windowing.Desktop
 
         private void FullyRedraw()
         {
-            this.Document.Renderer.ResetAndClear();
+            Document.Renderer.ResetAndClear();
             Document.DrawAllElements();
-            this.Document.Renderer.Flush();
+            Document.Renderer.Flush();
         }
 
         private sealed class AngleBindingsContext : IBindingsContext

@@ -18,8 +18,8 @@ namespace CatUI.Data.Events.Input.Pointer
             MouseButtonType buttonType,
             bool isPressed)
         {
-            base.Position = position;
-            base.IsPressed = isPressed;
+            Position = position;
+            IsPressed = isPressed;
             ButtonType = buttonType;
         }
     }

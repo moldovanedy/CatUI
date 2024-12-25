@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+
 using CatUI.Data;
+
 using SkiaSharp;
 
-namespace CatUI.Data.Managers
+namespace CatUI.RenderingEngine.GraphicsCaching
 {
     public static class PathCache
     {

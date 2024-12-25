@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+
 using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
+using CatUI.Elements.Containers;
 using CatUI.Elements.Themes;
 
 namespace CatUI.Elements
 {
-    public partial class Element
+    public partial class Element : ICloneable
     {
         public Action? OnDraw;
         public EnterDocumentEventHandler? OnEnterDocument;
@@ -78,7 +80,7 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Represents the minimum width that the element can have.
-        /// By default it has the invalid value, meaning the restriction is not applied.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
         /// </summary>
         public Dimension MinWidth
         {
@@ -101,7 +103,7 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Represents the maximum width that the element can have.
-        /// By default it has the invalid value, meaning the restriction is not applied.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
         /// </summary>
         public Dimension MaxWidth
         {
@@ -148,7 +150,7 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Represents the minimum height that the element can have.
-        /// By default it has the invalid value, meaning the restriction is not applied.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
         /// </summary>
         public Dimension MinHeight
         {
@@ -171,7 +173,7 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Represents the minimum height that the element can have.
-        /// By default it has the invalid value, meaning the restriction is not applied.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
         /// </summary>
         public Dimension MaxHeight
         {
@@ -239,70 +241,153 @@ namespace CatUI.Elements
             set
             {
                 _name = value ?? throw new ArgumentNullException(
-                    "Name",
+                    nameof(value),
                     "The name of an element can be empty, but not null.");
                 NameProperty.Value = value;
             }
         }
         private string _name = string.Empty;
         public ObservableProperty<string> NameProperty { get; } = new ObservableProperty<string>();
+        
+        /// <summary>
+        /// Controls whether this element is visible or not in the application. An invisible element will still occupy
+        /// space in the layout and be moved in a container, just that it is not visible (hidden).
+        /// </summary>
+        /// <seealso cref="Enabled"/>
+        public bool Visible
+        {
+            get
+            {
+                return _visible;
+            }
+            set
+            {
+                if (value != _visible)
+                {
+                    _visible = value;
+                    VisibleProperty.Value = value;
+                    
+                    foreach (Element child in _children)
+                    {
+                        child.Visible = value;
+                    }
+                    RequestRedraw();
+                }
+            }
+        }
+        private bool _visible = true;
+        public ObservableProperty<bool> VisibleProperty { get; } = new ObservableProperty<bool>();
+        
+        /// <summary>
+        /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
+        /// a layout and will generally give misleading values on properties that are related to layout in any way
+        /// such as <see cref="Bounds"/> or <see cref="AbsolutePosition"/>.
+        /// </summary>
+        /// <seealso cref="Visible"/>
+        public bool Enabled
+        {
+            get
+            {
+                return _enabled;
+            }
+            set
+            {
+                if (value != _enabled)
+                {
+                    _enabled = value;
+                    EnabledProperty.Value = value;
+                    
+                    foreach (Element child in _children)
+                    {
+                        child.Enabled = value;
+                    }
+                    RequestRedraw();
+                }
+            }
+        }
+        private bool _enabled = true;
+        public ObservableProperty<bool> EnabledProperty { get; } = new ObservableProperty<bool>();
+
+        public ContainerSizing? ElementContainerSizing
+        {
+            get
+            {
+                return _elementContainerSizing;
+            }
+            set
+            {
+                if (value != _elementContainerSizing)
+                {
+                    _elementContainerSizing = value;
+                    ElementContainerSizingProperty.Value = value;
+                }
+            }
+        }
+        private ContainerSizing? _elementContainerSizing;
+        public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } =
+            new ObservableProperty<ContainerSizing>();
 
         public ElementBounds Bounds { get; internal set; } = new ElementBounds();
         public bool IsInternal { get; private set; }
         public UIDocument? Document { get; private set; }
+        /// <summary>
+        /// True when the element's parent is a container. Only the direct parent is taken into account, not the grandparent etc.
+        /// </summary>
+        public bool IsChildOfContainer { get; private set; }
 
         protected bool IsInstantiated { get; private set; }
 
-        protected Point2D InternalPosition
+        public Point2D AbsolutePosition
         {
             get
             {
-                return _internalPosition;
+                return _absolutePosition;
             }
             set
             {
-                if (value.X != _internalPosition.X || value.Y != _internalPosition.Y)
+                if (Math.Abs(value.X - _absolutePosition.X) > 0.01 ||
+                    Math.Abs(value.Y - _absolutePosition.Y) > 0.01)
                 {
-                    _internalPosition = value;
+                    _absolutePosition = value;
                     RecalculateBounds();
                 }
             }
         }
-        private Point2D _internalPosition = Point2D.Zero;
+        private Point2D _absolutePosition = Point2D.Zero;
 
-        protected float InternalWidth
+        public float AbsoluteWidth
         {
             get
             {
-                return _internalWidth;
+                return _absoluteWidth;
             }
             set
             {
-                if (value != _internalWidth)
+                if (Math.Abs(value - _absoluteWidth) > 0.01)
                 {
-                    _internalWidth = value;
+                    _absoluteWidth = value;
                     RecalculateBounds();
                 }
             }
         }
-        private float _internalWidth;
+        private float _absoluteWidth;
 
-        protected float InternalHeight
+        public float AbsoluteHeight
         {
             get
             {
-                return _internalHeight;
+                return _absoluteHeight;
             }
             set
             {
-                if (value != _internalHeight)
+                if (Math.Abs(value - _absoluteHeight) > 0.01)
                 {
-                    _internalHeight = value;
+                    _absoluteHeight = value;
                     RecalculateBounds();
                 }
             }
         }
-        private float _internalHeight;
+        private float _absoluteHeight;
 
         private Element? _parent;
 
@@ -316,11 +401,6 @@ namespace CatUI.Elements
         /// </summary>
         private List<Element>? _cachedPublicChildren;
 
-        public Element()
-        {
-            InitEvents();
-        }
-
         public Element(
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
@@ -331,6 +411,9 @@ namespace CatUI.Elements
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            ContainerSizing? elementContainerSizing = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -372,6 +455,12 @@ namespace CatUI.Elements
             {
                 SetInitialMaxWidth(maxWidth);
             }
+            if (elementContainerSizing != null)
+            {
+                SetInitialElementContainerSizing(elementContainerSizing);
+            }
+            SetInitialVisible(visible);
+            SetInitialEnabled(enabled);
 
             if (onDraw != null)
             {
@@ -437,17 +526,33 @@ namespace CatUI.Elements
             _parent = null;
         }
 
+        public object Clone()
+        {
+            return new Element(
+                children: _children,
+                themeOverrides: _themeDefinition,
+                position: _position,
+                preferredWidth: _preferredWidth,
+                preferredHeight: _preferredHeight,
+                minHeight: _minHeight,
+                minWidth: _minWidth,
+                maxHeight: _maxHeight,
+                maxWidth: _maxWidth,
+                elementContainerSizing: _elementContainerSizing,
+                visible: _visible,
+                enabled: _enabled);
+        }
+
         /// <summary>
-        /// Sets the document of this element and all its children. It should generally be called only for elements
-        /// that will have children at creation time.
-        /// Will also add the element to the document 
+        /// Sets the document of this element and all its children. Will also add the element to the document 
         /// (like <see cref="AddChild(Element, bool)"/> or <see cref="AddChildren(Element[])"/>).
         /// </summary>
         /// <remarks>
         /// If the element already belongs to a document, this will remove the element, along with all its children, 
         /// then add this element along with its previous children to the specified document.
         /// </remarks>
-        /// <param name="document">The document to which this element should be added</param>
+        /// <param name="document">The document to which this element should be added.</param>
+        /// <returns>The current element (return this).</returns>
         public Element SetDocument(UIDocument? document)
         {
             //the element is not in a document and the given document is non-null
@@ -455,6 +560,7 @@ namespace CatUI.Elements
             {
                 Document = document;
                 InvokeEnterDocument();
+                RecalculateLayout();
             }
             //the element is in a document and the given document is another document or null
             else if (Document != document)
@@ -559,6 +665,40 @@ namespace CatUI.Elements
             return this;
         }
 
+        public Element SetInitialElementContainerSizing(ContainerSizing containerSizing)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _elementContainerSizing = containerSizing;
+            return this;
+        }
+        
+        public Element SetInitialVisible(bool isVisible)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _visible = isVisible;
+            return this;
+        }
+        
+        public Element SetInitialEnabled(bool isEnabled)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            _enabled = isEnabled;
+            return this;
+        }
+        
+
         public Element SetInitialOnDrawAction(Action onDraw)
         {
             if (IsInstantiated)
@@ -641,12 +781,12 @@ namespace CatUI.Elements
         /// this will automatically add the element to the document.
         /// </summary>
         /// <remarks>
-        /// Always call this before setting the children. Otherwise, you will get an exception in <see cref="SetChildren(Element[])"/>.
+        /// Always call this before setting the children. Otherwise, you will get an exception in <see cref="AddChildren(CatUI.Elements.Element[])"/>.
         /// This method does not act on already added children.
         /// Calling this method more than once will not have any effect.
         /// </remarks>
         /// <returns>The element itself.</returns>
-        public virtual Element Instantiate()
+        public Element Instantiate()
         {
             if (IsInstantiated)
             {
@@ -710,12 +850,17 @@ namespace CatUI.Elements
         #region Internal event handlers
         private void PrivateDraw()
         {
-            RecalculateLayout();
+            //RecalculateLayout();
             DrawBackground();
         }
 
-        protected virtual void RecalculateLayout()
+        internal virtual void RecalculateLayout()
         {
+            if (IsChildOfContainer || !_enabled)
+            {
+                return;
+            }
+
             float parentWidth, parentHeight, parentXPos, parentYPos;
             if (Document?.Root == this)
             {
@@ -734,7 +879,7 @@ namespace CatUI.Elements
 
             if (!PreferredWidth.IsUnset())
             {
-                InternalWidth = Math.Clamp(
+                AbsoluteWidth = Math.Clamp(
                     CalculateDimension(PreferredWidth, parentWidth),
                     MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
                     MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
@@ -742,7 +887,7 @@ namespace CatUI.Elements
 
             if (!PreferredHeight.IsUnset())
             {
-                InternalHeight = Math.Clamp(
+                AbsoluteHeight = Math.Clamp(
                     CalculateDimension(PreferredHeight, parentHeight),
                     MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
                     MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
@@ -750,9 +895,14 @@ namespace CatUI.Elements
 
             if (!Position.IsUnset())
             {
-                InternalPosition = new Point2D(
+                AbsolutePosition = new Point2D(
                      parentXPos + CalculateDimension(Position.X, parentWidth),
                      parentYPos + CalculateDimension(Position.Y, parentHeight));
+            }
+
+            foreach (Element child in _children)
+            {
+                child.RecalculateLayout();
             }
 
             // Bounds = new ElementBounds(
@@ -768,9 +918,9 @@ namespace CatUI.Elements
         private void RecalculateBounds()
         {
             Bounds = new ElementBounds(
-                startPoint: InternalPosition,
-                width: InternalWidth,
-                height: InternalHeight,
+                startPoint: AbsolutePosition,
+                width: AbsoluteWidth,
+                height: AbsoluteHeight,
                 paddings: new float[4],
                 margins: new float[4]);
         }
@@ -801,13 +951,17 @@ namespace CatUI.Elements
                 }
             }
 
+            child.IsChildOfContainer = this is Container;
+
             child._parent = this;
             if (Document != null)
             {
                 child.Document = Document;
                 child.InvokeEnterDocument();
+                child.RecalculateLayout();
 
                 MakeChildrenEnterDocument(child._children);
+                RecalculateLayout();
             }
         }
 
@@ -854,6 +1008,15 @@ namespace CatUI.Elements
             }
         }
 
+        /// <summary>
+        /// Returns a list of all the children of the element. DO NOT modify this list by adding or removing elements! 
+        /// That could cause crashes or unexpected behavior.
+        /// </summary>
+        /// <remarks>
+        /// This doesn't clone the list in any way, so it has a very good performance and can be called without caching the result.
+        /// </remarks>
+        /// <param name="includeInternal">If true, will include the internal children in the list as well.</param>
+        /// <returns>A list of all the children of the element, even the internal ones if includeInternal is true.</returns>
         public List<Element> GetChildren(bool includeInternal = false)
         {
             if (includeInternal)
@@ -862,10 +1025,12 @@ namespace CatUI.Elements
             }
             else
             {
-                if (_cachedPublicChildren == null)
+                if (_cachedPublicChildren != null)
                 {
-                    _cachedPublicChildren = _children.Where((child) => !child.IsInternal).ToList();
+                    return _cachedPublicChildren;
                 }
+
+                _cachedPublicChildren = _children.Where((child) => !child.IsInternal).ToList();
                 return _cachedPublicChildren;
             }
         }
@@ -944,6 +1109,7 @@ namespace CatUI.Elements
             {
                 _cachedPublicChildren?.Remove(child);
             }
+            child.IsChildOfContainer = false;
 
             if (Document != null)
             {
@@ -953,6 +1119,7 @@ namespace CatUI.Elements
 
             child._parent = null;
             child.Document = null;
+            RecalculateLayout();
         }
 
         public void RemoveAllChildren()
@@ -996,14 +1163,7 @@ namespace CatUI.Elements
         public T GetElementFinalThemeData<T>(string state) where T : ElementThemeData, new()
         {
             T? themeData = (T?)_themeDefinition.GetThemeDataForState(state);
-            if (themeData is T castedTheme)
-            {
-                return castedTheme;
-            }
-            else
-            {
-                return new T();
-            }
+            return themeData ?? new T();
         }
 
         public void SetElementThemeOverride(string state, ElementThemeData themeOverride)
@@ -1075,22 +1235,38 @@ namespace CatUI.Elements
                     }
             }
         }
+
+        [SuppressMessage("Performance", "CA1822:Mark members as static")]
+        public void RequestRedraw()
+        {
+            //TODO: implement
+        }
         #endregion //Public API
 
         #region Visual
+
         protected virtual void DrawBackground()
         {
-            IBrush fillBrush = GetElementFinalThemeData<ElementThemeData>(Element.STYLE_NORMAL).Background;
+            if (!_visible)
+            {
+                return;
+            }
 
+            IBrush fillBrush = GetElementFinalThemeData<ElementThemeData>(STYLE_NORMAL).Background;
             if (!fillBrush.IsSkippable)
             {
-                Document?.Renderer?.DrawRect(Bounds.GetPaddingBox(), fillBrush);
+                Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), fillBrush);
             }
         }
         #endregion //Visual
 
         private void DrawChildren()
         {
+            if (!_visible)
+            {
+                return;
+            }
+            
             foreach (Element child in _children)
             {
                 child.InvokeDraw();
@@ -1119,10 +1295,7 @@ namespace CatUI.Elements
 
         private void EnsureChildrenCache()
         {
-            if (_cachedPublicChildren == null)
-            {
-                _cachedPublicChildren = GetChildren();
-            }
+            _cachedPublicChildren ??= GetChildren();
         }
     }
 }

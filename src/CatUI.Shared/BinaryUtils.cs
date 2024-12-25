@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace Game.Shared.Utils
+namespace Game.Shared
 {
     public static class BinaryUtils
     {

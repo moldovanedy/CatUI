@@ -1,4 +1,5 @@
 ﻿using CatUI.Data.Enums;
+
 using SkiaSharp;
 
 namespace CatUI.Data.Managers

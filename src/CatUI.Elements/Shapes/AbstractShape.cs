@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+
 using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.Containers;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Themes;
@@ -14,37 +16,31 @@ namespace CatUI.Elements.Shapes
         {
             get
             {
-                ElementThemeData? theme = base.GetElementThemeOverride(Element.STYLE_NORMAL);
+                ElementThemeData? theme = GetElementThemeOverride(STYLE_NORMAL);
                 if (theme == null)
                 {
-                    theme = new ElementThemeData(Element.STYLE_NORMAL);
-                    base.SetElementThemeOverride(Element.STYLE_NORMAL, theme);
+                    theme = new ElementThemeData(STYLE_NORMAL);
+                    SetElementThemeOverride(STYLE_NORMAL, theme);
                 }
 
-                IBrush? brush = theme.Background;
-                if (brush == null)
-                {
-                    brush = new ColorBrush();
-                    theme.Background = brush;
-                }
-
+                IBrush brush = theme.Background;
                 return brush;
             }
             set
             {
-                ElementThemeData? theme = base.GetElementThemeOverride(Element.STYLE_NORMAL);
+                ElementThemeData? theme = GetElementThemeOverride(STYLE_NORMAL);
                 if (theme == null)
                 {
-                    theme = new ElementThemeData(Element.STYLE_NORMAL);
-                    base.SetElementThemeOverride(Element.STYLE_NORMAL, theme);
+                    theme = new ElementThemeData(STYLE_NORMAL);
+                    SetElementThemeOverride(STYLE_NORMAL, theme);
                 }
 
                 theme.Background = value;
             }
         }
 
-        public IBrush OutlineBrush { get; set; } = new ColorBrush(Color.Default);
-        public OutlineParams OutlineParameters { get; set; } = new OutlineParams();
+        public IBrush OutlineBrush { get; set; }
+        public OutlineParams OutlineParameters { get; set; }
 
         public AbstractShape(
             IBrush? fillBrush = null,
@@ -60,6 +56,9 @@ namespace CatUI.Elements.Shapes
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            ContainerSizing? elementContainerSizing = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -76,6 +75,9 @@ namespace CatUI.Elements.Shapes
                  minWidth: minWidth,
                  maxHeight: maxHeight,
                  maxWidth: maxWidth,
+                 elementContainerSizing: elementContainerSizing,
+                 visible: visible,
+                 enabled: enabled,
 
                  onDraw: onDraw,
                  onEnterDocument: onEnterDocument,
@@ -91,14 +93,14 @@ namespace CatUI.Elements.Shapes
 
             if (themeOverrides != null)
             {
-                base.SetElementThemeOverrides(themeOverrides);
+                SetElementThemeOverrides(themeOverrides);
             }
         }
 
         #region Builder
         public AbstractShape SetInitialFillBrush(IBrush fillBrush)
         {
-            if (base.IsInstantiated)
+            if (IsInstantiated)
             {
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
@@ -109,7 +111,7 @@ namespace CatUI.Elements.Shapes
 
         public AbstractShape SetInitialOutlineBrush(IBrush outlineBrush)
         {
-            if (base.IsInstantiated)
+            if (IsInstantiated)
             {
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }
@@ -120,7 +122,7 @@ namespace CatUI.Elements.Shapes
 
         public AbstractShape SetInitialOutlineParameters(OutlineParams outlineParameters)
         {
-            if (base.IsInstantiated)
+            if (IsInstantiated)
             {
                 throw new Exception("Element is already instantiated, use direct properties instead");
             }

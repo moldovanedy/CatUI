@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using CatUI.Data;
@@ -8,9 +8,20 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Containers
 {
-    public abstract class Container : Element
+    public abstract class BoxContainer : Container
     {
-        public Container(
+        /// <summary>
+        /// Specifies the dimension of the space left between each of the elements in the container. By default, it's 0.
+        /// </summary>
+        public Dimension Spacing { get; set; } = Dimension.Unset;
+        /// <summary>
+        /// Specifies the orientation of this BoxContainer. Can be vertical or horizontal.
+        /// </summary>
+        public abstract Orientation BoxOrientation { get; }
+
+        public BoxContainer(
+            Dimension? spacing = null,
+
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -50,6 +61,28 @@ namespace CatUI.Elements.Containers
                 onPointerEnter: onPointerEnter,
                 onPointerLeave: onPointerLeave,
                 onPointerMove: onPointerMove)
-        { }
+        {
+            if (spacing != null)
+            {
+                SetInitialSpacing(spacing);
+            }
+        }
+        
+        public BoxContainer SetInitialSpacing(Dimension spacing)
+        {
+            if (IsInstantiated)
+            {
+                throw new Exception("Element is already instantiated, use direct properties instead");
+            }
+
+            Spacing = spacing;
+            return this;
+        }
+
+        public enum Orientation
+        {
+            Horizontal = 0,
+            Vertical = 1
+        }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.Containers;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Themes;
@@ -11,9 +13,9 @@ namespace CatUI.Elements.Shapes
     public partial class Ellipse : AbstractShape
     {
         public Ellipse(
-            Dimension2 position,
-            Dimension preferredWidth,
-            Dimension preferredHeight,
+            Dimension2? position = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null,
 
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
@@ -24,6 +26,9 @@ namespace CatUI.Elements.Shapes
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            ContainerSizing? elementContainerSizing = null,
+            bool visible = true,
+            bool enabled = true,
 
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
@@ -44,6 +49,9 @@ namespace CatUI.Elements.Shapes
                  minWidth: minWidth,
                  maxHeight: maxHeight,
                  maxWidth: maxWidth,
+                 elementContainerSizing: elementContainerSizing,
+                 visible: visible,
+                 enabled: enabled,
 
                  onDraw: onDraw,
                  onEnterDocument: onEnterDocument,
@@ -53,12 +61,12 @@ namespace CatUI.Elements.Shapes
                  onPointerLeave: onPointerLeave,
                  onPointerMove: onPointerMove)
         {
-            base.DrawEvent += PrivateDrawOutline;
+            DrawEvent += PrivateDrawOutline;
         }
 
         ~Ellipse()
         {
-            base.DrawEvent -= PrivateDrawOutline;
+            DrawEvent -= PrivateDrawOutline;
         }
 
         protected override void DrawBackground()
@@ -68,8 +76,8 @@ namespace CatUI.Elements.Shapes
                 return;
             }
 
-            Rect rect = this.Bounds.GetContentBox();
-            this.Document?.Renderer?.DrawEllipse(
+            Rect rect = Bounds.GetContentBox();
+            Document?.Renderer?.DrawEllipse(
                 new Point2D(rect.CenterX, rect.CenterY),
                 rect.Width / 2f,
                 rect.Height / 2f,
@@ -83,8 +91,8 @@ namespace CatUI.Elements.Shapes
                 return;
             }
 
-            Rect rect = this.Bounds.GetContentBox();
-            this.Document?.Renderer?.DrawEllipseOutline(
+            Rect rect = Bounds.GetContentBox();
+            Document?.Renderer?.DrawEllipseOutline(
                 new Point2D(rect.CenterX, rect.CenterY),
                 rect.Width / 2f,
                 rect.Height / 2f,

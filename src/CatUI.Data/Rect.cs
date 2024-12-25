@@ -83,11 +83,11 @@ namespace CatUI.Data
                 (int)skRect.Size.Height);
 
         /// <summary>
-        /// Will return the smallest rect containing all of the given rects. It is NOT an union because it will return areas 
-        /// that are not part of any of the given rects.
+        /// Will return the smallest rect containing all the given rects. It is NOT a union because it will return areas 
+        /// that are not part of the given rects.
         /// </summary>
         /// <param name="rects">The rects for which to get the containing rect.</param>
-        /// <returns>The smallest rect that contains all of the given rects.</returns>
+        /// <returns>The smallest rect that contains all the given rects.</returns>
         public static Rect GetCommonBoundingRect(params Rect[] rects)
         {
             if (rects.Length == 0)
