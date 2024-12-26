@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace CatUI.Shared
+namespace CatUI.Utils
 {
     /// <summary>
     /// Provides various cross-platform utilities for retrieving the locations of the most common directories in an operating system.
@@ -16,7 +16,7 @@ namespace CatUI.Shared
     {
         public static string GetKnownDirectoryPath(KnownDirectory directory)
         {
-            Environment.SpecialFolder specialFolder = Environment.SpecialFolder.LocalApplicationData;
+            Environment.SpecialFolder specialFolder;
             switch (directory)
             {
                 case KnownDirectory.CurrentWorkingDirectory:
@@ -64,6 +64,8 @@ namespace CatUI.Shared
                 case KnownDirectory.WinGlobalStartupPrograms:
                     specialFolder = Environment.SpecialFolder.CommonStartup;
                     break;
+                default:
+                    return "";
             }
 
             return Environment.GetFolderPath(specialFolder);
@@ -75,7 +77,7 @@ namespace CatUI.Shared
         /// </summary>
         /// <remarks>
         /// The application name must not have spaces in the name, illegal characters (see what are the illegal characters
-        /// in a directory name on each operating system, generally "*","\"",:/","\","<",">",":","|","?" and 0-31 ASCII control characters)
+        /// in a directory name on each operating system, generally "*","\"",:/","\","&lt;",">",":","|","?" and 0-31 ASCII control characters)
         /// and should contain only ASCII characters (not mandatory).
         /// </remarks>
         /// <returns>The path to the application directory where local data should be written.</returns>
@@ -96,7 +98,7 @@ namespace CatUI.Shared
         /// </summary>
         /// <remarks>
         /// The application name must not have spaces in the name, illegal characters (see what are the illegal characters
-        /// in a directory name on each operating system, generally "*","\"",:/","\","<",">",":","|","?" and 0-31 ASCII control characters)
+        /// in a directory name on each operating system, generally "*","\"",:/","\","&lt;",">",":","|","?" and 0-31 ASCII control characters)
         /// and should contain only ASCII characters (not mandatory).
         /// </remarks>
         /// <returns>The path to the application directory where roaming data should be written.</returns>
@@ -143,7 +145,7 @@ namespace CatUI.Shared
             /// </remarks>
             LocalAppData = 1,
             /// <summary>
-            /// Useful for storing application data that an user might want to use on multiple devices,
+            /// Useful for storing application data that a user might want to use on multiple devices,
             /// like preferences and important files that will be available on multiple devices in a local network.
             /// Data stored here are available only to the current user on all machines the user is connected on.
             /// <list type="bullet">

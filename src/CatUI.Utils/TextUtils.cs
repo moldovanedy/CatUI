@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CatUI.Shared
+namespace CatUI.Utils
 {
     public static class TextUtils
     {
@@ -19,11 +19,11 @@ namespace CatUI.Shared
         {
             bool hasHyphens = false;
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < textWithHyphens.Length; i++)
+            foreach (char chr in textWithHyphens)
             {
-                if (textWithHyphens[i] != '\u00ad')
+                if (chr != '\u00ad')
                 {
-                    sb.Append(textWithHyphens[i]);
+                    sb.Append(chr);
                 }
                 else
                 {
@@ -57,7 +57,6 @@ namespace CatUI.Shared
                 if (text[i] == '\u00ad')
                 {
                     shyPositions.Add(i);
-                    continue;
                 }
             }
 

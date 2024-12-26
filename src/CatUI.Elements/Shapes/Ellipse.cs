@@ -77,7 +77,7 @@ namespace CatUI.Elements.Shapes
             }
 
             Rect rect = Bounds.GetContentBox();
-            Document?.Renderer?.DrawEllipse(
+            Document?.Renderer.DrawEllipse(
                 new Point2D(rect.CenterX, rect.CenterY),
                 rect.Width / 2f,
                 rect.Height / 2f,
@@ -92,7 +92,7 @@ namespace CatUI.Elements.Shapes
             }
 
             Rect rect = Bounds.GetContentBox();
-            Document?.Renderer?.DrawEllipseOutline(
+            Document?.Renderer.DrawEllipseOutline(
                 new Point2D(rect.CenterX, rect.CenterY),
                 rect.Width / 2f,
                 rect.Height / 2f,

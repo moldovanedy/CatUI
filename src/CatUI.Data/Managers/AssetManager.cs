@@ -6,9 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using CatUI.Data.Assets;
-using CatUI.Shared;
-
-using Game.Shared;
+using CatUI.Utils;
 
 namespace CatUI.Data.Managers
 {
@@ -41,10 +39,6 @@ namespace CatUI.Data.Managers
         /// <returns>True if the method succeeded, false otherwise.</returns>
         public static bool AddAssetAssembly(Assembly assembly)
         {
-            if (assembly == null)
-            {
-                return false;
-            }
             if (_assemblies.Contains(assembly))
             {
                 return false;
@@ -170,7 +164,7 @@ namespace CatUI.Data.Managers
         /// In order to create asset files, you can use the Cat DevTool.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
-        /// <param name="assetPath">The path of the assembly, always beginning with "/Assets"</param>
+        /// <param name="path">The path of the assembly, always beginning with "/Assets"</param>
         /// <param name="shouldCache">
         /// If true, will hold a reference to the asset internally, so subsequent calls
         /// will return the asset much faster.
@@ -224,7 +218,7 @@ namespace CatUI.Data.Managers
         /// In order to create asset files, you can use the Cat DevTool.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
-        /// <param name="assetPath">The path of the assembly, always beginning with "/Assets"</param>
+        /// <param name="path">The path of the assembly, always beginning with "/Assets"</param>
         /// <param name="endPosition">
         /// An <see cref="AsyncRef{T}"/> ref object whose <see cref="AsyncRef{T}.Ref"/> will be set to
         /// the absolute byte position of the end of the asset data.

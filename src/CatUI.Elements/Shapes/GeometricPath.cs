@@ -138,7 +138,7 @@ namespace CatUI.Elements.Shapes
                 Bounds.StartPoint.X - _lastStartPoint.X,
                 Bounds.StartPoint.Y - _lastStartPoint.Y));
 
-            Document?.Renderer?.DrawPath(_skiaPath, FillBrush, OutlineBrush, OutlineParameters);
+            Document?.Renderer.DrawPath(_skiaPath, FillBrush, OutlineBrush, OutlineParameters);
         }
     }
 }

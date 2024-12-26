@@ -1,9 +1,9 @@
-namespace CatUI.Shared
+namespace CatUI.Utils
 {
     /// <summary>
     /// Utility class for passing parameters as reference inside async methods.
     /// It is very similar to the ref keyword, which can't be used on async methods.
-    /// The actual value is in <see cref="AsyncRef.Ref"/>
+    /// The actual value is in <see cref="AsyncRef{T}.Ref"/>
     /// </summary>
     /// <typeparam name="T">
     /// The value that is used as a reference. Changing this from inside a method

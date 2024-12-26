@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CatUI.Shared\CatUI.Shared.csproj" />
+    <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj" />
   </ItemGroup>
 
 </Project>

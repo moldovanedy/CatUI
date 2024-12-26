@@ -204,8 +204,8 @@ namespace CatUI.Elements.Text
             }
 
             //TODO: optimize this so that a recalculation doesn't happen on resizing, but only when it's necessary
-            if (MathF.Round(AbsoluteHeight, 1) != MathF.Round(normalHeight, 1) ||
-                MathF.Round(AbsoluteWidth, 1) != MathF.Round(normalWidth, 1))
+            if (Math.Abs(MathF.Round(AbsoluteHeight, 1) - MathF.Round(normalHeight, 1)) > 0.001 ||
+                Math.Abs(MathF.Round(AbsoluteWidth, 1) - MathF.Round(normalWidth, 1)) > 0.001)
             {
                 _cachedRows = null;
             }
@@ -346,20 +346,19 @@ namespace CatUI.Elements.Text
                 if (!AllowsExpansion && newHeight + rowHeight > CalculateDimension(MaxHeight))
                 {
                     //replace the last characters of the last row with an ellipsis
-                    string lastRow = _cachedRows[_cachedRows.Count - 1].Key;
+                    string lastRow = _cachedRows[^1].Key;
                     float ellipsisWidth = paint.MeasureText(EllipsisString);
 
-                    int charactersToTrim = 0;
                     float widthToTrim = 0;
                     while (widthToTrim < ellipsisWidth)
                     {
-                        widthToTrim += paint.MeasureText(lastRow.AsSpan(lastRow.Length - 1 - charactersToTrim, 1));
+                        widthToTrim += paint.MeasureText(lastRow.AsSpan(lastRow.Length - 1, 1));
                     }
 
-                    lastRow = lastRow.Substring(0, lastRow.Length - 1 - charactersToTrim);
-                    _cachedRows[_cachedRows.Count - 1] = new KeyValuePair<string, float>(
+                    lastRow = lastRow.Substring(0, lastRow.Length - 1);
+                    _cachedRows[^1] = new KeyValuePair<string, float>(
                         lastRow,
-                        _cachedRows[_cachedRows.Count - 1].Value);
+                        _cachedRows[^1].Value);
                     break;
                 }
 
@@ -453,7 +452,7 @@ namespace CatUI.Elements.Text
                     rowsDrawn < _cachedRows.Count &&
                     charactersDrawn < Text.Length &&
                     //TODO: also take into account the line height and next row's vertical size on the left-hand expression
-                    (AllowsExpansion ? true : rowPosition.Y < Bounds.StartPoint.Y + Bounds.Width))
+                    (AllowsExpansion || rowPosition.Y < Bounds.StartPoint.Y + Bounds.Width))
                 {
                     SKPaint painter = PaintManager.GetPaint(
                         paintMode: PaintMode.Fill,

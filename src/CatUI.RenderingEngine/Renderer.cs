@@ -6,7 +6,7 @@ using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
-using CatUI.Shared;
+using CatUI.Utils;
 
 using SkiaSharp;
 
@@ -813,43 +813,6 @@ namespace CatUI.RenderingEngine
             }
         }
         #endregion
-
-        // /// <summary>
-        // /// Will remove the soft hyphens (U+00ad) if any, returning true if there were hyphens, false otherwise.
-        // /// The text without the hyphens will be returned in clearText.
-        // /// </summary>
-        // /// <param name="textWithHyphens">The text that has hyphens.</param>
-        // /// <param name="clearText">
-        // /// The text cleared from any hyphens. Is an empty string when there were no hyphens (to avoid useless allocations).
-        // /// </param>
-        // /// <returns>True if there were hyphens, false otherwise.</returns>
-        // private static bool RemoveSoftHyphens(string textWithHyphens, out string clearText)
-        // {
-        //     bool hasHyphens = false;
-        //     StringBuilder sb = new StringBuilder();
-        //     for (int i = 0; i < textWithHyphens.Length; i++)
-        //     {
-        //         if (textWithHyphens[i] != '\u00ad')
-        //         {
-        //             sb.Append(textWithHyphens[i]);
-        //         }
-        //         else
-        //         {
-        //             hasHyphens = true;
-        //         }
-        //     }
-
-        //     if (hasHyphens)
-        //     {
-        //         clearText = sb.ToString();
-        //         return true;
-        //     }
-        //     else
-        //     {
-        //         clearText = "";
-        //         return false;
-        //     }
-        // }
 
         private static SKPoint[] SetupRectCorners(CornerInset roundedCorners)
         {

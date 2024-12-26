@@ -1,26 +1,10 @@
 using System;
 using System.Text;
 
-namespace Game.Shared
+namespace CatUI.Utils
 {
     public static class BinaryUtils
     {
-        /// <summary>
-        /// Converts the given byte array to big endian if the OS runs with little-endianness (this check is done here, no need to check before calling this).
-        /// This function should be called whenever a byte array will be interpreted as a value.
-        /// </summary>
-        /// <param name="data">The byte array to convert.</param>
-        /*public static void ConvertToBigEndian(byte[] data)
-        {
-            if (BitConverter.IsLittleEndian)
-            {
-                for (int i = 0; i < data.Length / 2; i++)
-                {
-                    (data[^(i + 1)], data[i]) = (data[i], data[^(i + 1)]);
-                }
-            }
-        }*/
-
         #region Value to bytes
         public static byte[] ConvertIntToBytes(int variable)
         {
@@ -60,19 +44,18 @@ namespace Game.Shared
 
         public static unsafe byte[] ConvertFloatToBytes(float variable)
         {
-            byte[] bytes = new byte[4];
             int valAsInt = *(int*)&variable;
             return ConvertIntToBytes(valAsInt);
         }
 
         public static byte[] ConvertBoolToBytes(bool variable)
         {
-            return new byte[] { (byte)(variable ? 1 : 0) };
+            return new[] { (byte)(variable ? 1 : 0) };
         }
 
         public static byte[] ConvertCharToBytes(char variable)
         {
-            return new byte[] { (byte)variable };
+            return new[] { (byte)variable };
         }
 
         public static byte[] ConvertStringToBytes(string variable)
@@ -101,7 +84,6 @@ namespace Game.Shared
 
         public static unsafe byte[] ConvertDoubleToBytes(double variable)
         {
-            byte[] bytes = new byte[8];
             long valAsLong = *(long*)&variable;
             return ConvertLongToBytes(valAsLong);
         }
@@ -179,11 +161,11 @@ namespace Game.Shared
 
         /// <summary>
         /// Converts a string to bytes (as ASCII) without allocating and returning a new byte array. Instead, it modifies the passed byte array.
-        /// Will require a number bytes equal to the number of string characters plus one for the string terminator.
+        /// Will require a number of bytes equal to the number of string characters plus one for the string terminator.
         /// </summary>
         /// <param name="variable">The variable to convert.</param>
         /// <param name="bytes">The byte array to modify.</param>
-        /// <param name="startIndex">The index from which to start the modification (will modify a number bytes equal to the number of string characters plus one for the string terminator).</param>
+        /// <param name="startIndex">The index from which to start the modification (will modify a number of bytes equal to the number of string characters plus one for the string terminator).</param>
         public static void ConvertStringToBytes(string variable, byte[] bytes, int startIndex)
         {
             Encoding.ASCII.GetBytes(variable).CopyTo(bytes, startIndex);
@@ -298,7 +280,7 @@ namespace Game.Shared
 
         public static bool ConvertBytesToBool(byte[] bytes, int startIndex)
         {
-            return bytes[startIndex] == 0 ? false : true;
+            return bytes[startIndex] != 0;
         }
 
         public static char ConvertBytesToChar(byte[] bytes, int startIndex)
@@ -367,7 +349,7 @@ namespace Game.Shared
         #endregion
 
         /// <summary>
-        /// Given an number, will return the minimum bytes required for storing that uint
+        /// Given a number, will return the minimum bytes required for storing that uint
         /// (ex. if the number is under 256, it will need 1 byte, else if it's under 65 536 will need 2 bytes etc.).
         /// </summary>
         /// <param name="data">The number to analyze.</param>
@@ -386,18 +368,14 @@ namespace Game.Shared
             {
                 return 3;
             }
-            else if (data <= 0xff_ff_ff_ff)
-            {
-                return 4;
-            }
             else
             {
-                return 0;
+                return 4;
             }
         }
 
         /// <summary>
-        /// Given an number, will return the minimum bytes required for storing that uint
+        /// Given a number, will return the minimum bytes required for storing that uint
         /// (ex. if the absolute value of the number is under 256, it will need 1 byte, else if it's under 65 536 will need 2 bytes etc.).
         /// </summary>
         /// <param name="data">The number to analyze.</param>
@@ -418,13 +396,9 @@ namespace Game.Shared
             {
                 return 3;
             }
-            else if (data <= 0x7f_ff_ff_ff)
-            {
-                return 4;
-            }
             else
             {
-                return 0;
+                return 4;
             }
         }
 

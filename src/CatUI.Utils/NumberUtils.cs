@@ -1,4 +1,4 @@
-namespace CatUI.Shared
+namespace CatUI.Utils
 {
     public static class NumberUtils
     {

@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatUI.Data", "src\CatUI.Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatUI.Elements", "src\CatUI.Elements\CatUI.Elements.csproj", "{38E80E16-031C-4BA5-AEB1-554568A6FF16}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatUI.Shared", "src\CatUI.Shared\CatUI.Shared.csproj", "{77D36AB3-7428-493A-939E-07839E0FD175}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatUI.Utils", "src\CatUI.Utils\CatUI.Utils.csproj", "{77D36AB3-7428-493A-939E-07839E0FD175}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1053476C-3617-41B7-B868-0B815640BFEC}"
 	ProjectSection(SolutionItems) = preProject

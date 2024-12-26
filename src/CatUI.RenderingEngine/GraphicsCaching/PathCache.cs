@@ -13,7 +13,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// Use the "TryGet" methods of this class to get a path to be used in Skia.
         /// </summary>
         /// <remarks>
-        /// For the numeric key, the usage is as follows (from least significant bits to most significant bits):
+        /// For the numeric key, the usage is as follows (from the least significant bits to most significant bits):
         /// <list type="bullet">
         /// <item>Byte 0-1: the number of control points in the path (0-65535)</item>
         /// <item>Byte 2-4: the start X position of the path's bounds (as fixed point number (see below))</item>
@@ -51,7 +51,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             return _paths.TryGetValue(new NumericKey(searchedKeyLow, searchedKeyHigh), out skiaPath);
         }
 
-        // <summary>
+        /// <summary>
         /// Adds a new path to the internal cache.
         /// Usually used when TryGetValue doesn't find a matching path so you create a new one and cache it.
         /// </summary>
@@ -68,15 +68,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
                 return false;
             }
 
-            if (_paths.ContainsKey(newKey))
-            {
-                return true;
-            }
-            else
-            {
-                _paths[newKey] = path;
-                return true;
-            }
+            return !_paths.TryAdd(newKey, path) || true;
         }
 
         public static void RemovePath(SKPath skiaPath)

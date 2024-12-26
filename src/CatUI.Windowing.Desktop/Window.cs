@@ -233,8 +233,6 @@ namespace CatUI.Windowing.Desktop
                         GlfwWindow = GLFW.CreateWindow(_width, _height, _title, monitor, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                         break;
                     }
-                default:
-                    break;
             }
 
             GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
@@ -255,10 +253,7 @@ namespace CatUI.Windowing.Desktop
             Resized += ResizeWindow;
             GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
 
-            _errorCallback = (errCode, message) =>
-            {
-                throw new GLFWException(message, errCode);
-            };
+            _errorCallback = (errCode, message) => throw new GLFWException(message, errCode);
             GLFW.SetErrorCallback(_errorCallback);
 
             Document = new UIDocument
@@ -388,7 +383,7 @@ namespace CatUI.Windowing.Desktop
         /// Higher values will reduce visual "lag", but will utilize more CPU and GPU, thus potentially making the system slower.
         /// The default value is 60, which is suitable for most applications.
         /// </summary>
-        public int MaxFPS { get; set; } = 60;
+        public int MaxFps { get; set; } = 60;
         #endregion
 
         #region Events
@@ -401,10 +396,7 @@ namespace CatUI.Windowing.Desktop
         /// <remarks>
         /// Although the window will be closed after this returns true, your app will still run until the end of the Main function.
         /// </remarks>
-        public event Func<bool> CloseRequested = () =>
-        {
-            return true;
-        };
+        public event Func<bool> CloseRequested = () => true;
 
         public event Action<int, int>? Resized;
         #endregion
@@ -433,7 +425,7 @@ namespace CatUI.Windowing.Desktop
         }
 
         private double _lastTime;
-        private List<Action<double>> _animationFrameCallbacks = new List<Action<double>>();
+        private readonly List<Action<double>> _animationFrameCallbacks = new List<Action<double>>();
 
         /// <summary>
         /// An event that is fired when the internal windowing system decides to redraw
@@ -494,7 +486,7 @@ namespace CatUI.Windowing.Desktop
         /// beware of the eventual performance penalties.
         /// </summary>
         /// <remarks>
-        /// This is limited to <see cref="MaxFPS"/>, meaning that if the drawing happens faster than the minimum time a frame must take,
+        /// This is limited to <see cref="MaxFps"/>, meaning that if the drawing happens faster than the minimum time a frame must take,
         /// the main thread will sleep until that period is elapsed.
         /// </remarks>
         /// <param name="frameCallback">
@@ -518,7 +510,7 @@ namespace CatUI.Windowing.Desktop
                 throw new Exception($"Internal GLFW error ({errorCode}): {description}");
             }
 
-            GLFW.SetErrorCallback((OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode code, string desc) =>
+            GLFW.SetErrorCallback((code, desc) =>
             {
                 ErrorOccurred?.Invoke(code, desc);
             });
