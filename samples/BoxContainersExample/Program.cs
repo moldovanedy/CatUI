@@ -12,6 +12,8 @@ namespace BoxContainersExample
     {
         private static void Main()
         {
+            CatApplication.NewBuilder().Build();
+            
             Window window = new Window(
                 width: 900,
                 height: 600,
