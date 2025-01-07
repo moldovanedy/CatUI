@@ -4,7 +4,6 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-
 using CatUI.Data.Assets;
 using CatUI.Utils;
 
@@ -21,15 +20,17 @@ namespace CatUI.Data.Managers
         /// </summary>
         public static ushort NumberOfLoadedAssetFiles { get; private set; }
 
-        private static readonly Dictionary<string, Asset> _cachedAssets = new Dictionary<string, Asset>();
+        private static readonly Dictionary<string, Asset> _cachedAssets = new();
+
         /// <summary>
         /// Represent the actual asset paths, the value is composed of most significant 2 bytes
         /// which are an index in the <see cref="_assetFilesPaths"/> and a 6 byte position of the
         /// asset data beginning in the file.
         /// </summary>
-        private static readonly Dictionary<string, ulong> _assetPaths = new Dictionary<string, ulong>();
-        private static readonly List<string> _assetFilesPaths = new List<string>();
-        private static readonly List<Assembly> _assemblies = new List<Assembly>();
+        private static readonly Dictionary<string, ulong> _assetPaths = new();
+
+        private static readonly List<string> _assetFilesPaths = new();
+        private static readonly List<Assembly> _assemblies = new();
 
         /// <summary>
         /// Marks the given assembly as an "asset assembly", meaning that the methods specific for asset loading from assembly
@@ -77,14 +78,14 @@ namespace CatUI.Data.Managers
                 return (T)asset;
             }
 
-            Assembly? mainAssembly = Assembly.GetAssembly(classFromAssembly);
+            var mainAssembly = Assembly.GetAssembly(classFromAssembly);
             if (mainAssembly == null)
             {
                 return null;
             }
 
             assetPath = assetPath.Replace('/', '.');
-            string asmName = mainAssembly.GetName().ToString();
+            var asmName = mainAssembly.GetName().ToString();
             asmName = asmName.Split(',')[0];
 
             Stream? fs = mainAssembly.GetManifestResourceStream($"{asmName}{assetPath}");
@@ -93,7 +94,7 @@ namespace CatUI.Data.Managers
                 return null;
             }
 
-            T finalAsset = new T();
+            var finalAsset = new T();
             finalAsset.LoadFromRawData(fs);
             if (shouldCache)
             {
@@ -133,7 +134,7 @@ namespace CatUI.Data.Managers
             foreach (Assembly asm in _assemblies)
             {
                 assetPath = assetPath.Replace('/', '.');
-                string asmName = asm.GetName().ToString();
+                var asmName = asm.GetName().ToString();
                 asmName = asmName.Split(',')[0];
 
                 Stream? fs = asm.GetManifestResourceStream($"{asmName}{assetPath}");
@@ -142,7 +143,7 @@ namespace CatUI.Data.Managers
                     return null;
                 }
 
-                T finalAsset = new T();
+                var finalAsset = new T();
                 finalAsset.LoadFromRawData(fs);
                 if (shouldCache)
                 {
@@ -177,17 +178,17 @@ namespace CatUI.Data.Managers
                 return (T)asset;
             }
 
-            AsyncRef<long> endPositionRef = new AsyncRef<long>();
+            AsyncRef<long> endPositionRef = new();
             FileStream? stream = GetAssetFileStream(path, endPositionRef);
             if (stream == null)
             {
                 return null;
             }
 
-            byte[] assetRawData = new byte[endPositionRef.Ref - stream.Position];
+            var assetRawData = new byte[endPositionRef.Ref - stream.Position];
             long bytesWritten = 0;
 
-            byte[] buffer = new byte[4096];
+            var buffer = new byte[4096];
             long position = stream.Position;
             while (position < endPositionRef.Ref)
             {
@@ -198,12 +199,13 @@ namespace CatUI.Data.Managers
                 position += limit;
             }
 
-            T finalAsset = new T();
+            var finalAsset = new T();
             finalAsset.LoadFromRawData(assetRawData);
             if (shouldCache)
             {
                 _cachedAssets.Add(path, finalAsset);
             }
+
             return finalAsset;
         }
 
@@ -231,17 +233,17 @@ namespace CatUI.Data.Managers
                 return null;
             }
 
-            int fileIndex = (int)(value >> 48);
+            var fileIndex = (int)(value >> 48);
             if (_assetFilesPaths.Count < fileIndex)
             {
                 return null;
             }
 
-            FileStream fs = new FileStream(_assetFilesPaths[fileIndex], FileMode.Open, FileAccess.Read);
-            long position = (long)(value & 0xff_ff_ff_ff_ff_ff);
+            var fs = new FileStream(_assetFilesPaths[fileIndex], FileMode.Open, FileAccess.Read);
+            var position = (long)(value & 0xff_ff_ff_ff_ff_ff);
             fs.Seek(position, SeekOrigin.Begin);
 
-            byte[] assetSizeRaw = new byte[6];
+            var assetSizeRaw = new byte[6];
             fs.Read(assetSizeRaw, 0, 6);
             long assetSize = BinaryUtils.ConvertBytesToLong(assetSizeRaw, 0);
 
@@ -261,7 +263,7 @@ namespace CatUI.Data.Managers
         /// <param name="path">The path to an asset file.</param>
         public static async Task LoadMetadataFromFileAsync(string path)
         {
-            FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+            var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
             await LoadMetadataFromStreamAsync(fs);
         }
 
@@ -283,20 +285,20 @@ namespace CatUI.Data.Managers
             }
 
             stream.Seek(6, SeekOrigin.End);
-            byte[] dictionaryStartPosRaw = new byte[6];
+            var dictionaryStartPosRaw = new byte[6];
             stream.Read(dictionaryStartPosRaw, 0, 6);
 
             //go to the dictionary start
             long pos = BinaryUtils.ConvertBytesToLong(dictionaryStartPosRaw, 0);
             stream.Seek(pos, SeekOrigin.Begin);
 
-            byte[] buffer = new byte[4096];
+            var buffer = new byte[4096];
             byte[]? assetPathRaw = null, assetPositionRaw = null;
-            int assetPositionWrittenBytes = 0;
+            var assetPositionWrittenBytes = 0;
             while (pos < stream.Length)
             {
                 int limit = await stream.ReadAsync(buffer.AsMemory(0, 4096));
-                int bufferPos = 0;
+                var bufferPos = 0;
                 while (bufferPos < limit)
                 {
                     if (assetPositionRaw != null)
@@ -309,7 +311,6 @@ namespace CatUI.Data.Managers
 
                         if (assetPathRaw != null)
                         {
-
                             goto SaveAssetMetadata;
                         }
                         //if the path is null here, it must be an error
@@ -341,7 +342,7 @@ namespace CatUI.Data.Managers
                             bufferPos++;
                         }
 
-                        byte[] newPathRaw = new byte[newDimension];
+                        var newPathRaw = new byte[newDimension];
                         //copy old portion
                         Array.Copy(assetPathRaw, newPathRaw, assetPathRaw.Length);
                         //copy remaining portion
@@ -353,26 +354,29 @@ namespace CatUI.Data.Managers
                         if (limit - bufferPos < 6)
                         {
                             assetPositionRaw = new byte[limit - bufferPos];
-                            for (int i = 0; i < limit - bufferPos; i++)
+                            for (var i = 0; i < limit - bufferPos; i++)
                             {
                                 assetPositionRaw[i] = buffer[bufferPos];
                                 bufferPos++;
                             }
+
                             continue;
                         }
                         else
                         {
                             assetPositionRaw = new byte[6];
-                            for (int i = 0; i < 6; i++)
+                            for (var i = 0; i < 6; i++)
                             {
                                 assetPositionRaw[i] = buffer[bufferPos];
                                 bufferPos++;
                             }
+
                             goto SaveAssetMetadata;
                         }
                     }
 
                     #region Path
+
                     int stringStart = bufferPos;
                     while (buffer[bufferPos] != 0 && bufferPos < limit)
                     {
@@ -383,10 +387,11 @@ namespace CatUI.Data.Managers
                     if (bufferPos >= limit)
                     {
                         assetPathRaw = new byte[stringStart - bufferPos];
-                        for (int i = 0; i < assetPathRaw.Length; i++)
+                        for (var i = 0; i < assetPathRaw.Length; i++)
                         {
                             assetPathRaw[i] = buffer[stringStart + i];
                         }
+
                         continue;
                     }
                     //if the string is not empty
@@ -402,33 +407,37 @@ namespace CatUI.Data.Managers
                     }
 
                     assetPathRaw = new byte[bufferPos - stringStart - 1];
-                    for (int i = 0; i < assetPathRaw.Length; i++)
+                    for (var i = 0; i < assetPathRaw.Length; i++)
                     {
                         assetPathRaw[i] = buffer[stringStart + i];
                     }
+
                     #endregion //Path
 
                     #region Position
+
                     if (limit - bufferPos < 6)
                     {
                         assetPositionRaw = new byte[limit - bufferPos];
-                        for (int i = 0; i < limit - bufferPos; i++)
+                        for (var i = 0; i < limit - bufferPos; i++)
                         {
                             assetPositionRaw[i] = buffer[bufferPos];
                             bufferPos++;
                         }
+
                         continue;
                     }
                     else
                     {
                         assetPositionRaw = new byte[6];
-                        for (int i = 0; i < 6; i++)
+                        for (var i = 0; i < 6; i++)
                         {
                             assetPositionRaw[i] = buffer[bufferPos];
                             bufferPos++;
                         }
                     }
-                #endregion //Position
+
+                    #endregion //Position
 
                 SaveAssetMetadata:
                     ulong savedValue = (ulong)NumberOfLoadedAssetFiles << 48;

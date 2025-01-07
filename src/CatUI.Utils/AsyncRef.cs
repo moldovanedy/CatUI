@@ -14,6 +14,7 @@ namespace CatUI.Utils
         public T? Ref { get; set; }
 
         public AsyncRef() { }
+
         public AsyncRef(T reference)
         {
             Ref = reference;

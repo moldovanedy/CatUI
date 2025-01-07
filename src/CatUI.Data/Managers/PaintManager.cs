@@ -1,5 +1,4 @@
 ﻿using CatUI.Data.Enums;
-
 using SkiaSharp;
 
 namespace CatUI.Data.Managers
@@ -8,16 +7,14 @@ namespace CatUI.Data.Managers
     {
         public const float DEFAULT_FONT_SIZE = 12;
 
-        public static SKPaint DefaultPainter
-        {
-            get => new SKPaint()
+        public static SKPaint DefaultPainter =>
+            new()
             {
                 Color = new SKColor(0x00_00_00_00),
                 TextEncoding = SKTextEncoding.Utf8,
                 TextSize = DEFAULT_FONT_SIZE,
-                IsAntialias = true,
+                IsAntialias = true
             };
-        }
 
         public static SKPaint GetPaint(
             PaintMode paintMode = PaintMode.Fill,
@@ -28,12 +25,12 @@ namespace CatUI.Data.Managers
         {
             SKPaint newPaint = DefaultPainter;
             ModifyPaint(
-                paint: newPaint,
-                paintMode: paintMode,
-                paintColor: paintColor,
-                outlineParams: outlineParams,
-                fontSize: fontSize,
-                textAlignment: textAlignment);
+                newPaint,
+                paintMode,
+                paintColor,
+                outlineParams,
+                fontSize,
+                textAlignment);
             return newPaint;
         }
 
@@ -47,19 +44,12 @@ namespace CatUI.Data.Managers
         {
             if (paintMode != null)
             {
-                switch (paintMode)
+                paint.Style = paintMode switch
                 {
-                    default:
-                    case PaintMode.Fill:
-                        paint.Style = SKPaintStyle.Fill;
-                        break;
-                    case PaintMode.Outline:
-                        paint.Style = SKPaintStyle.Stroke;
-                        break;
-                    case PaintMode.FillAndOutline:
-                        paint.Style = SKPaintStyle.StrokeAndFill;
-                        break;
-                }
+                    PaintMode.Outline => SKPaintStyle.Stroke,
+                    PaintMode.FillAndOutline => SKPaintStyle.StrokeAndFill,
+                    _ => SKPaintStyle.Fill
+                };
             }
 
             if (paintColor != null)

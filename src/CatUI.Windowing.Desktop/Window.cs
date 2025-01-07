@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using CatUI.Data;
 using CatUI.Elements;
-
 using OpenTK;
 using OpenTK.Graphics.Egl;
 using OpenTK.Graphics.OpenGL;
@@ -21,27 +19,28 @@ namespace CatUI.Windowing.Desktop
                 {
                     return GLFW.GetWin32Window(GlfwWindow);
                 }
-                else if (OperatingSystem.IsLinux())
+
+                if (OperatingSystem.IsLinux())
                 {
                     return (nint)(nuint)GLFW.GetX11Window(GlfwWindow);
                 }
-                else if (OperatingSystem.IsMacOS())
+
+                if (OperatingSystem.IsMacOS())
                 {
                     return GLFW.GetCocoaWindow(GlfwWindow);
                 }
-                else
-                {
-                    return 0;
-                }
+
+                return 0;
             }
         }
-        public UIDocument Document { get; private set; } = new UIDocument();
+
+        public UIDocument Document { get; private set; } = new();
 
         internal OpenTK.Windowing.GraphicsLibraryFramework.Window* GlfwWindow { get; private set; }
 
         private bool _shouldCloseWindow;
-        private WindowFlags _flags = WindowFlags.Default;
-        private WindowMode _startupMode = WindowMode.Windowed;
+        private readonly WindowFlags _flags;
+        private readonly WindowMode _startupMode;
         private bool _isCreated;
 
 #if USE_ANGLE
@@ -54,6 +53,7 @@ namespace CatUI.Windowing.Desktop
         private GLFWCallbacks.ErrorCallback? _errorCallback;
 
         #region Object creation
+
         public Window(
             int width = 800,
             int height = 600,
@@ -65,116 +65,17 @@ namespace CatUI.Windowing.Desktop
             WindowFlags windowFlags = WindowFlags.Default,
             WindowMode startupMode = WindowMode.Windowed)
         {
-            SetInitialWidth(width);
-            SetInitialHeight(height);
-            SetInitialTitle(title);
-            SetInitialMinWidth(minWidth);
-            SetInitialMaxWidth(maxWidth);
-            SetInitialMinHeight(minHeight);
-            SetInitialMaxHeight(maxHeight);
-            SetInitialWindowFlags(windowFlags);
-            SetInitialStartupMode(startupMode);
+            _width = width;
+            _height = height;
+            _title = title;
+            _minWidth = minWidth;
+            _maxWidth = maxWidth;
+            _minHeight = minHeight;
+            _maxHeight = maxHeight;
+            _flags = windowFlags;
+            _startupMode = startupMode;
 
             Create();
-        }
-
-        public Window SetInitialWidth(int width)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created, use direct properties instead");
-            }
-
-            _width = width;
-            return this;
-        }
-
-        public Window SetInitialHeight(int height)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created, use direct properties instead");
-            }
-
-            _height = height;
-            return this;
-        }
-
-        public Window SetInitialMinWidth(int minWidth)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created, use direct properties instead");
-            }
-
-            _minWidth = minWidth;
-            return this;
-        }
-
-        public Window SetInitialMinHeight(int minHeight)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created, use direct properties instead");
-            }
-
-            _minHeight = minHeight;
-            return this;
-        }
-
-        public Window SetInitialMaxWidth(int maxWidth)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created, use direct properties instead");
-            }
-
-            _maxWidth = maxWidth;
-            return this;
-        }
-
-        public Window SetInitialMaxHeight(int maxHeight)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created, use direct properties instead");
-            }
-
-            _maxHeight = maxHeight;
-            return this;
-        }
-
-        public Window SetInitialTitle(string title)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created, use direct properties instead");
-            }
-
-            _title = title;
-            return this;
-        }
-
-        public Window SetInitialWindowFlags(WindowFlags flags)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created");
-            }
-
-            _flags = flags;
-            return this;
-        }
-
-        public Window SetInitialStartupMode(WindowMode startupMode)
-        {
-            if (_isCreated)
-            {
-                throw new Exception("Window is already created, use direct properties instead");
-            }
-
-            _startupMode = startupMode;
-            return this;
         }
 
         public Window Create()
@@ -193,15 +94,19 @@ namespace CatUI.Windowing.Desktop
 
             switch (_startupMode)
             {
+                default:
                 case WindowMode.Windowed:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
+                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                     break;
                 case WindowMode.Minimized:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
+                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                     GLFW.IconifyWindow(GlfwWindow);
                     break;
                 case WindowMode.Maximized:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
+                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                     GLFW.MaximizeWindow(GlfwWindow);
                     break;
                 case WindowMode.Fullscreen:
@@ -230,7 +135,8 @@ namespace CatUI.Windowing.Desktop
                         _width = videoMode->Width;
                         _height = videoMode->Height;
 
-                        GlfwWindow = GLFW.CreateWindow(_width, _height, _title, monitor, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                        GlfwWindow = GLFW.CreateWindow(_width, _height, _title, monitor,
+                            (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
                         break;
                     }
             }
@@ -256,10 +162,7 @@ namespace CatUI.Windowing.Desktop
             _errorCallback = (errCode, message) => throw new GLFWException(message, errCode);
             GLFW.SetErrorCallback(_errorCallback);
 
-            Document = new UIDocument
-            {
-                ViewportSize = new Size(_width, _height)
-            };
+            Document = new UIDocument { ViewportSize = new Size(_width, _height) };
             FullyRedraw();
 
             _isCreated = true;
@@ -276,106 +179,94 @@ namespace CatUI.Windowing.Desktop
             _resizeCallback = null;
             _errorCallback = null;
         }
+
         #endregion
 
         #region Properties
+
         public int Width
         {
-            get
-            {
-                return _width;
-            }
+            get => _width;
             set
             {
                 GLFW.SetWindowSize(GlfwWindow, value, _height);
                 _width = value;
             }
         }
-        private int _width = 50;
+
+        private int _width;
 
         public int Height
         {
-            get
-            {
-                return _height;
-            }
+            get => _height;
             set
             {
                 GLFW.SetWindowSize(GlfwWindow, _width, value);
                 _height = value;
             }
         }
-        private int _height = 50;
+
+        private int _height;
 
         public int MinWidth
         {
-            get
-            {
-                return _minWidth;
-            }
+            get => _minWidth;
             set
             {
                 GLFW.SetWindowSizeLimits(GlfwWindow, value, _minHeight, _maxWidth, _maxHeight);
                 _minWidth = value;
             }
         }
+
         private int _minWidth;
 
         public int MinHeight
         {
-            get
-            {
-                return _minHeight;
-            }
+            get => _minHeight;
             set
             {
                 GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, value, _maxWidth, _maxHeight);
                 _minHeight = value;
             }
         }
+
         private int _minHeight;
 
         public int MaxWidth
         {
-            get
-            {
-                return _maxWidth;
-            }
+            get => _maxWidth;
             set
             {
                 GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, value, _maxHeight);
                 _maxWidth = value;
             }
         }
-        private int _maxWidth = ushort.MaxValue;
+
+        private int _maxWidth;
 
         public int MaxHeight
         {
-            get
-            {
-                return _maxHeight;
-            }
+            get => _maxHeight;
             set
             {
                 GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxHeight, value);
                 _maxHeight = value;
             }
         }
-        private int _maxHeight = ushort.MaxValue;
+
+        private int _maxHeight;
 
         public string Title
         {
-            get
-            {
-                return _title;
-            }
+            get => _title;
             set
             {
                 _title = value;
                 GLFW.SetWindowTitle(GlfwWindow, _title);
             }
         }
-        private string _title = string.Empty;
+
+        private string _title;
 
         /// <summary>
         /// This is the maximum number of frames per second the application is allowed to run. Lower values (like 30) 
@@ -384,10 +275,13 @@ namespace CatUI.Windowing.Desktop
         /// The default value is 60, which is suitable for most applications.
         /// </summary>
         public int MaxFps { get; set; } = 60;
+
         #endregion
 
         #region Events
+
         public event Action<OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode, string>? ErrorOccurred;
+
         /// <summary>
         /// Fired when the user or the OS requested the application close. Returning true (the default behavior)
         /// will close the window immediately, while returning false will make the window continue running.
@@ -399,6 +293,7 @@ namespace CatUI.Windowing.Desktop
         public event Func<bool> CloseRequested = () => true;
 
         public event Action<int, int>? Resized;
+
         #endregion
 
         [Flags]
@@ -425,7 +320,7 @@ namespace CatUI.Windowing.Desktop
         }
 
         private double _lastTime;
-        private readonly List<Action<double>> _animationFrameCallbacks = new List<Action<double>>();
+        private readonly List<Action<double>> _animationFrameCallbacks = new();
 
         /// <summary>
         /// An event that is fired when the internal windowing system decides to redraw
@@ -529,7 +424,7 @@ namespace CatUI.Windowing.Desktop
                 //and only execute that number of callbacks
                 int thisFrameCount = _animationFrameCallbacks.Count;
 
-                for (int i = 0; i < thisFrameCount; i++)
+                for (var i = 0; i < thisFrameCount; i++)
                 {
                     _animationFrameCallbacks[i].Invoke(delta);
                     //hadFrameCallbacks = true;

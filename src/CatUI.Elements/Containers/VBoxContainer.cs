@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-
 using CatUI.Data;
 using CatUI.Data.Containers;
 using CatUI.Data.Events.Document;
@@ -12,11 +11,13 @@ namespace CatUI.Elements.Containers
 {
     public class VBoxContainer : BoxContainer
     {
-        public override Orientation BoxOrientation { get => Orientation.Vertical; }
-        
+        public override Orientation BoxOrientation => Orientation.Vertical;
+
         public VBoxContainer(
+            //BoxContainer
             Dimension? spacing = null,
-            
+            //Element
+            string name = "",
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -26,9 +27,10 @@ namespace CatUI.Elements.Containers
             Dimension? minWidth = null,
             Dimension? maxHeight = null,
             Dimension? maxWidth = null,
+            ContainerSizing? elementContainerSizing = null,
             bool visible = true,
             bool enabled = true,
-
+            //Element actions
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
             ExitDocumentEventHandler? onExitDocument = null,
@@ -36,11 +38,13 @@ namespace CatUI.Elements.Containers
             PointerEnterEventHandler? onPointerEnter = null,
             PointerLeaveEventHandler? onPointerLeave = null,
             PointerMoveEventHandler? onPointerMove = null) :
+
+            //ReSharper disable ArgumentsStyleNamedExpression
             base(
                 spacing: spacing,
-                
+                //
+                name: name,
                 children: children,
-                themeOverrides: themeOverrides,
                 position: position,
                 preferredWidth: preferredWidth,
                 preferredHeight: preferredHeight,
@@ -48,9 +52,10 @@ namespace CatUI.Elements.Containers
                 minWidth: minWidth,
                 maxHeight: maxHeight,
                 maxWidth: maxWidth,
+                elementContainerSizing: elementContainerSizing,
                 visible: visible,
                 enabled: enabled,
-
+                //
                 onDraw: onDraw,
                 onEnterDocument: onEnterDocument,
                 onExitDocument: onExitDocument,
@@ -58,8 +63,9 @@ namespace CatUI.Elements.Containers
                 onPointerEnter: onPointerEnter,
                 onPointerLeave: onPointerLeave,
                 onPointerMove: onPointerMove)
-        { }
-        
+        {
+        }
+
         internal override void RecalculateLayout()
         {
             if (IsChildOfContainer || !Enabled)
@@ -96,8 +102,8 @@ namespace CatUI.Elements.Containers
             if (!Position.IsUnset())
             {
                 finalPosition = new Point2D(
-                     parentXPos + CalculateDimension(Position.X, parentWidth),
-                     parentYPos + CalculateDimension(Position.Y, parentHeight));
+                    parentXPos + CalculateDimension(Position.X, parentWidth),
+                    parentYPos + CalculateDimension(Position.Y, parentHeight));
             }
 
             if (!PreferredWidth.IsUnset())
@@ -132,7 +138,7 @@ namespace CatUI.Elements.Containers
 
                 if (child.ElementContainerSizing == null ||
                     (child.ElementContainerSizing is VBoxContainerSizing boxContainerSizing &&
-                        boxContainerSizing.VGrowthFactor == 0))
+                     boxContainerSizing.VGrowthFactor == 0))
                 {
                     minimumPreferredHeight += prefHeight;
                     allocatedPreferredHeight += prefHeight;
@@ -151,7 +157,7 @@ namespace CatUI.Elements.Containers
             }
 
             //calculate the container's final Height
-            bool elementsNeedShrinking = false;
+            var elementsNeedShrinking = false;
             float containerPrefHeight =
                 PreferredHeight.IsUnset() ? Bounds.Height : CalculateDimension(PreferredHeight, parentHeight);
             //it means that the container's preferred height is smaller that the minimum pref height of the content, so shrink the container
@@ -205,9 +211,10 @@ namespace CatUI.Elements.Containers
                             if (boxContainerSizing.VGrowthFactor > 0)
                             {
                                 //make it proportional with the shrinking of the other elements
-                                growthSectionHeight = (finalHeight - (allocatedPreferredHeight * t)) / totalGrowthFactors;
+                                growthSectionHeight =
+                                    (finalHeight - (allocatedPreferredHeight * t)) / totalGrowthFactors;
                                 child.AbsoluteHeight = boxContainerSizing.VGrowthFactor * growthSectionHeight;
-                                
+
                                 //if the result was smaller than the minHeight, set it to minHeight and update the allocated
                                 //height accordingly (so that other elements can shrink correctly)
                                 if (child.AbsoluteHeight < minHeight)
@@ -242,7 +249,7 @@ namespace CatUI.Elements.Containers
                         if (boxContainerSizing.VGrowthFactor > 0)
                         {
                             child.AbsoluteHeight = boxContainerSizing.VGrowthFactor * growthSectionHeight;
-                            
+
                             //if the result was smaller than the minHeight, set it to minHeight and update the allocated
                             //height accordingly (so that other elements can shrink correctly)
                             if (child.AbsoluteHeight < minHeight)

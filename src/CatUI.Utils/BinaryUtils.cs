@@ -6,9 +6,10 @@ namespace CatUI.Utils
     public static class BinaryUtils
     {
         #region Value to bytes
+
         public static byte[] ConvertIntToBytes(int variable)
         {
-            byte[] bytes = new byte[4];
+            var bytes = new byte[4];
             bytes[0] = (byte)(variable >> 24);
             bytes[1] = (byte)(variable >> 16);
             bytes[2] = (byte)(variable >> 8);
@@ -18,7 +19,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertUintToBytes(uint variable)
         {
-            byte[] bytes = new byte[4];
+            var bytes = new byte[4];
             bytes[0] = (byte)(variable >> 24);
             bytes[1] = (byte)(variable >> 16);
             bytes[2] = (byte)(variable >> 8);
@@ -28,7 +29,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertShortToBytes(int variable)
         {
-            byte[] bytes = new byte[2];
+            var bytes = new byte[2];
             bytes[0] = (byte)(variable >> 8);
             bytes[1] = (byte)variable;
             return bytes;
@@ -36,7 +37,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertUshortToBytes(uint variable)
         {
-            byte[] bytes = new byte[2];
+            var bytes = new byte[2];
             bytes[0] = (byte)(variable >> 8);
             bytes[1] = (byte)variable;
             return bytes;
@@ -60,7 +61,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertStringToBytes(string variable)
         {
-            byte[] buffer = new byte[variable.Length + 1];
+            var buffer = new byte[variable.Length + 1];
             Encoding.ASCII.GetBytes(variable).CopyTo(buffer, 0);
             //string terminator
             buffer[variable.Length] = 0x00;
@@ -70,7 +71,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertLongToBytes(long variable)
         {
-            byte[] bytes = new byte[8];
+            var bytes = new byte[8];
             bytes[0] = (byte)(variable >> 56);
             bytes[1] = (byte)(variable >> 48);
             bytes[2] = (byte)(variable >> 40);
@@ -189,27 +190,30 @@ namespace CatUI.Utils
             long valAsLong = *(long*)&variable;
             ConvertLongToBytes(valAsLong, bytes, startIndex);
         }
+
         #endregion
 
         #region Bytes to value
+
         public static int ConvertBytesToInt(byte[] bytes, int startIndex)
         {
             if (bytes.Length < 4)
             {
-                int value = 0;
+                var value = 0;
                 for (int i = bytes.Length - 1; i >= 0; i--)
                 {
-                    value |= (bytes[startIndex + i]) << (8 * (bytes.Length - 1 - i));
+                    value |= bytes[startIndex + i] << (8 * (bytes.Length - 1 - i));
                 }
+
                 return value;
             }
             else
             {
                 return
-                    ((bytes[startIndex]) << 24) |
-                    ((bytes[startIndex + 1]) << 16) |
-                    ((bytes[startIndex + 2]) << 8) |
-                    (bytes[startIndex + 3]);
+                    (bytes[startIndex] << 24) |
+                    (bytes[startIndex + 1] << 16) |
+                    (bytes[startIndex + 2] << 8) |
+                    bytes[startIndex + 3];
             }
         }
 
@@ -222,15 +226,16 @@ namespace CatUI.Utils
                 {
                     value |= (uint)bytes[startIndex + i] << (8 * (bytes.Length - 1 - i));
                 }
+
                 return value;
             }
             else
             {
                 return
-                    (uint)(((bytes[startIndex]) << 24) |
-                    ((bytes[startIndex + 1]) << 16) |
-                    ((bytes[startIndex + 2]) << 8) |
-                    (bytes[startIndex + 3]));
+                    (uint)((bytes[startIndex] << 24) |
+                           (bytes[startIndex + 1] << 16) |
+                           (bytes[startIndex + 2] << 8) |
+                           bytes[startIndex + 3]);
             }
         }
 
@@ -241,15 +246,16 @@ namespace CatUI.Utils
                 short value = 0;
                 for (int i = bytes.Length - 1; i >= 0; i--)
                 {
-                    value |= (short)((bytes[startIndex + i]) << (8 * (bytes.Length - 1 - i)));
+                    value |= (short)(bytes[startIndex + i] << (8 * (bytes.Length - 1 - i)));
                 }
+
                 return value;
             }
             else
             {
                 return
-                    (short)(((bytes[startIndex]) << 8) |
-                    (bytes[startIndex + 1]));
+                    (short)((bytes[startIndex] << 8) |
+                            bytes[startIndex + 1]);
             }
         }
 
@@ -262,13 +268,14 @@ namespace CatUI.Utils
                 {
                     value |= (ushort)(bytes[startIndex + i] << (8 * (bytes.Length - 1 - i)));
                 }
+
                 return value;
             }
             else
             {
                 return
-                    (ushort)(((bytes[startIndex]) << 8) |
-                    (bytes[startIndex + 1]));
+                    (ushort)((bytes[startIndex] << 8) |
+                             bytes[startIndex + 1]);
             }
         }
 
@@ -295,12 +302,13 @@ namespace CatUI.Utils
                 return string.Empty;
             }
 
-            int length = 0;
+            var length = 0;
             while (bytes[startIndex] != 0)
             {
                 startIndex++;
                 length++;
             }
+
             return Encoding.ASCII.GetString(bytes, startIndex, length);
         }
 
@@ -308,11 +316,12 @@ namespace CatUI.Utils
         {
             if (bytes.Length < 8)
             {
-                int value = 0;
+                var value = 0;
                 for (int i = bytes.Length - 1; i >= 0; i--)
                 {
-                    value |= (bytes[startIndex + i]) << (8 * (bytes.Length - 1 - i));
+                    value |= bytes[startIndex + i] << (8 * (bytes.Length - 1 - i));
                 }
+
                 return value;
             }
             else
@@ -325,7 +334,7 @@ namespace CatUI.Utils
                     ((long)bytes[startIndex + 4] << 24) |
                     ((long)bytes[startIndex + 5] << 16) |
                     ((long)bytes[startIndex + 6] << 8) |
-                    (bytes[startIndex + 7]);
+                    bytes[startIndex + 7];
             }
         }
 
@@ -346,6 +355,7 @@ namespace CatUI.Utils
         {
             return Encoding.ASCII.GetString(bytes, startIndex, length);
         }
+
         #endregion
 
         /// <summary>
@@ -404,8 +414,8 @@ namespace CatUI.Utils
 
         public static byte[] TruncateIntValue(byte[] value, int byteCount)
         {
-            byte[] newValue = new byte[byteCount];
-            for (int i = 3; i >= 4 - byteCount; i--)
+            var newValue = new byte[byteCount];
+            for (var i = 3; i >= 4 - byteCount; i--)
             {
                 newValue[byteCount - (3 - i) - 1] = value[i];
             }
