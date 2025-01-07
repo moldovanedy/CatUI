@@ -17,8 +17,8 @@ namespace CatUI.Utils
         /// <returns>True if there were hyphens, false otherwise.</returns>
         public static bool RemoveSoftHyphens(string textWithHyphens, out string clearText)
         {
-            bool hasHyphens = false;
-            StringBuilder sb = new StringBuilder();
+            var hasHyphens = false;
+            var sb = new StringBuilder();
             foreach (char chr in textWithHyphens)
             {
                 if (chr != '\u00ad')
@@ -45,9 +45,9 @@ namespace CatUI.Utils
 
         public static List<int> GetSoftHyphensPositions(string text)
         {
-            List<int> shyPositions = new List<int>();
+            List<int> shyPositions = new();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (text[i] == '\r' && i == text.Length - 1)
                 {

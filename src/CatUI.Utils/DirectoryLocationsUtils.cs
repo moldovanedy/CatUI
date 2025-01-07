@@ -130,6 +130,7 @@ namespace CatUI.Utils
             /// and can change if the app is moved, but should never change during the application lifetime.
             /// </summary>
             CurrentWorkingDirectory = 0,
+
             /// <summary>
             /// The most used directory for storing all application-specific data. Data stored here are available
             /// only to the current user on the current machine.
@@ -144,6 +145,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.LocalApplicationData"/>
             /// </remarks>
             LocalAppData = 1,
+
             /// <summary>
             /// Useful for storing application data that a user might want to use on multiple devices,
             /// like preferences and important files that will be available on multiple devices in a local network.
@@ -159,6 +161,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.ApplicationData"/>
             /// </remarks>
             RoamingAppData = 2,
+
             /// <summary>
             /// Useful for storing application data that should be available to all the users of a device.
             /// The files from this directory will be accessible to all the users, useful for non-user specific data.
@@ -176,6 +179,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.CommonApplicationData"/>
             /// </remarks>
             GlobalAppData = 3,
+
             /// <summary>
             /// Useful for storing documents that the user might want to share with other users or applications.
             /// Beware that access to this directory might be blocked by the operating system, always check the permission
@@ -190,6 +194,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.MyDocuments"/>
             /// </remarks>
             Documents = 4,
+
             /// <summary>
             /// Useful for storing pictures.
             /// Beware that access to this directory might be blocked by the operating system, always check the permission
@@ -204,6 +209,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.MyPictures"/>
             /// </remarks>
             Pictures = 5,
+
             /// <summary>
             /// Useful for storing music.
             /// Beware that access to this directory might be blocked by the operating system, always check the permission
@@ -218,6 +224,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.MyMusic"/>
             /// </remarks>
             Music = 6,
+
             /// <summary>
             /// Useful for storing videos.
             /// Beware that access to this directory might be blocked by the operating system, always check the permission
@@ -232,6 +239,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.MyVideos"/>
             /// </remarks>
             Videos = 7,
+
             /// <summary>
             /// Useful for creating shortcuts of your application.
             /// Beware that access to this directory might be blocked by the operating system, always check the permission
@@ -246,6 +254,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.Desktop"/>
             /// </remarks>
             Desktop = 8,
+
             /// <summary>
             /// This is where the system-wide fonts are located, if the operating system has this kind of feature.
             /// Beware that access to this directory might be blocked by the operating system, always check the permission
@@ -260,6 +269,7 @@ namespace CatUI.Utils
             /// Equivalent to <see cref="Environment.SpecialFolder.Fonts"/>
             /// </remarks>
             Fonts = 9,
+
             /// <summary>
             /// Useful for creating shortcuts of your application.
             /// You should generally not create files or directories at this level, as its only purpose is
@@ -277,6 +287,7 @@ namespace CatUI.Utils
 
 
             #region Windows-only
+
             /// <summary>
             /// Windows-only. Used for creating a shortcut to the application in the user's Start Menu.
             /// This will only be visible to the current user and will not be shared between users on the same machine.
@@ -288,6 +299,7 @@ namespace CatUI.Utils
             /// (C:\Users\USERNAME\AppData\Roaming\Microsoft\Windows\Start Menu).
             /// </remarks>
             WinUserStartMenu = 1 | (1 << 7),
+
             /// <summary>
             /// Windows-only. This is where shortcuts to programs that run on system startup are stored.
             /// Only accessible by the current user.
@@ -299,6 +311,7 @@ namespace CatUI.Utils
             /// (C:\Users\USERNAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup).
             /// </remarks>
             WinUserStartupPrograms = 2 | (1 << 7),
+
             /// <summary>
             /// Windows-only. Used for creating a shortcut to the application in the user's Start Menu for all users.
             /// This will be visible to all the users on the same machine.
@@ -310,6 +323,7 @@ namespace CatUI.Utils
             /// (C:\ProgramData\Microsoft\Windows\Start Menu).
             /// </remarks>
             WinGlobalStartMenu = 3 | (1 << 7),
+
             /// <summary>
             /// Windows-only. This is where shortcuts to programs that run on system startup are stored. Accessible to all users,
             /// meaning programs listed here run on startup regardless of which user is logged in.
@@ -321,6 +335,7 @@ namespace CatUI.Utils
             /// (C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup).
             /// </remarks>
             WinGlobalStartupPrograms = 4 | (1 << 7),
+
             #endregion
         }
     }

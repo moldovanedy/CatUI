@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
@@ -14,394 +13,55 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements
 {
-    public partial class Element : ICloneable
+    public class Element : ICloneable
     {
-        public Action? OnDraw;
-        public EnterDocumentEventHandler? OnEnterDocument;
-        public ExitDocumentEventHandler? OnExitDocument;
-        public LoadEventHandler? OnLoad;
-        public PointerEnterEventHandler? OnPointerEnter;
-        public PointerLeaveEventHandler? OnPointerLeave;
-        public PointerMoveEventHandler? OnPointerMove;
-
-        public event Action? DrawEvent;
-        public event EnterDocumentEventHandler? EnterDocumentEvent;
-        public event ExitDocumentEventHandler? ExitDocumentEvent;
-        public event LoadEventHandler? LoadEvent;
-        public event PointerEnterEventHandler? PointerEnterEvent;
-        public event PointerLeaveEventHandler? PointerLeaveEvent;
-        public event PointerMoveEventHandler? PointerMoveEvent;
-
         public const string STYLE_NORMAL = "normal";
         public const string STYLE_HOVER = "hover";
-        private readonly ThemeDefinition<ElementThemeData> _themeDefinition = new ThemeDefinition<ElementThemeData>();
 
-        public Dimension2 Position
-        {
-            get
-            {
-                return _position;
-            }
-            set
-            {
-                if (value != _position)
-                {
-                    _position = value;
-                    PositionProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-        private Dimension2 _position = new Dimension2();
-        public ObservableProperty<Dimension2> PositionProperty { get; } = new ObservableProperty<Dimension2>();
+        public readonly Action? OnDraw;
+        public readonly EnterDocumentEventHandler? OnEnterDocument;
+        public readonly ExitDocumentEventHandler? OnExitDocument;
+        public readonly LoadEventHandler? OnLoad;
+        public readonly PointerEnterEventHandler? OnPointerEnter;
+        public readonly PointerLeaveEventHandler? OnPointerLeave;
+        public readonly PointerMoveEventHandler? OnPointerMove;
 
         /// <summary>
-        /// Represents the preferred width of the element. The layout engine will try to honor this value, but this might be influenced
-        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion"/>) or if the element is inside a container.
-        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that the element will be in.
+        ///     Contains a list of all children (public and internal).
         /// </summary>
-        public Dimension PreferredWidth
-        {
-            get
-            {
-                return _preferredWidth;
-            }
-            set
-            {
-                if (value != _preferredWidth)
-                {
-                    _preferredWidth = value;
-                    PreferredWidthProperty.Value = value;
-                }
-            }
-        }
-        private Dimension _preferredWidth = new Dimension();
-        public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new ObservableProperty<Dimension>();
+        private readonly List<Element> _children = new();
 
-        /// <summary>
-        /// Represents the minimum width that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MinWidth
-        {
-            get
-            {
-                return _minWidth;
-            }
-            set
-            {
-                if (value != _minWidth)
-                {
-                    _minWidth = value;
-                    MinWidthProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-        private Dimension _minWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MinWidthProperty { get; } = new ObservableProperty<Dimension>();
+        private readonly ThemeDefinition<ElementThemeData> _themeDefinition = new();
 
-        /// <summary>
-        /// Represents the maximum width that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MaxWidth
-        {
-            get
-            {
-                return _maxWidth;
-            }
-            set
-            {
-                if (value != _maxWidth)
-                {
-                    _maxWidth = value;
-                    MaxWidthProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-        private Dimension _maxWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new ObservableProperty<Dimension>();
-
-        /// <summary>
-        /// Represents the preferred height of the element. The layout engine will try to honor this value, but this might be influenced
-        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion"/>) or if the element is inside a container.
-        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that the element will be in.
-        /// </summary>
-        public Dimension PreferredHeight
-        {
-            get
-            {
-                return _preferredHeight;
-            }
-            set
-            {
-                if (value != _preferredHeight)
-                {
-                    _preferredHeight = value;
-                    PreferredHeightProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-        private Dimension _preferredHeight = new Dimension();
-        public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new ObservableProperty<Dimension>();
-
-        /// <summary>
-        /// Represents the minimum height that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MinHeight
-        {
-            get
-            {
-                return _minHeight;
-            }
-            set
-            {
-                if (value != _minHeight)
-                {
-                    _minHeight = value;
-                    MinHeightProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-        private Dimension _minHeight = Dimension.Unset;
-        public ObservableProperty<Dimension> MinHeightProperty { get; } = new ObservableProperty<Dimension>();
-
-        /// <summary>
-        /// Represents the minimum height that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MaxHeight
-        {
-            get
-            {
-                return _maxHeight;
-            }
-            set
-            {
-                if (value != _maxHeight)
-                {
-                    _maxHeight = value;
-                    MaxHeightProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-        private Dimension _maxHeight = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxHeightProperty { get; } = new ObservableProperty<Dimension>();
-
-        public EdgeInset Padding
-        {
-            get
-            {
-                return _padding;
-            }
-            set
-            {
-                if (value != _padding)
-                {
-                    _padding = value;
-                    PaddingProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-        private EdgeInset _padding = new EdgeInset();
-        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new ObservableProperty<EdgeInset>();
-
-        public EdgeInset Margin
-        {
-            get
-            {
-                return _margin;
-            }
-            set
-            {
-                if (value != _margin)
-                {
-                    _margin = value;
-                    MarginProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-        private EdgeInset _margin = new EdgeInset();
-        public ObservableProperty<EdgeInset> MarginProperty { get; } = new ObservableProperty<EdgeInset>();
-
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-            set
-            {
-                _name = value ?? throw new ArgumentNullException(
-                    nameof(value),
-                    "The name of an element can be empty, but not null.");
-                NameProperty.Value = value;
-            }
-        }
-        private string _name = string.Empty;
-        public ObservableProperty<string> NameProperty { get; } = new ObservableProperty<string>();
-        
-        /// <summary>
-        /// Controls whether this element is visible or not in the application. An invisible element will still occupy
-        /// space in the layout and be moved in a container, just that it is not visible (hidden).
-        /// </summary>
-        /// <seealso cref="Enabled"/>
-        public bool Visible
-        {
-            get
-            {
-                return _visible;
-            }
-            set
-            {
-                if (value != _visible)
-                {
-                    _visible = value;
-                    VisibleProperty.Value = value;
-                    
-                    foreach (Element child in _children)
-                    {
-                        child.Visible = value;
-                    }
-                    RequestRedraw();
-                }
-            }
-        }
-        private bool _visible = true;
-        public ObservableProperty<bool> VisibleProperty { get; } = new ObservableProperty<bool>();
-        
-        /// <summary>
-        /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
-        /// a layout and will generally give misleading values on properties that are related to layout in any way
-        /// such as <see cref="Bounds"/> or <see cref="AbsolutePosition"/>.
-        /// </summary>
-        /// <seealso cref="Visible"/>
-        public bool Enabled
-        {
-            get
-            {
-                return _enabled;
-            }
-            set
-            {
-                if (value != _enabled)
-                {
-                    _enabled = value;
-                    EnabledProperty.Value = value;
-                    
-                    foreach (Element child in _children)
-                    {
-                        child.Enabled = value;
-                    }
-                    RequestRedraw();
-                }
-            }
-        }
-        private bool _enabled = true;
-        public ObservableProperty<bool> EnabledProperty { get; } = new ObservableProperty<bool>();
-
-        public ContainerSizing? ElementContainerSizing
-        {
-            get
-            {
-                return _elementContainerSizing;
-            }
-            set
-            {
-                if (value != _elementContainerSizing)
-                {
-                    _elementContainerSizing = value;
-                    ElementContainerSizingProperty.Value = value;
-                }
-            }
-        }
-        private ContainerSizing? _elementContainerSizing;
-        public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } =
-            new ObservableProperty<ContainerSizing>();
-
-        public ElementBounds Bounds { get; internal set; } = new ElementBounds();
-        public bool IsInternal { get; private set; }
-        public UIDocument? Document { get; private set; }
-        /// <summary>
-        /// True when the element's parent is a container. Only the direct parent is taken into account, not the grandparent etc.
-        /// </summary>
-        public bool IsChildOfContainer { get; private set; }
-
-        protected bool IsInstantiated { get; private set; }
-
-        public Point2D AbsolutePosition
-        {
-            get
-            {
-                return _absolutePosition;
-            }
-            set
-            {
-                if (Math.Abs(value.X - _absolutePosition.X) > 0.01 ||
-                    Math.Abs(value.Y - _absolutePosition.Y) > 0.01)
-                {
-                    _absolutePosition = value;
-                    RecalculateBounds();
-                }
-            }
-        }
+        private float _absoluteHeight;
         private Point2D _absolutePosition = Point2D.Zero;
-
-        public float AbsoluteWidth
-        {
-            get
-            {
-                return _absoluteWidth;
-            }
-            set
-            {
-                if (Math.Abs(value - _absoluteWidth) > 0.01)
-                {
-                    _absoluteWidth = value;
-                    RecalculateBounds();
-                }
-            }
-        }
         private float _absoluteWidth;
 
-        public float AbsoluteHeight
-        {
-            get
-            {
-                return _absoluteHeight;
-            }
-            set
-            {
-                if (Math.Abs(value - _absoluteHeight) > 0.01)
-                {
-                    _absoluteHeight = value;
-                    RecalculateBounds();
-                }
-            }
-        }
-        private float _absoluteHeight;
-
-        private Element? _parent;
-
         /// <summary>
-        /// Contains a list of all children (public and internal).
-        /// </summary>
-        private readonly List<Element> _children = new List<Element>();
-
-        /// <summary>
-        /// It's a cache of public children only.
+        ///     It's a cache of public children only.
         /// </summary>
         private List<Element>? _cachedPublicChildren;
 
+        private ContainerSizing? _elementContainerSizing;
+        private bool _enabled;
+
+        private EdgeInset _margin = new();
+        private Dimension _maxHeight = Dimension.Unset;
+        private Dimension _maxWidth = Dimension.Unset;
+        private Dimension _minHeight = Dimension.Unset;
+        private Dimension _minWidth = Dimension.Unset;
+
+        private string _name;
+        private EdgeInset _padding = new();
+        private Element? _parent;
+        private Dimension2 _position = new();
+        private Dimension _preferredHeight = new();
+        private Dimension _preferredWidth = new();
+        private bool _visible;
+
+
         public Element(
+            string name = "",
             List<Element>? children = null,
             ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -414,7 +74,7 @@ namespace CatUI.Elements
             ContainerSizing? elementContainerSizing = null,
             bool visible = true,
             bool enabled = true,
-
+            //Element actions
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
             ExitDocumentEventHandler? onExitDocument = null,
@@ -423,82 +83,418 @@ namespace CatUI.Elements
             PointerLeaveEventHandler? onPointerLeave = null,
             PointerMoveEventHandler? onPointerMove = null)
         {
+            if (IsInstantiated)
+            {
+                throw new InvalidOperationException("Element has already been instantiated.");
+            }
+
+            _name = name;
             if (themeOverrides != null)
             {
-                SetInitialThemeOverrides(themeOverrides);
+                SetElementThemeOverrides(themeOverrides);
             }
+
             if (position != null)
             {
-                SetInitialPosition(position);
+                _position = position;
             }
+
             if (preferredWidth != null)
             {
-                SetInitialWidth(preferredWidth);
+                _preferredWidth = preferredWidth;
             }
+
             if (preferredHeight != null)
             {
-                SetInitialHeight(preferredHeight);
+                _preferredHeight = preferredHeight;
             }
+
             if (minHeight != null)
             {
-                SetInitialMinHeight(minHeight);
+                _minHeight = minHeight;
             }
+
             if (minWidth != null)
             {
-                SetInitialMinWidth(minWidth);
+                _minWidth = minWidth;
             }
+
             if (maxHeight != null)
             {
-                SetInitialMaxHeight(maxHeight);
+                _maxHeight = maxHeight;
             }
+
             if (maxWidth != null)
             {
-                SetInitialMaxWidth(maxWidth);
+                _maxWidth = maxWidth;
             }
+
             if (elementContainerSizing != null)
             {
-                SetInitialElementContainerSizing(elementContainerSizing);
+                _elementContainerSizing = elementContainerSizing;
             }
-            SetInitialVisible(visible);
-            SetInitialEnabled(enabled);
 
-            if (onDraw != null)
-            {
-                SetInitialOnDrawAction(onDraw);
-            }
-            if (onEnterDocument != null)
-            {
-                SetInitialOnEnterDocumentAction(onEnterDocument);
-            }
-            if (onExitDocument != null)
-            {
-                SetInitialOnExitDocumentAction(onExitDocument);
-            }
-            if (onLoad != null)
-            {
-                SetInitialOnLoadAction(onLoad);
-            }
-            if (onPointerEnter != null)
-            {
-                SetInitialOnPointerEnterAction(onPointerEnter);
-            }
-            if (onPointerLeave != null)
-            {
-                SetInitialOnPointerLeaveAction(onPointerLeave);
-            }
-            if (onPointerMove != null)
-            {
-                SetInitialOnPointerMoveAction(onPointerMove);
-            }
+            _visible = visible;
+            _enabled = enabled;
+
+            OnDraw = onDraw;
+            OnEnterDocument = onEnterDocument;
+            OnExitDocument = onExitDocument;
+            OnLoad = onLoad;
+            OnPointerEnter = onPointerEnter;
+            OnPointerLeave = onPointerLeave;
+            OnPointerMove = onPointerMove;
 
             InitEvents();
-            Instantiate();
+            IsInstantiated = true;
+
+            if (Document != null)
+            {
+                GetParent()?.AddChild(this);
+            }
 
             if (children != null)
             {
                 AddChildren(children);
             }
         }
+
+        public Dimension2 Position
+        {
+            get => _position;
+            set
+            {
+                if (value != _position)
+                {
+                    _position = value;
+                    PositionProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        public ObservableProperty<Dimension2> PositionProperty { get; } = new();
+
+        /// <summary>
+        ///     Represents the preferred width of the element. The layout engine will try to honor this value, but this might be
+        ///     influenced
+        ///     by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />) or if the element is
+        ///     inside a container.
+        ///     Please consult the documentation for the properties of the element you want to use, as well as the containers that
+        ///     the element will be in.
+        /// </summary>
+        public Dimension PreferredWidth
+        {
+            get => _preferredWidth;
+            set
+            {
+                if (value != _preferredWidth)
+                {
+                    _preferredWidth = value;
+                    PreferredWidthProperty.Value = value;
+                }
+            }
+        }
+
+        public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new();
+
+        /// <summary>
+        ///     Represents the minimum width that the element can have.
+        ///     By default, it has the invalid value, meaning the restriction is not applied.
+        /// </summary>
+        public Dimension MinWidth
+        {
+            get => _minWidth;
+            set
+            {
+                if (value != _minWidth)
+                {
+                    _minWidth = value;
+                    MinWidthProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        public ObservableProperty<Dimension> MinWidthProperty { get; } = new();
+
+        /// <summary>
+        ///     Represents the maximum width that the element can have.
+        ///     By default, it has the invalid value, meaning the restriction is not applied.
+        /// </summary>
+        public Dimension MaxWidth
+        {
+            get => _maxWidth;
+            set
+            {
+                if (value != _maxWidth)
+                {
+                    _maxWidth = value;
+                    MaxWidthProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new();
+
+        /// <summary>
+        ///     Represents the preferred height of the element. The layout engine will try to honor this value, but this might be
+        ///     influenced
+        ///     by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />) or if the element is
+        ///     inside a container.
+        ///     Please consult the documentation for the properties of the element you want to use, as well as the containers that
+        ///     the element will be in.
+        /// </summary>
+        public Dimension PreferredHeight
+        {
+            get => _preferredHeight;
+            set
+            {
+                if (value != _preferredHeight)
+                {
+                    _preferredHeight = value;
+                    PreferredHeightProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new();
+
+        /// <summary>
+        ///     Represents the minimum height that the element can have.
+        ///     By default, it has the invalid value, meaning the restriction is not applied.
+        /// </summary>
+        public Dimension MinHeight
+        {
+            get => _minHeight;
+            set
+            {
+                if (value != _minHeight)
+                {
+                    _minHeight = value;
+                    MinHeightProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        public ObservableProperty<Dimension> MinHeightProperty { get; } = new();
+
+        /// <summary>
+        ///     Represents the minimum height that the element can have.
+        ///     By default, it has the invalid value, meaning the restriction is not applied.
+        /// </summary>
+        public Dimension MaxHeight
+        {
+            get => _maxHeight;
+            set
+            {
+                if (value != _maxHeight)
+                {
+                    _maxHeight = value;
+                    MaxHeightProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        public ObservableProperty<Dimension> MaxHeightProperty { get; } = new();
+
+        public EdgeInset Padding
+        {
+            get => _padding;
+            set
+            {
+                if (value != _padding)
+                {
+                    _padding = value;
+                    PaddingProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new();
+
+        public EdgeInset Margin
+        {
+            get => _margin;
+            set
+            {
+                if (value != _margin)
+                {
+                    _margin = value;
+                    MarginProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        public ObservableProperty<EdgeInset> MarginProperty { get; } = new();
+
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value ?? throw new ArgumentNullException(
+                    nameof(value),
+                    "The name of an element can be empty, but not null.");
+                NameProperty.Value = value;
+            }
+        }
+
+        public ObservableProperty<string> NameProperty { get; } = new();
+
+        /// <summary>
+        ///     Controls whether this element is visible or not in the application. An invisible element will still occupy
+        ///     space in the layout and be moved in a container, just that it is not visible (hidden).
+        /// </summary>
+        /// <seealso cref="Enabled" />
+        public bool Visible
+        {
+            get => _visible;
+            set
+            {
+                if (value != _visible)
+                {
+                    _visible = value;
+                    VisibleProperty.Value = value;
+
+                    foreach (Element child in _children)
+                    {
+                        child.Visible = value;
+                    }
+
+                    RequestRedraw();
+                }
+            }
+        }
+
+        public ObservableProperty<bool> VisibleProperty { get; } = new();
+
+        /// <summary>
+        ///     If the element is not enabled, it will not be considered in layout recalculations, will not take space in
+        ///     a layout and will generally give misleading values on properties that are related to layout in any way
+        ///     such as <see cref="Bounds" /> or <see cref="AbsolutePosition" />.
+        /// </summary>
+        /// <seealso cref="Visible" />
+        public bool Enabled
+        {
+            get => _enabled;
+            set
+            {
+                if (value != _enabled)
+                {
+                    _enabled = value;
+                    EnabledProperty.Value = value;
+
+                    foreach (Element child in _children)
+                    {
+                        child.Enabled = value;
+                    }
+
+                    RequestRedraw();
+                }
+            }
+        }
+
+        public ObservableProperty<bool> EnabledProperty { get; } = new();
+
+        public ContainerSizing? ElementContainerSizing
+        {
+            get => _elementContainerSizing;
+            set
+            {
+                if (value != _elementContainerSizing)
+                {
+                    _elementContainerSizing = value;
+                    ElementContainerSizingProperty.Value = value;
+                }
+            }
+        }
+
+        public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
+
+        public ElementBounds Bounds { get; internal set; } = new();
+        public bool IsInternal { get; private set; }
+        public UIDocument? Document { get; private set; }
+
+        /// <summary>
+        ///     True when the element's parent is a container. Only the direct parent is taken into account, not the grandparent
+        ///     etc.
+        /// </summary>
+        public bool IsChildOfContainer { get; private set; }
+
+        protected bool IsInstantiated { get; private set; }
+
+        public Point2D AbsolutePosition
+        {
+            get => _absolutePosition;
+            set
+            {
+                if (Math.Abs(value.X - _absolutePosition.X) > 0.01 ||
+                    Math.Abs(value.Y - _absolutePosition.Y) > 0.01)
+                {
+                    _absolutePosition = value;
+                    RecalculateBounds();
+                }
+            }
+        }
+
+        public float AbsoluteWidth
+        {
+            get => _absoluteWidth;
+            set
+            {
+                if (Math.Abs(value - _absoluteWidth) > 0.01)
+                {
+                    _absoluteWidth = value;
+                    RecalculateBounds();
+                }
+            }
+        }
+
+        public float AbsoluteHeight
+        {
+            get => _absoluteHeight;
+            set
+            {
+                if (Math.Abs(value - _absoluteHeight) > 0.01)
+                {
+                    _absoluteHeight = value;
+                    RecalculateBounds();
+                }
+            }
+        }
+
+        public object Clone()
+        {
+            return new Element(
+                _name,
+                _children,
+                _themeDefinition,
+                _position,
+                _preferredWidth,
+                _preferredHeight,
+                _minHeight,
+                _minWidth,
+                _maxHeight,
+                _maxWidth,
+                _elementContainerSizing,
+                _visible,
+                _enabled);
+        }
+
+        public event Action? DrawEvent;
+        public event EnterDocumentEventHandler? EnterDocumentEvent;
+        public event ExitDocumentEventHandler? ExitDocumentEvent;
+        public event LoadEventHandler? LoadEvent;
+        public event PointerEnterEventHandler? PointerEnterEvent;
+        public event PointerLeaveEventHandler? PointerLeaveEvent;
+        public event PointerMoveEventHandler? PointerMoveEvent;
 
         ~Element()
         {
@@ -526,30 +522,13 @@ namespace CatUI.Elements
             _parent = null;
         }
 
-        public object Clone()
-        {
-            return new Element(
-                children: _children,
-                themeOverrides: _themeDefinition,
-                position: _position,
-                preferredWidth: _preferredWidth,
-                preferredHeight: _preferredHeight,
-                minHeight: _minHeight,
-                minWidth: _minWidth,
-                maxHeight: _maxHeight,
-                maxWidth: _maxWidth,
-                elementContainerSizing: _elementContainerSizing,
-                visible: _visible,
-                enabled: _enabled);
-        }
-
         /// <summary>
-        /// Sets the document of this element and all its children. Will also add the element to the document 
-        /// (like <see cref="AddChild(Element, bool)"/> or <see cref="AddChildren(Element[])"/>).
+        ///     Sets the document of this element and all its children. Will also add the element to the document
+        ///     (like <see cref="AddChild(Element, bool)" /> or <see cref="AddChildren(Element[])" />).
         /// </summary>
         /// <remarks>
-        /// If the element already belongs to a document, this will remove the element, along with all its children, 
-        /// then add this element along with its previous children to the specified document.
+        ///     If the element already belongs to a document, this will remove the element, along with all its children,
+        ///     then add this element along with its previous children to the specified document.
         /// </remarks>
         /// <param name="document">The document to which this element should be added.</param>
         /// <returns>The current element (return this).</returns>
@@ -573,238 +552,68 @@ namespace CatUI.Elements
                     GetParent()?.AddChild(this);
                 }
             }
+
             return this;
         }
 
-        #region Builder
-        public Element SetInitialThemeOverrides<T>(ThemeDefinition<T> themeOverrides) where T : ElementThemeData, new()
+        #region Visual
+
+        protected virtual void DrawBackground()
         {
-            if (IsInstantiated)
+            if (!_visible)
             {
-                throw new Exception("Element is already instantiated, use direct properties instead");
+                return;
             }
 
-            SetElementThemeOverrides(themeOverrides);
-            return this;
+            IBrush fillBrush = GetElementFinalThemeData<ElementThemeData>(STYLE_NORMAL).Background;
+            if (!fillBrush.IsSkippable)
+            {
+                Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), fillBrush);
+            }
         }
 
-        public Element SetInitialPosition(Dimension2 position)
+        #endregion //Visual
+
+        private void DrawChildren()
         {
-            if (IsInstantiated)
+            if (!_visible)
             {
-                throw new Exception("Element is already instantiated, use direct properties instead");
+                return;
             }
 
-            _position = position;
-            return this;
+            foreach (Element child in _children)
+            {
+                child.InvokeDraw();
+            }
         }
 
-        public Element SetInitialWidth(Dimension width)
+        private void InitEvents()
         {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
+            DrawEvent += OnDraw;
+            DrawEvent += Draw;
+            EnterDocumentEvent += OnEnterDocument;
+            EnterDocumentEvent += EnterDocument;
+            ExitDocumentEvent += OnExitDocument;
+            ExitDocumentEvent += ExitDocument;
+            LoadEvent += OnLoad;
+            LoadEvent += Loaded;
+            PointerEnterEvent += OnPointerEnter;
+            PointerEnterEvent += PointerEnter;
+            PointerLeaveEvent += OnPointerLeave;
+            PointerLeaveEvent += PointerLeave;
+            PointerMoveEvent += OnPointerMove;
+            PointerMoveEvent += PointerMove;
 
-            _preferredWidth = width;
-            return this;
+            DrawEvent += PrivateDraw;
         }
 
-        public Element SetInitialHeight(Dimension height)
+        private void EnsureChildrenCache()
         {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _preferredHeight = height;
-            return this;
+            _cachedPublicChildren ??= GetChildren();
         }
-
-        public Element SetInitialMinWidth(Dimension minWidth)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _minWidth = minWidth;
-            return this;
-        }
-
-        public Element SetInitialMinHeight(Dimension minHeight)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _minHeight = minHeight;
-            return this;
-        }
-
-        public Element SetInitialMaxWidth(Dimension maxWidth)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _maxWidth = maxWidth;
-            return this;
-        }
-
-        public Element SetInitialMaxHeight(Dimension maxHeight)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _maxHeight = maxHeight;
-            return this;
-        }
-
-        public Element SetInitialElementContainerSizing(ContainerSizing containerSizing)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _elementContainerSizing = containerSizing;
-            return this;
-        }
-        
-        public Element SetInitialVisible(bool isVisible)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _visible = isVisible;
-            return this;
-        }
-        
-        public Element SetInitialEnabled(bool isEnabled)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            _enabled = isEnabled;
-            return this;
-        }
-        
-
-        public Element SetInitialOnDrawAction(Action onDraw)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OnDraw = onDraw;
-            return this;
-        }
-
-        public Element SetInitialOnEnterDocumentAction(EnterDocumentEventHandler onEnterDocument)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OnEnterDocument = onEnterDocument;
-            return this;
-        }
-
-        public Element SetInitialOnExitDocumentAction(ExitDocumentEventHandler onExitDocument)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OnExitDocument = onExitDocument;
-            return this;
-        }
-
-        public Element SetInitialOnLoadAction(LoadEventHandler onLoad)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OnLoad = onLoad;
-            return this;
-        }
-
-        public Element SetInitialOnPointerEnterAction(PointerEnterEventHandler onPointerEnter)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OnPointerEnter = onPointerEnter;
-            return this;
-        }
-
-        public Element SetInitialOnPointerLeaveAction(PointerLeaveEventHandler onPointerLeave)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OnPointerLeave = onPointerLeave;
-            return this;
-        }
-
-        public Element SetInitialOnPointerMoveAction(PointerMoveEventHandler onPointerMove)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            OnPointerMove = onPointerMove;
-            return this;
-        }
-
-        /// <summary>
-        /// This sets up the element for the eventual addition to the document tree. If the document is set, 
-        /// this will automatically add the element to the document.
-        /// </summary>
-        /// <remarks>
-        /// Always call this before setting the children. Otherwise, you will get an exception in <see cref="AddChildren(CatUI.Elements.Element[])"/>.
-        /// This method does not act on already added children.
-        /// Calling this method more than once will not have any effect.
-        /// </remarks>
-        /// <returns>The element itself.</returns>
-        public Element Instantiate()
-        {
-            if (IsInstantiated)
-            {
-                return this;
-            }
-
-            IsInstantiated = true;
-            RecalculateLayout();
-
-            if (Document != null)
-            {
-                GetParent()?.AddChild(this);
-            }
-            return this;
-        }
-        #endregion //Builder
 
         #region Internal invoke
+
         internal void InvokeDraw()
         {
             DrawEvent?.Invoke();
@@ -845,9 +654,11 @@ namespace CatUI.Elements
         {
             PointerMoveEvent?.Invoke(this, new PointerMoveEventArgs(Point2D.Zero, false));
         }
+
         #endregion //Internal invoke
 
         #region Internal event handlers
+
         private void PrivateDraw()
         {
             //RecalculateLayout();
@@ -896,8 +707,8 @@ namespace CatUI.Elements
             if (!Position.IsUnset())
             {
                 AbsolutePosition = new Point2D(
-                     parentXPos + CalculateDimension(Position.X, parentWidth),
-                     parentYPos + CalculateDimension(Position.Y, parentHeight));
+                    parentXPos + CalculateDimension(Position.X, parentWidth),
+                    parentYPos + CalculateDimension(Position.Y, parentHeight));
             }
 
             foreach (Element child in _children)
@@ -918,15 +729,17 @@ namespace CatUI.Elements
         private void RecalculateBounds()
         {
             Bounds = new ElementBounds(
-                startPoint: AbsolutePosition,
-                width: AbsoluteWidth,
-                height: AbsoluteHeight,
-                paddings: new float[4],
-                margins: new float[4]);
+                AbsolutePosition,
+                AbsoluteWidth,
+                AbsoluteHeight,
+                new float[4],
+                new float[4]);
         }
+
         #endregion
 
         #region Public API
+
         public virtual void Draw() { }
         public virtual void EnterDocument(object sender) { }
         public virtual void ExitDocument(object sender) { }
@@ -943,7 +756,7 @@ namespace CatUI.Elements
             {
                 if (_cachedPublicChildren == null)
                 {
-                    _cachedPublicChildren = new List<Element>() { child };
+                    _cachedPublicChildren = new List<Element> { child };
                 }
                 else
                 {
@@ -1009,11 +822,12 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Returns a list of all the children of the element. DO NOT modify this list by adding or removing elements! 
-        /// That could cause crashes or unexpected behavior.
+        ///     Returns a list of all the children of the element. DO NOT modify this list by adding or removing elements!
+        ///     That could cause crashes or unexpected behavior.
         /// </summary>
         /// <remarks>
-        /// This doesn't clone the list in any way, so it has a very good performance and can be called without caching the result.
+        ///     This doesn't clone the list in any way, so it has a very good performance and can be called without caching the
+        ///     result.
         /// </remarks>
         /// <param name="includeInternal">If true, will include the internal children in the list as well.</param>
         /// <returns>A list of all the children of the element, even the internal ones if includeInternal is true.</returns>
@@ -1023,43 +837,25 @@ namespace CatUI.Elements
             {
                 return _children;
             }
-            else
-            {
-                if (_cachedPublicChildren != null)
-                {
-                    return _cachedPublicChildren;
-                }
 
-                _cachedPublicChildren = _children.Where((child) => !child.IsInternal).ToList();
+            if (_cachedPublicChildren != null)
+            {
                 return _cachedPublicChildren;
             }
+
+            _cachedPublicChildren = _children.Where(child => !child.IsInternal).ToList();
+            return _cachedPublicChildren;
         }
 
         public Element GetChild(int index, bool includeInternal = false)
         {
             if (includeInternal)
             {
-                if (index < 0)
-                {
-                    return _children[^index];
-                }
-                else
-                {
-                    return _children[index];
-                }
+                return index < 0 ? _children[^index] : _children[index];
             }
-            else
-            {
-                EnsureChildrenCache();
-                if (index < 0)
-                {
-                    return _cachedPublicChildren![^index];
-                }
-                else
-                {
-                    return _cachedPublicChildren![index];
-                }
-            }
+
+            EnsureChildrenCache();
+            return index < 0 ? _cachedPublicChildren![^index] : _cachedPublicChildren![index];
         }
 
         public bool MoveChild(Element child, int toIndex, bool includeInternal = false)
@@ -1109,12 +905,14 @@ namespace CatUI.Elements
             {
                 _cachedPublicChildren?.Remove(child);
             }
+
             child.IsChildOfContainer = false;
 
             if (Document != null)
             {
                 child.InvokeExitDocument();
             }
+
             child.RemoveAllChildren();
 
             child._parent = null;
@@ -1153,16 +951,16 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Returns the element's ThemeData that should be applied and all styling should respect this theme.
-        /// If there is no Theme in the document tree hierarchy (not even at root level), this will return 
-        /// the default ThemeData of the specified type parameter.
+        ///     Returns the element's ThemeData that should be applied and all styling should respect this theme.
+        ///     If there is no Theme in the document tree hierarchy (not even at root level), this will return
+        ///     the default ThemeData of the specified type parameter.
         /// </summary>
         /// <typeparam name="T">The ThemeData type of the element.</typeparam>
         /// <param name="state">The state for which the styling is applied.</param>
         /// <returns>The ThemeData that should be respected by the element at the given state.</returns>
         public T GetElementFinalThemeData<T>(string state) where T : ElementThemeData, new()
         {
-            T? themeData = (T?)_themeDefinition.GetThemeDataForState(state);
+            var themeData = (T?)_themeDefinition.GetThemeDataForState(state);
             return themeData ?? new T();
         }
 
@@ -1180,15 +978,15 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Will return the actual pixel value of the given dimension.
+        ///     Will return the actual pixel value of the given dimension.
         /// </summary>
         /// <param name="dimension">The dimension to get the pixel value from.</param>
         /// <param name="pixelDimensionForPercent">
-        /// Only applicable when dimension is in percentage, represents the dimension at 100%,
-        /// usually set as the parent's width or height.
+        ///     Only applicable when dimension is in percentage, represents the dimension at 100%,
+        ///     usually set as the parent's width or height.
         /// </param>
         /// <remarks>
-        /// If dimension is unset, this method returns 0.
+        ///     If dimension is unset, this method returns 0.
         /// </remarks>
         /// <returns>The pixel value of the given dimension.</returns>
         public int CalculateDimension(Dimension dimension, float pixelDimensionForPercent = 0)
@@ -1215,6 +1013,7 @@ namespace CatUI.Elements
                         {
                             return 0;
                         }
+
                         return (int)(dimension.Value * pixelDimensionForPercent / 100f);
                     }
                 case Unit.ViewportWidth:
@@ -1223,6 +1022,7 @@ namespace CatUI.Elements
                         {
                             return 0;
                         }
+
                         return (int)(dimension.Value * Document.ViewportSize.Width / 100f);
                     }
                 case Unit.ViewportHeight:
@@ -1231,6 +1031,7 @@ namespace CatUI.Elements
                         {
                             return 0;
                         }
+
                         return (int)(dimension.Value * Document.ViewportSize.Height / 100f);
                     }
             }
@@ -1241,61 +1042,7 @@ namespace CatUI.Elements
         {
             //TODO: implement
         }
+
         #endregion //Public API
-
-        #region Visual
-
-        protected virtual void DrawBackground()
-        {
-            if (!_visible)
-            {
-                return;
-            }
-
-            IBrush fillBrush = GetElementFinalThemeData<ElementThemeData>(STYLE_NORMAL).Background;
-            if (!fillBrush.IsSkippable)
-            {
-                Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), fillBrush);
-            }
-        }
-        #endregion //Visual
-
-        private void DrawChildren()
-        {
-            if (!_visible)
-            {
-                return;
-            }
-            
-            foreach (Element child in _children)
-            {
-                child.InvokeDraw();
-            }
-        }
-
-        private void InitEvents()
-        {
-            DrawEvent += OnDraw;
-            DrawEvent += Draw;
-            EnterDocumentEvent += OnEnterDocument;
-            EnterDocumentEvent += EnterDocument;
-            ExitDocumentEvent += OnExitDocument;
-            ExitDocumentEvent += ExitDocument;
-            LoadEvent += OnLoad;
-            LoadEvent += Loaded;
-            PointerEnterEvent += OnPointerEnter;
-            PointerEnterEvent += PointerEnter;
-            PointerLeaveEvent += OnPointerLeave;
-            PointerLeaveEvent += PointerLeave;
-            PointerMoveEvent += OnPointerMove;
-            PointerMoveEvent += PointerMove;
-
-            DrawEvent += PrivateDraw;
-        }
-
-        private void EnsureChildrenCache()
-        {
-            _cachedPublicChildren ??= GetChildren();
-        }
     }
 }

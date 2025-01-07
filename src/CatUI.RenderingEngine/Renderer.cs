@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Utils;
-
 using SkiaSharp;
 
 namespace CatUI.RenderingEngine
@@ -70,7 +68,7 @@ namespace CatUI.RenderingEngine
             //create the contexts if not done already
             if (Context == null)
             {
-                GRGlInterface glInterface = GRGlInterface.Create();
+                var glInterface = GRGlInterface.Create();
                 Context = GRContext.CreateGl(glInterface);
             }
 
@@ -81,7 +79,10 @@ namespace CatUI.RenderingEngine
 
                 int maxSamples = Context.GetMaxSurfaceSampleCount(COLOR_TYPE);
                 if (_samples > maxSamples)
+                {
                     _samples = maxSamples;
+                }
+
                 _glInfo = new GRGlFramebufferInfo((uint)_framebufferBinding, COLOR_TYPE.ToGlSizedFormat());
 
                 // destroy the old surface
@@ -91,7 +92,8 @@ namespace CatUI.RenderingEngine
 
                 // re-create the render target
                 _renderTarget?.Dispose();
-                _renderTarget = new GRBackendRenderTarget((int)_newSize.Width, (int)_newSize.Height, _samples, _stencilBits, _glInfo);
+                _renderTarget = new GRBackendRenderTarget((int)_newSize.Width, (int)_newSize.Height, _samples,
+                    _stencilBits, _glInfo);
             }
 
             //create the surface
@@ -147,20 +149,20 @@ namespace CatUI.RenderingEngine
                 case Unit.Percent:
                     return
                         (int)(dimension.Value *
-                        (dimensionForPercent == 0 ?
-                            Canvas?.DeviceClipBounds.Size.Width ?? 0 :
-                            dimensionForPercent) /
-                        100f);
+                              (dimensionForPercent == 0
+                                  ? Canvas?.DeviceClipBounds.Size.Width ?? 0
+                                  : dimensionForPercent) /
+                              100f);
                 case Unit.ViewportWidth:
                     return
                         (int)(dimension.Value *
-                        (Canvas?.DeviceClipBounds.Size.Width ?? 0) /
-                        100f);
+                              (Canvas?.DeviceClipBounds.Size.Width ?? 0) /
+                              100f);
                 case Unit.ViewportHeight:
                     return
                         (int)(dimension.Value *
-                        (Canvas?.DeviceClipBounds.Size.Height ?? 0) /
-                        100f);
+                              (Canvas?.DeviceClipBounds.Size.Height ?? 0) /
+                              100f);
             }
         }
 
@@ -197,7 +199,7 @@ namespace CatUI.RenderingEngine
             int upperLimit = largeText.Length;
             int minMeasuredCharacters = Math.Clamp(upperLimit / 10, 3, 20);
             int maxMeasuredCharacters = Math.Clamp(upperLimit / 10, 5, 35);
-            Random rand = new Random();
+            var rand = new Random();
 
             int values;
             float sum = 0;
@@ -217,6 +219,7 @@ namespace CatUI.RenderingEngine
         }
 
         #region Drawing
+
         /// <summary>
         /// Draws a rect directly on the canvas. The corners values are interpreted as pixels regardless of the measuring unit.
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
@@ -232,11 +235,11 @@ namespace CatUI.RenderingEngine
         public void DrawRect(Rect rect, IBrush fillBrush, CornerInset? roundedCorners = null)
         {
             SKPaint paint = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(paint: paint, paintMode: PaintMode.Fill);
+            PaintManager.ModifyPaint(paint, PaintMode.Fill);
 
             if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
             {
-                SKRoundRect roundRect = new SKRoundRect();
+                var roundRect = new SKRoundRect();
                 SKPoint[] radii = SetupRectCorners(roundedCorners);
                 roundRect.SetRectRadii(rect, radii);
                 Canvas?.DrawRoundRect(roundRect, paint);
@@ -260,14 +263,15 @@ namespace CatUI.RenderingEngine
         /// <param name="roundedCorners">
         /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless of the measuring unit.
         /// </param>
-        public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams, CornerInset? roundedCorners = null)
+        public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams,
+            CornerInset? roundedCorners = null)
         {
             SKPaint paint = outlineBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(paint: paint, paintMode: PaintMode.Outline, outlineParams: outlineParams);
+            PaintManager.ModifyPaint(paint, PaintMode.Outline, outlineParams: outlineParams);
 
             if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
             {
-                SKRoundRect roundRect = new SKRoundRect();
+                var roundRect = new SKRoundRect();
                 SKPoint[] radii = SetupRectCorners(roundedCorners);
                 roundRect.SetRectRadii(rect, radii);
 
@@ -282,16 +286,17 @@ namespace CatUI.RenderingEngine
         public void DrawEllipse(Point2D center, float rx, float ry, IBrush fillBrush)
         {
             SKPaint paint = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(paint: paint, paintMode: PaintMode.Fill);
+            PaintManager.ModifyPaint(paint, PaintMode.Fill);
             Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
         }
 
-        public void DrawEllipseOutline(Point2D center, float rx, float ry, IBrush outlineBrush, OutlineParams outlineParams)
+        public void DrawEllipseOutline(Point2D center, float rx, float ry, IBrush outlineBrush,
+            OutlineParams outlineParams)
         {
             SKPaint paint = outlineBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(
-                paint: paint,
-                paintMode: PaintMode.Outline,
+                paint,
+                PaintMode.Outline,
                 outlineParams: outlineParams);
 
             Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
@@ -348,8 +353,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.Fill,
+                    painter,
+                    PaintMode.Fill,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -360,8 +365,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = outlineBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.Outline,
+                    painter,
+                    PaintMode.Outline,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -372,8 +377,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.FillAndOutline,
+                    painter,
+                    PaintMode.FillAndOutline,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -391,12 +396,13 @@ namespace CatUI.RenderingEngine
             {
                 drawPointX += elementSize.Width;
             }
-            SKPoint drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
 
-            StringBuilder sb = new StringBuilder();
-            List<int> shyPositions = new List<int>();
+            var drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
 
-            for (int i = 0; i < text.Length; i++)
+            var sb = new StringBuilder();
+            List<int> shyPositions = new();
+
+            for (var i = 0; i < text.Length; i++)
             {
                 if (text[i] == '\r' && i == text.Length - 1)
                 {
@@ -416,8 +422,8 @@ namespace CatUI.RenderingEngine
                 sb.Append(text[i]);
             }
 
-            string drawableText = sb.ToString();
-            bool needsHyphen = false;
+            var drawableText = sb.ToString();
+            var needsHyphen = false;
             int charactersDrawn = 0, charsOnThisRow;
 
             if (cachedMaxCharacters > 0)
@@ -500,13 +506,14 @@ namespace CatUI.RenderingEngine
             //actual drawing
             if (needsHyphen)
             {
-                string newString = new string(drawableText.AsSpan(charactersDrawn, charsOnThisRow));
+                var newString = new string(drawableText.AsSpan(charactersDrawn, charsOnThisRow));
                 Canvas?.DrawText(newString + hyphenCharacter, drawPoint, painter);
             }
             else
             {
                 Canvas?.DrawText(drawableText.Substring(charactersDrawn, charsOnThisRow), drawPoint, painter);
             }
+
             charactersDrawn += charsOnThisRow;
 
             //also add all the shy characters in the count
@@ -573,8 +580,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.Fill,
+                    painter,
+                    PaintMode.Fill,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -585,8 +592,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = outlineBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.Outline,
+                    painter,
+                    PaintMode.Outline,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -597,8 +604,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.FillAndOutline,
+                    painter,
+                    PaintMode.FillAndOutline,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -616,7 +623,8 @@ namespace CatUI.RenderingEngine
             {
                 drawPointX += elementSize.Width;
             }
-            SKPoint drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
+
+            var drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
 
             bool hasHyphens = TextUtils.RemoveSoftHyphens(text, out string textWithoutHyphens);
             if (hasHyphens)
@@ -641,7 +649,7 @@ namespace CatUI.RenderingEngine
             }
 
             int newLinePosition = -1;
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (text[i] == '\r' && i == text.Length - 1)
                 {
@@ -722,8 +730,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.Fill,
+                    painter,
+                    PaintMode.Fill,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -734,8 +742,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = outlineBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.Outline,
+                    painter,
+                    PaintMode.Outline,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -746,8 +754,8 @@ namespace CatUI.RenderingEngine
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: painter,
-                    paintMode: PaintMode.FillAndOutline,
+                    painter,
+                    PaintMode.FillAndOutline,
                     textAlignment: textAlignment,
                     fontSize: CalculateDimension(fontSize));
             }
@@ -765,7 +773,8 @@ namespace CatUI.RenderingEngine
             {
                 drawPointX += elementSize.Width;
             }
-            SKPoint drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
+
+            var drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
 
             Canvas?.DrawText(text, drawPoint, painter);
         }
@@ -781,7 +790,7 @@ namespace CatUI.RenderingEngine
             Point2D topLeftPoint,
             SKPaint rawPaint)
         {
-            SKPoint drawPoint = new SKPoint(topLeftPoint.X, topLeftPoint.Y);
+            var drawPoint = new SKPoint(topLeftPoint.X, topLeftPoint.Y);
             Canvas?.DrawText(text, drawPoint, rawPaint);
         }
 
@@ -795,8 +804,8 @@ namespace CatUI.RenderingEngine
             {
                 SKPaint fillPaint = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: fillPaint,
-                    paintMode: PaintMode.Fill);
+                    fillPaint,
+                    PaintMode.Fill);
 
                 Canvas?.DrawPath(skiaPath, fillPaint);
             }
@@ -805,13 +814,14 @@ namespace CatUI.RenderingEngine
             {
                 SKPaint outlinePaint = outlineBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
-                    paint: outlinePaint,
-                    paintMode: PaintMode.Outline,
+                    outlinePaint,
+                    PaintMode.Outline,
                     outlineParams: outlineParams);
 
                 Canvas?.DrawPath(skiaPath, outlinePaint);
             }
         }
+
         #endregion
 
         private static SKPoint[] SetupRectCorners(CornerInset roundedCorners)
@@ -836,6 +846,7 @@ namespace CatUI.RenderingEngine
                         roundedCorners.TopLeftEllipse.X.Value,
                         roundedCorners.TopLeftEllipse.Y.Value);
             }
+
             if (roundedCorners.TopRightEllipse.IsUnset())
             {
                 if (roundedCorners.TopRight.IsUnset())
@@ -854,6 +865,7 @@ namespace CatUI.RenderingEngine
                         roundedCorners.TopRightEllipse.X.Value,
                         roundedCorners.TopRightEllipse.Y.Value);
             }
+
             if (roundedCorners.BottomRightEllipse.IsUnset())
             {
                 if (roundedCorners.BottomRight.IsUnset())
@@ -872,6 +884,7 @@ namespace CatUI.RenderingEngine
                         roundedCorners.BottomRightEllipse.X.Value,
                         roundedCorners.BottomRightEllipse.Y.Value);
             }
+
             if (roundedCorners.BottomLeftEllipse.IsUnset())
             {
                 if (roundedCorners.BottomLeft.IsUnset())

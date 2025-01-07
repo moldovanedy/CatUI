@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-
 using CatUI.Data;
 using CatUI.RenderingEngine;
-
 using SkiaSharp;
 
 namespace CatUI.Elements
@@ -21,10 +19,7 @@ namespace CatUI.Elements
         /// </summary>
         public Element? Root
         {
-            get
-            {
-                return _root;
-            }
+            get => _root;
             set
             {
                 if (_root != value)
@@ -38,6 +33,7 @@ namespace CatUI.Elements
                 {
                     return;
                 }
+
                 _root.SetDocument(this);
 
                 _root.MinHeight = "100%";
@@ -50,14 +46,12 @@ namespace CatUI.Elements
                 _root.AbsoluteHeight = ViewportSize.Height;
             }
         }
+
         private Element? _root;
 
         public Size ViewportSize
         {
-            get
-            {
-                return _viewportSize;
-            }
+            get => _viewportSize;
             set
             {
                 _viewportSize = value;
@@ -65,40 +59,37 @@ namespace CatUI.Elements
                 Root?.RecalculateLayout();
             }
         }
-        private Size _viewportSize = new Size();
 
-        public Renderer Renderer { get; private set; } = new Renderer();
+        private Size _viewportSize = new();
+
+        public Renderer Renderer { get; private set; } = new();
         public int ElementCacheSize { get; set; } = 4096;
 
         public Color BackgroundColor
         {
-            get
-            {
-                return _background;
-            }
+            get => _background;
             set
             {
                 _background = value;
                 Renderer.SetBgColor(value);
             }
         }
-        private Color _background = new Color(0xff_ff_ff);
+
+        private Color _background = new(0xff_ff_ff);
 
         public float ContentScale
         {
-            get
-            {
-                return _contentScale;
-            }
+            get => _contentScale;
             set
             {
                 _contentScale = value;
                 Renderer.SetContentScale(value);
             }
         }
+
         private float _contentScale = 1f;
 
-        private readonly Dictionary<string, Element> _cachedElements = new Dictionary<string, Element>();
+        private readonly Dictionary<string, Element> _cachedElements = new();
 
         public void DrawAllElements()
         {
@@ -117,6 +108,7 @@ namespace CatUI.Elements
                 {
                     return element;
                 }
+
                 return Search(Root, name);
             }
         }
@@ -148,6 +140,7 @@ namespace CatUI.Elements
 
                     return child;
                 }
+
                 Search(child, name);
             }
 

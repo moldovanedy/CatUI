@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-
 using CatUI.Data;
 using CatUI.Data.Containers;
 using CatUI.Data.Enums;
@@ -12,7 +11,6 @@ using CatUI.Data.Managers;
 using CatUI.Elements.Themes;
 using CatUI.Elements.Themes.Text;
 using CatUI.RenderingEngine;
-
 using SkiaSharp;
 
 namespace CatUI.Elements.Text
@@ -21,50 +19,50 @@ namespace CatUI.Elements.Text
     {
         public TextBreakMode TextBreakMode
         {
-            get
-            {
-                return _textBreakMode;
-            }
+            get => _textBreakMode;
             set
             {
                 _textBreakMode = value;
                 TextBreakModeProperty.Value = value;
             }
         }
+
         private TextBreakMode _textBreakMode = TextBreakMode.SoftBreak;
+
         public ObservableProperty<TextBreakMode> TextBreakModeProperty { get; }
-            = new ObservableProperty<TextBreakMode>();
+            = new();
 
         public char HyphenCharacter
         {
-            get
-            {
-                return _hyphenCharacter;
-            }
+            get => _hyphenCharacter;
             set
             {
                 _hyphenCharacter = value;
                 HyphenCharacterProperty.Value = value;
             }
         }
+
         private char _hyphenCharacter = '-';
-        public ObservableProperty<char> HyphenCharacterProperty { get; } = new ObservableProperty<char>();
+        public ObservableProperty<char> HyphenCharacterProperty { get; } = new();
 
         private List<KeyValuePair<string, float>>? _cachedRows;
         private float _maxRowWidth;
         private float _hyphenCharacterWidth;
 
         public Label(
+            //required
             string text,
-
+            //own
             TextBreakMode breakMode = TextBreakMode.SoftBreak,
-            char hyphenCharacter = '-',
-
+            char hyphenCharacter = '\u2026',
+            //TextElement
             TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
+            string ellipsisString = "\u2026",
             bool wordWrap = false,
             bool allowsExpansion = true,
-
+            //Element
+            string name = "",
             List<Element>? children = null,
             ThemeDefinition<LabelThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -77,7 +75,7 @@ namespace CatUI.Elements.Text
             ContainerSizing? elementContainerSizing = null,
             bool visible = true,
             bool enabled = true,
-
+            //Element actions
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
             ExitDocumentEventHandler? onExitDocument = null,
@@ -85,31 +83,37 @@ namespace CatUI.Elements.Text
             PointerEnterEventHandler? onPointerEnter = null,
             PointerLeaveEventHandler? onPointerLeave = null,
             PointerMoveEventHandler? onPointerMove = null) :
-            base(text: text,
-                 textAlignment: textAlignment,
-                 textOverflowMode: textOverflowMode,
-                 wordWrap: wordWrap,
-                 allowsExpansion: allowsExpansion,
 
-                 children: children,
-                 position: position,
-                 preferredWidth: preferredWidth,
-                 preferredHeight: preferredHeight,
-                 minHeight: minHeight,
-                 minWidth: minWidth,
-                 maxHeight: maxHeight,
-                 maxWidth: maxWidth,
-                 elementContainerSizing: elementContainerSizing,
-                 visible: visible,
-                 enabled: enabled,
-
-                 onDraw: onDraw,
-                 onEnterDocument: onEnterDocument,
-                 onExitDocument: onExitDocument,
-                 onLoad: onLoad,
-                 onPointerEnter: onPointerEnter,
-                 onPointerLeave: onPointerLeave,
-                 onPointerMove: onPointerMove)
+            //ReSharper disable ArgumentsStyleNamedExpression
+            base(
+                text: text,
+                textAlignment: textAlignment,
+                textOverflowMode: textOverflowMode,
+                ellipsisString: ellipsisString,
+                wordWrap: wordWrap,
+                allowsExpansion: allowsExpansion,
+                //
+                name: name,
+                children: children,
+                position: position,
+                preferredWidth: preferredWidth,
+                preferredHeight: preferredHeight,
+                minHeight: minHeight,
+                minWidth: minWidth,
+                maxHeight: maxHeight,
+                maxWidth: maxWidth,
+                elementContainerSizing: elementContainerSizing,
+                visible: visible,
+                enabled: enabled,
+                //
+                onDraw: onDraw,
+                onEnterDocument: onEnterDocument,
+                onExitDocument: onExitDocument,
+                onLoad: onLoad,
+                onPointerEnter: onPointerEnter,
+                onPointerLeave: onPointerLeave,
+                onPointerMove: onPointerMove)
+        //ReSharper enable ArgumentsStyleNamedExpression
         {
             DrawEvent += DrawText;
             TextProperty.ValueChangedEvent += OnTextChanged;
@@ -129,33 +133,9 @@ namespace CatUI.Elements.Text
             TextProperty.ValueChangedEvent -= OnTextChanged;
         }
 
-        #region Builder
-        public Label SetInitialTextBreakMode(TextBreakMode textBreakMode)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            TextBreakMode = textBreakMode;
-            return this;
-        }
-
-        public Label SetInitialHyphenCharacter(char hyphenCharacter)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            HyphenCharacter = hyphenCharacter;
-            return this;
-        }
-        #endregion //Builder
-
         internal override void RecalculateLayout()
         {
-            if (IsChildOfContainer == true)
+            if (IsChildOfContainer)
             {
                 return;
             }
@@ -199,8 +179,8 @@ namespace CatUI.Elements.Text
             if (!Position.IsUnset())
             {
                 normalPosition = new Point2D(
-                     parentXPos + CalculateDimension(Position.X, parentWidth),
-                     parentYPos + CalculateDimension(Position.Y, parentHeight));
+                    parentXPos + CalculateDimension(Position.X, parentWidth),
+                    parentYPos + CalculateDimension(Position.Y, parentHeight));
             }
 
             //TODO: optimize this so that a recalculation doesn't happen on resizing, but only when it's necessary
@@ -229,11 +209,11 @@ namespace CatUI.Elements.Text
             //calculate the actual dimensions occupied by the text
             _cachedRows = new List<KeyValuePair<string, float>>();
 
-            StringBuilder sb = new StringBuilder();
-            List<int> shyPositions = new List<int>();
-            List<int> newlinePositions = new List<int>();
+            var sb = new StringBuilder();
+            List<int> shyPositions = new();
+            List<int> newlinePositions = new();
 
-            for (int i = 0; i < Text.Length; i++)
+            for (var i = 0; i < Text.Length; i++)
             {
                 if (Text[i] == '\r' && i == Text.Length - 1)
                 {
@@ -251,30 +231,29 @@ namespace CatUI.Elements.Text
                     {
                         shyPositions.Add(sb.Length);
                     }
+
                     continue;
                 }
 
                 sb.Append(Text[i]);
             }
 
-            string drawableText = sb.ToString();
+            var drawableText = sb.ToString();
             float maxWidth = normalWidth;
             float newHeight = 0;
-            LabelThemeData currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
+            var currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
 
             float fontSize = CalculateDimension(currentTheme.FontSize);
             float lineHeightPixels = fontSize * currentTheme.LineHeight;
 
-            SKPaint paint = PaintManager.GetPaint(
-                paintMode: PaintMode.Fill,
-                fontSize: fontSize);
+            SKPaint paint = PaintManager.GetPaint(fontSize: fontSize);
 
-            int characterPosition = 0;
-            bool isFirstRow = true;
+            var characterPosition = 0;
+            var isFirstRow = true;
             ReadOnlySpan<char> textSpan = drawableText.AsSpan();
             _hyphenCharacterWidth = paint.MeasureText(HyphenCharacter.ToString());
 
-            int lastNewLinePosition = 0;
+            var lastNewLinePosition = 0;
             while (characterPosition < textSpan.Length)
             {
                 ReadOnlySpan<char> nextSlice = textSpan.Slice(characterPosition);
@@ -283,24 +262,27 @@ namespace CatUI.Elements.Text
 
                 for (int i = lastNewLinePosition; i < newlinePositions.Count; i++)
                 {
-                    if (newlinePositions[i] > characterPosition && newlinePositions[i] < characterPosition + safeCharacterNumber)
+                    if (newlinePositions[i] > characterPosition &&
+                        newlinePositions[i] < characterPosition + safeCharacterNumber)
                     {
                         safeCharacterNumber = newlinePositions[i] - characterPosition;
                         lastNewLinePosition = i;
                         break;
                     }
                 }
+
                 nextSlice = nextSlice.Slice(0, safeCharacterNumber);
                 if (nextSlice.Length == 0)
                 {
-                    Debug.WriteLine("WARN: Label width to small for the specified font size. Skipping to the next character.");
+                    Debug.WriteLine(
+                        "WARN: Label width to small for the specified font size. Skipping to the next character.");
                     characterPosition++;
                     continue;
                 }
 
-                bool needsHyphen = false;
+                var needsHyphen = false;
                 //take into account an eventual hyphen
-                int characterCount = (int)paint.BreakText(nextSlice, normalWidth - _hyphenCharacterWidth);
+                var characterCount = (int)paint.BreakText(nextSlice, normalWidth - _hyphenCharacterWidth);
                 int normalCharacterCount = characterCount;
 
                 if (characterCount == 0)
@@ -320,11 +302,13 @@ namespace CatUI.Elements.Text
                         int safeValue = characterCount;
                         while (characterCount > 0)
                         {
-                            if (TextBreakMode == TextBreakMode.SoftBreak && shyPositions.Contains(characterPosition + characterCount))
+                            if (TextBreakMode == TextBreakMode.SoftBreak &&
+                                shyPositions.Contains(characterPosition + characterCount))
                             {
                                 needsHyphen = true;
                                 break;
                             }
+
                             if (char.IsWhiteSpace(nextSlice[characterCount]))
                             {
                                 break;
@@ -372,20 +356,21 @@ namespace CatUI.Elements.Text
                     {
                         maxWidth = newWidth;
                     }
+
                     _cachedRows.Add(
                         new KeyValuePair<string, float>(
-                            needsHyphen ?
-                            new string(nextSlice.Slice(0, characterCount)) + HyphenCharacter :
-                            new string(nextSlice.Slice(0, characterCount)),
+                            needsHyphen
+                                ? new string(nextSlice.Slice(0, characterCount)) + HyphenCharacter
+                                : new string(nextSlice.Slice(0, characterCount)),
                             newWidth));
                 }
                 else
                 {
                     _cachedRows.Add(
                         new KeyValuePair<string, float>(
-                            needsHyphen ?
-                            new string(nextSlice.Slice(0, characterCount)) + HyphenCharacter :
-                            new string(nextSlice.Slice(0, characterCount)),
+                            needsHyphen
+                                ? new string(nextSlice.Slice(0, characterCount)) + HyphenCharacter
+                                : new string(nextSlice.Slice(0, characterCount)),
                             normalWidth));
                 }
 
@@ -414,12 +399,12 @@ namespace CatUI.Elements.Text
             AbsoluteWidth = AllowsExpansion ? maxWidth : normalWidth;
             AbsolutePosition = normalPosition;
 
-            //determine the largest's row width
-            for (int i = 0; i < _cachedRows.Count; i++)
+            //determine the largest row width
+            foreach (KeyValuePair<string, float> t in _cachedRows)
             {
-                if (_cachedRows[i].Value > _maxRowWidth)
+                if (t.Value > _maxRowWidth)
                 {
-                    _maxRowWidth = _cachedRows[i].Value;
+                    _maxRowWidth = t.Value;
                 }
             }
 
@@ -432,7 +417,7 @@ namespace CatUI.Elements.Text
 
         private void DrawText()
         {
-            LabelThemeData currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
+            var currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
             float fontSize = CalculateDimension(currentTheme.FontSize);
             float rowSize = fontSize * currentTheme.LineHeight;
             Point2D rowPosition = Bounds.StartPoint;
@@ -446,8 +431,8 @@ namespace CatUI.Elements.Text
                     return;
                 }
 
-                int rowsDrawn = 0;
-                int charactersDrawn = 0;
+                var rowsDrawn = 0;
+                var charactersDrawn = 0;
                 while (
                     rowsDrawn < _cachedRows.Count &&
                     charactersDrawn < Text.Length &&
@@ -455,7 +440,6 @@ namespace CatUI.Elements.Text
                     (AllowsExpansion || rowPosition.Y < Bounds.StartPoint.Y + Bounds.Width))
                 {
                     SKPaint painter = PaintManager.GetPaint(
-                        paintMode: PaintMode.Fill,
                         fontSize: fontSize);
                     painter.Color = currentTheme.FillBrush.ToSkiaPaint().Color;
 
@@ -467,16 +451,16 @@ namespace CatUI.Elements.Text
             }
             else
             {
-                Document?.Renderer?.DrawTextRow(
-                    text: Text,
-                    topLeftPoint: Bounds.StartPoint,
-                    fontSize: currentTheme.FontSize,
-                    elementSize: new Size(AbsoluteWidth, AbsoluteHeight),
-                    fillBrush: currentTheme.FillBrush,
-                    outlineBrush: currentTheme.OutlineBrush,
-                    textAlignment: TextAlignment,
-                    overflowMode: TextOverflowMode,
-                    ellipsisStringOverride: EllipsisString);
+                Document?.Renderer.DrawTextRow(
+                    Text,
+                    Bounds.StartPoint,
+                    currentTheme.FontSize,
+                    new Size(AbsoluteWidth, AbsoluteHeight),
+                    currentTheme.FillBrush,
+                    currentTheme.OutlineBrush,
+                    TextAlignment,
+                    TextOverflowMode,
+                    EllipsisString);
             }
         }
 

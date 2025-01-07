@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using CatUI.Data;
 using CatUI.Data.Containers;
 using CatUI.Data.Enums;
@@ -15,80 +14,70 @@ namespace CatUI.Elements.Text
     {
         public string Text
         {
-            get
-            {
-                return _text;
-            }
+            get => _text;
             set
             {
                 _text = value;
                 TextProperty.Value = value;
             }
         }
+
         private string _text = string.Empty;
-        public ObservableProperty<string> TextProperty { get; } = new ObservableProperty<string>();
+        public ObservableProperty<string> TextProperty { get; } = new();
 
         public bool WordWrap
         {
-            get
-            {
-                return _wordWrap;
-            }
+            get => _wordWrap;
             set
             {
                 _wordWrap = value;
                 WordWrapProperty.Value = value;
             }
         }
+
         private bool _wordWrap;
-        public ObservableProperty<bool> WordWrapProperty { get; } = new ObservableProperty<bool>();
+        public ObservableProperty<bool> WordWrapProperty { get; } = new();
 
         public TextOverflowMode TextOverflowMode
         {
-            get
-            {
-                return _textOverflowMode;
-            }
+            get => _textOverflowMode;
             set
             {
                 _textOverflowMode = value;
                 TextOverflowModeProperty.Value = value;
             }
         }
+
         private TextOverflowMode _textOverflowMode = TextOverflowMode.Ellipsis;
+
         public ObservableProperty<TextOverflowMode> TextOverflowModeProperty { get; }
-           = new ObservableProperty<TextOverflowMode>();
+            = new();
 
         public TextAlignmentType TextAlignment
         {
-            get
-            {
-                return _textAlignmentType;
-            }
+            get => _textAlignmentType;
             set
             {
                 _textAlignmentType = value;
                 TextAlignmentProperty.Value = value;
             }
         }
+
         private TextAlignmentType _textAlignmentType = TextAlignmentType.Left;
-        public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; }
-            = new ObservableProperty<TextAlignmentType>();
+        public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; } = new();
 
         public string EllipsisString
         {
-            get
-            {
-                return _ellipsisString;
-            }
+            get => _ellipsisString;
             set
             {
                 _ellipsisString = value;
                 EllipsisStringProperty.Value = value;
             }
         }
+
         private string _ellipsisString = "\u2026";
-        public ObservableProperty<string> EllipsisStringProperty { get; } = new ObservableProperty<string>();
+        public ObservableProperty<string> EllipsisStringProperty { get; } = new();
 
         /// <summary>
         /// If true, the element will expand beyond the set <see cref="Element.PreferredWidth"/> and <see cref="Element.PreferredHeight"/> without
@@ -109,26 +98,26 @@ namespace CatUI.Elements.Text
         /// </remarks>
         public bool AllowsExpansion
         {
-            get
-            {
-                return _allowsExpansion;
-            }
+            get => _allowsExpansion;
             set
             {
                 _allowsExpansion = value;
                 AllowsExpansionProperty.Value = value;
             }
         }
-        private bool _allowsExpansion;
-        public ObservableProperty<bool> AllowsExpansionProperty { get; } = new ObservableProperty<bool>();
+
+        private bool _allowsExpansion = true;
+        public ObservableProperty<bool> AllowsExpansionProperty { get; } = new();
 
         public TextElement(
             string text,
             TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
+            string ellipsisString = "\u2026",
             bool wordWrap = false,
             bool allowsExpansion = true,
-
+            //Element
+            string name = "",
             List<Element>? children = null,
             ThemeDefinition<TextElementThemeData>? themeOverrides = null,
             Dimension2? position = null,
@@ -141,7 +130,7 @@ namespace CatUI.Elements.Text
             ContainerSizing? elementContainerSizing = null,
             bool visible = true,
             bool enabled = true,
-
+            //Element actions
             Action? onDraw = null,
             EnterDocumentEventHandler? onEnterDocument = null,
             ExitDocumentEventHandler? onExitDocument = null,
@@ -149,29 +138,35 @@ namespace CatUI.Elements.Text
             PointerEnterEventHandler? onPointerEnter = null,
             PointerLeaveEventHandler? onPointerLeave = null,
             PointerMoveEventHandler? onPointerMove = null) :
-            base(children: children,
-                 position: position,
-                 preferredWidth: preferredWidth,
-                 preferredHeight: preferredHeight,
-                 minHeight: minHeight,
-                 minWidth: minWidth,
-                 maxHeight: maxHeight,
-                 maxWidth: maxWidth,
-                 elementContainerSizing: elementContainerSizing,
-                 visible: visible,
-                 enabled: enabled,
 
-                 onDraw: onDraw,
-                 onEnterDocument: onEnterDocument,
-                 onExitDocument: onExitDocument,
-                 onLoad: onLoad,
-                 onPointerEnter: onPointerEnter,
-                 onPointerLeave: onPointerLeave,
-                 onPointerMove: onPointerMove)
+            //ReSharper disable ArgumentsStyleNamedExpression
+            base(
+                name: name,
+                children: children,
+                position: position,
+                preferredWidth: preferredWidth,
+                preferredHeight: preferredHeight,
+                minHeight: minHeight,
+                minWidth: minWidth,
+                maxHeight: maxHeight,
+                maxWidth: maxWidth,
+                elementContainerSizing: elementContainerSizing,
+                visible: visible,
+                enabled: enabled,
+                //
+                onDraw: onDraw,
+                onEnterDocument: onEnterDocument,
+                onExitDocument: onExitDocument,
+                onLoad: onLoad,
+                onPointerEnter: onPointerEnter,
+                onPointerLeave: onPointerLeave,
+                onPointerMove: onPointerMove)
+        //ReSharper enable ArgumentsStyleNamedExpression
         {
             Text = text;
             TextAlignment = textAlignment;
             TextOverflowMode = textOverflowMode;
+            EllipsisString = ellipsisString;
             WordWrap = wordWrap;
             AllowsExpansion = allowsExpansion;
 
@@ -180,62 +175,5 @@ namespace CatUI.Elements.Text
                 SetElementThemeOverrides(themeOverrides);
             }
         }
-
-        #region Builder
-        public TextElement SetInitialText(string text)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            Text = text;
-            return this;
-        }
-
-        public TextElement SetInitialTextAlignment(TextAlignmentType textAlignment)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            TextAlignment = textAlignment;
-            return this;
-        }
-
-        public TextElement SetInitialTextOverflowMode(TextOverflowMode overflowMode)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            TextOverflowMode = overflowMode;
-            return this;
-        }
-
-        public TextElement SetInitialWordWrap(bool wordWrap)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            WordWrap = wordWrap;
-            return this;
-        }
-
-        public TextElement SetInitialAllowsExpansion(bool allowsExpansion)
-        {
-            if (IsInstantiated)
-            {
-                throw new Exception("Element is already instantiated, use direct properties instead");
-            }
-
-            AllowsExpansion = allowsExpansion;
-            return this;
-        }
-        #endregion //Builder
     }
 }
