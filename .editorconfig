@@ -23,6 +23,7 @@ dotnet_sort_system_directives_first = true
 file_header_template = # this. and Me. preferences
 
 
+
 dotnet_style_qualification_for_event = false:suggestion
 dotnet_style_qualification_for_field = false:suggestion
 dotnet_style_qualification_for_method = false:suggestion
@@ -234,7 +235,7 @@ resharper_braces_for_ifelse = required
 resharper_braces_for_while = required
 resharper_braces_redundant = false
 resharper_enforce_line_ending_style = true
-resharper_for_built_in_types = use_var_when_evident
+resharper_for_built_in_types = use_explicit_type
 resharper_for_simple_types = use_var_when_evident
 resharper_indent_nested_fixed_stmt = true
 resharper_indent_nested_foreach_stmt = true

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
@@ -14,17 +13,17 @@ namespace CatTest
 {
     internal sealed class Program
     {
-        private const int GLFW_ANGLE_PLATFORM_TYPE = 0x00050002;
-
-        private const int GLFW_ANGLE_PLATFORM_TYPE_NONE = 0x00037001;
-        private const int GLFW_ANGLE_PLATFORM_TYPE_OPENGL = 0x00037002;
-        private const int GLFW_ANGLE_PLATFORM_TYPE_OPENGLES = 0x00037003;
-        private const int GLFW_ANGLE_PLATFORM_TYPE_D3D9 = 0x00037004;
-        private const int GLFW_ANGLE_PLATFORM_TYPE_D3D11 = 0x00037005;
-        private const int GLFW_ANGLE_PLATFORM_TYPE_VULKAN = 0x00037007;
-        private const int GLFW_ANGLE_PLATFORM_TYPE_METAL = 0x00037008;
-
-        private const int EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE = 0x3450;
+        // private const int GLFW_ANGLE_PLATFORM_TYPE = 0x00050002;
+        //
+        // private const int GLFW_ANGLE_PLATFORM_TYPE_NONE = 0x00037001;
+        // private const int GLFW_ANGLE_PLATFORM_TYPE_OPENGL = 0x00037002;
+        // private const int GLFW_ANGLE_PLATFORM_TYPE_OPENGLES = 0x00037003;
+        // private const int GLFW_ANGLE_PLATFORM_TYPE_D3D9 = 0x00037004;
+        // private const int GLFW_ANGLE_PLATFORM_TYPE_D3D11 = 0x00037005;
+        // private const int GLFW_ANGLE_PLATFORM_TYPE_VULKAN = 0x00037007;
+        // private const int GLFW_ANGLE_PLATFORM_TYPE_METAL = 0x00037008;
+        //
+        // private const int EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE = 0x3450;
 
         private static Window? _window;
 
@@ -42,8 +41,8 @@ namespace CatTest
             // }
 
             _window = new Window(
-                width: 800,
-                height: 600,
+                800,
+                600,
                 minWidth: 300,
                 minHeight: 200,
                 title: "Test");
@@ -69,19 +68,19 @@ namespace CatTest
                     preferredWidth: new Dimension(80, Unit.Percent),
                     preferredHeight: new Dimension(20, Unit.Percent),
                     fillBrush: new ColorBrush(new Color(0xff_ff_00)),
-
-                    children: [
+                    children:
+                    [
                         new GeometricPath(
                             svgPath:
-                                $"M25 35 L45 60 A40 40 29 1 1 25 25",
+                            $"M25 35 L45 60 A40 40 29 1 1 25 25",
                             position: "5 10",
                             preferredWidth: new Dimension(25, Unit.Percent),
                             preferredHeight: new Dimension(15, Unit.Percent),
                             fillBrush: new ColorBrush(new Color(0xff_98_00)),
                             outlineBrush: new ColorBrush(new Color(0x21_96_f3)),
                             outlineParameters: new OutlineParams(
-                                outlineWidth: 4,
-                                lineCap: LineCapType.Round,
+                                4,
+                                LineCapType.Round,
                                 miterLimit: 5)
                         ),
                         new Rectangle(
@@ -93,7 +92,7 @@ namespace CatTest
                             fillBrush: new ColorBrush(new Color(0x1d_ea_85))
                         ),
                         new Label(
-                            text: "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
+                            "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
                             wordWrap: true,
                             position: new Dimension2(0, 0),
                             preferredWidth: new Dimension(25, Unit.Percent),
@@ -110,7 +109,7 @@ namespace CatTest
                                     }
                                 }
                             })
-                        ),
+                        )
                     ]
                 )
             );
