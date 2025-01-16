@@ -1,25 +1,35 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CatUI.Data;
-using CatUI.Data.Brushes;
+using CatUI.Data.Assets;
 using CatUI.Data.Containers;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Themes;
 
-namespace CatUI.Elements.Shapes
+namespace CatUI.Elements
 {
-    public partial class Ellipse : AbstractShape
+    public class ImageView : Element
     {
-        public Ellipse(
-            //AbstractShape
-            IBrush? fillBrush = null,
-            IBrush? outlineBrush = null,
-            OutlineParams? outlineParameters = null,
+        public Image? Source
+        {
+            get => _source;
+            set
+            {
+                _source = value;
+                SourceProperty.Value = value;
+            }
+        }
+
+        private Image? _source;
+        public ObservableProperty<Image> SourceProperty { get; } = new();
+
+        public ImageView(
+            Image source,
             //Element
             string name = "",
             List<Element>? children = null,
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
+            ThemeDefinition<ImageViewThemeData>? themeOverrides = null,
             Dimension2? position = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null,
@@ -41,13 +51,8 @@ namespace CatUI.Elements.Shapes
 
             //ReSharper disable ArgumentsStyleNamedExpression
             base(
-                fillBrush: fillBrush,
-                outlineBrush: outlineBrush,
-                outlineParameters: outlineParameters,
-                //
                 name: name,
                 children: children,
-                themeOverrides: themeOverrides,
                 position: position,
                 preferredWidth: preferredWidth,
                 preferredHeight: preferredHeight,
@@ -68,43 +73,42 @@ namespace CatUI.Elements.Shapes
                 onPointerMove: onPointerMove)
         //ReSharper enable ArgumentsStyleNamedExpression
         {
-            DrawEvent += PrivateDrawOutline;
+            DrawEvent += PrivateDrawImage;
+
+            Source = source;
+
+            if (themeOverrides != null)
+            {
+                SetElementThemeOverrides(themeOverrides);
+            }
         }
 
-        ~Ellipse()
+        ~ImageView()
         {
-            DrawEvent -= PrivateDrawOutline;
+            DrawEvent -= PrivateDrawImage;
         }
 
-        protected override void DrawBackground()
+        private void PrivateDrawImage()
         {
-            if (FillBrush.IsSkippable)
+            if (Source == null)
             {
                 return;
             }
 
-            Rect rect = Bounds.GetContentBox();
-            Document?.Renderer.DrawEllipse(
-                new Point2D(rect.CenterX, rect.CenterY),
-                rect.Width / 2f,
-                rect.Height / 2f,
-                FillBrush);
-        }
+            //TODO: this is for tinting the image, for further use
+            //
 
-        private void PrivateDrawOutline()
-        {
-            if (OutlineBrush.IsSkippable || OutlineParameters.OutlineWidth == 0)
-            {
-                return;
-            }
+            // new SKPaint
+            // {
+            //     ImageFilter = SKImageFilter.CreateBlendMode(
+            //         SKBlendMode.DstIn,
+            //         SKImageFilter.CreateColorFilter(
+            //             SKColorFilter.CreateBlendMode(
+            //                 new SKColor(0xff_21_96_d5),
+            //                 SKBlendMode.Darken)))
+            // }
 
-            Rect rect = Bounds.GetContentBox();
-            Document?.Renderer.DrawEllipseOutline(
-                new Point2D(rect.CenterX, rect.CenterY),
-                rect.Width / 2f,
-                rect.Height / 2f,
-                OutlineBrush,
-                OutlineParameters);
+            Document?.Renderer.DrawImageFast(Source.SkiaImage!, AbsolutePosition);
         }
     }
 }

@@ -45,7 +45,7 @@ namespace CatUI.Data.Managers
                 return false;
             }
 
-            _assemblies?.Add(assembly);
+            _assemblies.Add(assembly);
             return true;
         }
 
@@ -85,7 +85,7 @@ namespace CatUI.Data.Managers
             }
 
             assetPath = assetPath.Replace('/', '.');
-            var asmName = mainAssembly.GetName().ToString();
+            string asmName = mainAssembly.GetName().ToString();
             asmName = asmName.Split(',')[0];
 
             Stream? fs = mainAssembly.GetManifestResourceStream($"{asmName}{assetPath}");
@@ -134,7 +134,7 @@ namespace CatUI.Data.Managers
             foreach (Assembly asm in _assemblies)
             {
                 assetPath = assetPath.Replace('/', '.');
-                var asmName = asm.GetName().ToString();
+                string asmName = asm.GetName().ToString();
                 asmName = asmName.Split(',')[0];
 
                 Stream? fs = asm.GetManifestResourceStream($"{asmName}{assetPath}");
@@ -158,14 +158,14 @@ namespace CatUI.Data.Managers
 
         /// <summary>
         /// Loads an asset from one of the loaded asset files, specified by the asset path that is always relative
-        /// to the "Assets" directory. An asset file containing the asset must be loaded before calling this method using
+        /// to the project root directory. An asset file containing the asset must be loaded before calling this method using
         /// <see cref="LoadMetadataFromFileAsync(string)"/> or <see cref="LoadMetadataFromStreamAsync(Stream)"/>.
         /// </summary>
         /// <remarks>
         /// In order to create asset files, you can use the Cat DevTool.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
-        /// <param name="path">The path of the assembly, always beginning with "/Assets"</param>
+        /// <param name="path">The path of the assembly, always beginning with "/", pointing to the project root directory.</param>
         /// <param name="shouldCache">
         /// If true, will hold a reference to the asset internally, so subsequent calls
         /// will return the asset much faster.
@@ -185,10 +185,10 @@ namespace CatUI.Data.Managers
                 return null;
             }
 
-            var assetRawData = new byte[endPositionRef.Ref - stream.Position];
+            byte[] assetRawData = new byte[endPositionRef.Ref - stream.Position];
             long bytesWritten = 0;
 
-            var buffer = new byte[4096];
+            byte[] buffer = new byte[4096];
             long position = stream.Position;
             while (position < endPositionRef.Ref)
             {
@@ -211,7 +211,7 @@ namespace CatUI.Data.Managers
 
         /// <summary>
         /// Returns a stream from one of the loaded asset files, specified by the asset path that is always relative
-        /// to the "Assets" directory. An asset file containing the asset must be loaded before calling this method using
+        /// to the project root directory. An asset file containing the asset must be loaded before calling this method using
         /// <see cref="LoadMetadataFromFileAsync(string)"/> or <see cref="LoadMetadataFromStreamAsync(Stream)"/>.
         /// </summary>
         /// <remarks>
@@ -219,13 +219,13 @@ namespace CatUI.Data.Managers
         /// absolute byte position of the end of the asset data.
         /// In order to create asset files, you can use the Cat DevTool.
         /// </remarks>
-        /// <typeparam name="T">The type of asset desired.</typeparam>
-        /// <param name="path">The path of the assembly, always beginning with "/Assets"</param>
+        /// <param name="path">The path of the assembly, always beginning with "/", pointing to the project root directory.</param>
         /// <param name="endPosition">
         /// An <see cref="AsyncRef{T}"/> ref object whose <see cref="AsyncRef{T}.Ref"/> will be set to
         /// the absolute byte position of the end of the asset data.
         /// </param>
         /// <returns>A FileStream configured as specified above if the asset was found, null otherwise.</returns>
+        /// <exception cref="IOException">Thrown if it can't read the asset size.</exception>
         public static FileStream? GetAssetFileStream(string path, AsyncRef<long> endPosition)
         {
             if (!_assetPaths.TryGetValue(path, out ulong value))
@@ -233,18 +233,23 @@ namespace CatUI.Data.Managers
                 return null;
             }
 
-            var fileIndex = (int)(value >> 48);
+            int fileIndex = (int)(value >> 48);
             if (_assetFilesPaths.Count < fileIndex)
             {
                 return null;
             }
 
             var fs = new FileStream(_assetFilesPaths[fileIndex], FileMode.Open, FileAccess.Read);
-            var position = (long)(value & 0xff_ff_ff_ff_ff_ff);
+            long position = (long)(value & 0xff_ff_ff_ff_ff_ff);
             fs.Seek(position, SeekOrigin.Begin);
 
-            var assetSizeRaw = new byte[6];
-            fs.Read(assetSizeRaw, 0, 6);
+            byte[] assetSizeRaw = new byte[6];
+            int bytesRead = fs.Read(assetSizeRaw, 0, 6);
+            if (bytesRead != 6)
+            {
+                throw new IOException("Could not the read the asset file size.");
+            }
+
             long assetSize = BinaryUtils.ConvertBytesToLong(assetSizeRaw, 0);
 
             endPosition.Ref = position + 6 + assetSize;
@@ -265,6 +270,7 @@ namespace CatUI.Data.Managers
         {
             var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
             await LoadMetadataFromStreamAsync(fs);
+            _assetFilesPaths.Add(path);
         }
 
         /// <summary>
@@ -277,28 +283,34 @@ namespace CatUI.Data.Managers
         /// While this method will work with very large files, consider splitting your assets into multiple files if you have a lot of them.
         /// </remarks>
         /// <param name="stream">The stream to an asset file.</param>
+        /// <exception cref="IOException">Thrown if it can't read the asset size.</exception>
         public static async Task LoadMetadataFromStreamAsync(Stream stream)
         {
             if (stream.Length < 6)
             {
-                throw new Exception("Invalid format");
+                throw new FormatException("Invalid format");
             }
 
             stream.Seek(6, SeekOrigin.End);
-            var dictionaryStartPosRaw = new byte[6];
-            stream.Read(dictionaryStartPosRaw, 0, 6);
+            byte[] dictionaryStartPosRaw = new byte[6];
+            // ReSharper disable once MethodHasAsyncOverload
+            int bytesRead = stream.Read(dictionaryStartPosRaw, 0, 6);
+            if (bytesRead != 6)
+            {
+                throw new IOException("Could not the read the asset file length.");
+            }
 
             //go to the dictionary start
             long pos = BinaryUtils.ConvertBytesToLong(dictionaryStartPosRaw, 0);
             stream.Seek(pos, SeekOrigin.Begin);
 
-            var buffer = new byte[4096];
+            byte[] buffer = new byte[4096];
             byte[]? assetPathRaw = null, assetPositionRaw = null;
-            var assetPositionWrittenBytes = 0;
+            int assetPositionWrittenBytes = 0;
             while (pos < stream.Length)
             {
                 int limit = await stream.ReadAsync(buffer.AsMemory(0, 4096));
-                var bufferPos = 0;
+                int bufferPos = 0;
                 while (bufferPos < limit)
                 {
                     if (assetPositionRaw != null)
@@ -316,7 +328,7 @@ namespace CatUI.Data.Managers
                         //if the path is null here, it must be an error
                         else
                         {
-                            throw new Exception("Invalid format");
+                            throw new FormatException("Invalid format");
                         }
                     }
 
@@ -334,15 +346,13 @@ namespace CatUI.Data.Managers
                         //meaning the path is incomplete or at least is missing the position
                         if (bufferPos >= limit)
                         {
-                            throw new Exception("Invalid format");
-                        }
-                        else
-                        {
-                            //pass over the '\0'
-                            bufferPos++;
+                            throw new FormatException("Invalid format");
                         }
 
-                        var newPathRaw = new byte[newDimension];
+                        //pass over the '\0'
+                        bufferPos++;
+
+                        byte[] newPathRaw = new byte[newDimension];
                         //copy old portion
                         Array.Copy(assetPathRaw, newPathRaw, assetPathRaw.Length);
                         //copy remaining portion
@@ -354,7 +364,7 @@ namespace CatUI.Data.Managers
                         if (limit - bufferPos < 6)
                         {
                             assetPositionRaw = new byte[limit - bufferPos];
-                            for (var i = 0; i < limit - bufferPos; i++)
+                            for (int i = 0; i < limit - bufferPos; i++)
                             {
                                 assetPositionRaw[i] = buffer[bufferPos];
                                 bufferPos++;
@@ -362,17 +372,15 @@ namespace CatUI.Data.Managers
 
                             continue;
                         }
-                        else
-                        {
-                            assetPositionRaw = new byte[6];
-                            for (var i = 0; i < 6; i++)
-                            {
-                                assetPositionRaw[i] = buffer[bufferPos];
-                                bufferPos++;
-                            }
 
-                            goto SaveAssetMetadata;
+                        assetPositionRaw = new byte[6];
+                        for (int i = 0; i < 6; i++)
+                        {
+                            assetPositionRaw[i] = buffer[bufferPos];
+                            bufferPos++;
                         }
+
+                        goto SaveAssetMetadata;
                     }
 
                     #region Path
@@ -387,7 +395,7 @@ namespace CatUI.Data.Managers
                     if (bufferPos >= limit)
                     {
                         assetPathRaw = new byte[stringStart - bufferPos];
-                        for (var i = 0; i < assetPathRaw.Length; i++)
+                        for (int i = 0; i < assetPathRaw.Length; i++)
                         {
                             assetPathRaw[i] = buffer[stringStart + i];
                         }
@@ -407,7 +415,7 @@ namespace CatUI.Data.Managers
                     }
 
                     assetPathRaw = new byte[bufferPos - stringStart - 1];
-                    for (var i = 0; i < assetPathRaw.Length; i++)
+                    for (int i = 0; i < assetPathRaw.Length; i++)
                     {
                         assetPathRaw[i] = buffer[stringStart + i];
                     }
@@ -419,7 +427,7 @@ namespace CatUI.Data.Managers
                     if (limit - bufferPos < 6)
                     {
                         assetPositionRaw = new byte[limit - bufferPos];
-                        for (var i = 0; i < limit - bufferPos; i++)
+                        for (int i = 0; i < limit - bufferPos; i++)
                         {
                             assetPositionRaw[i] = buffer[bufferPos];
                             bufferPos++;
@@ -430,7 +438,7 @@ namespace CatUI.Data.Managers
                     else
                     {
                         assetPositionRaw = new byte[6];
-                        for (var i = 0; i < 6; i++)
+                        for (int i = 0; i < 6; i++)
                         {
                             assetPositionRaw[i] = buffer[bufferPos];
                             bufferPos++;

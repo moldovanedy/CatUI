@@ -11,7 +11,7 @@ using SkiaSharp;
 
 namespace CatUI.Elements.Shapes
 {
-    public partial class GeometricPath : AbstractShape
+    public class GeometricPath : AbstractShape
     {
         private SKPath _skiaPath = new();
 
@@ -19,7 +19,19 @@ namespace CatUI.Elements.Shapes
         /// If true, the path will be scaled to respect the element's width and height. If false, no scaling will be applied,
         /// but the path might exceed the element's bounds (width and height).
         /// </summary>
-        public bool ShouldApplyScaling { get; set; }
+        public bool ShouldApplyScaling
+        {
+            get => _shouldApplyScaling;
+            set
+            {
+                _shouldApplyScaling = value;
+                ShouldApplyScalingProperty.Value = value;
+            }
+        }
+
+        private bool _shouldApplyScaling;
+
+        public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new();
 
         private Point2D _lastStartPoint = Point2D.Zero;
         private Point2D _lastAppliedScale = new(1, 1);
@@ -113,9 +125,9 @@ namespace CatUI.Elements.Shapes
         }
 
         /// <summary>
-        /// Will reset the current path to the newly given SVG data from the SVG's <code>path</code> element.
+        /// Will reset the current path to the newly given SVG data from the SVG <code>path</code> element.
         /// </summary>
-        /// <param name="svgPath">The SVG data from the SVG's <code>path</code> element.</param>
+        /// <param name="svgPath">The SVG data from the SVG <code>path</code> element.</param>
         public void RecreateFromSvgPath(string svgPath)
         {
             PathCache.RemovePath(_skiaPath);
