@@ -213,7 +213,7 @@ namespace CatUI.Elements.Text
             List<int> shyPositions = new();
             List<int> newlinePositions = new();
 
-            for (var i = 0; i < Text.Length; i++)
+            for (int i = 0; i < Text.Length; i++)
             {
                 if (Text[i] == '\r' && i == Text.Length - 1)
                 {
@@ -238,7 +238,7 @@ namespace CatUI.Elements.Text
                 sb.Append(Text[i]);
             }
 
-            var drawableText = sb.ToString();
+            string? drawableText = sb.ToString();
             float maxWidth = normalWidth;
             float newHeight = 0;
             var currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
@@ -248,12 +248,12 @@ namespace CatUI.Elements.Text
 
             SKPaint paint = PaintManager.GetPaint(fontSize: fontSize);
 
-            var characterPosition = 0;
-            var isFirstRow = true;
+            int characterPosition = 0;
+            bool isFirstRow = true;
             ReadOnlySpan<char> textSpan = drawableText.AsSpan();
             _hyphenCharacterWidth = paint.MeasureText(HyphenCharacter.ToString());
 
-            var lastNewLinePosition = 0;
+            int lastNewLinePosition = 0;
             while (characterPosition < textSpan.Length)
             {
                 ReadOnlySpan<char> nextSlice = textSpan.Slice(characterPosition);
@@ -280,9 +280,9 @@ namespace CatUI.Elements.Text
                     continue;
                 }
 
-                var needsHyphen = false;
+                bool needsHyphen = false;
                 //take into account an eventual hyphen
-                var characterCount = (int)paint.BreakText(nextSlice, normalWidth - _hyphenCharacterWidth);
+                int characterCount = (int)paint.BreakText(nextSlice, normalWidth - _hyphenCharacterWidth);
                 int normalCharacterCount = characterCount;
 
                 if (characterCount == 0)
@@ -431,8 +431,8 @@ namespace CatUI.Elements.Text
                     return;
                 }
 
-                var rowsDrawn = 0;
-                var charactersDrawn = 0;
+                int rowsDrawn = 0;
+                int charactersDrawn = 0;
                 while (
                     rowsDrawn < _cachedRows.Count &&
                     charactersDrawn < Text.Length &&

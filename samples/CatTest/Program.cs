@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using CatUI.Data;
+using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
+using CatUI.Data.Managers;
 using CatUI.Elements;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
@@ -29,16 +33,13 @@ namespace CatTest
 
         private static void Main()
         {
-            // AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
-            // Image? image = AssetsManager.LoadFromAssembly<Image>("/Assets/search_128px.png");
-            // if (image != null)
-            // {
-            //     Debug.WriteLine(image.ToString());
-            // }
-            // else
-            // {
-            //     Debug.WriteLine("NULL");
-            // }
+            AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
+
+            var image = AssetsManager.LoadFromAssembly<Image>("/Assets/search_128px.png");
+            if (image == null)
+            {
+                throw new NullReferenceException("Image is null");
+            }
 
             _window = new Window(
                 800,
@@ -61,7 +62,23 @@ namespace CatTest
                     maxWidth: 350,
                     minHeight: 20,
                     maxHeight: 250,
-                    fillBrush: new ColorBrush(new Color(0x00_ff_ff))),
+                    fillBrush: new ColorBrush(new Color(0x00_ff_ff)),
+                    children:
+                    [
+                        new ImageView(
+                            image,
+                            position: "20dp 20dp",
+                            preferredWidth: "50%",
+                            preferredHeight: "50%",
+                            themeOverrides: new ThemeDefinition<ImageViewThemeData>(
+                                new Dictionary<string, ImageViewThemeData>()
+                                {
+                                    {
+                                        Label.STYLE_NORMAL,
+                                        new ImageViewThemeData() { Background = new ColorBrush(new Color(0xff_00_ff)) }
+                                    }
+                                }))
+                    ]),
                 new Rectangle(
                     position: new Dimension2(
                         10, new Dimension(60, Unit.Percent)),

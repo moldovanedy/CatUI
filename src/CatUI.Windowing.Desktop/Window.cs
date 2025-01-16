@@ -41,7 +41,7 @@ namespace CatUI.Windowing.Desktop
         private bool _shouldCloseWindow;
         private readonly WindowFlags _flags;
         private readonly WindowMode _startupMode;
-        private bool _isCreated;
+        //private bool _isCreated;
 
 #if USE_ANGLE
         private nint eglDisplay;
@@ -165,7 +165,7 @@ namespace CatUI.Windowing.Desktop
             Document = new UIDocument { ViewportSize = new Size(_width, _height) };
             FullyRedraw();
 
-            _isCreated = true;
+            //_isCreated = true;
             return this;
         }
 
@@ -424,7 +424,7 @@ namespace CatUI.Windowing.Desktop
                 //and only execute that number of callbacks
                 int thisFrameCount = _animationFrameCallbacks.Count;
 
-                for (var i = 0; i < thisFrameCount; i++)
+                for (int i = 0; i < thisFrameCount; i++)
                 {
                     _animationFrameCallbacks[i].Invoke(delta);
                     //hadFrameCallbacks = true;

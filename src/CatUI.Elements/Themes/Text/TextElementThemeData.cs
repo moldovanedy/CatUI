@@ -15,7 +15,7 @@ namespace CatUI.Elements.Themes.Text
         /// </summary>
         public float LineHeight { get; set; } = 1.2f;
 
-        public TextElementThemeData() : base()
+        public TextElementThemeData()
         {
         }
 
