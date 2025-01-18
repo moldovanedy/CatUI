@@ -34,7 +34,7 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
-        public UIDocument Document { get; private set; } = new();
+        public UiDocument Document { get; private set; } = new();
 
         internal OpenTK.Windowing.GraphicsLibraryFramework.Window* GlfwWindow { get; private set; }
 
@@ -162,7 +162,7 @@ namespace CatUI.Windowing.Desktop
             _errorCallback = (errCode, message) => throw new GLFWException(message, errCode);
             GLFW.SetErrorCallback(_errorCallback);
 
-            Document = new UIDocument { ViewportSize = new Size(_width, _height) };
+            Document = new UiDocument { ViewportSize = new Size(_width, _height) };
             FullyRedraw();
 
             //_isCreated = true;

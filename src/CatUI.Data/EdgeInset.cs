@@ -11,8 +11,13 @@ namespace CatUI.Data
     /// for margins, it represents the distance from the current element to the next one in one of the four directions (top, left, bottom, right);
     /// for position, it represents the distance from the current element to one or more of the containing element's border.
     /// </remarks>
-    public class EdgeInset
+    public class EdgeInset : CatObject
     {
+        public Dimension Top { get; set; } = new();
+        public Dimension Right { get; set; } = new();
+        public Dimension Bottom { get; set; } = new();
+        public Dimension Left { get; set; } = new();
+
         public EdgeInset() { }
 
         public EdgeInset(Dimension dimension)
@@ -48,11 +53,6 @@ namespace CatUI.Data
             Left = left;
         }
 
-        public Dimension Top { get; set; } = new Dimension();
-        public Dimension Right { get; set; } = new Dimension();
-        public Dimension Bottom { get; set; } = new Dimension();
-        public Dimension Left { get; set; } = new Dimension();
-
         public static bool operator !=(EdgeInset x, EdgeInset y)
         {
             if (x.Top != y.Top || x.Right != y.Right || x.Bottom != y.Bottom || x.Left != y.Left)
@@ -83,6 +83,7 @@ namespace CatUI.Data
             {
                 return false;
             }
+
             return this == (EdgeInset)obj;
         }
 
@@ -106,6 +107,11 @@ namespace CatUI.Data
         public override string ToString()
         {
             return $"({Top}, {Right}, {Bottom}, {Left})";
+        }
+
+        public override EdgeInset Duplicate()
+        {
+            return new EdgeInset(Top, Right, Bottom, Left);
         }
     }
 }

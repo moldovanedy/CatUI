@@ -16,5 +16,12 @@ namespace CatUI.Data.Assets
         {
             SkiaImage = SKImage.FromEncodedData(rawData);
         }
+
+        public override Image Duplicate()
+        {
+            return SkiaImage != null
+                ? new Image() { SkiaImage = SKImage.FromPixelCopy(SkiaImage.PeekPixels()) }
+                : new Image();
+        }
     }
 }

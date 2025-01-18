@@ -13,11 +13,8 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements
 {
-    public class Element : ICloneable
+    public partial class Element
     {
-        public const string STYLE_NORMAL = "normal";
-        public const string STYLE_HOVER = "hover";
-
         public readonly Action? OnDraw;
         public readonly EnterDocumentEventHandler? OnEnterDocument;
         public readonly ExitDocumentEventHandler? OnExitDocument;
@@ -27,18 +24,16 @@ namespace CatUI.Elements
         public readonly PointerMoveEventHandler? OnPointerMove;
 
         /// <summary>
-        ///     Contains a list of all children (public and internal).
+        /// Contains a list of all children (public and internal).
         /// </summary>
         private readonly List<Element> _children = new();
-
-        private readonly ThemeDefinition<ElementThemeData> _themeDefinition = new();
 
         private float _absoluteHeight;
         private Point2D _absolutePosition = Point2D.Zero;
         private float _absoluteWidth;
 
         /// <summary>
-        ///     It's a cache of public children only.
+        /// It's a cache of public children only.
         /// </summary>
         private List<Element>? _cachedPublicChildren;
 
@@ -176,12 +171,12 @@ namespace CatUI.Elements
         public ObservableProperty<Dimension2> PositionProperty { get; } = new();
 
         /// <summary>
-        ///     Represents the preferred width of the element. The layout engine will try to honor this value, but this might be
-        ///     influenced
-        ///     by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />) or if the element is
-        ///     inside a container.
-        ///     Please consult the documentation for the properties of the element you want to use, as well as the containers that
-        ///     the element will be in.
+        /// Represents the preferred width of the element. The layout engine will try to honor this value, but this might be
+        /// influenced
+        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />) or if the element is
+        /// inside a container.
+        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that
+        /// the element will be in.
         /// </summary>
         public Dimension PreferredWidth
         {
@@ -199,8 +194,8 @@ namespace CatUI.Elements
         public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new();
 
         /// <summary>
-        ///     Represents the minimum width that the element can have.
-        ///     By default, it has the invalid value, meaning the restriction is not applied.
+        /// Represents the minimum width that the element can have.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
         /// </summary>
         public Dimension MinWidth
         {
@@ -219,8 +214,8 @@ namespace CatUI.Elements
         public ObservableProperty<Dimension> MinWidthProperty { get; } = new();
 
         /// <summary>
-        ///     Represents the maximum width that the element can have.
-        ///     By default, it has the invalid value, meaning the restriction is not applied.
+        /// Represents the maximum width that the element can have.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
         /// </summary>
         public Dimension MaxWidth
         {
@@ -239,12 +234,12 @@ namespace CatUI.Elements
         public ObservableProperty<Dimension> MaxWidthProperty { get; } = new();
 
         /// <summary>
-        ///     Represents the preferred height of the element. The layout engine will try to honor this value, but this might be
-        ///     influenced
-        ///     by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />) or if the element is
-        ///     inside a container.
-        ///     Please consult the documentation for the properties of the element you want to use, as well as the containers that
-        ///     the element will be in.
+        /// Represents the preferred height of the element. The layout engine will try to honor this value, but this might be
+        /// influenced
+        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />) or if the element is
+        /// inside a container.
+        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that
+        /// the element will be in.
         /// </summary>
         public Dimension PreferredHeight
         {
@@ -263,8 +258,8 @@ namespace CatUI.Elements
         public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new();
 
         /// <summary>
-        ///     Represents the minimum height that the element can have.
-        ///     By default, it has the invalid value, meaning the restriction is not applied.
+        /// Represents the minimum height that the element can have.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
         /// </summary>
         public Dimension MinHeight
         {
@@ -283,8 +278,8 @@ namespace CatUI.Elements
         public ObservableProperty<Dimension> MinHeightProperty { get; } = new();
 
         /// <summary>
-        ///     Represents the minimum height that the element can have.
-        ///     By default, it has the invalid value, meaning the restriction is not applied.
+        /// Represents the minimum height that the element can have.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
         /// </summary>
         public Dimension MaxHeight
         {
@@ -349,8 +344,8 @@ namespace CatUI.Elements
         public ObservableProperty<string> NameProperty { get; } = new();
 
         /// <summary>
-        ///     Controls whether this element is visible or not in the application. An invisible element will still occupy
-        ///     space in the layout and be moved in a container, just that it is not visible (hidden).
+        /// Controls whether this element is visible or not in the application. An invisible element will still occupy
+        /// space in the layout and be moved in a container, just that it is not visible (hidden).
         /// </summary>
         /// <seealso cref="Enabled" />
         public bool Visible
@@ -376,9 +371,9 @@ namespace CatUI.Elements
         public ObservableProperty<bool> VisibleProperty { get; } = new();
 
         /// <summary>
-        ///     If the element is not enabled, it will not be considered in layout recalculations, will not take space in
-        ///     a layout and will generally give misleading values on properties that are related to layout in any way
-        ///     such as <see cref="Bounds" /> or <see cref="AbsolutePosition" />.
+        /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
+        /// a layout and will generally give misleading values on properties that are related to layout in any way
+        /// such as <see cref="Bounds" /> or <see cref="AbsolutePosition" />.
         /// </summary>
         /// <seealso cref="Visible" />
         public bool Enabled
@@ -420,11 +415,11 @@ namespace CatUI.Elements
 
         public ElementBounds Bounds { get; internal set; } = new();
         public bool IsInternal { get; private set; }
-        public UIDocument? Document { get; private set; }
+        public UiDocument? Document { get; private set; }
 
         /// <summary>
-        ///     True when the element's parent is a container. Only the direct parent is taken into account, not the grandparent
-        ///     etc.
+        /// True when the element's parent is a container. Only the direct parent is taken into account, not the grandparent
+        /// etc.
         /// </summary>
         public bool IsChildOfContainer { get; private set; }
 
@@ -470,24 +465,6 @@ namespace CatUI.Elements
             }
         }
 
-        public object Clone()
-        {
-            return new Element(
-                _name,
-                _children,
-                _themeDefinition,
-                _position,
-                _preferredWidth,
-                _preferredHeight,
-                _minHeight,
-                _minWidth,
-                _maxHeight,
-                _maxWidth,
-                _elementContainerSizing,
-                _visible,
-                _enabled);
-        }
-
         public event Action? DrawEvent;
         public event EnterDocumentEventHandler? EnterDocumentEvent;
         public event ExitDocumentEventHandler? ExitDocumentEvent;
@@ -523,16 +500,16 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        ///     Sets the document of this element and all its children. Will also add the element to the document
-        ///     (like <see cref="AddChild(Element, bool)" /> or <see cref="AddChildren(Element[])" />).
+        /// Sets the document of this element and all its children. Will also add the element to the document
+        /// (like <see cref="AddChild(Element, bool)" /> or <see cref="AddChildren(Element[])" />).
         /// </summary>
         /// <remarks>
-        ///     If the element already belongs to a document, this will remove the element, along with all its children,
-        ///     then add this element along with its previous children to the specified document.
+        /// If the element already belongs to a document, this will remove the element, along with all its children,
+        /// then add this element along with its previous children to the specified document.
         /// </remarks>
         /// <param name="document">The document to which this element should be added.</param>
         /// <returns>The current element (return this).</returns>
-        public Element SetDocument(UIDocument? document)
+        public Element SetDocument(UiDocument? document)
         {
             //the element is not in a document and the given document is non-null
             if (Document == null && document != null)
@@ -565,7 +542,16 @@ namespace CatUI.Elements
                 return;
             }
 
-            IBrush fillBrush = GetElementFinalThemeData<ElementThemeData>(STYLE_NORMAL).Background;
+            ElementThemeData currentTheme =
+                GetElementFinalThemeData<ElementThemeData>(ElementThemeData.STYLE_NORMAL) ??
+                new ElementThemeData().GetDefaultData(ElementThemeData.STYLE_NORMAL);
+
+            IBrush? fillBrush = currentTheme.Background;
+            if (fillBrush == null)
+            {
+                return;
+            }
+
             if (!fillBrush.IsSkippable)
             {
                 Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), fillBrush);
@@ -748,6 +734,24 @@ namespace CatUI.Elements
         public virtual void PointerLeave(object sender, PointerLeaveEventArgs e) { }
         public virtual void PointerMove(object sender, PointerMoveEventArgs e) { }
 
+        public virtual Element Duplicate()
+        {
+            return new Element(
+                _name,
+                _children,
+                _themeOverrides,
+                _position,
+                _preferredWidth,
+                _preferredHeight,
+                _minHeight,
+                _minWidth,
+                _maxHeight,
+                _maxWidth,
+                _elementContainerSizing,
+                _visible,
+                _enabled);
+        }
+
         public void AddChild(Element child, bool isInternal = false)
         {
             _children.Add(child);
@@ -822,12 +826,12 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        ///     Returns a list of all the children of the element. DO NOT modify this list by adding or removing elements!
-        ///     That could cause crashes or unexpected behavior.
+        /// Returns a list of all the children of the element. DO NOT modify this list by adding or removing elements!
+        /// That could cause crashes or unexpected behavior.
         /// </summary>
         /// <remarks>
-        ///     This doesn't clone the list in any way, so it has a very good performance and can be called without caching the
-        ///     result.
+        /// This doesn't clone the list in any way, so it has a very good performance and can be called without caching the
+        /// result.
         /// </remarks>
         /// <param name="includeInternal">If true, will include the internal children in the list as well.</param>
         /// <returns>A list of all the children of the element, even the internal ones if includeInternal is true.</returns>
@@ -940,53 +944,16 @@ namespace CatUI.Elements
             return Document != null;
         }
 
-        public ElementThemeData? GetElementThemeOverride(string state)
-        {
-            return _themeDefinition.GetThemeDataForState(state);
-        }
-
-        public T? GetElementThemeOverride<T>(string state) where T : ElementThemeData, new()
-        {
-            return (T?)_themeDefinition.GetThemeDataForState(state);
-        }
-
         /// <summary>
-        ///     Returns the element's ThemeData that should be applied and all styling should respect this theme.
-        ///     If there is no Theme in the document tree hierarchy (not even at root level), this will return
-        ///     the default ThemeData of the specified type parameter.
-        /// </summary>
-        /// <typeparam name="T">The ThemeData type of the element.</typeparam>
-        /// <param name="state">The state for which the styling is applied.</param>
-        /// <returns>The ThemeData that should be respected by the element at the given state.</returns>
-        public T GetElementFinalThemeData<T>(string state) where T : ElementThemeData, new()
-        {
-            var themeData = (T?)_themeDefinition.GetThemeDataForState(state);
-            return themeData ?? new T();
-        }
-
-        public void SetElementThemeOverride(string state, ElementThemeData themeOverride)
-        {
-            _themeDefinition.SetThemeDataForState(state, themeOverride);
-        }
-
-        public void SetElementThemeOverrides<T>(ThemeDefinition<T> themeOverrides) where T : ElementThemeData, new()
-        {
-            foreach (string state in themeOverrides.GetStates())
-            {
-                _themeDefinition.SetThemeDataForState(state, themeOverrides.GetThemeDataForState(state)!);
-            }
-        }
-
-        /// <summary>
-        ///     Will return the actual pixel value of the given dimension.
+        /// Will return the actual pixel value of the given dimension.
         /// </summary>
         /// <param name="dimension">The dimension to get the pixel value from.</param>
         /// <param name="pixelDimensionForPercent">
-        ///     Only applicable when dimension is in percentage, represents the dimension at 100%,
-        ///     usually set as the parent's width or height.
+        /// Only applicable when dimension is in percentage, represents the dimension at 100%,
+        /// usually set as the parent's width or height.
         /// </param>
         /// <remarks>
-        ///     If dimension is unset, this method returns 0.
+        /// If dimension is unset, this method returns 0.
         /// </remarks>
         /// <returns>The pixel value of the given dimension.</returns>
         public int CalculateDimension(Dimension dimension, float pixelDimensionForPercent = 0)

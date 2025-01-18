@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 
 namespace CatUI.Data
 {
-    public class ObservableProperty<T> where T : notnull
+    public class ObservableProperty<T> : CatObject where T : notnull
     {
         /// <summary>
         /// Represents the actual value of the property. Setting this to a different value than the previous one will notify all
@@ -10,10 +11,7 @@ namespace CatUI.Data
         /// </summary>
         public T? Value
         {
-            get
-            {
-                return _value;
-            }
+            get => _value;
             set
             {
                 //if (_value == value)
@@ -26,7 +24,18 @@ namespace CatUI.Data
                 ValueChangedEvent?.Invoke(value);
             }
         }
+
         private T? _value;
+
+        /// <summary>
+        /// Not implemented because cannot guarantee that T is CatObject, therefore the duplication method for T is unknown.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public override CatObject Duplicate()
+        {
+            throw new NotImplementedException("Duplicating ObservableProperty is not supported.");
+        }
 
         /// <summary>
         /// An event invoked when <see cref="Value"/> is changed. In other words, whenever the property's value is changed.

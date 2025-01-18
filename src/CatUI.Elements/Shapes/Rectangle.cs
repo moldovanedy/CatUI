@@ -9,7 +9,7 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Shapes
 {
-    public partial class Rectangle : AbstractShape
+    public class Rectangle : AbstractShape
     {
         public Rectangle(
             //AbstractShape

@@ -7,25 +7,17 @@ namespace CatUI.Data
     /// <summary>
     /// Represents any dimension by having a value and a measurement unit. It's used for widths, heights and more.
     /// </summary>
-    public class Dimension
+    public class Dimension : CatObject
     {
         /// <summary>
         /// Represents the actual value. NaN represents the "unset dimension".
         /// </summary>
         public float Value { get; set; }
+
         public Unit MeasuringUnit { get; set; } = Unit.Dp;
 
-        public static Dimension Unset
-        {
-            get
-            {
-                return new Dimension()
-                {
-                    Value = float.NaN,
-                    MeasuringUnit = Unit.Dp
-                };
-            }
-        }
+        public static Dimension Unset =>
+            new() { Value = float.NaN, MeasuringUnit = Unit.Dp };
 
         public Dimension()
         {
@@ -60,13 +52,25 @@ namespace CatUI.Data
             return $"{Value} {measuringUnitText}";
         }
 
+        public override CatObject Duplicate()
+        {
+            return new Dimension(Value, MeasuringUnit);
+        }
+
         public bool IsUnset()
         {
             return float.IsNaN(Value);
         }
 
-        public static implicit operator Dimension(float value) => new Dimension(value);
-        public static implicit operator Dimension(int value) => new Dimension(value);
+        public static implicit operator Dimension(float value)
+        {
+            return new Dimension(value);
+        }
+
+        public static implicit operator Dimension(int value)
+        {
+            return new Dimension(value);
+        }
 
         public static implicit operator Dimension(string literal)
         {
@@ -149,9 +153,10 @@ namespace CatUI.Data
             {
                 return false;
             }
+
             return this == (Dimension)obj;
         }
-        
+
         public override int GetHashCode()
         {
             throw new NotSupportedException("Using Dimension as a key in a dictionary/hash map is not supported.");
@@ -161,18 +166,12 @@ namespace CatUI.Data
     /// <summary>
     /// A set of 2 dimensions for X and Y. Generally used for setting the position of an element.
     /// </summary>
-    public class Dimension2
+    public class Dimension2 : CatObject
     {
         public Dimension X { get; set; }
         public Dimension Y { get; set; }
 
-        public static Dimension2 Unset
-        {
-            get
-            {
-                return new Dimension2(Dimension.Unset, Dimension.Unset);
-            }
-        }
+        public static Dimension2 Unset => new(Dimension.Unset, Dimension.Unset);
 
         public Dimension2()
         {
@@ -202,6 +201,11 @@ namespace CatUI.Data
         public override string ToString()
         {
             return $"({X}, {Y})";
+        }
+
+        public override Dimension2 Duplicate()
+        {
+            return new Dimension2((Dimension)X.Duplicate(), (Dimension)Y.Duplicate());
         }
 
         public bool IsUnset()
@@ -256,6 +260,7 @@ namespace CatUI.Data
             {
                 return false;
             }
+
             return this == (Dimension2)obj;
         }
 

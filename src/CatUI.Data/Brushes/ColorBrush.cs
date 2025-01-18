@@ -1,18 +1,11 @@
 ﻿using CatUI.Data.Managers;
-
 using SkiaSharp;
 
 namespace CatUI.Data.Brushes
 {
-    public class ColorBrush : IBrush
+    public class ColorBrush : CatObject, IBrush
     {
-        public bool IsSkippable
-        {
-            get
-            {
-                return Color.A == 0;
-            }
-        }
+        public bool IsSkippable => Color.A == 0;
 
         public Color Color { get; set; } = Color.Default;
 
@@ -24,6 +17,11 @@ namespace CatUI.Data.Brushes
         public ColorBrush(Color color)
         {
             Color = color;
+        }
+
+        public override ColorBrush Duplicate()
+        {
+            return new ColorBrush(Color);
         }
 
         public SKPaint ToSkiaPaint()
