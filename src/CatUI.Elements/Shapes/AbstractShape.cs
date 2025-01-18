@@ -76,23 +76,23 @@ namespace CatUI.Elements.Shapes
         {
             get
             {
-                ElementThemeData? theme = GetElementThemeOverride(STYLE_NORMAL);
+                ElementThemeData? theme = GetElementThemeOverride(ElementThemeData.STYLE_NORMAL);
                 if (theme == null)
                 {
-                    theme = new ElementThemeData(STYLE_NORMAL);
-                    SetElementThemeOverride(STYLE_NORMAL, theme);
+                    theme = new ElementThemeData(ElementThemeData.STYLE_NORMAL);
+                    SetElementThemeOverride(ElementThemeData.STYLE_NORMAL, theme);
                 }
 
-                IBrush brush = theme.Background;
+                IBrush brush = theme.Background ?? new ColorBrush();
                 return brush;
             }
             set
             {
-                ElementThemeData? theme = GetElementThemeOverride(STYLE_NORMAL);
+                ElementThemeData? theme = GetElementThemeOverride(ElementThemeData.STYLE_NORMAL);
                 if (theme == null)
                 {
-                    theme = new ElementThemeData(STYLE_NORMAL);
-                    SetElementThemeOverride(STYLE_NORMAL, theme);
+                    theme = new ElementThemeData(ElementThemeData.STYLE_NORMAL);
+                    SetElementThemeOverride(ElementThemeData.STYLE_NORMAL, theme);
                 }
 
                 theme.Background = value;

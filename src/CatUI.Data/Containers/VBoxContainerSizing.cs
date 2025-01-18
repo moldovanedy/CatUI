@@ -28,6 +28,7 @@ namespace CatUI.Data.Containers
         /// The elements with the growth factor of 1 will have 150dp each (150 * 1), while the other element will have 300dp (150 * 2).
         /// </example>
         public float VGrowthFactor { get; set; }
+
         public HorizontalAlignmentType HorizontalAlignment { get; set; }
 
         public VBoxContainerSizing(
@@ -36,6 +37,11 @@ namespace CatUI.Data.Containers
         {
             VGrowthFactor = vGrowthFactor;
             HorizontalAlignment = horizontalAlignment;
+        }
+
+        public override VBoxContainerSizing Duplicate()
+        {
+            return new VBoxContainerSizing(VGrowthFactor, HorizontalAlignment);
         }
     }
 }

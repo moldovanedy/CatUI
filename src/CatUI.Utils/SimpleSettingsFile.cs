@@ -13,7 +13,7 @@ namespace CatUI.Utils
     /// Allows primitive values, DateTime, string and null. Arrays are not supported.
     /// </summary>
     /// <remarks>Implements TOML version 0.1, but without arrays support.</remarks>
-    public class SimpleSettingsHandler
+    public class SimpleSettingsFile
     {
         private const int BUFFER_SIZE = 4096;
 
@@ -50,7 +50,7 @@ namespace CatUI.Utils
         /// <summary>
         /// Creates an empty settings handler.
         /// </summary>
-        public SimpleSettingsHandler()
+        public SimpleSettingsFile()
         {
             _loadTask = Task.CompletedTask;
             _root = new SectionNode();
@@ -63,7 +63,7 @@ namespace CatUI.Utils
         /// </summary>
         /// <param name="filePath">The path of the file to read. Must have at least read access.</param>
         /// <exception cref="IOException">Thrown if the file cannot be read because of permissions.</exception>
-        public SimpleSettingsHandler(string filePath)
+        public SimpleSettingsFile(string filePath)
         {
             _filePath = filePath;
             _fs = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Read);
@@ -78,7 +78,7 @@ namespace CatUI.Utils
         /// <remarks>Does NOT close the stream.</remarks>
         /// <param name="stream">The stream to read data from.</param>
         /// <exception cref="IOException">Thrown if the stream cannot be read (i.e. Stream.CanRead is false)</exception>
-        public SimpleSettingsHandler(Stream stream)
+        public SimpleSettingsFile(Stream stream)
         {
             _loadTask = ReadAllSettingsAsync(stream);
         }
@@ -122,7 +122,6 @@ namespace CatUI.Utils
                 if (numberOfChars != decodedCharCount)
                 {
                     throw new Exception("Invalid number of characters detected.");
-                    return;
                 }
 
                 bool hasTreatedIncompleteLine = false;
@@ -406,7 +405,7 @@ namespace CatUI.Utils
 
         /// <summary>
         /// Overwrites the contents of the file from where the settings were read. Does not handle I/O exceptions.
-        /// Only works if this object was created from a file (see <see cref="SimpleSettingsHandler(string)"/>).
+        /// Only works if this object was created from a file (see <see cref="SimpleSettingsFile(string)"/>).
         /// </summary>
         /// <exception cref="InvalidOperationException">If this object wasn't created from a file.</exception>
         public void SaveToFileWithOverwrite()

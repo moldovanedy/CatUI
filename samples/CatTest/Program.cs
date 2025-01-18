@@ -70,14 +70,13 @@ namespace CatTest
                             position: "20dp 20dp",
                             preferredWidth: "50%",
                             preferredHeight: "50%",
-                            themeOverrides: new ThemeDefinition<ImageViewThemeData>(
-                                new Dictionary<string, ImageViewThemeData>()
-                                {
-                                    {
-                                        Label.STYLE_NORMAL,
-                                        new ImageViewThemeData() { Background = new ColorBrush(new Color(0xff_00_ff)) }
-                                    }
-                                }))
+                            themeOverrides:
+                            ThemeBuilder<ImageViewThemeData>
+                                .New()
+                                .AddData(
+                                    LabelThemeData.STYLE_NORMAL,
+                                    new ImageViewThemeData { Background = new ColorBrush(new Color(0xff_00_ff)) })
+                                .Build())
                     ]),
                 new Rectangle(
                     position: new Dimension2(
@@ -115,17 +114,18 @@ namespace CatTest
                             preferredWidth: new Dimension(25, Unit.Percent),
                             maxHeight: "150px",
                             //allowsExpansion: false,
-                            themeOverrides: new ThemeDefinition<LabelThemeData>(new Dictionary<string, LabelThemeData>()
-                            {
-                                {
-                                    Label.STYLE_NORMAL,
-                                    new LabelThemeData(Label.STYLE_NORMAL)
+                            themeOverrides:
+                            ThemeBuilder<LabelThemeData>
+                                .New()
+                                .AddData(
+                                    LabelThemeData.STYLE_NORMAL,
+                                    new LabelThemeData
                                     {
                                         FontSize = 32,
-                                        Background = new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA))
-                                    }
-                                }
-                            })
+                                        Background =
+                                            new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA))
+                                    })
+                                .Build()
                         )
                     ]
                 )

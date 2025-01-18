@@ -15,7 +15,7 @@ using SkiaSharp;
 
 namespace CatUI.Elements.Text
 {
-    public partial class Label : TextElement
+    public class Label : TextElement
     {
         public TextBreakMode TextBreakMode
         {
@@ -241,10 +241,12 @@ namespace CatUI.Elements.Text
             string? drawableText = sb.ToString();
             float maxWidth = normalWidth;
             float newHeight = 0;
-            var currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
+            LabelThemeData currentTheme =
+                GetElementFinalThemeData<LabelThemeData>(LabelThemeData.STYLE_NORMAL) ??
+                new LabelThemeData().GetDefaultData<LabelThemeData>(LabelThemeData.STYLE_NORMAL);
 
-            float fontSize = CalculateDimension(currentTheme.FontSize);
-            float lineHeightPixels = fontSize * currentTheme.LineHeight;
+            float fontSize = CalculateDimension(currentTheme.FontSize!);
+            float lineHeightPixels = fontSize * (currentTheme.LineHeight ?? 1.2f);
 
             SKPaint paint = PaintManager.GetPaint(fontSize: fontSize);
 
@@ -256,7 +258,7 @@ namespace CatUI.Elements.Text
             int lastNewLinePosition = 0;
             while (characterPosition < textSpan.Length)
             {
-                ReadOnlySpan<char> nextSlice = textSpan.Slice(characterPosition);
+                ReadOnlySpan<char> nextSlice = textSpan[characterPosition..];
                 float avgCharSize = Renderer.EstimateCharSizeSafe(nextSlice, paint);
                 int safeCharacterNumber = Math.Min((int)(normalWidth / avgCharSize), nextSlice.Length);
 
@@ -271,7 +273,7 @@ namespace CatUI.Elements.Text
                     }
                 }
 
-                nextSlice = nextSlice.Slice(0, safeCharacterNumber);
+                nextSlice = nextSlice[..safeCharacterNumber];
                 if (nextSlice.Length == 0)
                 {
                     Debug.WriteLine(
@@ -360,8 +362,8 @@ namespace CatUI.Elements.Text
                     _cachedRows.Add(
                         new KeyValuePair<string, float>(
                             needsHyphen
-                                ? new string(nextSlice.Slice(0, characterCount)) + HyphenCharacter
-                                : new string(nextSlice.Slice(0, characterCount)),
+                                ? new string(nextSlice[..characterCount]) + HyphenCharacter
+                                : new string(nextSlice[..characterCount]),
                             newWidth));
                 }
                 else
@@ -369,8 +371,8 @@ namespace CatUI.Elements.Text
                     _cachedRows.Add(
                         new KeyValuePair<string, float>(
                             needsHyphen
-                                ? new string(nextSlice.Slice(0, characterCount)) + HyphenCharacter
-                                : new string(nextSlice.Slice(0, characterCount)),
+                                ? new string(nextSlice[..characterCount]) + HyphenCharacter
+                                : new string(nextSlice[..characterCount]),
                             normalWidth));
                 }
 
@@ -417,9 +419,11 @@ namespace CatUI.Elements.Text
 
         private void DrawText()
         {
-            var currentTheme = GetElementFinalThemeData<LabelThemeData>(STYLE_NORMAL);
-            float fontSize = CalculateDimension(currentTheme.FontSize);
-            float rowSize = fontSize * currentTheme.LineHeight;
+            LabelThemeData currentTheme =
+                GetElementFinalThemeData<LabelThemeData>(LabelThemeData.STYLE_NORMAL) ??
+                new LabelThemeData().GetDefaultData<LabelThemeData>(LabelThemeData.STYLE_NORMAL);
+            float fontSize = CalculateDimension(currentTheme.FontSize!);
+            float rowSize = fontSize * (currentTheme.LineHeight ?? 1.2f);
             Point2D rowPosition = Bounds.StartPoint;
             //half of line width + 0.5 (so for line height of 2 it is 1 + 0.5, for 4 is 2 + 0.5 etc.)
             rowPosition.Y += (rowSize / 2f) + (fontSize / 2f);
@@ -441,7 +445,7 @@ namespace CatUI.Elements.Text
                 {
                     SKPaint painter = PaintManager.GetPaint(
                         fontSize: fontSize);
-                    painter.Color = currentTheme.FillBrush.ToSkiaPaint().Color;
+                    painter.Color = currentTheme.FillBrush!.ToSkiaPaint().Color;
 
                     Document?.Renderer?.DrawTextRowFast(_cachedRows[rowsDrawn].Key, rowPosition, painter);
                     charactersDrawn += _cachedRows[rowsDrawn].Key.Length;
@@ -454,10 +458,10 @@ namespace CatUI.Elements.Text
                 Document?.Renderer.DrawTextRow(
                     Text,
                     Bounds.StartPoint,
-                    currentTheme.FontSize,
+                    currentTheme.FontSize!,
                     new Size(AbsoluteWidth, AbsoluteHeight),
-                    currentTheme.FillBrush,
-                    currentTheme.OutlineBrush,
+                    currentTheme.FillBrush!,
+                    currentTheme.OutlineBrush!,
                     TextAlignment,
                     TextOverflowMode,
                     EllipsisString);
