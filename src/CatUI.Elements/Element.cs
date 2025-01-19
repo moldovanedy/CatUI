@@ -956,7 +956,7 @@ namespace CatUI.Elements
         /// If dimension is unset, this method returns 0.
         /// </remarks>
         /// <returns>The pixel value of the given dimension.</returns>
-        public int CalculateDimension(Dimension dimension, float pixelDimensionForPercent = 0)
+        public float CalculateDimension(Dimension dimension, float pixelDimensionForPercent = 0)
         {
             if (dimension.IsUnset())
             {
@@ -968,11 +968,11 @@ namespace CatUI.Elements
                 default:
                 case Unit.Dp:
                     {
-                        return (int)(dimension.Value * (Document?.ContentScale ?? 1));
+                        return dimension.Value * (Document?.ContentScale ?? 1);
                     }
                 case Unit.Pixels:
                     {
-                        return (int)dimension.Value;
+                        return dimension.Value;
                     }
                 case Unit.Percent:
                     {
@@ -981,7 +981,7 @@ namespace CatUI.Elements
                             return 0;
                         }
 
-                        return (int)(dimension.Value * pixelDimensionForPercent / 100f);
+                        return dimension.Value * pixelDimensionForPercent / 100f;
                     }
                 case Unit.ViewportWidth:
                     {
@@ -990,7 +990,7 @@ namespace CatUI.Elements
                             return 0;
                         }
 
-                        return (int)(dimension.Value * Document.ViewportSize.Width / 100f);
+                        return dimension.Value * Document.ViewportSize.Width / 100f;
                     }
                 case Unit.ViewportHeight:
                     {
@@ -999,7 +999,7 @@ namespace CatUI.Elements
                             return 0;
                         }
 
-                        return (int)(dimension.Value * Document.ViewportSize.Height / 100f);
+                        return dimension.Value * Document.ViewportSize.Height / 100f;
                     }
             }
         }
