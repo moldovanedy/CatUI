@@ -132,32 +132,28 @@ namespace CatUI.RenderingEngine
             IsCanvasDirty = false;
         }
 
-        public int CalculateDimension(Dimension dimension, float dimensionForPercent = 0)
+        public float CalculateDimension(Dimension dimension, float dimensionForPercent = 0)
         {
             switch (dimension.MeasuringUnit)
             {
                 default:
                 case Unit.Dp:
-                    return (int)(dimension.Value * _scale);
+                    return dimension.Value * _scale;
                 case Unit.Pixels:
-                    return (int)dimension.Value;
+                    return dimension.Value;
                 case Unit.Percent:
                     return
-                        (int)(dimension.Value *
-                              (dimensionForPercent == 0
-                                  ? Canvas?.DeviceClipBounds.Size.Width ?? 0
-                                  : dimensionForPercent) /
-                              100f);
+                        dimension.Value *
+                        (dimensionForPercent == 0
+                            ? Canvas?.DeviceClipBounds.Size.Width ?? 0
+                            : dimensionForPercent) /
+                        100f;
                 case Unit.ViewportWidth:
                     return
-                        (int)(dimension.Value *
-                              (Canvas?.DeviceClipBounds.Size.Width ?? 0) /
-                              100f);
+                        dimension.Value * (Canvas?.DeviceClipBounds.Size.Width ?? 0) / 100f;
                 case Unit.ViewportHeight:
                     return
-                        (int)(dimension.Value *
-                              (Canvas?.DeviceClipBounds.Size.Height ?? 0) /
-                              100f);
+                        dimension.Value * (Canvas?.DeviceClipBounds.Size.Height ?? 0) / 100f;
             }
         }
     }

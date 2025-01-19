@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace CatUI.Data
 {
@@ -22,24 +24,38 @@ namespace CatUI.Data
                 return _instance;
             }
         }
+
         private static CatApplication? _instance;
 
         /// <summary>
         /// The application name. It is not used yet.
         /// </summary>
         public string AppName { get; private set; } = "";
+
         /// <summary>
-        /// The minimum logging level when DEBUG is defined. Defaults to <see cref="LogLevel.Debug"/>.
+        /// The minimum logging level when DEBUG is defined. Defaults to <see cref="Debug"/>.
         /// </summary>
-        public LogLevel DebugLogLevel { get; set; } = LogLevel.Debug;
+        public CatLogger.LogLevel DebugLogLevel { get; set; } = CatLogger.LogLevel.Debug;
+
         /// <summary>
-        /// The minimum logging level when TRACE is defined and DEBUG is not. Defaults to <see cref="LogLevel.None"/>,
-        /// so no logging in release by default.
+        /// The minimum logging level when TRACE is defined and DEBUG is not. Defaults to
+        /// <see cref="CatLogger.LogLevel.None"/>, so no logging in release by default.
         /// </summary>
-        public LogLevel ReleaseLogLevel { get; set; } = LogLevel.None;
+        public CatLogger.LogLevel ReleaseLogLevel { get; set; } = CatLogger.LogLevel.None;
 
         private CatApplication()
         {
+#if DEBUG
+            if (DebugLogLevel > CatLogger.LogLevel.Debug)
+            {
+                return;
+            }
+
+            Debug.WriteLine(
+                @"Initializing CatApplication. This message will only appear in debug mode if 
+DebugLogLevel is LogLevel.Debug or lower. To configure debugging, use SetMinimumDebugLogLevel and SetMinimumReleaseLogLevel.
+                ");
+#endif
         }
 
         /// <summary>
@@ -55,55 +71,14 @@ namespace CatUI.Data
             return new AppBuilder();
         }
 
-
-        /// <summary>
-        /// The type of log message specific to the application. Logs are written by internal CatUI components.
-        /// </summary>
-        public enum LogLevel
-        {
-            /// <summary>
-            /// No logging, only used when configuring the logging level.
-            /// </summary>
-            None = 0,
-            /// <summary>
-            /// Contains lots of details that are generally only used for debugging;
-            /// very rarely enabled in a production app.
-            /// </summary>
-            Verbose = 1,
-            /// <summary>
-            /// Used when debugging or for internal events.
-            /// </summary>
-            Debug = 2,
-            /// <summary>
-            /// Generally used for suggestions when debugging. Generally disabled in production.
-            /// </summary>
-            Info = 3,
-            /// <summary>
-            /// Something is not configured properly. Generally enabled in production.
-            /// </summary>
-            Warning = 4,
-            /// <summary>
-            /// Something went wrong and these messages might help you to diagnose the problem.
-            /// It is strongly encouraged to enable this level (or a lower one) in production.
-            /// </summary>
-            Error = 5,
-            /// <summary>
-            /// Something happened that makes the application unusable and cannot continue normal operation,
-            /// generally something wrong on the client machine. Use this to present an error message, gather data and
-            /// quit the application. This is very rarely (if at all) triggered.
-            /// It is strongly encouraged to enable this level (or a lower one) in production.
-            /// </summary>
-            Critical = 6,
-        }
-        
         /// <summary>
         /// This is responsible for setting up the global <see cref="CatApplication"/> object.
         /// </summary>
         public class AppBuilder
         {
             private string _appName = "";
-            private LogLevel _debugLogLevel = LogLevel.Debug;
-            private LogLevel _releaseLogLevel = LogLevel.Warning;
+            private CatLogger.LogLevel _debugLogLevel = CatLogger.LogLevel.Debug;
+            private CatLogger.LogLevel _releaseLogLevel = CatLogger.LogLevel.Warning;
 
             /// <summary>
             /// Sets the application name.
@@ -121,7 +96,7 @@ namespace CatUI.Data
             /// </summary>
             /// <param name="debugLogLevel"></param>
             /// <returns>This builder.</returns>
-            public AppBuilder SetMinimumDebugLogLevel(LogLevel debugLogLevel)
+            public AppBuilder SetMinimumDebugLogLevel(CatLogger.LogLevel debugLogLevel)
             {
                 _debugLogLevel = debugLogLevel;
                 return this;
@@ -132,12 +107,30 @@ namespace CatUI.Data
             /// </summary>
             /// <param name="releaseLogLevel"></param>
             /// <returns>This builder.</returns>
-            public AppBuilder SetMinimumReleaseLogLevel(LogLevel releaseLogLevel)
+            public AppBuilder SetMinimumReleaseLogLevel(CatLogger.LogLevel releaseLogLevel)
             {
                 _releaseLogLevel = releaseLogLevel;
                 return this;
             }
-            
+
+            /// <summary>
+            /// Simply sets <see cref="Trace.Listeners"/>, this is only a convenience function because its functionality
+            /// can be easily achieved by directly manipulating <see cref="Trace.Listeners"/>.
+            /// </summary>
+            /// <remarks>It clears existing Trace listeners.</remarks>
+            /// <param name="listeners">The listeners that will respond to any log by performing a certain action.</param>
+            /// <returns>This builder.</returns>
+            public AppBuilder SetReleaseLoggingListeners(List<TraceListener> listeners)
+            {
+                Trace.Listeners.Clear();
+                foreach (TraceListener listener in listeners)
+                {
+                    Trace.Listeners.Add(listener);
+                }
+
+                return this;
+            }
+
             /// <summary>
             /// Sets up the <see cref="CatApplication"/> object using the given parameters or their default value.
             /// </summary>
@@ -147,18 +140,17 @@ namespace CatUI.Data
             /// </exception>
             public CatApplication Build()
             {
-                if (CatApplication._instance != null)
+                if (_instance != null)
                 {
                     throw new InvalidOperationException("A CatApplication has already been instantiated.");
                 }
-                
+
                 //using Instance here is OK, as this has private access to CatApplication
-                CatApplication.Instance.AppName = _appName;
-                CatApplication.Instance.DebugLogLevel = _debugLogLevel;
-                CatApplication.Instance.ReleaseLogLevel = _releaseLogLevel;
-                return CatApplication.Instance;
+                Instance.AppName = _appName;
+                Instance.DebugLogLevel = _debugLogLevel;
+                Instance.ReleaseLogLevel = _releaseLogLevel;
+                return Instance;
             }
         }
     }
-
 }
