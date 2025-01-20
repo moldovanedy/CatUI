@@ -90,6 +90,7 @@ namespace CatTest
                             svgPath:
                             $"M25 35 L45 60 A40 40 29 1 1 25 25",
                             position: "5 10",
+                            //shouldApplyScaling: true,
                             preferredWidth: new Dimension(25, Unit.Percent),
                             preferredHeight: new Dimension(15, Unit.Percent),
                             fillBrush: new ColorBrush(new Color(0xff_98_00)),

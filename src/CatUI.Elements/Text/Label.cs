@@ -276,8 +276,8 @@ namespace CatUI.Elements.Text
                 nextSlice = nextSlice[..safeCharacterNumber];
                 if (nextSlice.Length == 0)
                 {
-                    Debug.WriteLine(
-                        "WARN: Label width to small for the specified font size. Skipping to the next character.");
+                    CatLogger.LogWarning(
+                        "Label width to small for the specified font size. Skipping to the next character.");
                     characterPosition++;
                     continue;
                 }
@@ -443,8 +443,7 @@ namespace CatUI.Elements.Text
                     //TODO: also take into account the line height and next row's vertical size on the left-hand expression
                     (AllowsExpansion || rowPosition.Y < Bounds.StartPoint.Y + Bounds.Width))
                 {
-                    SKPaint painter = PaintManager.GetPaint(
-                        fontSize: fontSize);
+                    SKPaint painter = PaintManager.GetPaint(fontSize: fontSize);
                     painter.Color = currentTheme.FillBrush!.ToSkiaPaint().Color;
 
                     Document?.Renderer?.DrawTextRowFast(_cachedRows[rowsDrawn].Key, rowPosition, painter);
