@@ -9,7 +9,7 @@ using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Shapes
 {
-    public partial class Ellipse : AbstractShape
+    public class Ellipse : AbstractShape
     {
         public Ellipse(
             //AbstractShape
@@ -68,16 +68,15 @@ namespace CatUI.Elements.Shapes
                 onPointerMove: onPointerMove)
         //ReSharper enable ArgumentsStyleNamedExpression
         {
-            DrawEvent += PrivateDrawOutline;
-        }
-
-        ~Ellipse()
-        {
-            DrawEvent -= PrivateDrawOutline;
         }
 
         protected override void DrawBackground()
         {
+            if (!Visible)
+            {
+                return;
+            }
+
             if (FillBrush.IsSkippable)
             {
                 return;
@@ -89,16 +88,12 @@ namespace CatUI.Elements.Shapes
                 rect.Width / 2f,
                 rect.Height / 2f,
                 FillBrush);
-        }
 
-        private void PrivateDrawOutline()
-        {
             if (OutlineBrush.IsSkippable || OutlineParameters.OutlineWidth == 0)
             {
                 return;
             }
 
-            Rect rect = Bounds.GetContentBox();
             Document?.Renderer.DrawEllipseOutline(
                 new Point2D(rect.CenterX, rect.CenterY),
                 rect.Width / 2f,

@@ -69,5 +69,28 @@ namespace CatUI.Elements.Shapes
         //ReSharper enable ArgumentsStyleNamedExpression
         {
         }
+
+        protected override void DrawBackground()
+        {
+            if (!Visible)
+            {
+                return;
+            }
+
+            if (FillBrush.IsSkippable)
+            {
+                return;
+            }
+
+            Rect rect = Bounds.GetContentBox();
+            Document?.Renderer.DrawRect(rect, FillBrush);
+
+            if (OutlineBrush.IsSkippable || OutlineParameters.OutlineWidth == 0)
+            {
+                return;
+            }
+
+            Document?.Renderer.DrawRectOutline(rect, OutlineBrush, OutlineParameters);
+        }
     }
 }

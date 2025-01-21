@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-
 using CatUI.Data;
-
 using SkiaSharp;
 
 namespace CatUI.RenderingEngine.GraphicsCaching
@@ -30,7 +28,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// 2 different paths because their bounds are the same, although there are mechanisms to prevent this).
         /// </para>
         /// </remarks>
-        private static readonly Dictionary<NumericKey, SKPath> _paths = new Dictionary<NumericKey, SKPath>();
+        private static readonly Dictionary<NumericKey, SKPath> _paths = new();
 
         public static bool TryGetPath(
             ushort pointCount,
@@ -39,14 +37,14 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             out SKPath? skiaPath)
         {
             ulong searchedKeyLow = pointCount;
-            searchedKeyLow |= ((ulong)ConvertToFixedNumber(pathBounds.X)) << 16;
-            searchedKeyLow |= ((ulong)ConvertToFixedNumber(pathBounds.Y)) << 40;
+            searchedKeyLow |= (ulong)ConvertToFixedNumber(pathBounds.X) << 16;
+            searchedKeyLow |= (ulong)ConvertToFixedNumber(pathBounds.Y) << 40;
 
             ulong searchedKeyHigh = 0;
             searchedKeyHigh |= ConvertToFixedNumber(pathBounds.Width);
-            searchedKeyHigh |= ((ulong)ConvertToFixedNumber(pathBounds.Height)) << 24;
+            searchedKeyHigh |= (ulong)ConvertToFixedNumber(pathBounds.Height) << 24;
 
-            searchedKeyHigh |= ((ulong)verbCount) << 48;
+            searchedKeyHigh |= (ulong)verbCount << 48;
 
             return _paths.TryGetValue(new NumericKey(searchedKeyLow, searchedKeyHigh), out skiaPath);
         }
@@ -58,7 +56,9 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// <param name="path">The path to be cached.</param>
         /// <returns>
         /// True if the path was valid or the path was already cached, false if some parameters were invalid 
-        /// (such as having more than 65535 points).
+        /// (such as having more than 65535 points) OR if an identical path (as determined by the comparison algorithm)
+        /// was already found (there might be 2 very different paths, but the algorithm can see them as identical;
+        /// check the return value if this aspect is important to your logic).
         /// </returns>
         public static bool CacheNewPath(SKPath path)
         {
@@ -83,14 +83,15 @@ namespace CatUI.RenderingEngine.GraphicsCaching
 
         private static NumericKey GenerateKeyFromPath(SKPath skiaPath)
         {
-            if (skiaPath.PointCount > (1 << 16) || skiaPath.VerbCount > (1 << 16))
+            if (skiaPath.PointCount > 1 << 16 || skiaPath.VerbCount > 1 << 16)
             {
                 return NumericKey.Zero;
             }
-            if (skiaPath.Bounds.Left > (1 << 16) ||
-                skiaPath.Bounds.Top > (1 << 16) ||
-                skiaPath.Bounds.Width > (1 << 16) ||
-                skiaPath.Bounds.Height > (1 << 16))
+
+            if (skiaPath.Bounds.Left > 1 << 16 ||
+                skiaPath.Bounds.Top > 1 << 16 ||
+                skiaPath.Bounds.Width > 1 << 16 ||
+                skiaPath.Bounds.Height > 1 << 16)
             {
                 return NumericKey.Zero;
             }
@@ -98,13 +99,13 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             ulong newKeyLow = (ulong)skiaPath.PointCount;
             Rect bounds = skiaPath.Bounds;
 
-            newKeyLow |= ((ulong)ConvertToFixedNumber(bounds.X)) << 16;
-            newKeyLow |= ((ulong)ConvertToFixedNumber(bounds.Y)) << 40;
+            newKeyLow |= (ulong)ConvertToFixedNumber(bounds.X) << 16;
+            newKeyLow |= (ulong)ConvertToFixedNumber(bounds.Y) << 40;
 
             ulong newKeyHigh = 0;
             newKeyHigh |= ConvertToFixedNumber(bounds.Width);
-            newKeyHigh |= ((ulong)ConvertToFixedNumber(bounds.Height)) << 24;
-            newKeyHigh |= ((ulong)skiaPath.VerbCount) << 48;
+            newKeyHigh |= (ulong)ConvertToFixedNumber(bounds.Height) << 24;
+            newKeyHigh |= (ulong)skiaPath.VerbCount << 48;
 
             return new NumericKey(newKeyLow, newKeyHigh);
         }

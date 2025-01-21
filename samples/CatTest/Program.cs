@@ -88,9 +88,9 @@ namespace CatTest
                     [
                         new GeometricPath(
                             svgPath:
-                            $"M25 35 L45 60 A40 40 29 1 1 25 25",
+                            "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
                             position: "5 10",
-                            //shouldApplyScaling: true,
+                            shouldApplyScaling: true,
                             preferredWidth: new Dimension(25, Unit.Percent),
                             preferredHeight: new Dimension(15, Unit.Percent),
                             fillBrush: new ColorBrush(new Color(0xff_98_00)),
@@ -98,8 +98,14 @@ namespace CatTest
                             outlineParameters: new OutlineParams(
                                 4,
                                 LineCapType.Round,
-                                miterLimit: 5)
-                        ),
+                                miterLimit: 5),
+                            themeOverrides:
+                            ThemeBuilder<ElementThemeData>
+                                .New()
+                                .AddData(
+                                    ElementThemeData.STYLE_NORMAL,
+                                    new ElementThemeData() { Background = new ColorBrush(new Color(0xff_ff_ff)) })
+                                .Build()),
                         new Rectangle(
                             position: new Dimension2(
                                 new Dimension(55, Unit.Percent),
