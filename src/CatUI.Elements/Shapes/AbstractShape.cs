@@ -72,33 +72,7 @@ namespace CatUI.Elements.Shapes
             }
         }
 
-        public IBrush FillBrush
-        {
-            get
-            {
-                ElementThemeData? theme = GetElementThemeOverride(ElementThemeData.STYLE_NORMAL);
-                if (theme == null)
-                {
-                    theme = new ElementThemeData(ElementThemeData.STYLE_NORMAL);
-                    SetElementThemeOverride(ElementThemeData.STYLE_NORMAL, theme);
-                }
-
-                IBrush brush = theme.Background ?? new ColorBrush();
-                return brush;
-            }
-            set
-            {
-                ElementThemeData? theme = GetElementThemeOverride(ElementThemeData.STYLE_NORMAL);
-                if (theme == null)
-                {
-                    theme = new ElementThemeData(ElementThemeData.STYLE_NORMAL);
-                    SetElementThemeOverride(ElementThemeData.STYLE_NORMAL, theme);
-                }
-
-                theme.Background = value;
-            }
-        }
-
+        public IBrush FillBrush { get; set; }
         public IBrush OutlineBrush { get; set; }
         public OutlineParams OutlineParameters { get; set; }
     }

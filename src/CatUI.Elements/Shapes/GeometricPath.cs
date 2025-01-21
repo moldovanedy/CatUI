@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
@@ -14,6 +15,7 @@ namespace CatUI.Elements.Shapes
     public class GeometricPath : AbstractShape
     {
         private SKPath _skiaPath = new();
+        private SKPath _scaledCachedPath = new();
 
         /// <summary>
         /// If true, the path will be scaled to respect the element's width and height. If false, no scaling will be applied,
@@ -33,8 +35,8 @@ namespace CatUI.Elements.Shapes
 
         public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new();
 
-        private Point2D _lastStartPoint = Point2D.Zero;
-        private Point2D _lastAppliedScale = new(1, 1);
+        private Vector2 _lastTopLeftPoint = Vector2.Zero;
+        private Vector2 _lastScale = Vector2.One;
 
         public GeometricPath(
             bool shouldApplyScaling = false,
@@ -100,12 +102,14 @@ namespace CatUI.Elements.Shapes
             if (!string.IsNullOrEmpty(svgPath))
             {
                 _skiaPath = SKPath.ParseSvgPathData(svgPath);
+                _scaledCachedPath = new SKPath(_skiaPath);
+                PathCache.CacheNewPath(_scaledCachedPath);
             }
         }
 
         ~GeometricPath()
         {
-            PathCache.RemovePath(_skiaPath);
+            PathCache.RemovePath(_scaledCachedPath);
         }
 
         public SKPath GetSkiaPathClone()
@@ -120,8 +124,10 @@ namespace CatUI.Elements.Shapes
                 return;
             }
 
-            PathCache.RemovePath(_skiaPath);
+            PathCache.RemovePath(_scaledCachedPath);
             _skiaPath = path;
+            _scaledCachedPath = new SKPath(_skiaPath);
+            PathCache.CacheNewPath(_scaledCachedPath);
         }
 
         /// <summary>
@@ -130,32 +136,57 @@ namespace CatUI.Elements.Shapes
         /// <param name="svgPath">The SVG data from the SVG <code>path</code> element.</param>
         public void RecreateFromSvgPath(string svgPath)
         {
-            PathCache.RemovePath(_skiaPath);
+            PathCache.RemovePath(_scaledCachedPath);
             _skiaPath = SKPath.ParseSvgPathData(svgPath);
+            _scaledCachedPath = new SKPath(_skiaPath);
+            PathCache.CacheNewPath(_scaledCachedPath);
         }
 
         protected override void DrawBackground()
         {
-            _lastStartPoint = new Point2D(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
+            if (!Visible)
+            {
+                return;
+            }
+
+            ElementThemeData currentTheme =
+                GetElementFinalThemeData<ElementThemeData>(ElementThemeData.STYLE_NORMAL) ??
+                new ElementThemeData().GetDefaultData(ElementThemeData.STYLE_NORMAL);
+
+            IBrush? bgBrush = currentTheme.Background;
+            if (bgBrush == null)
+            {
+                return;
+            }
+
+            if (!bgBrush.IsSkippable)
+            {
+                Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), bgBrush);
+            }
+
+            var startPoint = new Vector2(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
+            var scale = new Vector2(1, 1);
+
+            //TODO: use caching as much as possible, and investigate whether saving the canvas state,
+            // transforming the whole canvas, drawing and then restoring the canvas is a better choice when there are many paths
+            _scaledCachedPath = new SKPath(_skiaPath);
 
             if (ShouldApplyScaling)
             {
-                _lastAppliedScale = new Point2D(
+                scale = new Vector2(
                     Bounds.Width / _skiaPath.TightBounds.Width,
                     Bounds.Height / _skiaPath.TightBounds.Height);
             }
-            else
-            {
-                _lastAppliedScale = new Point2D(1, 1);
-            }
 
-            _skiaPath.Transform(SKMatrix.CreateScaleTranslation(
-                _lastAppliedScale.X,
-                _lastAppliedScale.Y,
-                Bounds.StartPoint.X - _lastStartPoint.X,
-                Bounds.StartPoint.Y - _lastStartPoint.Y));
+            var thisTopLeftPoint = new Vector2(
+                Bounds.StartPoint.X - (startPoint.X * scale.X),
+                Bounds.StartPoint.Y - (startPoint.Y * scale.Y));
 
-            Document?.Renderer.DrawPath(_skiaPath, FillBrush, OutlineBrush, OutlineParameters);
+            _scaledCachedPath.Transform(SKMatrix.CreateScaleTranslation(
+                scale.X, scale.Y, thisTopLeftPoint.X, thisTopLeftPoint.Y));
+            Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush, OutlineBrush, OutlineParameters);
+
+            _lastScale = scale;
         }
     }
 }
