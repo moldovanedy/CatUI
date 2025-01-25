@@ -54,7 +54,7 @@ namespace CatUI.Elements.Text
             string text,
             //own
             TextBreakMode breakMode = TextBreakMode.SoftBreak,
-            char hyphenCharacter = '\u2026',
+            char hyphenCharacter = '-',
             //TextElement
             TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
