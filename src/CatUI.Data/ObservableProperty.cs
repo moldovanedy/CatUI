@@ -42,6 +42,15 @@ namespace CatUI.Data
         /// </summary>
         public event ValueChangedEventArgs<T>? ValueChangedEvent;
 
+        /// <summary>
+        /// Will call <see cref="ValueChangedEvent"/> directly with the current value. Useful if you want to invoke the
+        /// event without setting <see cref="Value"/> to a different value, as setting it to the same value won't have any effect.
+        /// </summary>
+        public void ForceRecallEvents()
+        {
+            ValueChangedEvent?.Invoke(_value);
+        }
+
         public void BindUnidirectional(ObservableProperty<T> otherProperty)
         {
             otherProperty.ValueChangedEvent += OnChangeCall;

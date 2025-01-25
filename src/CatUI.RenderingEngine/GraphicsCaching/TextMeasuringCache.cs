@@ -21,7 +21,9 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// dictionary where the key is the font size (rounded to 2 decimals) and the value is yet another dictionary,
         /// with the key being the font weight and the value being finally the width of the text.
         /// </summary>
-        private static readonly Dictionary<string, List<Dictionary<float, Dictionary<int, float>>>> _cache = new(500);
+        private static readonly Dictionary<ReadOnlyMemory<char>, List<Dictionary<float, Dictionary<int, float>>>>
+            _cache =
+                new(500);
 
         /// <summary>
         /// Given the values, will search for the text's width and will return it if it's found. Otherwise, it is
@@ -39,7 +41,8 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// Thrown if the font index or the font size are negative. Also when the font weight is not between 100 and 1000
         /// and the modulus to 100 is not 0 (x % 100 != 0).
         /// </exception>
-        public static float GetValueOrCalculate(string text, float fontSize, int fontWeight = 400, int fontIndex = 0)
+        public static float GetValueOrCalculate(ReadOnlyMemory<char> text, float fontSize, int fontWeight = 400,
+            int fontIndex = 0)
         {
             if (fontIndex < 0)
             {
@@ -56,7 +59,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
                 throw new ArgumentException("Invalid font weight value", nameof(fontWeight));
             }
 
-            if (string.IsNullOrEmpty(text))
+            if (text.Length == 0)
             {
                 return 0;
             }
@@ -75,6 +78,11 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             {
                 Dictionary<float, Dictionary<int, float>>[] newRecords =
                     new Dictionary<float, Dictionary<int, float>>[fontIndex - records.Count + 1];
+                for (int i = 0; i < newRecords.Length; i++)
+                {
+                    newRecords[i] = new Dictionary<float, Dictionary<int, float>>();
+                }
+
                 _cache[text].AddRange(newRecords);
             }
 
@@ -88,7 +96,8 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             //if the given weight doesn't exist
             if (!weightDictionary.TryGetValue(fontWeight, out float value))
             {
-                weightDictionary[fontWeight] = Calculate(text, fontSize, fontWeight, fontIndex);
+                value = Calculate(text.Span, fontSize, fontWeight, fontIndex);
+                weightDictionary[fontWeight] = value;
                 NumberOfEntries++;
             }
 
@@ -103,7 +112,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// <param name="fontWeight">See <see cref="GetValueOrCalculate"/>.</param>
         /// <param name="fontIndex">See <see cref="GetValueOrCalculate"/>.</param>
         /// <returns>The text's width in pixels.</returns>
-        public static float Calculate(string text, float fontSize, int fontWeight = 400, int fontIndex = 0)
+        public static float Calculate(ReadOnlySpan<char> text, float fontSize, int fontWeight = 400, int fontIndex = 0)
         {
             SKPaint paint = PaintManager.GetPaint(fontSize: fontSize);
             return paint.MeasureText(text);
@@ -124,7 +133,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// If this is given without text (<see cref="forText"/> == null), it will remove the entries
         /// for the font index on all texts (slow).
         /// </param>
-        public static void PurgeCache(string? forText = null, int forFontIndex = -1)
+        public static void PurgeCache(Memory<char>? forText = null, int forFontIndex = -1)
         {
             //for all texts
             if (forText == null)
@@ -139,7 +148,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
                 //only for a font
                 else
                 {
-                    foreach (string key in _cache.Keys)
+                    foreach (ReadOnlyMemory<char> key in _cache.Keys)
                     {
                         Dictionary<float, Dictionary<int, float>> toDelete = _cache[key][forFontIndex];
                         foreach (KeyValuePair<float, Dictionary<int, float>> pair in toDelete)
@@ -154,7 +163,9 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             //a specific text, all fonts
             else if (forFontIndex < 0)
             {
-                if (_cache.TryGetValue(forText, out List<Dictionary<float, Dictionary<int, float>>>? records))
+                Memory<char> text = (Memory<char>)forText;
+
+                if (_cache.TryGetValue(text, out List<Dictionary<float, Dictionary<int, float>>>? records))
                 {
                     foreach (Dictionary<float, Dictionary<int, float>> record in records)
                     {
@@ -165,12 +176,14 @@ namespace CatUI.RenderingEngine.GraphicsCaching
                     }
                 }
 
-                _cache.Remove(forText);
+                _cache.Remove(text);
             }
             //a specific text and a specific font
             else
             {
-                Dictionary<float, Dictionary<int, float>> toDelete = _cache[forText][forFontIndex];
+                Memory<char> text = (Memory<char>)forText;
+
+                Dictionary<float, Dictionary<int, float>> toDelete = _cache[text][forFontIndex];
                 foreach (KeyValuePair<float, Dictionary<int, float>> pair in toDelete)
                 {
                     NumberOfEntries -= (uint)pair.Value.Count;
