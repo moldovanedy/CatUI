@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using CatUI.Data;
 using CatUI.Data.Containers;
@@ -54,7 +53,7 @@ namespace CatUI.Elements.Text
             string text,
             //own
             TextBreakMode breakMode = TextBreakMode.SoftBreak,
-            char hyphenCharacter = '\u2026',
+            char hyphenCharacter = '-',
             //TextElement
             TextAlignmentType textAlignment = TextAlignmentType.Left,
             TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
