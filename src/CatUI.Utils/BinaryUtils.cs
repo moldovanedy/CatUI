@@ -5,11 +5,45 @@ namespace CatUI.Utils
 {
     public static class BinaryUtils
     {
+        public static bool GetBit(int value, int index)
+        {
+            return (value & (1 << index)) != 0;
+        }
+
+        public static bool GetBit(long value, int index)
+        {
+            return (value & (1L << index)) != 0;
+        }
+
+        public static void SetBit(ref int value, bool bitValue, int index)
+        {
+            if (bitValue)
+            {
+                value |= 1 << index;
+            }
+            else
+            {
+                value &= ~(1 << index);
+            }
+        }
+
+        public static void SetBit(ref long value, bool bitValue, int index)
+        {
+            if (bitValue)
+            {
+                value |= 1L << index;
+            }
+            else
+            {
+                value &= ~(1L << index);
+            }
+        }
+
         #region Value to bytes
 
         public static byte[] ConvertIntToBytes(int variable)
         {
-            var bytes = new byte[4];
+            byte[] bytes = new byte[4];
             bytes[0] = (byte)(variable >> 24);
             bytes[1] = (byte)(variable >> 16);
             bytes[2] = (byte)(variable >> 8);
@@ -19,7 +53,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertUintToBytes(uint variable)
         {
-            var bytes = new byte[4];
+            byte[] bytes = new byte[4];
             bytes[0] = (byte)(variable >> 24);
             bytes[1] = (byte)(variable >> 16);
             bytes[2] = (byte)(variable >> 8);
@@ -29,7 +63,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertShortToBytes(int variable)
         {
-            var bytes = new byte[2];
+            byte[] bytes = new byte[2];
             bytes[0] = (byte)(variable >> 8);
             bytes[1] = (byte)variable;
             return bytes;
@@ -37,7 +71,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertUshortToBytes(uint variable)
         {
-            var bytes = new byte[2];
+            byte[] bytes = new byte[2];
             bytes[0] = (byte)(variable >> 8);
             bytes[1] = (byte)variable;
             return bytes;
@@ -61,7 +95,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertStringToBytes(string variable)
         {
-            var buffer = new byte[variable.Length + 1];
+            byte[] buffer = new byte[variable.Length + 1];
             Encoding.ASCII.GetBytes(variable).CopyTo(buffer, 0);
             //string terminator
             buffer[variable.Length] = 0x00;
@@ -71,7 +105,7 @@ namespace CatUI.Utils
 
         public static byte[] ConvertLongToBytes(long variable)
         {
-            var bytes = new byte[8];
+            byte[] bytes = new byte[8];
             bytes[0] = (byte)(variable >> 56);
             bytes[1] = (byte)(variable >> 48);
             bytes[2] = (byte)(variable >> 40);
@@ -199,7 +233,7 @@ namespace CatUI.Utils
         {
             if (bytes.Length < 4)
             {
-                var value = 0;
+                int value = 0;
                 for (int i = bytes.Length - 1; i >= 0; i--)
                 {
                     value |= bytes[startIndex + i] << (8 * (bytes.Length - 1 - i));
@@ -302,7 +336,7 @@ namespace CatUI.Utils
                 return string.Empty;
             }
 
-            var length = 0;
+            int length = 0;
             while (bytes[startIndex] != 0)
             {
                 startIndex++;
@@ -316,7 +350,7 @@ namespace CatUI.Utils
         {
             if (bytes.Length < 8)
             {
-                var value = 0;
+                int value = 0;
                 for (int i = bytes.Length - 1; i >= 0; i--)
                 {
                     value |= bytes[startIndex + i] << (8 * (bytes.Length - 1 - i));
@@ -414,8 +448,8 @@ namespace CatUI.Utils
 
         public static byte[] TruncateIntValue(byte[] value, int byteCount)
         {
-            var newValue = new byte[byteCount];
-            for (var i = 3; i >= 4 - byteCount; i--)
+            byte[] newValue = new byte[byteCount];
+            for (int i = 3; i >= 4 - byteCount; i--)
             {
                 newValue[byteCount - (3 - i) - 1] = value[i];
             }

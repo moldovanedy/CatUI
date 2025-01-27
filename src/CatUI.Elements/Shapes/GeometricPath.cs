@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
-using CatUI.Data.Events.Document;
-using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Themes;
 using CatUI.RenderingEngine.GraphicsCaching;
 using SkiaSharp;
@@ -35,76 +30,32 @@ namespace CatUI.Elements.Shapes
 
         public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new();
 
+        public string SvgPath
+        {
+            get => _svgPath;
+            set
+            {
+                _svgPath = value;
+                if (!string.IsNullOrEmpty(_svgPath))
+                {
+                    _skiaPath = SKPath.ParseSvgPathData(_svgPath);
+                    _scaledCachedPath = new SKPath(_skiaPath);
+                    PathCache.CacheNewPath(_scaledCachedPath);
+                }
+
+                SvgPathProperty.Value = value;
+            }
+        }
+
+        private string _svgPath = "";
+        public ObservableProperty<string> SvgPathProperty { get; } = new();
+
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
         private Vector2 _lastScale = Vector2.One;
 
-        public GeometricPath(
-            bool shouldApplyScaling = false,
-            string svgPath = "",
-            //AbstractShape
-            IBrush? fillBrush = null,
-            IBrush? outlineBrush = null,
-            OutlineParams? outlineParameters = null,
-            //Element
-            string name = "",
-            List<Element>? children = null,
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
-            Dimension2? position = null,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null,
-            Dimension? minHeight = null,
-            Dimension? minWidth = null,
-            Dimension? maxHeight = null,
-            Dimension? maxWidth = null,
-            ContainerSizing? elementContainerSizing = null,
-            bool visible = true,
-            bool enabled = true,
-            //Element actions
-            Action? onDraw = null,
-            EnterDocumentEventHandler? onEnterDocument = null,
-            ExitDocumentEventHandler? onExitDocument = null,
-            LoadEventHandler? onLoad = null,
-            PointerEnterEventHandler? onPointerEnter = null,
-            PointerLeaveEventHandler? onPointerLeave = null,
-            PointerMoveEventHandler? onPointerMove = null) :
-
-            //ReSharper disable ArgumentsStyleNamedExpression
-            base(
-                fillBrush: fillBrush,
-                outlineBrush: outlineBrush,
-                outlineParameters: outlineParameters,
-                //
-                name: name,
-                children: children,
-                themeOverrides: themeOverrides,
-                position: position,
-                preferredWidth: preferredWidth,
-                preferredHeight: preferredHeight,
-                minHeight: minHeight,
-                minWidth: minWidth,
-                maxHeight: maxHeight,
-                maxWidth: maxWidth,
-                elementContainerSizing: elementContainerSizing,
-                visible: visible,
-                enabled: enabled,
-                //
-                onDraw: onDraw,
-                onEnterDocument: onEnterDocument,
-                onExitDocument: onExitDocument,
-                onLoad: onLoad,
-                onPointerEnter: onPointerEnter,
-                onPointerLeave: onPointerLeave,
-                onPointerMove: onPointerMove)
-        //ReSharper enable ArgumentsStyleNamedExpression
+        public GeometricPath(ThemeDefinition<ElementThemeData>? themeOverrides = null)
+            : base(themeOverrides)
         {
-            ShouldApplyScaling = shouldApplyScaling;
-
-            if (!string.IsNullOrEmpty(svgPath))
-            {
-                _skiaPath = SKPath.ParseSvgPathData(svgPath);
-                _scaledCachedPath = new SKPath(_skiaPath);
-                PathCache.CacheNewPath(_scaledCachedPath);
-            }
         }
 
         ~GeometricPath()

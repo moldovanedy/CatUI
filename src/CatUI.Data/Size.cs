@@ -2,10 +2,10 @@
 
 namespace CatUI.Data
 {
-    public class Size
+    public readonly struct Size
     {
-        public float Width { get; set; }
-        public float Height { get; set; }
+        public float Width { get; }
+        public float Height { get; }
 
         public Size()
         {
@@ -39,14 +39,13 @@ namespace CatUI.Data
             {
                 return new Size(float.Parse(substrings[0]));
             }
-            else if (substrings.Length == 2)
+
+            if (substrings.Length == 2)
             {
                 return new Size(float.Parse(substrings[0]), float.Parse(substrings[1]));
             }
-            else
-            {
-                throw new FormatException($"Couldn't parse the \"{literal}\" Size literal");
-            }
+
+            throw new FormatException($"Couldn't parse the \"{literal}\" Size literal");
         }
 
         public override string ToString()

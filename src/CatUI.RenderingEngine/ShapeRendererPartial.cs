@@ -25,10 +25,10 @@ namespace CatUI.RenderingEngine
             SKPaint paint = fillBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(paint);
 
-            if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
+            if (roundedCorners != null && (roundedCorners?.HasNonTrivialValues ?? false))
             {
                 var roundRect = new SKRoundRect();
-                SKPoint[] radii = SetupRectCorners(roundedCorners);
+                SKPoint[] radii = SetupRectCorners((CornerInset)roundedCorners);
                 roundRect.SetRectRadii(rect, radii);
                 Canvas?.DrawRoundRect(roundRect, paint);
             }
@@ -57,10 +57,10 @@ namespace CatUI.RenderingEngine
             SKPaint paint = outlineBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(paint, PaintMode.Outline, outlineParams: outlineParams);
 
-            if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
+            if (roundedCorners != null && (roundedCorners?.HasNonTrivialValues ?? false))
             {
                 var roundRect = new SKRoundRect();
-                SKPoint[] radii = SetupRectCorners(roundedCorners);
+                SKPoint[] radii = SetupRectCorners((CornerInset)roundedCorners);
                 roundRect.SetRectRadii(rect, radii);
 
                 Canvas?.DrawRoundRect(roundRect, paint);

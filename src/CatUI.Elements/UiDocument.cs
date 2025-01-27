@@ -4,7 +4,6 @@ using CatUI.Data;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 using CatUI.Elements.Themes;
-using CatUI.Elements.Themes.Text;
 using CatUI.RenderingEngine;
 using SkiaSharp;
 
@@ -29,7 +28,7 @@ namespace CatUI.Elements
                 if (_root != value)
                 {
                     _root?.InvokeExitDocument();
-                    _root?.RemoveAllChildren();
+                    _root?.Children.Clear();
                 }
 
                 _root = value;
@@ -153,7 +152,7 @@ namespace CatUI.Elements
 
         private Element? Search(Element current, string name)
         {
-            foreach (Element child in current.GetChildren())
+            foreach (Element child in current.Children)
             {
                 if (child.Name == name)
                 {

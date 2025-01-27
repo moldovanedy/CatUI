@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Assets;
@@ -49,79 +48,80 @@ namespace CatTest
                 title: "Test");
 
             _window.Document.BackgroundColor = new Color(0x21_21_21);
-            _window.Document.Root = new Element(
-                preferredWidth: new Dimension(100, Unit.Percent),
-                preferredHeight: new Dimension(100, Unit.Percent));
+            _window.Document.Root = new Element
+            {
+                PreferredWidth = new Dimension(100, Unit.Percent),
+                PreferredHeight = new Dimension(100, Unit.Percent)
+            };
 
-            _window.Document.Root.AddChildren(
-                new Rectangle(
-                    position: new Dimension2(10, 5),
-                    preferredWidth: new Dimension(80, Unit.Percent),
-                    preferredHeight: new Dimension(20, Unit.Percent),
-                    minWidth: 10,
-                    maxWidth: 350,
-                    minHeight: 20,
-                    maxHeight: 250,
-                    fillBrush: new ColorBrush(new Color(0x00_ff_ff)),
-                    children:
+            _window.Document.Root.Children =
+            [
+                new Rectangle
+                {
+                    Position = new Dimension2(10, 5),
+                    PreferredWidth = new Dimension(80, Unit.Percent),
+                    PreferredHeight = new Dimension(20, Unit.Percent),
+                    MinWidth = 10,
+                    MaxWidth = 350,
+                    MinHeight = 20,
+                    MaxHeight = 250,
+                    FillBrush = new ColorBrush(new Color(0x00_ff_ff)),
+                    Children =
                     [
                         new ImageView(
                             image,
-                            position: "20dp 20dp",
-                            preferredWidth: "50%",
-                            preferredHeight: "50%",
-                            themeOverrides:
                             ThemeBuilder<ImageViewThemeData>
                                 .New()
                                 .AddData(
                                     LabelThemeData.STYLE_NORMAL,
-                                    new ImageViewThemeData { Background = new ColorBrush(new Color(0xff_00_ff)) })
-                                .Build())
-                    ]),
-                new Rectangle(
-                    position: new Dimension2(
-                        10, new Dimension(60, Unit.Percent)),
-                    preferredWidth: new Dimension(80, Unit.Percent),
-                    preferredHeight: new Dimension(20, Unit.Percent),
-                    fillBrush: new ColorBrush(new Color(0xff_ff_00)),
-                    children:
+                                    new ImageViewThemeData
+                                    {
+                                        Background =
+                                            new ColorBrush(new Color(0xff_00_ff))
+                                    })
+                                .Build()) { Position = "20dp 20dp", PreferredWidth = "50%", PreferredHeight = "50%" }
+                    ]
+                },
+                new Rectangle
+                {
+                    Position = new Dimension2(10, new Dimension(60, Unit.Percent)),
+                    PreferredWidth = new Dimension(80, Unit.Percent),
+                    PreferredHeight = new Dimension(20, Unit.Percent),
+                    FillBrush = new ColorBrush(new Color(0xff_ff_00)),
+                    Children =
                     [
                         new GeometricPath(
-                            svgPath:
-                            "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
-                            position: "5 10",
-                            shouldApplyScaling: true,
-                            preferredWidth: new Dimension(25, Unit.Percent),
-                            preferredHeight: new Dimension(15, Unit.Percent),
-                            fillBrush: new ColorBrush(new Color(0xff_98_00)),
-                            outlineBrush: new ColorBrush(new Color(0x21_96_f3)),
-                            outlineParameters: new OutlineParams(
-                                4,
-                                LineCapType.Round,
-                                miterLimit: 5),
-                            themeOverrides:
                             ThemeBuilder<ElementThemeData>
                                 .New()
                                 .AddData(
                                     ElementThemeData.STYLE_NORMAL,
                                     new ElementThemeData() { Background = new ColorBrush(new Color(0xff_ff_ff)) })
-                                .Build()),
-                        new Rectangle(
-                            position: new Dimension2(
+                                .Build())
+                        {
+                            SvgPath =
+                                "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
+                            Position = "5 10",
+                            ShouldApplyScaling = true,
+                            PreferredWidth = new Dimension(25, Unit.Percent),
+                            PreferredHeight = new Dimension(15, Unit.Percent),
+                            FillBrush = new ColorBrush(new Color(0xff_98_00)),
+                            OutlineBrush = new ColorBrush(new Color(0x21_96_f3)),
+                            OutlineParameters = new OutlineParams(
+                                4,
+                                LineCapType.Round,
+                                miterLimit: 5)
+                        },
+                        new Rectangle
+                        {
+                            Position = new Dimension2(
                                 new Dimension(55, Unit.Percent),
                                 new Dimension(10, Unit.Percent)),
-                            preferredWidth: new Dimension(35, Unit.Percent),
-                            preferredHeight: new Dimension(15, Unit.Percent),
-                            fillBrush: new ColorBrush(new Color(0x1d_ea_85))
-                        ),
+                            PreferredWidth = new Dimension(35, Unit.Percent),
+                            PreferredHeight = new Dimension(15, Unit.Percent),
+                            FillBrush = new ColorBrush(new Color(0x1d_ea_85))
+                        },
                         new Label(
                             "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
-                            wordWrap: true,
-                            position: new Dimension2(0, 0),
-                            preferredWidth: new Dimension(25, Unit.Percent),
-                            maxHeight: "150px",
-                            //allowsExpansion: false,
-                            themeOverrides:
                             ThemeBuilder<LabelThemeData>
                                 .New()
                                 .AddData(
@@ -132,11 +132,17 @@ namespace CatTest
                                         Background =
                                             new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA))
                                     })
-                                .Build()
-                        )
+                                .Build())
+                        {
+                            WordWrap = true,
+                            Position = new Dimension2(0, 0),
+                            PreferredWidth = new Dimension(25, Unit.Percent),
+                            MaxHeight = "150"
+                            //AllowsExpansion: false,
+                        }
                     ]
-                )
-            );
+                }
+            ];
 
             _window.Run();
         }

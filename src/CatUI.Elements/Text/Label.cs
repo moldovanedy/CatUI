@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CatUI.Data;
-using CatUI.Data.Containers;
 using CatUI.Data.Enums;
-using CatUI.Data.Events.Document;
-using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Managers;
 using CatUI.Elements.Themes;
 using CatUI.Elements.Themes.Text;
@@ -48,77 +45,10 @@ namespace CatUI.Elements.Text
         private float _maxRowWidth;
         private float _hyphenCharacterWidth;
 
-        public Label(
-            //required
-            string text,
-            //own
-            TextBreakMode breakMode = TextBreakMode.SoftBreak,
-            char hyphenCharacter = '-',
-            //TextElement
-            TextAlignmentType textAlignment = TextAlignmentType.Left,
-            TextOverflowMode textOverflowMode = TextOverflowMode.Ellipsis,
-            string ellipsisString = "\u2026",
-            bool wordWrap = false,
-            bool allowsExpansion = true,
-            //Element
-            string name = "",
-            List<Element>? children = null,
-            ThemeDefinition<LabelThemeData>? themeOverrides = null,
-            Dimension2? position = null,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null,
-            Dimension? minHeight = null,
-            Dimension? minWidth = null,
-            Dimension? maxHeight = null,
-            Dimension? maxWidth = null,
-            ContainerSizing? elementContainerSizing = null,
-            bool visible = true,
-            bool enabled = true,
-            //Element actions
-            Action? onDraw = null,
-            EnterDocumentEventHandler? onEnterDocument = null,
-            ExitDocumentEventHandler? onExitDocument = null,
-            LoadEventHandler? onLoad = null,
-            PointerEnterEventHandler? onPointerEnter = null,
-            PointerLeaveEventHandler? onPointerLeave = null,
-            PointerMoveEventHandler? onPointerMove = null) :
-
-            //ReSharper disable ArgumentsStyleNamedExpression
-            base(
-                text: text,
-                textAlignment: textAlignment,
-                textOverflowMode: textOverflowMode,
-                ellipsisString: ellipsisString,
-                wordWrap: wordWrap,
-                allowsExpansion: allowsExpansion,
-                //
-                name: name,
-                children: children,
-                position: position,
-                preferredWidth: preferredWidth,
-                preferredHeight: preferredHeight,
-                minHeight: minHeight,
-                minWidth: minWidth,
-                maxHeight: maxHeight,
-                maxWidth: maxWidth,
-                elementContainerSizing: elementContainerSizing,
-                visible: visible,
-                enabled: enabled,
-                //
-                onDraw: onDraw,
-                onEnterDocument: onEnterDocument,
-                onExitDocument: onExitDocument,
-                onLoad: onLoad,
-                onPointerEnter: onPointerEnter,
-                onPointerLeave: onPointerLeave,
-                onPointerMove: onPointerMove)
-        //ReSharper enable ArgumentsStyleNamedExpression
+        public Label(string text, ThemeDefinition<LabelThemeData>? themeOverrides = null) : base(text)
         {
             DrawEvent += DrawText;
             TextProperty.ValueChangedEvent += OnTextChanged;
-
-            TextBreakMode = breakMode;
-            HyphenCharacter = hyphenCharacter;
 
             if (themeOverrides != null)
             {
@@ -205,6 +135,12 @@ namespace CatUI.Elements.Text
                 goto ChildRecalculation;
             }
 
+            //when the width is too small, just skip rendering text
+            if (normalWidth < 1)
+            {
+                goto ChildRecalculation;
+            }
+
             //calculate the actual dimensions occupied by the text
             _cachedRows = new List<KeyValuePair<string, float>>();
 
@@ -224,7 +160,8 @@ namespace CatUI.Elements.Text
                     newlinePositions.Add(sb.Length);
                     continue;
                 }
-                else if (Text[i] == '\u00ad')
+
+                if (Text[i] == '\u00ad')
                 {
                     if (TextBreakMode == TextBreakMode.SoftBreak)
                     {
@@ -276,7 +213,7 @@ namespace CatUI.Elements.Text
                 if (nextSlice.Length == 0)
                 {
                     CatLogger.LogWarning(
-                        "Label width to small for the specified font size. Skipping to the next character.");
+                        "Label width too small for the specified font size. Skipping to the next character.");
                     characterPosition++;
                     continue;
                 }
@@ -410,7 +347,7 @@ namespace CatUI.Elements.Text
             }
 
         ChildRecalculation:
-            foreach (Element child in GetChildren(true))
+            foreach (Element child in Children)
             {
                 child.RecalculateLayout();
             }
@@ -425,7 +362,7 @@ namespace CatUI.Elements.Text
             float rowSize = fontSize * (currentTheme.LineHeight ?? 1.2f);
             Point2D rowPosition = Bounds.StartPoint;
             //half of line width + 0.5 (so for line height of 2 it is 1 + 0.5, for 4 is 2 + 0.5 etc.)
-            rowPosition.Y += (rowSize / 2f) + (fontSize / 2f);
+            rowPosition = new Point2D(rowPosition.X, rowPosition.Y + (rowSize / 2f) + (fontSize / 2f));
 
             if (WordWrap)
             {

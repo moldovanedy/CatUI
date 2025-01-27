@@ -124,7 +124,14 @@ namespace CatUI.Data
             {
                 return y is not null;
             }
-            else if (y is null)
+
+            if (y is null)
+            {
+                return true;
+            }
+
+            //if one of them is NaN, but not both
+            if (double.IsNaN(x.Value) ^ double.IsNaN(y.Value))
             {
                 return true;
             }
@@ -139,7 +146,14 @@ namespace CatUI.Data
             {
                 return y is null;
             }
-            else if (y is null)
+
+            if (y is null)
+            {
+                return false;
+            }
+
+            //if one of them is NaN, but not both
+            if (double.IsNaN(x.Value) ^ double.IsNaN(y.Value))
             {
                 return false;
             }
@@ -220,12 +234,13 @@ namespace CatUI.Data
             {
                 return y is null;
             }
-            else if (y is null)
+
+            if (y is null)
             {
                 return false;
             }
 
-            return x.X != y.X || x.Y != y.Y;
+            return x.X == y.X && x.Y == y.Y;
         }
 
         public static bool operator !=(Dimension2? x, Dimension2? y)
@@ -235,12 +250,13 @@ namespace CatUI.Data
             {
                 return y is not null;
             }
-            else if (y is null)
+
+            if (y is null)
             {
                 return true;
             }
 
-            return x.X == y.X && x.Y == y.Y;
+            return x.X != y.X || x.Y != y.Y;
         }
 
         public static implicit operator Dimension2(string literal)

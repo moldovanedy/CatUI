@@ -11,12 +11,12 @@ namespace CatUI.Data
     /// for margins, it represents the distance from the current element to the next one in one of the four directions (top, left, bottom, right);
     /// for position, it represents the distance from the current element to one or more of the containing element's border.
     /// </remarks>
-    public class EdgeInset : CatObject
+    public readonly struct EdgeInset
     {
-        public Dimension Top { get; set; } = new();
-        public Dimension Right { get; set; } = new();
-        public Dimension Bottom { get; set; } = new();
-        public Dimension Left { get; set; } = new();
+        public Dimension Top { get; } = new();
+        public Dimension Right { get; } = new();
+        public Dimension Bottom { get; } = new();
+        public Dimension Left { get; } = new();
 
         public EdgeInset() { }
 
@@ -55,26 +55,12 @@ namespace CatUI.Data
 
         public static bool operator !=(EdgeInset x, EdgeInset y)
         {
-            if (x.Top != y.Top || x.Right != y.Right || x.Bottom != y.Bottom || x.Left != y.Left)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return x.Top != y.Top || x.Right != y.Right || x.Bottom != y.Bottom || x.Left != y.Left;
         }
 
         public static bool operator ==(EdgeInset x, EdgeInset y)
         {
-            if (x.Top == y.Top && x.Right == y.Right && x.Bottom == y.Bottom && x.Left == y.Left)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return x.Top == y.Top && x.Right == y.Right && x.Bottom == y.Bottom && x.Left == y.Left;
         }
 
         public override bool Equals([NotNullWhen(true)] object? obj)
@@ -109,7 +95,7 @@ namespace CatUI.Data
             return $"({Top}, {Right}, {Bottom}, {Left})";
         }
 
-        public override EdgeInset Duplicate()
+        public EdgeInset Duplicate()
         {
             return new EdgeInset(Top, Right, Bottom, Left);
         }
