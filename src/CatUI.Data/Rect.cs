@@ -1,14 +1,13 @@
-﻿using System;
-using SkiaSharp;
+﻿using SkiaSharp;
 
 namespace CatUI.Data
 {
-    public class Rect
+    public readonly struct Rect
     {
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Width { get; set; }
-        public float Height { get; set; }
+        public float X { get; }
+        public float Y { get; }
+        public float Width { get; }
+        public float Height { get; }
 
         public Rect()
         {
@@ -31,56 +30,26 @@ namespace CatUI.Data
             return $"{{X: {X}, Y: {Y}, W:{Width}, H:{Height}}}";
         }
 
-        public float CenterX
+        public float CenterX => X + (Width / 2);
+        public float CenterY => Y + (Height / 2);
+
+        public float EndX => X + Width;
+
+        public float EndY => Y + Height;
+
+        public static implicit operator SKRect(Rect rect)
         {
-            get => X + (Width / 2);
-            set => X += value - CenterX;
-        }
-        public float CenterY
-        {
-            get => Y + (Height / 2);
-            set => Y += value - CenterY;
+            return new SKRect() { Left = rect.X, Top = rect.Y, Size = new SKSize(rect.Width, rect.Height) };
         }
 
-        public float EndX
+        public static implicit operator Rect(SKRect skRect)
         {
-            get => X + Width;
-            set
-            {
-                if (value < X)
-                {
-                    throw new ArgumentException("Cannot have end point X smaller than start point X", nameof(EndX));
-                }
-                Width = value - X;
-            }
-        }
-
-        public float EndY
-        {
-            get => Y + Height;
-            set
-            {
-                if (value < Y)
-                {
-                    throw new ArgumentException("Cannot have end point Y smaller than start point Y", nameof(EndY));
-                }
-                Height = value - Y;
-            }
-        }
-
-        public static implicit operator SKRect(Rect rect) =>
-            new SKRect()
-            {
-                Left = rect.X,
-                Top = rect.Y,
-                Size = new SKSize(rect.Width, rect.Height)
-            };
-        public static implicit operator Rect(SKRect skRect) =>
-            new Rect(
+            return new Rect(
                 (int)skRect.Left,
                 (int)skRect.Right,
                 (int)skRect.Size.Width,
                 (int)skRect.Size.Height);
+        }
 
         /// <summary>
         /// Will return the smallest rect containing all the given rects. It is NOT a union because it will return areas 
@@ -95,31 +64,34 @@ namespace CatUI.Data
                 return new Rect();
             }
 
-            Rect boundingRect = rects[0];
+            float x = rects[0].X,
+                  y = rects[0].Y,
+                  endX = rects[0].EndX,
+                  endY = rects[0].EndY;
             for (int i = 1; i < rects.Length; i++)
             {
-                if (boundingRect.X > rects[i].X)
+                if (x > rects[i].X)
                 {
-                    boundingRect.X = rects[i].X;
+                    x = rects[i].X;
                 }
 
-                if (boundingRect.Y > rects[i].Y)
+                if (y > rects[i].Y)
                 {
-                    boundingRect.Y = rects[i].Y;
+                    y = rects[i].Y;
                 }
 
-                if (boundingRect.EndX < rects[i].EndX)
+                if (endX < rects[i].EndX)
                 {
-                    boundingRect.EndX = rects[i].EndX;
+                    endX = rects[i].EndX;
                 }
 
-                if (boundingRect.EndY < rects[i].EndY)
+                if (endY < rects[i].EndY)
                 {
-                    boundingRect.EndY = rects[i].EndY;
+                    endY = rects[i].EndY;
                 }
             }
 
-            return boundingRect;
+            return new Rect(x, y, endX - x, endY - y);
         }
     }
 }

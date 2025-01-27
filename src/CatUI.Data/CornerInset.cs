@@ -6,36 +6,36 @@
     /// <remarks>
     /// This is generally used for corner radius.
     /// </remarks>
-    public class CornerInset : CatObject
+    public readonly struct CornerInset
     {
-        public Dimension TopLeft { get; set; } = new();
-        public Dimension TopRight { get; set; } = new();
-        public Dimension BottomRight { get; set; } = new();
-        public Dimension BottomLeft { get; set; } = new();
+        public Dimension TopLeft { get; } = new();
+        public Dimension TopRight { get; } = new();
+        public Dimension BottomRight { get; } = new();
+        public Dimension BottomLeft { get; } = new();
 
         /// <summary>
         /// The X is the corner's ellipse X axis half value and the Y is the corner's ellipse Y axis half value.
         /// Default is an invalid value as normally the more simple, circle corners are used. Setting this to other than invalid will override the simple value.
         /// </summary>
-        public Dimension2 TopLeftEllipse { get; set; } = Dimension2.Unset;
+        public Dimension2 TopLeftEllipse { get; } = Dimension2.Unset;
 
         /// <summary>
         /// The X is the corner's ellipse X axis half value and the Y is the corner's ellipse Y axis half value.
         /// Default is an invalid value as normally the more simple, circle corners are used. Setting this to other than invalid will override the simple value.
         /// </summary>
-        public Dimension2 TopRightEllipse { get; set; } = Dimension2.Unset;
+        public Dimension2 TopRightEllipse { get; } = Dimension2.Unset;
 
         /// <summary>
         /// The X is the corner's ellipse X axis half value and the Y is the corner's ellipse Y axis half value.
         /// Default is an invalid value as normally the more simple, circle corners are used. Setting this to other than invalid will override the simple value.
         /// </summary>
-        public Dimension2 BottomRightEllipse { get; set; } = Dimension2.Unset;
+        public Dimension2 BottomRightEllipse { get; } = Dimension2.Unset;
 
         /// <summary>
         /// The X is the corner's ellipse X axis half value and the Y is the corner's ellipse Y axis half value.
         /// Default is an invalid value as normally the more simple, circle corners are used. Setting this to other than invalid will override the simple value.
         /// </summary>
-        public Dimension2 BottomLeftEllipse { get; set; } = Dimension2.Unset;
+        public Dimension2 BottomLeftEllipse { get; } = Dimension2.Unset;
 
         /// <summary>
         /// If true, it means that at least one of the corners has a value that is NOT 0.
@@ -109,7 +109,7 @@
             return $"({TopLeft}, {TopRight}, {BottomRight}, {BottomLeft})";
         }
 
-        public override CornerInset Duplicate()
+        public CornerInset Duplicate()
         {
             //TODO: handle the case for elliptic insets
             return new CornerInset(TopLeft, TopRight, BottomRight, BottomLeft);

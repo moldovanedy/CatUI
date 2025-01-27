@@ -100,31 +100,29 @@
 
         public readonly Rect GetElementBox()
         {
-            var rect = new Rect
-            {
-                X = StartPoint.X - Paddings[3] - Margins[3],
-                Y = StartPoint.Y - Paddings[0] - Margins[0],
-                Width = Width + Paddings[1] + Margins[1],
-                Height = Height + Paddings[2] + Margins[2]
-            };
+            var rect = new Rect(
+                StartPoint.X - Paddings[3] - Margins[3],
+                StartPoint.Y - Paddings[0] - Margins[0],
+                Width + Paddings[1] + Margins[1],
+                Height + Paddings[2] + Margins[2]
+            );
             return rect;
         }
 
         public readonly Rect GetPaddingBox()
         {
-            var rect = new Rect
-            {
-                X = StartPoint.X - Paddings[3],
-                Y = StartPoint.Y - Paddings[0],
-                Width = Width + Paddings[1],
-                Height = Height + Paddings[2]
-            };
+            var rect = new Rect(
+                StartPoint.X - Paddings[3],
+                StartPoint.Y - Paddings[0],
+                Width + Paddings[1],
+                Height + Paddings[2]
+            );
             return rect;
         }
 
         public readonly Rect GetContentBox()
         {
-            var rect = new Rect { X = StartPoint.X, Y = StartPoint.Y, Width = Width, Height = Height };
+            var rect = new Rect(StartPoint.X, StartPoint.Y, Width, Height);
             return rect;
         }
     }

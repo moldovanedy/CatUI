@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
@@ -10,149 +8,116 @@ using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Containers;
 using CatUI.Elements.Themes;
+using CatUI.Utils;
 
 namespace CatUI.Elements
 {
     public partial class Element
     {
-        public readonly Action? OnDraw;
-        public readonly EnterDocumentEventHandler? OnEnterDocument;
-        public readonly ExitDocumentEventHandler? OnExitDocument;
-        public readonly LoadEventHandler? OnLoad;
-        public readonly PointerEnterEventHandler? OnPointerEnter;
-        public readonly PointerLeaveEventHandler? OnPointerLeave;
-        public readonly PointerMoveEventHandler? OnPointerMove;
-
-        /// <summary>
-        /// Contains a list of all children (public and internal).
-        /// </summary>
-        private readonly List<Element> _children = new();
-
-        private float _absoluteHeight;
-        private Point2D _absolutePosition = Point2D.Zero;
-        private float _absoluteWidth;
-
-        /// <summary>
-        /// It's a cache of public children only.
-        /// </summary>
-        private List<Element>? _cachedPublicChildren;
-
-        private ContainerSizing? _elementContainerSizing;
-        private bool _enabled;
-
-        private EdgeInset _margin = new();
-        private Dimension _maxHeight = Dimension.Unset;
-        private Dimension _maxWidth = Dimension.Unset;
-        private Dimension _minHeight = Dimension.Unset;
-        private Dimension _minWidth = Dimension.Unset;
-
-        private string _name;
-        private EdgeInset _padding = new();
-        private Element? _parent;
-        private Dimension2 _position = new();
-        private Dimension _preferredHeight = new();
-        private Dimension _preferredWidth = new();
-        private bool _visible;
-
-
-        public Element(
-            string name = "",
-            List<Element>? children = null,
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
-            Dimension2? position = null,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null,
-            Dimension? minHeight = null,
-            Dimension? minWidth = null,
-            Dimension? maxHeight = null,
-            Dimension? maxWidth = null,
-            ContainerSizing? elementContainerSizing = null,
-            bool visible = true,
-            bool enabled = true,
-            //Element actions
-            Action? onDraw = null,
-            EnterDocumentEventHandler? onEnterDocument = null,
-            ExitDocumentEventHandler? onExitDocument = null,
-            LoadEventHandler? onLoad = null,
-            PointerEnterEventHandler? onPointerEnter = null,
-            PointerLeaveEventHandler? onPointerLeave = null,
-            PointerMoveEventHandler? onPointerMove = null)
+        public Action? OnDraw
         {
-            if (IsInstantiated)
+            get => _onDraw;
+            set
             {
-                throw new InvalidOperationException("Element has already been instantiated.");
-            }
-
-            _name = name;
-            if (themeOverrides != null)
-            {
-                SetElementThemeOverrides(themeOverrides);
-            }
-
-            if (position != null)
-            {
-                _position = position;
-            }
-
-            if (preferredWidth != null)
-            {
-                _preferredWidth = preferredWidth;
-            }
-
-            if (preferredHeight != null)
-            {
-                _preferredHeight = preferredHeight;
-            }
-
-            if (minHeight != null)
-            {
-                _minHeight = minHeight;
-            }
-
-            if (minWidth != null)
-            {
-                _minWidth = minWidth;
-            }
-
-            if (maxHeight != null)
-            {
-                _maxHeight = maxHeight;
-            }
-
-            if (maxWidth != null)
-            {
-                _maxWidth = maxWidth;
-            }
-
-            if (elementContainerSizing != null)
-            {
-                _elementContainerSizing = elementContainerSizing;
-            }
-
-            _visible = visible;
-            _enabled = enabled;
-
-            OnDraw = onDraw;
-            OnEnterDocument = onEnterDocument;
-            OnExitDocument = onExitDocument;
-            OnLoad = onLoad;
-            OnPointerEnter = onPointerEnter;
-            OnPointerLeave = onPointerLeave;
-            OnPointerMove = onPointerMove;
-
-            InitEvents();
-            IsInstantiated = true;
-
-            if (Document != null)
-            {
-                GetParent()?.AddChild(this);
-            }
-
-            if (children != null)
-            {
-                AddChildren(children);
+                DrawEvent -= _onDraw;
+                _onDraw = value;
+                DrawEvent += _onDraw;
             }
         }
+
+        private Action? _onDraw;
+
+        public EnterDocumentEventHandler? OnEnterDocument
+        {
+            get => _onEnterDocument;
+            set
+            {
+                EnterDocumentEvent -= _onEnterDocument;
+                _onEnterDocument = value;
+                EnterDocumentEvent += _onEnterDocument;
+            }
+        }
+
+        private EnterDocumentEventHandler? _onEnterDocument;
+
+        public ExitDocumentEventHandler? OnExitDocument
+        {
+            get => _onExitDocument;
+            set
+            {
+                ExitDocumentEvent -= _onExitDocument;
+                _onExitDocument = value;
+                ExitDocumentEvent += _onExitDocument;
+            }
+        }
+
+        private ExitDocumentEventHandler? _onExitDocument;
+
+        public LoadEventHandler? OnLoad
+        {
+            get => _onLoad;
+            set
+            {
+                LoadEvent -= _onLoad;
+                _onLoad = value;
+                LoadEvent += _onLoad;
+            }
+        }
+
+        private LoadEventHandler? _onLoad;
+
+        public PointerEnterEventHandler? OnPointerEnter
+        {
+            get => _onPointerEnter;
+            set
+            {
+                PointerEnterEvent -= _onPointerEnter;
+                _onPointerEnter = value;
+                PointerEnterEvent += _onPointerEnter;
+            }
+        }
+
+        private PointerEnterEventHandler? _onPointerEnter;
+
+        public PointerLeaveEventHandler? OnPointerLeave
+        {
+            get => _onPointerLeave;
+            set
+            {
+                PointerLeaveEvent -= _onPointerLeave;
+                _onPointerLeave = value;
+                PointerLeaveEvent += _onPointerLeave;
+            }
+        }
+
+        private PointerLeaveEventHandler? _onPointerLeave;
+
+        public PointerMoveEventHandler? OnPointerMove
+        {
+            get => _onPointerMove;
+            set
+            {
+                PointerMoveEvent -= _onPointerMove;
+                _onPointerMove = value;
+                PointerMoveEvent += _onPointerMove;
+            }
+        }
+
+        private PointerMoveEventHandler? _onPointerMove;
+
+        private Element? _parent;
+
+        public ObservableList<Element> Children
+        {
+            get => _children;
+            set
+            {
+                _children.Clear();
+                _children.AddRange(value);
+            }
+        }
+
+        private readonly ObservableList<Element> _children = new();
 
         public Dimension2 Position
         {
@@ -168,6 +133,7 @@ namespace CatUI.Elements
             }
         }
 
+        private Dimension2 _position = new();
         public ObservableProperty<Dimension2> PositionProperty { get; } = new();
 
         /// <summary>
@@ -191,6 +157,7 @@ namespace CatUI.Elements
             }
         }
 
+        private Dimension _preferredWidth = new();
         public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new();
 
         /// <summary>
@@ -211,6 +178,7 @@ namespace CatUI.Elements
             }
         }
 
+        private Dimension _minWidth = Dimension.Unset;
         public ObservableProperty<Dimension> MinWidthProperty { get; } = new();
 
         /// <summary>
@@ -231,6 +199,7 @@ namespace CatUI.Elements
             }
         }
 
+        private Dimension _maxWidth = Dimension.Unset;
         public ObservableProperty<Dimension> MaxWidthProperty { get; } = new();
 
         /// <summary>
@@ -255,6 +224,7 @@ namespace CatUI.Elements
             }
         }
 
+        private Dimension _preferredHeight = new();
         public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new();
 
         /// <summary>
@@ -275,6 +245,7 @@ namespace CatUI.Elements
             }
         }
 
+        private Dimension _minHeight = Dimension.Unset;
         public ObservableProperty<Dimension> MinHeightProperty { get; } = new();
 
         /// <summary>
@@ -295,6 +266,7 @@ namespace CatUI.Elements
             }
         }
 
+        private Dimension _maxHeight = Dimension.Unset;
         public ObservableProperty<Dimension> MaxHeightProperty { get; } = new();
 
         public EdgeInset Padding
@@ -311,6 +283,7 @@ namespace CatUI.Elements
             }
         }
 
+        private EdgeInset _padding = new();
         public ObservableProperty<EdgeInset> PaddingProperty { get; } = new();
 
         public EdgeInset Margin
@@ -327,6 +300,7 @@ namespace CatUI.Elements
             }
         }
 
+        private EdgeInset _margin = new();
         public ObservableProperty<EdgeInset> MarginProperty { get; } = new();
 
         public string Name
@@ -341,6 +315,7 @@ namespace CatUI.Elements
             }
         }
 
+        private string _name = "";
         public ObservableProperty<string> NameProperty { get; } = new();
 
         /// <summary>
@@ -358,7 +333,7 @@ namespace CatUI.Elements
                     _visible = value;
                     VisibleProperty.Value = value;
 
-                    foreach (Element child in _children)
+                    foreach (Element child in Children)
                     {
                         child.Visible = value;
                     }
@@ -368,6 +343,7 @@ namespace CatUI.Elements
             }
         }
 
+        private bool _visible = true;
         public ObservableProperty<bool> VisibleProperty { get; } = new();
 
         /// <summary>
@@ -386,7 +362,7 @@ namespace CatUI.Elements
                     _enabled = value;
                     EnabledProperty.Value = value;
 
-                    foreach (Element child in _children)
+                    foreach (Element child in Children)
                     {
                         child.Enabled = value;
                     }
@@ -396,6 +372,7 @@ namespace CatUI.Elements
             }
         }
 
+        private bool _enabled = true;
         public ObservableProperty<bool> EnabledProperty { get; } = new();
 
         public ContainerSizing? ElementContainerSizing
@@ -411,10 +388,10 @@ namespace CatUI.Elements
             }
         }
 
+        private ContainerSizing? _elementContainerSizing;
         public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
 
         public ElementBounds Bounds { get; internal set; } = new();
-        public bool IsInternal { get; private set; }
         public UiDocument? Document { get; private set; }
 
         /// <summary>
@@ -439,6 +416,8 @@ namespace CatUI.Elements
             }
         }
 
+        private Point2D _absolutePosition = Point2D.Zero;
+
         public float AbsoluteWidth
         {
             get => _absoluteWidth;
@@ -451,6 +430,8 @@ namespace CatUI.Elements
                 }
             }
         }
+
+        private float _absoluteWidth;
 
         public float AbsoluteHeight
         {
@@ -465,6 +446,8 @@ namespace CatUI.Elements
             }
         }
 
+        private float _absoluteHeight;
+
         public event Action? DrawEvent;
         public event EnterDocumentEventHandler? EnterDocumentEvent;
         public event ExitDocumentEventHandler? ExitDocumentEvent;
@@ -472,6 +455,32 @@ namespace CatUI.Elements
         public event PointerEnterEventHandler? PointerEnterEvent;
         public event PointerLeaveEventHandler? PointerLeaveEvent;
         public event PointerMoveEventHandler? PointerMoveEvent;
+
+
+        public Element(ThemeDefinition<ElementThemeData>? themeOverrides = null)
+        {
+            if (IsInstantiated)
+            {
+                throw new InvalidOperationException("Element has already been instantiated.");
+            }
+
+            InitEvents();
+            IsInstantiated = true;
+
+            if (Document != null)
+            {
+                GetParent()?.Children.Add(this);
+            }
+
+            Children.ItemInsertedEvent += OnChildInserted;
+            Children.ItemRemovedEvent += OnChildRemoved;
+            Children.ListClearingEvent += OnChildrenListClearing;
+
+            if (themeOverrides != null)
+            {
+                SetElementThemeOverrides(themeOverrides);
+            }
+        }
 
         ~Element()
         {
@@ -492,16 +501,16 @@ namespace CatUI.Elements
 
             DrawEvent -= PrivateDraw;
 
-            _children.Clear();
-            _cachedPublicChildren = null;
+            Children.ItemInsertedEvent -= OnChildInserted;
+            Children.ItemRemovedEvent -= OnChildRemoved;
+            Children.ListClearingEvent -= OnChildrenListClearing;
 
             Document = null;
             _parent = null;
         }
 
         /// <summary>
-        /// Sets the document of this element and all its children. Will also add the element to the document
-        /// (like <see cref="AddChild(Element, bool)" /> or <see cref="AddChildren(Element[])" />).
+        /// Sets the document of this element and all its children. Will also add the element to the document.
         /// </summary>
         /// <remarks>
         /// If the element already belongs to a document, this will remove the element, along with all its children,
@@ -521,12 +530,12 @@ namespace CatUI.Elements
             //the element is in a document and the given document is another document or null
             else if (Document != document)
             {
-                GetParent()?.RemoveChild(this);
+                GetParent()?.Children.Remove(this);
                 Document = document;
 
                 if (document != null)
                 {
-                    GetParent()?.AddChild(this);
+                    GetParent()?.Children.Add(this);
                 }
             }
 
@@ -567,7 +576,7 @@ namespace CatUI.Elements
                 return;
             }
 
-            foreach (Element child in _children)
+            foreach (Element child in Children)
             {
                 child.InvokeDraw();
             }
@@ -575,27 +584,57 @@ namespace CatUI.Elements
 
         private void InitEvents()
         {
-            DrawEvent += OnDraw;
             DrawEvent += Draw;
-            EnterDocumentEvent += OnEnterDocument;
             EnterDocumentEvent += EnterDocument;
-            ExitDocumentEvent += OnExitDocument;
             ExitDocumentEvent += ExitDocument;
-            LoadEvent += OnLoad;
             LoadEvent += Loaded;
-            PointerEnterEvent += OnPointerEnter;
             PointerEnterEvent += PointerEnter;
-            PointerLeaveEvent += OnPointerLeave;
             PointerLeaveEvent += PointerLeave;
-            PointerMoveEvent += OnPointerMove;
             PointerMoveEvent += PointerMove;
 
             DrawEvent += PrivateDraw;
         }
 
-        private void EnsureChildrenCache()
+
+        private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
-            _cachedPublicChildren ??= GetChildren();
+            e.Item.IsChildOfContainer = this is Container;
+            e.Item._parent = this;
+
+            if (Document != null)
+            {
+                e.Item.Document = Document;
+                e.Item.InvokeEnterDocument();
+                e.Item.RecalculateLayout();
+
+                MakeChildrenEnterDocument(e.Item.Children);
+                RecalculateLayout();
+            }
+        }
+
+        private void OnChildRemoved(object? sender, ObservableListRemoveEventArgs<Element> e)
+        {
+            e.Item.IsChildOfContainer = false;
+
+            if (Document != null)
+            {
+                e.Item.InvokeExitDocument();
+            }
+
+            e.Item.Children.Clear();
+
+            e.Item._parent = null;
+            e.Item.Document = null;
+            RecalculateLayout();
+        }
+
+        private void OnChildrenListClearing(object? sender, EventArgs e)
+        {
+            //will clear all children
+            while (Children.Count > 0)
+            {
+                Children.RemoveAt(0);
+            }
         }
 
         #region Internal invoke
@@ -618,7 +657,7 @@ namespace CatUI.Elements
 
         internal void InvokeLoad()
         {
-            foreach (Element child in _children)
+            foreach (Element child in Children)
             {
                 child.InvokeLoad();
             }
@@ -697,7 +736,7 @@ namespace CatUI.Elements
                     parentYPos + CalculateDimension(Position.Y, parentHeight));
             }
 
-            foreach (Element child in _children)
+            foreach (Element child in Children)
             {
                 child.RecalculateLayout();
             }
@@ -736,202 +775,18 @@ namespace CatUI.Elements
 
         public virtual Element Duplicate()
         {
-            return new Element(
-                _name,
-                _children,
-                _themeOverrides,
-                _position,
-                _preferredWidth,
-                _preferredHeight,
-                _minHeight,
-                _minWidth,
-                _maxHeight,
-                _maxWidth,
-                _elementContainerSizing,
-                _visible,
-                _enabled);
+            return new Element();
         }
 
-        public void AddChild(Element child, bool isInternal = false)
-        {
-            _children.Add(child);
-            child.IsInternal = isInternal;
-            if (!isInternal)
-            {
-                if (_cachedPublicChildren == null)
-                {
-                    _cachedPublicChildren = new List<Element> { child };
-                }
-                else
-                {
-                    _cachedPublicChildren.Add(child);
-                }
-            }
-
-            child.IsChildOfContainer = this is Container;
-
-            child._parent = this;
-            if (Document != null)
-            {
-                child.Document = Document;
-                child.InvokeEnterDocument();
-                child.RecalculateLayout();
-
-                MakeChildrenEnterDocument(child._children);
-                RecalculateLayout();
-            }
-        }
-
-        private void MakeChildrenEnterDocument(List<Element> children)
+        private void MakeChildrenEnterDocument(ObservableList<Element> children)
         {
             foreach (Element child in children)
             {
                 child.Document = Document;
                 child.InvokeEnterDocument();
 
-                MakeChildrenEnterDocument(child._children);
+                MakeChildrenEnterDocument(child.Children);
             }
-        }
-
-        public void AddChildren(params Element[] children)
-        {
-            foreach (Element child in children)
-            {
-                AddChild(child);
-            }
-        }
-
-        public void AddChildren(List<Element> children)
-        {
-            foreach (Element child in children)
-            {
-                AddChild(child);
-            }
-        }
-
-        public void AddInternalChildren(params Element[] children)
-        {
-            foreach (Element child in children)
-            {
-                AddChild(child, true);
-            }
-        }
-
-        public void AddInternalChildren(List<Element> children)
-        {
-            foreach (Element child in children)
-            {
-                AddChild(child, true);
-            }
-        }
-
-        /// <summary>
-        /// Returns a list of all the children of the element. DO NOT modify this list by adding or removing elements!
-        /// That could cause crashes or unexpected behavior.
-        /// </summary>
-        /// <remarks>
-        /// This doesn't clone the list in any way, so it has a very good performance and can be called without caching the
-        /// result.
-        /// </remarks>
-        /// <param name="includeInternal">If true, will include the internal children in the list as well.</param>
-        /// <returns>A list of all the children of the element, even the internal ones if includeInternal is true.</returns>
-        public List<Element> GetChildren(bool includeInternal = false)
-        {
-            if (includeInternal)
-            {
-                return _children;
-            }
-
-            if (_cachedPublicChildren != null)
-            {
-                return _cachedPublicChildren;
-            }
-
-            _cachedPublicChildren = _children.Where(child => !child.IsInternal).ToList();
-            return _cachedPublicChildren;
-        }
-
-        public Element GetChild(int index, bool includeInternal = false)
-        {
-            if (includeInternal)
-            {
-                return index < 0 ? _children[^index] : _children[index];
-            }
-
-            EnsureChildrenCache();
-            return index < 0 ? _cachedPublicChildren![^index] : _cachedPublicChildren![index];
-        }
-
-        public bool MoveChild(Element child, int toIndex, bool includeInternal = false)
-        {
-            if (includeInternal)
-            {
-                //clear cache, as it's too difficult to determine (very fast) where to insert the element
-                _cachedPublicChildren = null;
-
-                if (toIndex > _children.Count || toIndex < -_children.Count)
-                {
-                    return false;
-                }
-
-                bool removed = _children.Remove(child);
-                if (!removed)
-                {
-                    return false;
-                }
-
-                if (toIndex > 0)
-                {
-                    _children.Insert(toIndex, child);
-                }
-                else
-                {
-                    _children.Insert(_children.Count - toIndex, child);
-                }
-            }
-            else
-            {
-                EnsureChildrenCache();
-
-                if (toIndex > _cachedPublicChildren!.Count || toIndex < -_cachedPublicChildren.Count)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public void RemoveChild(Element child)
-        {
-            _children.Remove(child);
-            if (child.IsInternal)
-            {
-                _cachedPublicChildren?.Remove(child);
-            }
-
-            child.IsChildOfContainer = false;
-
-            if (Document != null)
-            {
-                child.InvokeExitDocument();
-            }
-
-            child.RemoveAllChildren();
-
-            child._parent = null;
-            child.Document = null;
-            RecalculateLayout();
-        }
-
-        public void RemoveAllChildren()
-        {
-            while (_children.Count != 0)
-            {
-                RemoveChild(_children[0]);
-            }
-
-            _cachedPublicChildren = null;
         }
 
         public Element? GetParent()

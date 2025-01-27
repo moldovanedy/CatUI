@@ -2,10 +2,10 @@
 
 namespace CatUI.Data
 {
-    public class Point2D
+    public readonly struct Point2D
     {
-        public float X { get; set; }
-        public float Y { get; set; }
+        public float X { get; }
+        public float Y { get; }
 
         public Point2D()
         {
@@ -32,13 +32,7 @@ namespace CatUI.Data
             Y = y;
         }
 
-        public static Point2D Zero
-        {
-            get
-            {
-                return new Point2D();
-            }
-        }
+        public static Point2D Zero => new();
 
         public static implicit operator Point2D(string literal)
         {
@@ -47,14 +41,13 @@ namespace CatUI.Data
             {
                 return new Point2D(float.Parse(substrings[0]));
             }
-            else if (substrings.Length == 2)
+
+            if (substrings.Length == 2)
             {
                 return new Point2D(float.Parse(substrings[0]), float.Parse(substrings[1]));
             }
-            else
-            {
-                throw new FormatException($"Couldn't parse the \"{literal}\" Point2D literal");
-            }
+
+            throw new FormatException($"Couldn't parse the \"{literal}\" Point2D literal");
         }
 
         public override string ToString()

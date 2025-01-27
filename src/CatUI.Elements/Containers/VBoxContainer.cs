@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
 using CatUI.Data;
 using CatUI.Data.Containers;
-using CatUI.Data.Events.Document;
-using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Themes;
 using CatUI.Utils;
 
@@ -13,56 +10,8 @@ namespace CatUI.Elements.Containers
     {
         public override Orientation BoxOrientation => Orientation.Vertical;
 
-        public VBoxContainer(
-            //BoxContainer
-            Dimension? spacing = null,
-            //Element
-            string name = "",
-            List<Element>? children = null,
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
-            Dimension2? position = null,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null,
-            Dimension? minHeight = null,
-            Dimension? minWidth = null,
-            Dimension? maxHeight = null,
-            Dimension? maxWidth = null,
-            ContainerSizing? elementContainerSizing = null,
-            bool visible = true,
-            bool enabled = true,
-            //Element actions
-            Action? onDraw = null,
-            EnterDocumentEventHandler? onEnterDocument = null,
-            ExitDocumentEventHandler? onExitDocument = null,
-            LoadEventHandler? onLoad = null,
-            PointerEnterEventHandler? onPointerEnter = null,
-            PointerLeaveEventHandler? onPointerLeave = null,
-            PointerMoveEventHandler? onPointerMove = null) :
-
-            //ReSharper disable ArgumentsStyleNamedExpression
-            base(
-                spacing: spacing,
-                //
-                name: name,
-                children: children,
-                position: position,
-                preferredWidth: preferredWidth,
-                preferredHeight: preferredHeight,
-                minHeight: minHeight,
-                minWidth: minWidth,
-                maxHeight: maxHeight,
-                maxWidth: maxWidth,
-                elementContainerSizing: elementContainerSizing,
-                visible: visible,
-                enabled: enabled,
-                //
-                onDraw: onDraw,
-                onEnterDocument: onEnterDocument,
-                onExitDocument: onExitDocument,
-                onLoad: onLoad,
-                onPointerEnter: onPointerEnter,
-                onPointerLeave: onPointerLeave,
-                onPointerMove: onPointerMove)
+        public VBoxContainer(ThemeDefinition<ElementThemeData>? themeOverrides = null)
+            : base(themeOverrides)
         {
         }
 
@@ -73,7 +22,6 @@ namespace CatUI.Elements.Containers
                 return;
             }
 
-            List<Element> children = GetChildren(true);
             float finalWidth = 0, finalHeight;
 
             float parentWidth, parentHeight, parentXPos, parentYPos;
@@ -121,7 +69,7 @@ namespace CatUI.Elements.Containers
             float minimumPreferredHeight = 0, minimumMinHeight = 0;
             float allocatedPreferredHeight = 0, totalGrowthFactors = 0;
 
-            foreach (Element child in children)
+            foreach (Element child in Children)
             {
                 if (!child.Enabled)
                 {
@@ -157,7 +105,7 @@ namespace CatUI.Elements.Containers
             }
 
             //calculate the container's final Height
-            var elementsNeedShrinking = false;
+            bool elementsNeedShrinking = false;
             float containerPrefHeight =
                 PreferredHeight.IsUnset() ? Bounds.Height : CalculateDimension(PreferredHeight, parentHeight);
             //it means that the container's preferred height is smaller that the minimum pref height of the content, so shrink the container
@@ -179,15 +127,14 @@ namespace CatUI.Elements.Containers
             float t = (finalHeight - minimumMinHeight) / (minimumPreferredHeight - minimumMinHeight);
             float growthSectionHeight = (finalHeight - allocatedPreferredHeight) / totalGrowthFactors;
 
-            foreach (Element child in children)
+            foreach (Element child in Children)
             {
                 if (!child.Enabled)
                 {
                     return;
                 }
 
-                child.AbsolutePosition.X = currentPosX;
-                child.AbsolutePosition.Y = currentPosY;
+                child.AbsolutePosition = new Point2D(currentPosX, currentPosY);
 
                 //TODO: handle horizontal positioning
                 child.AbsoluteWidth = finalWidth;
