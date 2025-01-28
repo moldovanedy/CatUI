@@ -10,8 +10,14 @@ namespace CatUI.Elements.Containers
     {
         public override Orientation BoxOrientation => Orientation.Horizontal;
 
-        public HBoxContainer(ThemeDefinition<ElementThemeData>? themeOverrides = null)
-            : base(themeOverrides)
+        public HBoxContainer(
+            ThemeDefinition<ElementThemeData>? themeOverrides = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null)
+            : base(
+                themeOverrides,
+                preferredWidth,
+                preferredHeight)
         {
         }
 

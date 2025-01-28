@@ -153,54 +153,13 @@ namespace CatUI.Elements
                 {
                     _preferredWidth = value;
                     PreferredWidthProperty.Value = value;
+                    RecalculateLayout();
                 }
             }
         }
 
-        private Dimension _preferredWidth = new();
+        private Dimension _preferredWidth;
         public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new();
-
-        /// <summary>
-        /// Represents the minimum width that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MinWidth
-        {
-            get => _minWidth;
-            set
-            {
-                if (value != _minWidth)
-                {
-                    _minWidth = value;
-                    MinWidthProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-
-        private Dimension _minWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MinWidthProperty { get; } = new();
-
-        /// <summary>
-        /// Represents the maximum width that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MaxWidth
-        {
-            get => _maxWidth;
-            set
-            {
-                if (value != _maxWidth)
-                {
-                    _maxWidth = value;
-                    MaxWidthProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-
-        private Dimension _maxWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new();
 
         /// <summary>
         /// Represents the preferred height of the element. The layout engine will try to honor this value, but this might be
@@ -224,8 +183,29 @@ namespace CatUI.Elements
             }
         }
 
-        private Dimension _preferredHeight = new();
+        private Dimension _preferredHeight;
         public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new();
+
+        /// <summary>
+        /// Represents the minimum width that the element can have.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
+        /// </summary>
+        public Dimension MinWidth
+        {
+            get => _minWidth;
+            set
+            {
+                if (value != _minWidth)
+                {
+                    _minWidth = value;
+                    MinWidthProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        private Dimension _minWidth = Dimension.Unset;
+        public ObservableProperty<Dimension> MinWidthProperty { get; } = new();
 
         /// <summary>
         /// Represents the minimum height that the element can have.
@@ -247,6 +227,27 @@ namespace CatUI.Elements
 
         private Dimension _minHeight = Dimension.Unset;
         public ObservableProperty<Dimension> MinHeightProperty { get; } = new();
+
+        /// <summary>
+        /// Represents the maximum width that the element can have.
+        /// By default, it has the invalid value, meaning the restriction is not applied.
+        /// </summary>
+        public Dimension MaxWidth
+        {
+            get => _maxWidth;
+            set
+            {
+                if (value != _maxWidth)
+                {
+                    _maxWidth = value;
+                    MaxWidthProperty.Value = value;
+                    RecalculateLayout();
+                }
+            }
+        }
+
+        private Dimension _maxWidth = Dimension.Unset;
+        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new();
 
         /// <summary>
         /// Represents the minimum height that the element can have.
@@ -392,15 +393,47 @@ namespace CatUI.Elements
         public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
 
         public ElementBounds Bounds { get; internal set; } = new();
-        public UiDocument? Document { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the document of this element and all its children. Will also add the element to the document.
+        /// </summary>
+        /// <remarks>
+        /// If the element already belongs to a document, this will remove the element, along with all its children,
+        /// then add this element along with its previous children to the specified document.
+        /// </remarks>
+        public UiDocument? Document
+        {
+            get => _document;
+            set
+            {
+                //the element is not in a document and the given document is non-null
+                if (_document == null && value != null)
+                {
+                    _document = value;
+                    InvokeEnterDocument();
+                    RecalculateLayout();
+                }
+                //the element is in a document and the given document is another document or null
+                else if (_document != value)
+                {
+                    GetParent()?.Children.Remove(this);
+                    _document = value;
+
+                    if (value != null)
+                    {
+                        GetParent()?.Children.Add(this);
+                    }
+                }
+            }
+        }
+
+        private UiDocument? _document;
 
         /// <summary>
         /// True when the element's parent is a container. Only the direct parent is taken into account, not the grandparent
         /// etc.
         /// </summary>
         public bool IsChildOfContainer { get; private set; }
-
-        protected bool IsInstantiated { get; private set; }
 
         public Point2D AbsolutePosition
         {
@@ -457,20 +490,12 @@ namespace CatUI.Elements
         public event PointerMoveEventHandler? PointerMoveEvent;
 
 
-        public Element(ThemeDefinition<ElementThemeData>? themeOverrides = null)
+        public Element(
+            ThemeDefinition<ElementThemeData>? themeOverrides = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null)
         {
-            if (IsInstantiated)
-            {
-                throw new InvalidOperationException("Element has already been instantiated.");
-            }
-
             InitEvents();
-            IsInstantiated = true;
-
-            if (Document != null)
-            {
-                GetParent()?.Children.Add(this);
-            }
 
             Children.ItemInsertedEvent += OnChildInserted;
             Children.ItemRemovedEvent += OnChildRemoved;
@@ -480,6 +505,11 @@ namespace CatUI.Elements
             {
                 SetElementThemeOverrides(themeOverrides);
             }
+
+            //we can't set the property itself because it calls RecalculateLayout(), which is a virtual method,
+            //and it might cause the trouble to the more derived types
+            _preferredWidth = preferredWidth ?? new Dimension();
+            _preferredHeight = preferredHeight ?? new Dimension();
         }
 
         ~Element()
@@ -507,39 +537,6 @@ namespace CatUI.Elements
 
             Document = null;
             _parent = null;
-        }
-
-        /// <summary>
-        /// Sets the document of this element and all its children. Will also add the element to the document.
-        /// </summary>
-        /// <remarks>
-        /// If the element already belongs to a document, this will remove the element, along with all its children,
-        /// then add this element along with its previous children to the specified document.
-        /// </remarks>
-        /// <param name="document">The document to which this element should be added.</param>
-        /// <returns>The current element (return this).</returns>
-        public Element SetDocument(UiDocument? document)
-        {
-            //the element is not in a document and the given document is non-null
-            if (Document == null && document != null)
-            {
-                Document = document;
-                InvokeEnterDocument();
-                RecalculateLayout();
-            }
-            //the element is in a document and the given document is another document or null
-            else if (Document != document)
-            {
-                GetParent()?.Children.Remove(this);
-                Document = document;
-
-                if (document != null)
-                {
-                    GetParent()?.Children.Add(this);
-                }
-            }
-
-            return this;
         }
 
         #region Visual

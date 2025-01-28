@@ -19,7 +19,14 @@ namespace CatUI.Elements
         private Image? _source;
         public ObservableProperty<Image> SourceProperty { get; } = new();
 
-        public ImageView(Image source, ThemeDefinition<ImageViewThemeData>? themeOverrides = null)
+        public ImageView(
+            Image source,
+            ThemeDefinition<ImageViewThemeData>? themeOverrides = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null)
+            : base(
+                preferredWidth: preferredWidth,
+                preferredHeight: preferredHeight)
         {
             DrawEvent += PrivateDrawImage;
             Source = source;

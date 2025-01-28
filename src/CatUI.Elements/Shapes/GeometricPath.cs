@@ -53,9 +53,21 @@ namespace CatUI.Elements.Shapes
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
         private Vector2 _lastScale = Vector2.One;
 
-        public GeometricPath(ThemeDefinition<ElementThemeData>? themeOverrides = null)
-            : base(themeOverrides)
+        public GeometricPath(
+            string svgPath = "",
+            IBrush? fillBrush = null,
+            IBrush? outlineBrush = null,
+            ThemeDefinition<ElementThemeData>? themeOverrides = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null)
+            : base(
+                fillBrush,
+                outlineBrush,
+                themeOverrides,
+                preferredWidth,
+                preferredHeight)
         {
+            SvgPath = svgPath;
         }
 
         ~GeometricPath()

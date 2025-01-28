@@ -45,7 +45,17 @@ namespace CatUI.Elements.Text
         private float _maxRowWidth;
         private float _hyphenCharacterWidth;
 
-        public Label(string text, ThemeDefinition<LabelThemeData>? themeOverrides = null) : base(text)
+        public Label(
+            string text,
+            TextAlignmentType textAlignment = TextAlignmentType.Left,
+            ThemeDefinition<LabelThemeData>? themeOverrides = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null)
+            : base(
+                text,
+                textAlignment,
+                preferredWidth: preferredWidth,
+                preferredHeight: preferredHeight)
         {
             DrawEvent += DrawText;
             TextProperty.ValueChangedEvent += OnTextChanged;
@@ -54,6 +64,8 @@ namespace CatUI.Elements.Text
             {
                 SetElementThemeOverrides(themeOverrides);
             }
+
+            TextProperty.ForceRecallEvents();
         }
 
         ~Label()

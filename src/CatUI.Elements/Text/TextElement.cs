@@ -58,7 +58,7 @@ namespace CatUI.Elements.Text
             }
         }
 
-        private TextAlignmentType _textAlignmentType = TextAlignmentType.Left;
+        private TextAlignmentType _textAlignmentType;
         public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; } = new();
 
         public string EllipsisString
@@ -104,9 +104,18 @@ namespace CatUI.Elements.Text
         private bool _allowsExpansion = true;
         public ObservableProperty<bool> AllowsExpansionProperty { get; } = new();
 
-        public TextElement(string text, ThemeDefinition<TextElementThemeData>? themeOverrides = null)
+        public TextElement(
+            string text,
+            TextAlignmentType textAlignment = TextAlignmentType.Left,
+            ThemeDefinition<TextElementThemeData>? themeOverrides = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null)
+            : base(
+                preferredWidth: preferredWidth,
+                preferredHeight: preferredHeight)
         {
             Text = text;
+            TextAlignment = textAlignment;
 
             if (themeOverrides != null)
             {
