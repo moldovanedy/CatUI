@@ -14,7 +14,7 @@ using CatUI.Windowing.Desktop;
 
 namespace CatTest
 {
-    internal sealed class Program
+    internal static class Program
     {
         // private const int GLFW_ANGLE_PLATFORM_TYPE = 0x00050002;
         //
@@ -48,24 +48,20 @@ namespace CatTest
                 title: "Test");
 
             _window.Document.BackgroundColor = new Color(0x21_21_21);
-            _window.Document.Root = new Element
-            {
-                PreferredWidth = new Dimension(100, Unit.Percent),
-                PreferredHeight = new Dimension(100, Unit.Percent)
-            };
+            _window.Document.Root = new Element();
 
             _window.Document.Root.Children =
             [
-                new Rectangle
+                new Rectangle(
+                    new ColorBrush(new Color(0x00_ff_ff)),
+                    preferredWidth: "80%",
+                    preferredHeight: "20%")
                 {
-                    Position = new Dimension2(10, 5),
-                    PreferredWidth = new Dimension(80, Unit.Percent),
-                    PreferredHeight = new Dimension(20, Unit.Percent),
+                    Position = "10 5",
                     MinWidth = 10,
                     MaxWidth = 350,
                     MinHeight = 20,
                     MaxHeight = 250,
-                    FillBrush = new ColorBrush(new Color(0x00_ff_ff)),
                     Children =
                     [
                         new ImageView(
@@ -79,65 +75,59 @@ namespace CatTest
                                         Background =
                                             new ColorBrush(new Color(0xff_00_ff))
                                     })
-                                .Build()) { Position = "20dp 20dp", PreferredWidth = "50%", PreferredHeight = "50%" }
+                                .Build(),
+                            "50%",
+                            "50%") { Position = "20 20" }
                     ]
                 },
-                new Rectangle
+                new Rectangle(
+                    new ColorBrush(new Color(0xff_ff_00)),
+                    preferredWidth: "80%",
+                    preferredHeight: "20%")
                 {
-                    Position = new Dimension2(10, new Dimension(60, Unit.Percent)),
-                    PreferredWidth = new Dimension(80, Unit.Percent),
-                    PreferredHeight = new Dimension(20, Unit.Percent),
-                    FillBrush = new ColorBrush(new Color(0xff_ff_00)),
+                    Position = new Dimension2(10, "60%"),
                     Children =
                     [
                         new GeometricPath(
+                            "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
+                            new ColorBrush(new Color(0xff_98_00)),
+                            new ColorBrush(new Color(0x21_96_f3)),
                             ThemeBuilder<ElementThemeData>
                                 .New()
                                 .AddData(
                                     ElementThemeData.STYLE_NORMAL,
                                     new ElementThemeData() { Background = new ColorBrush(new Color(0xff_ff_ff)) })
-                                .Build())
+                                .Build(),
+                            "25%",
+                            "15%")
                         {
-                            SvgPath =
-                                "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
                             Position = "5 10",
                             ShouldApplyScaling = true,
-                            PreferredWidth = new Dimension(25, Unit.Percent),
-                            PreferredHeight = new Dimension(15, Unit.Percent),
-                            FillBrush = new ColorBrush(new Color(0xff_98_00)),
-                            OutlineBrush = new ColorBrush(new Color(0x21_96_f3)),
                             OutlineParameters = new OutlineParams(
-                                4,
+                                2,
                                 LineCapType.Round,
                                 miterLimit: 5)
                         },
-                        new Rectangle
-                        {
-                            Position = new Dimension2(
-                                new Dimension(55, Unit.Percent),
-                                new Dimension(10, Unit.Percent)),
-                            PreferredWidth = new Dimension(35, Unit.Percent),
-                            PreferredHeight = new Dimension(15, Unit.Percent),
-                            FillBrush = new ColorBrush(new Color(0x1d_ea_85))
-                        },
+                        new Rectangle(
+                            new ColorBrush(new Color(0x1d_ea_85)),
+                            preferredWidth: "35%",
+                            preferredHeight: "15%") { Position = "55% 10%" },
                         new Label(
                             "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
-                            ThemeBuilder<LabelThemeData>
-                                .New()
-                                .AddData(
-                                    LabelThemeData.STYLE_NORMAL,
-                                    new LabelThemeData
-                                    {
-                                        FontSize = 32,
-                                        Background =
-                                            new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA))
-                                    })
-                                .Build())
+                            themeOverrides: ThemeBuilder<LabelThemeData>
+                                            .New()
+                                            .AddData(
+                                                LabelThemeData.STYLE_NORMAL,
+                                                new LabelThemeData
+                                                {
+                                                    FontSize = 32,
+                                                    Background =
+                                                        new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA))
+                                                })
+                                            .Build(),
+                            preferredWidth: "25%")
                         {
-                            WordWrap = true,
-                            Position = new Dimension2(0, 0),
-                            PreferredWidth = new Dimension(25, Unit.Percent),
-                            MaxHeight = "150"
+                            WordWrap = true, Position = new Dimension2(0, 0), MaxHeight = "150"
                             //AllowsExpansion: false,
                         }
                     ]

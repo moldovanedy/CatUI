@@ -10,8 +10,14 @@ namespace CatUI.Elements.Containers
     {
         public override Orientation BoxOrientation => Orientation.Vertical;
 
-        public VBoxContainer(ThemeDefinition<ElementThemeData>? themeOverrides = null)
-            : base(themeOverrides)
+        public VBoxContainer(
+            ThemeDefinition<ElementThemeData>? themeOverrides = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null)
+            : base(
+                themeOverrides,
+                preferredWidth,
+                preferredHeight)
         {
         }
 

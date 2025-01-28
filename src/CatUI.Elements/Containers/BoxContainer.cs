@@ -15,8 +15,14 @@ namespace CatUI.Elements.Containers
         /// </summary>
         public abstract Orientation BoxOrientation { get; }
 
-        public BoxContainer(ThemeDefinition<ElementThemeData>? themeOverrides = null)
-            : base(themeOverrides)
+        public BoxContainer(
+            ThemeDefinition<ElementThemeData>? themeOverrides = null,
+            Dimension? preferredWidth = null,
+            Dimension? preferredHeight = null)
+            : base(
+                themeOverrides,
+                preferredWidth,
+                preferredHeight)
         {
         }
 

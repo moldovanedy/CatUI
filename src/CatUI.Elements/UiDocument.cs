@@ -37,8 +37,7 @@ namespace CatUI.Elements
                     return;
                 }
 
-                _root.SetDocument(this);
-
+                _root.Document = this;
                 _root.MinHeight = "100%";
                 _root.MinWidth = "100%";
                 _root.PreferredHeight = "100%";
