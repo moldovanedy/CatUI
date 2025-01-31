@@ -1,43 +1,45 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
 
-    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-x64'">$(DefineConstants);WINDOWS;WINDOWS_64</DefineConstants>
-    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-x86'">$(DefineConstants);WINDOWS;WINDOWS_86</DefineConstants>
-    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-arm64'">$(DefineConstants);WINDOWS;WINDOWS_ARM64</DefineConstants>
+        <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-x64'">$(DefineConstants);WINDOWS;WINDOWS_64</DefineConstants>
+        <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-x86'">$(DefineConstants);WINDOWS;WINDOWS_86</DefineConstants>
+        <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-arm64'">$(DefineConstants);WINDOWS;WINDOWS_ARM64</DefineConstants>
 
-    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'osx-x64'">$(DefineConstants);MAC_OS;MAC_OS_64</DefineConstants>
-    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">$(DefineConstants);MAC_OS;MAC_OS_ARM64</DefineConstants>
+        <DefineConstants Condition="'$(RuntimeIdentifier)' == 'osx-x64'">$(DefineConstants);MAC_OS;MAC_OS_64</DefineConstants>
+        <DefineConstants Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">$(DefineConstants);MAC_OS;MAC_OS_ARM64</DefineConstants>
 
-    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-x64'">$(DefineConstants);LINUX;LINUX_64</DefineConstants>
-    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-arm'">$(DefineConstants);LINUX;LINUX_ARM</DefineConstants>
-    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">$(DefineConstants);LINUX;LINUX_ARM64</DefineConstants>
+        <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-x64'">$(DefineConstants);LINUX;LINUX_64</DefineConstants>
+        <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-arm'">$(DefineConstants);LINUX;LINUX_ARM</DefineConstants>
+        <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">$(DefineConstants);LINUX;LINUX_ARM64</DefineConstants>
 
-    <Version>0.1.0</Version>
-    <Title>CatUI</Title>
-    <Description>A small, fast and easy-to-use UI library for modern .NET cross-platform development.</Description>
-    <Copyright></Copyright>
-    <PackageTags>UI;User Interface;fast</PackageTags>
-  </PropertyGroup>
+        <Version>0.1.0</Version>
+        <Title>CatUI</Title>
+        <Description>A small, fast and easy-to-use UI library for modern .NET cross-platform development.</Description>
+        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
+        <PackageTags>UI;User Interface;fast</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Authors>Moldovan Eduard</Authors>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <IsTrimmable>True</IsTrimmable>
-    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <IsTrimmable>True</IsTrimmable>
-    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\CatUI.Elements\CatUI.Elements.csproj" />
-    <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj" />
-    <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj" />
-    <ProjectReference Include="..\CatUI.Windowing.Desktop\CatUI.Windowing.Desktop.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.Elements\CatUI.Elements.csproj"/>
+        <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj"/>
+        <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj"/>
+        <ProjectReference Include="..\CatUI.Windowing.Desktop\CatUI.Windowing.Desktop.csproj"/>
+    </ItemGroup>
 
 </Project>

@@ -1,30 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-  <ItemGroup>
-    <None Update="NativeLibraries\glfw3.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="NativeLibraries\libEGL.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="NativeLibraries\libGLESv2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="NativeLibraries\zlib1.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="NativeLibraries\CatUI.Native.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <!--<Target Name="CopyFiles">
-    <Copy SourceFiles="NativeLibraries\glfw3.dll" DestinationFolder="$(BaseOutputPath)" />
-  </Target>-->
+        <Version>0.1.0</Version>
+        <Title>CatUI.NativeInterop</Title>
+        <Description>Deprecated as of now, but will probably be used in the future for platform-dependent interop.</Description>
+        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
+        <PackageTags>UI;User Interface;fast</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Authors>Moldovan Eduard</Authors>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Update="NativeLibraries\glfw3.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="NativeLibraries\libEGL.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="NativeLibraries\libGLESv2.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="NativeLibraries\zlib1.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="NativeLibraries\CatUI.Native.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <!--<Target Name="CopyFiles">
+      <Copy SourceFiles="NativeLibraries\glfw3.dll" DestinationFolder="$(BaseOutputPath)" />
+    </Target>-->
 </Project>

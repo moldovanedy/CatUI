@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using CatUI.Data;
 using CatUI.Elements;
 using OpenTK;
@@ -22,7 +23,12 @@ namespace CatUI.Windowing.Desktop
 
                 if (OperatingSystem.IsLinux())
                 {
-                    return (nint)(nuint)GLFW.GetX11Window(GlfwWindow);
+                    if (GLFW.GetPlatform() == Platform.X11)
+                    {
+                        return (nint)(nuint)GLFW.GetX11Window(GlfwWindow);
+                    }
+
+                    return GLFW.GetWaylandWindow(GlfwWindow);
                 }
 
                 if (OperatingSystem.IsMacOS())
@@ -41,7 +47,6 @@ namespace CatUI.Windowing.Desktop
         private bool _shouldCloseWindow;
         private readonly WindowFlags _flags;
         private readonly WindowMode _startupMode;
-        //private bool _isCreated;
 
 #if USE_ANGLE
         private nint eglDisplay;
@@ -51,136 +56,6 @@ namespace CatUI.Windowing.Desktop
 
         private GLFWCallbacks.WindowSizeCallback? _resizeCallback;
         private GLFWCallbacks.ErrorCallback? _errorCallback;
-
-        #region Object creation
-
-        public Window(
-            int width = 800,
-            int height = 600,
-            string title = "",
-            int minWidth = 50,
-            int maxWidth = ushort.MaxValue,
-            int minHeight = 50,
-            int maxHeight = ushort.MaxValue,
-            WindowFlags windowFlags = WindowFlags.Default,
-            WindowMode startupMode = WindowMode.Windowed)
-        {
-            _width = width;
-            _height = height;
-            _title = title;
-            _minWidth = minWidth;
-            _maxWidth = maxWidth;
-            _minHeight = minHeight;
-            _maxHeight = maxHeight;
-            _flags = windowFlags;
-            _startupMode = startupMode;
-
-            Create();
-        }
-
-        public Window Create()
-        {
-            Init();
-
-            GLFW.WindowHint(WindowHintBool.Resizable, (_flags & WindowFlags.Resizable) != 0);
-            GLFW.WindowHint(WindowHintBool.Visible, (_flags & WindowFlags.Visible) != 0);
-            GLFW.WindowHint(WindowHintBool.Decorated, (_flags & WindowFlags.Decorated) != 0);
-            //GLFW_SCALE_TO_MONITOR is 0x0002200C
-            GLFW.WindowHint((WindowHintBool)0x0002200C, (_flags & WindowFlags.DpiAware) != 0);
-            GLFW.WindowHint(WindowHintBool.Focused, (_flags & WindowFlags.Focused) != 0);
-
-            GLFW.WindowHint(WindowHintBool.Floating, (_flags & WindowFlags.AlwaysOnTop) != 0);
-            GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (_flags & WindowFlags.TransparentFramebuffer) != 0);
-
-            switch (_startupMode)
-            {
-                default:
-                case WindowMode.Windowed:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
-                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                    break;
-                case WindowMode.Minimized:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
-                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                    GLFW.IconifyWindow(GlfwWindow);
-                    break;
-                case WindowMode.Maximized:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
-                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                    GLFW.MaximizeWindow(GlfwWindow);
-                    break;
-                case WindowMode.Fullscreen:
-                    {
-                        Monitor* monitor = GLFW.GetPrimaryMonitor();
-                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
-                        GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
-                        GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
-                        GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
-
-                        _width = videoMode->Width;
-                        _height = videoMode->Height;
-                        GlfwWindow = GLFW.CreateWindow(
-                            videoMode->Width,
-                            videoMode->Height,
-                            _title,
-                            GLFW.GetPrimaryMonitor(),
-                            (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                        break;
-                    }
-                case WindowMode.ExclusiveFullscreen:
-                    {
-                        Monitor* monitor = GLFW.GetPrimaryMonitor();
-                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        _width = videoMode->Width;
-                        _height = videoMode->Height;
-
-                        GlfwWindow = GLFW.CreateWindow(_width, _height, _title, monitor,
-                            (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                        break;
-                    }
-            }
-
-            GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
-
-            CreateSurface();
-#if USE_ANGLE
-            Egl.SwapInterval(eglDisplay, 1);
-            GL.LoadBindings(new AngleBindingsContext());
-#else
-            GLFW.MakeContextCurrent(GlfwWindow);
-            GLFW.SwapInterval(1);
-            GL.LoadBindings(new GLFWBindingsContext());
-#endif
-            _resizeCallback = (glfwWindow, width, height) =>
-            {
-                Resized?.Invoke(width, height);
-            };
-            Resized += ResizeWindow;
-            GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
-
-            _errorCallback = (errCode, message) => throw new GLFWException(message, errCode);
-            GLFW.SetErrorCallback(_errorCallback);
-
-            Document = new UiDocument { ViewportSize = new Size(_width, _height) };
-            FullyRedraw();
-
-            //_isCreated = true;
-            return this;
-        }
-
-        ~Window()
-        {
-            Terminate();
-
-            Resized -= ResizeWindow;
-            GLFW.SetWindowSizeCallback(GlfwWindow, null);
-
-            _resizeCallback = null;
-            _errorCallback = null;
-        }
-
-        #endregion
 
         #region Properties
 
@@ -269,12 +144,65 @@ namespace CatUI.Windowing.Desktop
         private string _title;
 
         /// <summary>
+        /// <para>
         /// This is the maximum number of frames per second the application is allowed to run. Lower values (like 30) 
         /// will make the application use less resources but will have some "lag", as the visuals will look more sluggish.
         /// Higher values will reduce visual "lag", but will utilize more CPU and GPU, thus potentially making the system slower.
-        /// The default value is 60, which is suitable for most applications.
+        /// The default value is -1, which means this is ignored, and the <see cref="SwapInterval"/> will be respected.
+        /// </para>
+        /// <para>
+        /// Unless you have a good reason, you should always use <see cref="SwapInterval"/> instead of this, because this
+        /// property achieves the lower FPS by introducing artificial delays (with Thread.Sleep) which will block the
+        /// main thread for some time. <see cref="SwapInterval"/> uses the OS facilities to reduce the FPS, which is much better.
+        /// </para>
         /// </summary>
-        public int MaxFps { get; set; } = 60;
+        /// <remarks>
+        /// <para>
+        /// It is NOT guaranteed that this FPS will be reached, as this depends on both the client's hardware and
+        /// on your code for creating the UI.
+        /// </para>
+        /// <para>
+        /// At any given moment, only one of <see cref="MaxFps"/> and <see cref="SwapInterval"/> will be respected,
+        /// this will be respected if and only if <see cref="SwapInterval"/> is set to -1.
+        /// </para>
+        /// </remarks>
+        public int MaxFps { get; set; } = -1;
+
+        /// <summary>
+        /// <para>
+        /// It specifies the number of display vertical "blanks" to wait for until rendering the next frame.
+        /// The default value is 1 and is essentially V-Sync enabled, which is the best setting for most apps.
+        /// A value of 0 means that the app will try to render the frames as fast as possible (when there are changes, of course),
+        /// which might cause "screen tearing".
+        /// </para>
+        /// <para>
+        /// It is highly recommended to use this instead of <see cref="MaxFps"/> because it uses the OS mechanisms for
+        /// achieving a lower frame rate (to reduce power consumption). A value over 1 effectively means the display
+        /// frame rate divided by this value (so for a 60 Hz display a value of 2 means 30 FPS, 4 means 15 FPS etc.).
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// It is NOT guaranteed that this setting will be respected, because it is entirely dependent on the
+        /// client's hardware and drivers for the GPU.
+        /// </para>
+        /// <para>
+        /// At any given moment, only one of <see cref="MaxFps"/> and <see cref="SwapInterval"/> will be respected,
+        /// this has precedence over <see cref="MaxFps"/> and will be respected regardless of <see cref="MaxFps"/>
+        /// unless this is -1.
+        /// </para>
+        /// </remarks>
+        public int SwapInterval
+        {
+            get => _swapInterval;
+            set
+            {
+                _swapInterval = value;
+                GLFW.SwapInterval(_swapInterval);
+            }
+        }
+
+        private int _swapInterval = 1;
 
         #endregion
 
@@ -333,6 +261,136 @@ namespace CatUI.Windowing.Desktop
         /// unless something really has been drawn.
         /// </remarks>
         public event Action<double>? FrameUpdatedEvent;
+
+        #region Object creation
+
+        public Window(
+            int width = 800,
+            int height = 600,
+            string title = "",
+            int minWidth = 50,
+            int maxWidth = ushort.MaxValue,
+            int minHeight = 50,
+            int maxHeight = ushort.MaxValue,
+            WindowFlags windowFlags = WindowFlags.Default,
+            WindowMode startupMode = WindowMode.Windowed)
+        {
+            _width = width;
+            _height = height;
+            _title = title;
+            _minWidth = minWidth;
+            _maxWidth = maxWidth;
+            _minHeight = minHeight;
+            _maxHeight = maxHeight;
+            _flags = windowFlags;
+            _startupMode = startupMode;
+
+            Create();
+        }
+
+        public Window Create()
+        {
+            Init();
+
+            GLFW.WindowHint(WindowHintBool.Resizable, (_flags & WindowFlags.Resizable) != 0);
+            GLFW.WindowHint(WindowHintBool.Visible, (_flags & WindowFlags.Visible) != 0);
+            GLFW.WindowHint(WindowHintBool.Decorated, (_flags & WindowFlags.Decorated) != 0);
+            GLFW.WindowHint(WindowHintBool.ScaleToMonitor, (_flags & WindowFlags.DpiAware) != 0);
+            GLFW.WindowHint(WindowHintBool.Focused, (_flags & WindowFlags.Focused) != 0);
+
+            GLFW.WindowHint(WindowHintBool.Floating, (_flags & WindowFlags.AlwaysOnTop) != 0);
+            GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (_flags & WindowFlags.TransparentFramebuffer) != 0);
+
+            switch (_startupMode)
+            {
+                default:
+                case WindowMode.Windowed:
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
+                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    break;
+                case WindowMode.Minimized:
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
+                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    GLFW.IconifyWindow(GlfwWindow);
+                    break;
+                case WindowMode.Maximized:
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
+                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                    GLFW.MaximizeWindow(GlfwWindow);
+                    break;
+                case WindowMode.Fullscreen:
+                    {
+                        Monitor* monitor = GLFW.GetPrimaryMonitor();
+                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                        GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
+                        GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
+                        GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
+                        GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
+
+                        _width = videoMode->Width;
+                        _height = videoMode->Height;
+                        GlfwWindow = GLFW.CreateWindow(
+                            videoMode->Width,
+                            videoMode->Height,
+                            _title,
+                            GLFW.GetPrimaryMonitor(),
+                            (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                        break;
+                    }
+                case WindowMode.ExclusiveFullscreen:
+                    {
+                        Monitor* monitor = GLFW.GetPrimaryMonitor();
+                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                        _width = videoMode->Width;
+                        _height = videoMode->Height;
+
+                        GlfwWindow = GLFW.CreateWindow(_width, _height, _title, monitor,
+                            (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
+                        break;
+                    }
+            }
+
+            GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
+
+            CreateSurface();
+
+#if USE_ANGLE
+            Egl.SwapInterval(eglDisplay, SwapInterval);
+            GL.LoadBindings(new AngleBindingsContext());
+#else
+            GLFW.MakeContextCurrent(GlfwWindow);
+            GLFW.SwapInterval(SwapInterval);
+            GL.LoadBindings(new GLFWBindingsContext());
+#endif
+
+            _resizeCallback = (glfwWindow, width, height) =>
+            {
+                Resized?.Invoke(width, height);
+            };
+            Resized += ResizeWindow;
+            GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
+
+            _errorCallback = (errCode, message) => throw new GLFWException(message, errCode);
+            GLFW.SetErrorCallback(_errorCallback);
+
+            Document = new UiDocument { ViewportSize = new Size(_width, _height) };
+            FullyRedraw();
+
+            return this;
+        }
+
+        ~Window()
+        {
+            Terminate();
+
+            Resized -= ResizeWindow;
+            GLFW.SetWindowSizeCallback(GlfwWindow, null);
+
+            _resizeCallback = null;
+            _errorCallback = null;
+        }
+
+        #endregion
 
         /// <summary>
         /// Runs through the whole application lifetime. When this function returns,
@@ -396,9 +454,6 @@ namespace CatUI.Windowing.Desktop
 
         private void Init()
         {
-            //Wayland
-            GLFW.InitHint((InitHintInt)0x00050003, 0x00060003);
-
             if (!GLFW.Init())
             {
                 OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode errorCode = GLFW.GetError(out string description);
@@ -446,15 +501,20 @@ namespace CatUI.Windowing.Desktop
 #endif
 
                 Document.Renderer.SkipCanvasPresentation();
-                // Debug.WriteLine(delta);
+                Debug.WriteLine(delta);
             }
 
-            // double minFrameTime = 1.0 / MaxFPS;
-            // double thisFrameTime = GLFW.GetTime() - _lastTime;
-            // if (thisFrameTime < minFrameTime)
-            // {
-            //     System.Threading.Thread.Sleep((int)((minFrameTime - thisFrameTime) * 1000));
-            // }
+            if (SwapInterval != -1 && MaxFps != -1)
+            {
+                return;
+            }
+
+            double minFrameTime = 1.0 / MaxFps;
+            double thisFrameTime = GLFW.GetTime() - _lastTime;
+            if (thisFrameTime < minFrameTime)
+            {
+                System.Threading.Thread.Sleep((int)((minFrameTime - thisFrameTime) * 1000));
+            }
         }
 
 #pragma warning disable CA1822 // Mark members as static

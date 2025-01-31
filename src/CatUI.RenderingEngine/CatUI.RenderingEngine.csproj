@@ -1,41 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!--<CatUseAngle>true</CatUseAngle>-->
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <!--<CatUseAngle>true</CatUseAngle>-->
 
-    <Version>0.1.0</Version>
-    <Title>CatUI.RenderingEngine</Title>
-    <Description>Contains the core rendering of CatUI, essential for an application that uses CatUI.</Description>
-    <Copyright></Copyright>
-    <PackageTags>UI;User Interface;fast</PackageTags>
-  </PropertyGroup>
+        <Version>0.1.0</Version>
+        <Title>CatUI.RenderingEngine</Title>
+        <Description>Contains the core rendering of CatUI, essential for an application that uses CatUI.</Description>
+        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
+        <PackageTags>UI;User Interface;fast</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Authors>Moldovan Eduard</Authors>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(CatUseAngle)' == 'true'">
-    <DefineConstants>$(DefineConstants);USE_ANGLE</DefineConstants>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(CatUseAngle)' == 'true'">
+        <DefineConstants>$(DefineConstants);USE_ANGLE</DefineConstants>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <IsTrimmable>True</IsTrimmable>
-    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <IsTrimmable>True</IsTrimmable>
-    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.88.8" />
-    <PackageReference Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="SkiaSharp" Version="2.88.8"/>
+        <PackageReference Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj" />
-    <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj"/>
+        <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj"/>
+    </ItemGroup>
 
 </Project>
