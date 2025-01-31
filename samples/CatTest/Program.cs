@@ -125,10 +125,10 @@ namespace CatTest
                                                         new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA))
                                                 })
                                             .Build(),
-                            preferredWidth: "25%")
+                            preferredWidth: "25%",
+                            preferredHeight: "80%")
                         {
-                            WordWrap = true, Position = new Dimension2(0, 0), MaxHeight = "150"
-                            //AllowsExpansion: false,
+                            WordWrap = true, Position = new Dimension2(0, 0), MaxHeight = "150", AllowsExpansion = false
                         }
                     ]
                 }

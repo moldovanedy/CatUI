@@ -33,46 +33,46 @@ namespace CatUI.Elements.Text
         private bool _wordWrap;
         public ObservableProperty<bool> WordWrapProperty { get; } = new();
 
-        public TextOverflowMode TextOverflowMode
+        public TextOverflowMode OverflowMode
         {
-            get => _textOverflowMode;
+            get => _overflowMode;
             set
             {
-                _textOverflowMode = value;
-                TextOverflowModeProperty.Value = value;
+                _overflowMode = value;
+                OverflowModeProperty.Value = value;
             }
         }
 
-        private TextOverflowMode _textOverflowMode = TextOverflowMode.Ellipsis;
+        private TextOverflowMode _overflowMode = TextOverflowMode.Ellipsis;
 
-        public ObservableProperty<TextOverflowMode> TextOverflowModeProperty { get; }
+        public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; }
             = new();
 
         public TextAlignmentType TextAlignment
         {
-            get => _textAlignmentType;
+            get => _textAlignment;
             set
             {
-                _textAlignmentType = value;
+                _textAlignment = value;
                 TextAlignmentProperty.Value = value;
             }
         }
 
-        private TextAlignmentType _textAlignmentType;
+        private TextAlignmentType _textAlignment = TextAlignmentType.Left;
         public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; } = new();
 
-        public string EllipsisString
+        public string OverflowString
         {
-            get => _ellipsisString;
+            get => _overflowString;
             set
             {
-                _ellipsisString = value;
-                EllipsisStringProperty.Value = value;
+                _overflowString = value;
+                OverflowStringProperty.Value = value;
             }
         }
 
-        private string _ellipsisString = "\u2026";
-        public ObservableProperty<string> EllipsisStringProperty { get; } = new();
+        private string _overflowString = "\u2026";
+        public ObservableProperty<string> OverflowStringProperty { get; } = new();
 
         /// <summary>
         /// If true, the element will expand beyond the set <see cref="Element.PreferredWidth"/> and <see cref="Element.PreferredHeight"/> without
@@ -86,9 +86,9 @@ namespace CatUI.Elements.Text
         /// <item>when the text is so large that it won't fit in the element's height (as it occupies more rows)</item>
         /// </list>
         /// <para>
-        /// What exactly happens when this property is false and the text is larger than the element's size depends 
-        /// on each element that derives from this class. For example, <see cref="Label"/> will have the 
-        /// <see cref="EllipsisString"/> at the end of the last row.
+        /// What exactly happens when this property is false and the text is larger than the element's size depends
+        /// on each element that derives from this class. For example, <see cref="Label"/> will have the
+        /// <see cref="OverflowString"/> at the end of the last row.
         /// </para>
         /// </remarks>
         public bool AllowsExpansion
