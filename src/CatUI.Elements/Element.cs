@@ -401,7 +401,8 @@ namespace CatUI.Elements
         /// </summary>
         /// <remarks>
         /// If the element already belongs to a document, this will remove the element, along with all its children,
-        /// then add this element along with its previous children to the specified document.
+        /// then add this element along with its previous children to the specified document. It WILL invoke the
+        /// document enter/exit events.
         /// </remarks>
         public UiDocument? Document
         {
@@ -414,6 +415,7 @@ namespace CatUI.Elements
                     _document = value;
                     InvokeEnterDocument();
                     RecalculateLayout();
+                    MakeChildrenEnterDocument(Children);
                 }
                 //the element is in a document and the given document is another document or null
                 else if (_document != value)
@@ -610,10 +612,6 @@ namespace CatUI.Elements
             if (Document != null)
             {
                 e.Item.Document = Document;
-                e.Item.InvokeEnterDocument();
-                e.Item.RecalculateLayout();
-
-                MakeChildrenEnterDocument(e.Item.Children);
                 RecalculateLayout();
             }
         }
@@ -628,9 +626,8 @@ namespace CatUI.Elements
             }
 
             e.Item.Children.Clear();
-
             e.Item._parent = null;
-            e.Item.Document = null;
+            e.Item._document = null;
             RecalculateLayout();
         }
 
@@ -772,8 +769,6 @@ namespace CatUI.Elements
             foreach (Element child in children)
             {
                 child.Document = Document;
-                child.InvokeEnterDocument();
-
                 MakeChildrenEnterDocument(child.Children);
             }
         }
