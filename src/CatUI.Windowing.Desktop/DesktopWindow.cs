@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using CatUI.Data;
 using CatUI.Elements;
+using CatUI.Windowing.Common;
 using OpenTK;
 using OpenTK.Graphics.Egl;
 using OpenTK.Graphics.OpenGL;
@@ -10,12 +10,17 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace CatUI.Windowing.Desktop
 {
-    public unsafe class Window
+    public unsafe class DesktopWindow : IApplicationWindow
     {
         public nint NativeHandle
         {
             get
             {
+                if (GlfwWindow == null)
+                {
+                    return 0;
+                }
+
                 if (OperatingSystem.IsWindows())
                 {
                     return GLFW.GetWin32Window(GlfwWindow);
@@ -40,22 +45,21 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
-        public UiDocument Document { get; private set; } = new();
+        public UiDocument Document { get; }
 
-        internal OpenTK.Windowing.GraphicsLibraryFramework.Window* GlfwWindow { get; private set; }
+        internal Window* GlfwWindow { get; private set; }
 
         private bool _shouldCloseWindow;
         private readonly WindowFlags _flags;
         private readonly WindowMode _startupMode;
 
 #if USE_ANGLE
-        private nint eglDisplay;
-        private nint eglSurface;
-        private nint eglContext;
+        private nint _eglDisplay;
+        private nint _eglSurface;
+        private nint _eglContext;
 #endif
 
         private GLFWCallbacks.WindowSizeCallback? _resizeCallback;
-        private GLFWCallbacks.ErrorCallback? _errorCallback;
 
         #region Properties
 
@@ -64,7 +68,11 @@ namespace CatUI.Windowing.Desktop
             get => _width;
             set
             {
-                GLFW.SetWindowSize(GlfwWindow, value, _height);
+                if (GlfwWindow != null)
+                {
+                    GLFW.SetWindowSize(GlfwWindow, value, _height);
+                }
+
                 _width = value;
             }
         }
@@ -76,19 +84,58 @@ namespace CatUI.Windowing.Desktop
             get => _height;
             set
             {
-                GLFW.SetWindowSize(GlfwWindow, _width, value);
+                if (GlfwWindow != null)
+                {
+                    GLFW.SetWindowSize(GlfwWindow, _width, value);
+                }
+
                 _height = value;
             }
         }
 
         private int _height;
 
+        public int FramebufferWidth
+        {
+            get
+            {
+                if (GlfwWindow == null)
+                {
+                    return 0;
+                }
+
+                GLFW.GetFramebufferSize(GlfwWindow, out int width, out _);
+                return width;
+            }
+        }
+
+        public int FramebufferHeight
+        {
+            get
+            {
+                if (GlfwWindow == null)
+                {
+                    return 0;
+                }
+
+                GLFW.GetFramebufferSize(GlfwWindow, out _, out int height);
+                return height;
+            }
+        }
+
+        public bool IsDpiAware => (_flags & WindowFlags.DpiAware) != 0;
+
+
         public int MinWidth
         {
             get => _minWidth;
             set
             {
-                GLFW.SetWindowSizeLimits(GlfwWindow, value, _minHeight, _maxWidth, _maxHeight);
+                if (GlfwWindow != null)
+                {
+                    GLFW.SetWindowSizeLimits(GlfwWindow, value, _minHeight, _maxWidth, _maxHeight);
+                }
+
                 _minWidth = value;
             }
         }
@@ -100,7 +147,11 @@ namespace CatUI.Windowing.Desktop
             get => _minHeight;
             set
             {
-                GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, value, _maxWidth, _maxHeight);
+                if (GlfwWindow != null)
+                {
+                    GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, value, _maxWidth, _maxHeight);
+                }
+
                 _minHeight = value;
             }
         }
@@ -112,7 +163,11 @@ namespace CatUI.Windowing.Desktop
             get => _maxWidth;
             set
             {
-                GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, value, _maxHeight);
+                if (GlfwWindow != null)
+                {
+                    GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, value, _maxHeight);
+                }
+
                 _maxWidth = value;
             }
         }
@@ -124,7 +179,11 @@ namespace CatUI.Windowing.Desktop
             get => _maxHeight;
             set
             {
-                GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxHeight, value);
+                if (GlfwWindow != null)
+                {
+                    GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxHeight, value);
+                }
+
                 _maxHeight = value;
             }
         }
@@ -137,7 +196,10 @@ namespace CatUI.Windowing.Desktop
             set
             {
                 _title = value;
-                GLFW.SetWindowTitle(GlfwWindow, _title);
+                if (GlfwWindow != null)
+                {
+                    GLFW.SetWindowTitle(GlfwWindow, _title);
+                }
             }
         }
 
@@ -208,29 +270,38 @@ namespace CatUI.Windowing.Desktop
 
         #region Events
 
+        /// <summary>
+        /// Fired when an internal GLFW error occured. GLFW is the windowing library that CatUI uses on desktop to
+        /// create windows, manage input and handle hardware graphics context (OpenGL).
+        /// </summary>
         public event Action<OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode, string>? ErrorOccurred;
 
-        /// <summary>
-        /// Fired when the user or the OS requested the application close. Returning true (the default behavior)
-        /// will close the window immediately, while returning false will make the window continue running.
-        /// This can be useful for implementing a prompt for the user (e.g. if they would like to save changes before the app is closed).
-        /// </summary>
-        /// <remarks>
-        /// Although the window will be closed after this returns true, your app will still run until the end of the Main function.
-        /// </remarks>
-        public event Func<bool> CloseRequested = () => true;
+        public Func<bool> OnCloseRequested { get; set; } = () => true;
 
-        public event Action<int, int>? Resized;
+        public event ResizedEventHandler? ResizedEvent;
 
         #endregion
 
+        /// <summary>
+        /// Represents the window startup flags. These are a bitmap that must be set in the constructor, before the call
+        /// to <see cref="DesktopWindow.Open"/> and can not be modified afterward.
+        /// </summary>
         [Flags]
         public enum WindowFlags
         {
+            /// <summary>
+            /// Represents the default value for the flags (<see cref="Resizable"/>, <see cref="Visible"/>,
+            /// <see cref="Decorated"/>, <see cref="DpiAware"/> and <see cref="Focused"/>).
+            /// </summary>
             Default = 0b11111,
             Resizable = 1,
             Visible = 2,
             Decorated = 4,
+
+            /// <summary>
+            /// Indicates that the window's scale will be automatically controlled by CatUI and will correspond to
+            /// the platform preferences. It is highly recommended to set this flag. It is enabled by default.
+            /// </summary>
             DpiAware = 8,
             Focused = 16,
 
@@ -250,21 +321,11 @@ namespace CatUI.Windowing.Desktop
         private double _lastTime;
         private readonly List<Action<double>> _animationFrameCallbacks = new();
 
-        /// <summary>
-        /// An event that is fired when the internal windowing system decides to redraw
-        /// a part of the viewport or the whole viewport. Do NOT use this as a "game loop", as this won't be invoked
-        /// on a regular basis, but rather only when it's necessary (something has changed visually).
-        /// </summary>
-        /// <remarks>
-        /// If you want a reliable continuous loop for each frame, see <see cref="RequestAnimationFrame(Action{double})"/>.
-        /// This event won't be invoked even when using <see cref="RequestAnimationFrame(Action{double})"/>
-        /// unless something really has been drawn.
-        /// </remarks>
         public event Action<double>? FrameUpdatedEvent;
 
         #region Object creation
 
-        public Window(
+        public DesktopWindow(
             int width = 800,
             int height = 600,
             string title = "",
@@ -285,12 +346,16 @@ namespace CatUI.Windowing.Desktop
             _flags = windowFlags;
             _startupMode = startupMode;
 
-            Create();
-        }
+            if (!GLFW.Init())
+            {
+                OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode errorCode = GLFW.GetError(out string description);
+                throw new Exception($"Internal GLFW error ({errorCode}): {description}");
+            }
 
-        public Window Create()
-        {
-            Init();
+            GLFW.SetErrorCallback((code, desc) =>
+            {
+                ErrorOccurred?.Invoke(code, desc);
+            });
 
             GLFW.WindowHint(WindowHintBool.Resizable, (_flags & WindowFlags.Resizable) != 0);
             GLFW.WindowHint(WindowHintBool.Visible, (_flags & WindowFlags.Visible) != 0);
@@ -301,93 +366,22 @@ namespace CatUI.Windowing.Desktop
             GLFW.WindowHint(WindowHintBool.Floating, (_flags & WindowFlags.AlwaysOnTop) != 0);
             GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (_flags & WindowFlags.TransparentFramebuffer) != 0);
 
-            switch (_startupMode)
-            {
-                default:
-                case WindowMode.Windowed:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
-                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                    break;
-                case WindowMode.Minimized:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
-                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                    GLFW.IconifyWindow(GlfwWindow);
-                    break;
-                case WindowMode.Maximized:
-                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0,
-                        (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                    GLFW.MaximizeWindow(GlfwWindow);
-                    break;
-                case WindowMode.Fullscreen:
-                    {
-                        Monitor* monitor = GLFW.GetPrimaryMonitor();
-                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
-                        GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
-                        GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
-                        GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
-
-                        _width = videoMode->Width;
-                        _height = videoMode->Height;
-                        GlfwWindow = GLFW.CreateWindow(
-                            videoMode->Width,
-                            videoMode->Height,
-                            _title,
-                            GLFW.GetPrimaryMonitor(),
-                            (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                        break;
-                    }
-                case WindowMode.ExclusiveFullscreen:
-                    {
-                        Monitor* monitor = GLFW.GetPrimaryMonitor();
-                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        _width = videoMode->Width;
-                        _height = videoMode->Height;
-
-                        GlfwWindow = GLFW.CreateWindow(_width, _height, _title, monitor,
-                            (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0);
-                        break;
-                    }
-            }
-
-            GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
-
-            CreateSurface();
-
-#if USE_ANGLE
-            Egl.SwapInterval(eglDisplay, SwapInterval);
-            GL.LoadBindings(new AngleBindingsContext());
-#else
-            GLFW.MakeContextCurrent(GlfwWindow);
-            GLFW.SwapInterval(SwapInterval);
-            GL.LoadBindings(new GLFWBindingsContext());
-#endif
-
-            _resizeCallback = (glfwWindow, width, height) =>
-            {
-                Resized?.Invoke(width, height);
-            };
-            Resized += ResizeWindow;
-            GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
-
-            _errorCallback = (errCode, message) => throw new GLFWException(message, errCode);
-            GLFW.SetErrorCallback(_errorCallback);
-
             Document = new UiDocument { ViewportSize = new Size(_width, _height) };
-            FullyRedraw();
-
-            return this;
         }
 
-        ~Window()
+        ~DesktopWindow()
         {
             Terminate();
 
-            Resized -= ResizeWindow;
-            GLFW.SetWindowSizeCallback(GlfwWindow, null);
+            if (GlfwWindow != null)
+            {
+                GLFW.SetWindowSizeCallback(GlfwWindow, null);
+            }
+
+            ResizedEvent -= ResizeWindow;
+            GLFW.SetErrorCallback(null);
 
             _resizeCallback = null;
-            _errorCallback = null;
         }
 
         #endregion
@@ -409,13 +403,18 @@ namespace CatUI.Windowing.Desktop
             GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out float xScale, out float _);
             Document.ContentScale = xScale;
 
-            //don't use Glfw.WindowShouldClose because that is handled by CloseRequested
+            //don't use Glfw.WindowShouldClose because that is handled by OnCloseRequested
             while (!_shouldCloseWindow)
             {
+                if (GlfwWindow == null)
+                {
+                    throw new NullReferenceException("Window pointer was null. Did you open the window first?");
+                }
+
                 if (GLFW.WindowShouldClose(GlfwWindow))
                 {
                     //if the handler returns true, close the window
-                    if (CloseRequested.Invoke())
+                    if (OnCloseRequested.Invoke())
                     {
                         Terminate();
                         return;
@@ -427,43 +426,118 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
+        public void Open()
+        {
+            switch (_startupMode)
+            {
+                default:
+                case WindowMode.Windowed:
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
+                    break;
+                case WindowMode.Minimized:
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
+                    GLFW.IconifyWindow(GlfwWindow);
+                    break;
+                case WindowMode.Maximized:
+                    GlfwWindow = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
+                    GLFW.MaximizeWindow(GlfwWindow);
+                    break;
+                case WindowMode.Fullscreen:
+                    {
+                        Monitor* monitor = GLFW.GetPrimaryMonitor();
+                        if (monitor == null)
+                        {
+                            throw new InternalPlatformException("GLFW: Could not get primary monitor");
+                        }
+
+                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                        if (videoMode == null)
+                        {
+                            throw new InternalPlatformException("GLFW: Could not get video mode");
+                        }
+
+                        GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
+                        GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
+                        GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
+                        GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
+
+                        _width = videoMode->Width;
+                        _height = videoMode->Height;
+                        GlfwWindow = GLFW.CreateWindow(
+                            videoMode->Width,
+                            videoMode->Height,
+                            _title,
+                            GLFW.GetPrimaryMonitor(),
+                            (Window*)0);
+                        break;
+                    }
+                case WindowMode.ExclusiveFullscreen:
+                    {
+                        Monitor* monitor = GLFW.GetPrimaryMonitor();
+                        if (monitor == null)
+                        {
+                            throw new InternalPlatformException("GLFW: Could not get primary monitor");
+                        }
+
+                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                        if (videoMode == null)
+                        {
+                            throw new InternalPlatformException("GLFW: Could not get video mode");
+                        }
+
+                        _width = videoMode->Width;
+                        _height = videoMode->Height;
+
+                        GlfwWindow = GLFW.CreateWindow(_width, _height, _title, monitor, (Window*)0);
+                        break;
+                    }
+            }
+
+            if (GlfwWindow == null)
+            {
+                throw new InternalPlatformException("GLFW: Could not create window");
+            }
+
+            GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
+            CreateSurface();
+
+#if USE_ANGLE
+            Egl.SwapInterval(_eglDisplay, SwapInterval);
+            GL.LoadBindings(new AngleBindingsContext());
+#else
+            GLFW.MakeContextCurrent(GlfwWindow);
+            GLFW.SwapInterval(SwapInterval);
+            GL.LoadBindings(new GLFWBindingsContext());
+#endif
+
+            _resizeCallback = (_, newWidth, newHeight) =>
+            {
+                ResizedEvent?.Invoke(
+                    this,
+                    new ResizedEventArgs(Width, Height, newWidth, newHeight)
+                );
+            };
+            ResizedEvent += ResizeWindow;
+            GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
+
+            FullyRedraw();
+        }
+
         public void Close()
         {
             _shouldCloseWindow = true;
             GLFW.PostEmptyEvent();
         }
 
-        /// <summary>
-        /// This function works similarly to the requestAnimationFrame web API. The given callback will be executed before starting
-        /// to draw the next frame. Beware that this must perform a full redraw of the content even if nothing has changed, so
-        /// beware of the eventual performance penalties.
-        /// </summary>
+        /// <inheritdoc cref="IApplicationWindow.RequestAnimationFrame"/>
         /// <remarks>
-        /// This is limited to <see cref="MaxFps"/>, meaning that if the drawing happens faster than the minimum time a frame must take,
-        /// the main thread will sleep until that period is elapsed.
+        /// This is limited to <see cref="MaxFps"/>, meaning that if the drawing happens faster than the minimum time
+        /// a frame must take, the main thread will sleep until that period is elapsed.
         /// </remarks>
-        /// <param name="frameCallback">
-        /// A function that receives the time between the last frame and the current frame 
-        /// in seconds as a parameter.
-        /// </param>
         public void RequestAnimationFrame(Action<double> frameCallback)
         {
             GLFW.PostEmptyEvent();
             _animationFrameCallbacks.Add(frameCallback);
-        }
-
-        private void Init()
-        {
-            if (!GLFW.Init())
-            {
-                OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode errorCode = GLFW.GetError(out string description);
-                throw new Exception($"Internal GLFW error ({errorCode}): {description}");
-            }
-
-            GLFW.SetErrorCallback((code, desc) =>
-            {
-                ErrorOccurred?.Invoke(code, desc);
-            });
         }
 
         private void DoFrameActions()
@@ -471,7 +545,7 @@ namespace CatUI.Windowing.Desktop
             double delta = GLFW.GetTime() - _lastTime;
             _lastTime = GLFW.GetTime();
 
-            //bool hadFrameCallbacks = false;
+            bool hadFrameCallbacks = false;
             if (_animationFrameCallbacks.Count > 0)
             {
                 //if a callback registers another callback, this will effectively become an infinite loop,
@@ -482,29 +556,37 @@ namespace CatUI.Windowing.Desktop
                 for (int i = 0; i < thisFrameCount; i++)
                 {
                     _animationFrameCallbacks[i].Invoke(delta);
-                    //hadFrameCallbacks = true;
+                    hadFrameCallbacks = true;
                 }
 
                 _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
             }
 
-            if (Document.Renderer.IsCanvasDirty)
+            if (hadFrameCallbacks || Document.Renderer.IsCanvasDirty)
             {
-                FrameUpdatedEvent?.Invoke(delta);
-                FullyRedraw();
+                if (Document.Renderer.IsCanvasDirty)
+                {
+                    FrameUpdatedEvent?.Invoke(delta);
+                    FullyRedraw();
+                }
+
                 _lastTime = GLFW.GetTime();
 
 #if USE_ANGLE
-                Egl.SwapBuffers(eglDisplay, eglSurface);
+                Egl.SwapBuffers(_eglDisplay, _eglSurface);
 #else
                 GLFW.SwapBuffers(GlfwWindow);
 #endif
 
-                Document.Renderer.SkipCanvasPresentation();
-                Debug.WriteLine(delta);
+                if (Document.Renderer.IsCanvasDirty)
+                {
+                    Document.Renderer.SkipCanvasPresentation();
+                }
+
+                //Debug.WriteLine(delta);
             }
 
-            if (SwapInterval != -1 && MaxFps != -1)
+            if (SwapInterval != -1 || MaxFps != -1)
             {
                 return;
             }
@@ -524,61 +606,54 @@ namespace CatUI.Windowing.Desktop
             GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.NoApi);
 
             int[] platformAttributes =
-            [
-                Egl.PLATFORM_ANGLE_TYPE_ANGLE, Egl.PLATFORM_ANGLE_TYPE_D3D11_ANGLE,
-                Egl.PLATFORM_ANGLE_MAX_VERSION_MAJOR_ANGLE, 1,
-                Egl.PLATFORM_ANGLE_MAX_VERSION_MINOR_ANGLE, 1,
-                Egl.NONE,
-            ];
-            eglDisplay = Egl.GetPlatformDisplay(Egl.PLATFORM_ANGLE_ANGLE, 0, platformAttributes);
-            if (eglDisplay == 0)
             {
-                return;
+                Egl.PLATFORM_ANGLE_TYPE_ANGLE, Egl.PLATFORM_ANGLE_TYPE_D3D11_ANGLE,
+                Egl.PLATFORM_ANGLE_MAX_VERSION_MAJOR_ANGLE, 1, Egl.PLATFORM_ANGLE_MAX_VERSION_MINOR_ANGLE, 1,
+                Egl.NONE
+            };
+            _eglDisplay = Egl.GetPlatformDisplay(Egl.PLATFORM_ANGLE_ANGLE, (nint)0, platformAttributes);
+            if (_eglDisplay == 0)
+            {
+                throw new InternalPlatformException("EGL: Could not get platform display");
             }
 
-            if (!Egl.Initialize(eglDisplay, out _, out _))
+            if (!Egl.Initialize(_eglDisplay, out _, out _))
             {
-                return;
+                throw new InternalPlatformException("EGL: Could not initialize EGL");
             }
 
             int[] configAttributes =
-            [
-                Egl.SURFACE_TYPE, Egl.WINDOW_BIT,
-                Egl.RENDERABLE_TYPE, Egl.OPENGL_ES2_BIT,
-                Egl.NONE
-            ];
+            {
+                Egl.SURFACE_TYPE, Egl.WINDOW_BIT, Egl.RENDERABLE_TYPE, Egl.OPENGL_ES2_BIT, Egl.NONE
+            };
             nint[] eglConfig = new nint[1];
-            if (!Egl.ChooseConfig(eglDisplay, configAttributes, eglConfig, 1, out int numberOfConfigs) ||
+            if (!Egl.ChooseConfig(_eglDisplay, configAttributes, eglConfig, 1, out int numberOfConfigs) ||
                 numberOfConfigs < 1)
             {
-                return;
+                throw new InternalPlatformException("EGL: Could not get configuration");
             }
 
-            int[] contextAttributes =
-            [
-                Egl.CONTEXT_CLIENT_VERSION, 2,
-                Egl.NONE
-            ];
-            eglContext = Egl.CreateContext(eglDisplay, eglConfig[0], 0, contextAttributes);
-            if (eglContext == 0)
+            int[] contextAttributes = { Egl.CONTEXT_CLIENT_VERSION, 2, Egl.NONE };
+            _eglContext = Egl.CreateContext(_eglDisplay, eglConfig[0], (nint)0, contextAttributes);
+            if (_eglContext == 0)
             {
-                return;
+                throw new InternalPlatformException("EGL: Could not create context");
             }
 
-            eglSurface = Egl.CreateWindowSurface(eglDisplay, eglConfig[0], NativeHandle, 0);
-            if (eglSurface == 0)
+            _eglSurface = Egl.CreateWindowSurface(_eglDisplay, eglConfig[0], NativeHandle, (nint)0);
+            if (_eglSurface == 0)
             {
-                return;
+                throw new InternalPlatformException("EGL: Could not create surface");
             }
 
-            if (!Egl.MakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext))
+            if (!Egl.MakeCurrent(_eglDisplay, _eglSurface, _eglSurface, _eglContext))
             {
-                return;
+                throw new InternalPlatformException("EGL: Could not make surface current");
             }
+
 #else
             GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlApi);
 #endif
-            //GLFW.WindowHint(WindowHintContextApi.ContextCreationApi, ContextApi.NativeContextApi);
         }
 #pragma warning restore CA1822 // Mark members as static
 
@@ -589,20 +664,19 @@ namespace CatUI.Windowing.Desktop
             GLFW.SetErrorCallback(null);
 
 #if USE_ANGLE
-            Egl.DestroySurface(eglDisplay, eglSurface);
-            Egl.DestroyContext(eglDisplay, eglContext);
-            Egl.Terminate(eglDisplay);
+            Egl.DestroySurface(_eglDisplay, _eglSurface);
+            Egl.DestroyContext(_eglDisplay, _eglContext);
+            Egl.Terminate(_eglDisplay);
 #endif
 
-            if (GlfwWindow != (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0)
+            if (GlfwWindow != null)
             {
                 GLFW.DestroyWindow(GlfwWindow);
-                GlfwWindow = (OpenTK.Windowing.GraphicsLibraryFramework.Window*)0;
+                GlfwWindow = (Window*)0;
             }
-            //GLFW.Terminate();
         }
 
-        private void ResizeWindow(int width, int height)
+        private void ResizeWindow(object sender, ResizedEventArgs e)
         {
             //GL.Viewport(0, 0, width, height);
             //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
@@ -612,7 +686,7 @@ namespace CatUI.Windowing.Desktop
             GL.GetInteger(GetPName.Samples, out int samples);
             Document.Renderer.SetFramebufferData(frame, stencil, samples);
 
-            Document.ViewportSize = new Size(width, height);
+            Document.ViewportSize = new Size(e.NewWidth, e.NewHeight);
             Document.Renderer.SetCanvasDirty();
             DoFrameActions();
         }

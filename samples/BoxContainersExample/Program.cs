@@ -1,7 +1,6 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
-using CatUI.Elements;
 using CatUI.Elements.Containers;
 using CatUI.Elements.Shapes;
 using CatUI.Windowing.Desktop;
@@ -14,7 +13,7 @@ namespace BoxContainersExample
         {
             CatApplication.NewBuilder().Build();
 
-            var window = new Window(
+            var window = new DesktopWindow(
                 900,
                 600,
                 "BoxContainers example",
@@ -45,6 +44,7 @@ namespace BoxContainersExample
                 // ),
             ]);
 
+            window.Open();
             window.Run();
         }
     }

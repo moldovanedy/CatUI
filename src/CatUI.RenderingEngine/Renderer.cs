@@ -65,6 +65,12 @@ namespace CatUI.RenderingEngine
             {
                 var glInterface = GRGlInterface.Create();
                 Context = GRContext.CreateGl(glInterface);
+
+                if (Context == null)
+                {
+                    throw new NullReferenceException(
+                        "Graphics context is null This is probably an internal graphics error.");
+                }
             }
 
             //manage the drawing surface
@@ -95,6 +101,12 @@ namespace CatUI.RenderingEngine
             if (Surface == null)
             {
                 Surface = SKSurface.Create(Context, _renderTarget, SURFACE_ORIGIN, COLOR_TYPE);
+                if (Surface == null)
+                {
+                    throw new NullReferenceException(
+                        "Drawing surface is null. This is probably an internal graphics error.");
+                }
+
                 Canvas = Surface.Canvas;
             }
 

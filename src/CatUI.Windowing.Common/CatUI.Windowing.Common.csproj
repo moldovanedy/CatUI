@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <Version>0.1.0</Version>
+        <Title>CatUI.Windowing.Common</Title>
+        <Description>Contains the logic shared by all types of application windows (surfaces) that CatUI runs on.</Description>
+        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
+        <PackageTags>UI;User Interface;fast</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Authors>Moldovan Eduard</Authors>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.Elements\CatUI.Elements.csproj"/>
+    </ItemGroup>
+
+</Project>
