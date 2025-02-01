@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
@@ -598,7 +599,7 @@ namespace CatUI.Elements
 
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
-            if (_shouldCheckForDuplicateChildren && Children.Contains(e.Item))
+            if (_shouldCheckForDuplicateChildren && Children.Count(el => el == e.Item) > 1)
             {
                 throw new DuplicateElementException("Duplicate children are not allowed.");
             }
