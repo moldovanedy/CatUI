@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{FAE6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxContainersExample", "samples\BoxContainersExample\BoxContainersExample.csproj", "{ED1101FC-3881-4FFA-A1EB-7B0AA6BA2388}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Windowing.Common", "src\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj", "{8198F5E0-E84E-4ED7-AF45-CA11FBC9C8F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +72,10 @@ Global
 		{ED1101FC-3881-4FFA-A1EB-7B0AA6BA2388}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED1101FC-3881-4FFA-A1EB-7B0AA6BA2388}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED1101FC-3881-4FFA-A1EB-7B0AA6BA2388}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8198F5E0-E84E-4ED7-AF45-CA11FBC9C8F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8198F5E0-E84E-4ED7-AF45-CA11FBC9C8F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8198F5E0-E84E-4ED7-AF45-CA11FBC9C8F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8198F5E0-E84E-4ED7-AF45-CA11FBC9C8F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

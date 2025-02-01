@@ -6,6 +6,7 @@ using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
+using CatUI.Data.Exceptions;
 using CatUI.Elements.Containers;
 using CatUI.Elements.Themes;
 using CatUI.Utils;
@@ -481,6 +482,8 @@ namespace CatUI.Elements
 
         private float _absoluteHeight;
 
+        private bool _shouldCheckForDuplicateChildren = true;
+
         public event Action? DrawEvent;
         public event EnterDocumentEventHandler? EnterDocumentEvent;
         public event ExitDocumentEventHandler? ExitDocumentEvent;
@@ -595,6 +598,11 @@ namespace CatUI.Elements
 
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
+            if (_shouldCheckForDuplicateChildren && Children.Contains(e.Item))
+            {
+                throw new DuplicateElementException("Duplicate children are not allowed.");
+            }
+
             e.Item.IsChildOfContainer = this is Container;
             e.Item._parent = this;
 
@@ -758,7 +766,18 @@ namespace CatUI.Elements
                 new float[4]);
         }
 
-        #endregion
+        private void MakeChildrenEnterDocument(ObservableList<Element> children)
+        {
+            foreach (Element child in children)
+            {
+                child.Document = Document;
+                child.InvokeEnterDocument();
+
+                MakeChildrenEnterDocument(child.Children);
+            }
+        }
+
+        #endregion //Internal event handlers
 
         #region Public API
 
@@ -775,15 +794,21 @@ namespace CatUI.Elements
             return new Element();
         }
 
-        private void MakeChildrenEnterDocument(ObservableList<Element> children)
+        /// <summary>
+        /// This method is for special cases only! When you have to add a lot of elements at once, and you already ensured
+        /// that you have no duplicates, disable the check before adding the children and enable it immediately afterward.
+        /// Any element insertion will first check to see if the new element isn't already there and, if it is,
+        /// it throws an <see cref="DuplicateElementException"/>. The check is active by default, and you should really
+        /// not mess with it unless you know what you are doing. The case above is the only reason this method exists.
+        /// </summary>
+        /// <remarks>
+        /// If you disable this check, and you insert duplicate children, the whole element hierarchy might get corrupted,
+        /// and you will get undefined behaviour.
+        /// </remarks>
+        /// <param name="shouldEnable">If true, enables the check; if false, disables it.</param>
+        public void ToggleDuplicateChildrenCheck(bool shouldEnable)
         {
-            foreach (Element child in children)
-            {
-                child.Document = Document;
-                child.InvokeEnterDocument();
-
-                MakeChildrenEnterDocument(child.Children);
-            }
+            _shouldCheckForDuplicateChildren = shouldEnable;
         }
 
         public Element? GetParent()

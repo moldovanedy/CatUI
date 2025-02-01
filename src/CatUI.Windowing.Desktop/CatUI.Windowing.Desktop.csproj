@@ -36,8 +36,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Elements\CatUI.Elements.csproj"/>
         <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj"/>
+        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(CatUseAngle)' == 'true'">
