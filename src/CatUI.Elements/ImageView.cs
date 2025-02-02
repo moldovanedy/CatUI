@@ -28,7 +28,6 @@ namespace CatUI.Elements
                 preferredWidth: preferredWidth,
                 preferredHeight: preferredHeight)
         {
-            DrawEvent += PrivateDrawImage;
             Source = source;
 
             if (themeOverrides != null)
@@ -37,13 +36,10 @@ namespace CatUI.Elements
             }
         }
 
-        ~ImageView()
+        public override void Draw()
         {
-            DrawEvent -= PrivateDrawImage;
-        }
+            base.DrawBackground();
 
-        private void PrivateDrawImage()
-        {
             if (Source == null)
             {
                 return;

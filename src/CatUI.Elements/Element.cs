@@ -535,8 +535,6 @@ namespace CatUI.Elements
             PointerMoveEvent -= OnPointerMove;
             PointerMoveEvent -= PointerMove;
 
-            DrawEvent -= PrivateDraw;
-
             Children.ItemInsertedEvent -= OnChildInserted;
             Children.ItemRemovedEvent -= OnChildRemoved;
             Children.ListClearingEvent -= OnChildrenListClearing;
@@ -594,8 +592,6 @@ namespace CatUI.Elements
             PointerEnterEvent += PointerEnter;
             PointerLeaveEvent += PointerLeave;
             PointerMoveEvent += PointerMove;
-
-            DrawEvent += PrivateDraw;
         }
 
 
@@ -687,12 +683,6 @@ namespace CatUI.Elements
 
         #region Internal event handlers
 
-        private void PrivateDraw()
-        {
-            //RecalculateLayout();
-            DrawBackground();
-        }
-
         internal virtual void RecalculateLayout()
         {
             if (IsChildOfContainer || !_enabled)
@@ -777,7 +767,11 @@ namespace CatUI.Elements
 
         #region Public API
 
-        public virtual void Draw() { }
+        public virtual void Draw()
+        {
+            DrawBackground();
+        }
+
         public virtual void EnterDocument(object sender) { }
         public virtual void ExitDocument(object sender) { }
         public virtual void Loaded(object sender) { }

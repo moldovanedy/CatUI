@@ -81,7 +81,6 @@ namespace CatUI.Elements.Text
                 preferredWidth: preferredWidth,
                 preferredHeight: preferredHeight)
         {
-            DrawEvent += DrawText;
             TextProperty.ValueChangedEvent += OnTextChanged;
 
             if (themeOverrides != null)
@@ -94,7 +93,6 @@ namespace CatUI.Elements.Text
 
         ~Label()
         {
-            DrawEvent -= DrawText;
             TextProperty.ValueChangedEvent -= OnTextChanged;
         }
 
@@ -178,8 +176,10 @@ namespace CatUI.Elements.Text
             }
         }
 
-        private void DrawText()
+        public override void Draw()
         {
+            base.DrawBackground();
+
             LabelThemeData currentTheme =
                 GetElementFinalThemeData<LabelThemeData>(LabelThemeData.STYLE_NORMAL) ??
                 new LabelThemeData().GetDefaultData<LabelThemeData>(LabelThemeData.STYLE_NORMAL);
