@@ -126,11 +126,11 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// for the situation when only one parameter is set to a value other than default.
         /// </summary>
         /// <param name="forText">
-        /// If this is given without the font index (<see cref="forFontIndex"/> == -1), it will remove
+        /// If this is given without the font index forFontIndex == -1, it will remove
         /// the entry for that text (faster).
         /// </param>
         /// <param name="forFontIndex">
-        /// If this is given without text (<see cref="forText"/> == null), it will remove the entries
+        /// If this is given without text forText == null, it will remove the entries
         /// for the font index on all texts (slow).
         /// </param>
         public static void PurgeCache(Memory<char>? forText = null, int forFontIndex = -1)

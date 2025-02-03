@@ -13,7 +13,7 @@ namespace CatUI.RenderingEngine
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
         /// </summary>
         /// <remarks>
-        /// This method can only draw a filled rectangle, for only drawing the outline (aka outline), use <see cref="DrawRectOutline(Rect, IBrush, OutlineParams, CornerInset)"/>
+        /// This method can only draw a filled rectangle, for only drawing the outline (aka outline), use <see cref="DrawRectOutline"/>
         /// </remarks>
         /// <param name="rect">The direct pixel measurements of the rect.</param>
         /// <param name="fillBrush">The brush to use to paint the rect.</param>
@@ -43,7 +43,7 @@ namespace CatUI.RenderingEngine
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
         /// </summary>
         /// <remarks>
-        /// This method can only draw an outlined rectangle, for drawing the rectangle as filled, use <see cref="DrawRect(Rect, IBrush, CornerInset)"/>
+        /// This method can only draw an outlined rectangle, for drawing the rectangle as filled, use <see cref="DrawRect"/>
         /// </remarks>
         /// <param name="rect">The direct pixel measurements of the rect.</param>
         /// <param name="outlineBrush">The brush to use to paint the rect.</param>

@@ -33,19 +33,28 @@ namespace CatUI.RenderingEngine
         /// </param>
         /// <param name="resizeQuality">The resizing quality. Higher quality means slower drawing.</param>
         /// <param name="paint">The paint to use, or null.</param>
+        /// <param name="scaledImage">
+        /// The resulting scaled image that should be used as a cache so you can use <see cref="DrawImageFast"/> later.
+        /// It will be null if the image wasn't scaled in any way, and it used the original image.
+        /// </param>
+        /// <exception cref="InvalidOperationException">Thrown if the image couldn't be resized by SkiaSharp.</exception>
         public void DrawImage(
             SKImage image,
             Point2D position,
             Size size,
             ImageResizeQuality resizeQuality,
-            SKPaint? paint)
+            SKPaint? paint,
+            out SKImage? scaledImage)
         {
             SKImage outputImage = image;
             if (size.Width > EPSILON && size.Height > EPSILON &&
-                Math.Abs(size.Width - image.Width) > EPSILON &&
-                Math.Abs(size.Height - image.Height) > EPSILON)
+                (Math.Abs(size.Width - image.Width) > EPSILON ||
+                 Math.Abs(size.Height - image.Height) > EPSILON))
             {
-                var newImageInfo = new SKImageInfo((int)size.Width, (int)size.Height, image.ColorType);
+                var newImageInfo = new SKImageInfo(
+                    (int)MathF.Round(size.Width, MidpointRounding.ToZero),
+                    (int)MathF.Round(size.Height, MidpointRounding.ToZero),
+                    image.ColorType);
                 outputImage = SKImage.Create(newImageInfo);
                 bool success = image.ScalePixels(outputImage.PeekPixels(), (SKFilterQuality)resizeQuality);
                 if (!success)
@@ -55,6 +64,8 @@ namespace CatUI.RenderingEngine
             }
 
             DrawImageFast(outputImage, new Point2D(position.X, position.Y), paint);
+            //give the scaled image as an out parameter for eventual caching
+            scaledImage = outputImage == image ? null : outputImage;
         }
 
         /// <summary>
@@ -88,8 +99,8 @@ namespace CatUI.RenderingEngine
             bool makeBitmapImmutable = true)
         {
             if (size.Width > EPSILON && size.Height > EPSILON &&
-                Math.Abs(size.Width - bitmap.Width) > EPSILON &&
-                Math.Abs(size.Height - bitmap.Height) > EPSILON)
+                (Math.Abs(size.Width - bitmap.Width) > EPSILON ||
+                 Math.Abs(size.Height - bitmap.Height) > EPSILON))
             {
                 bitmap = bitmap.Resize(new SKImageInfo((int)size.Width, (int)size.Height),
                     (SKFilterQuality)resizeQuality);

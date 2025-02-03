@@ -26,7 +26,7 @@ namespace CatUI.Elements.Themes
         /// </typeparam>
         /// <returns>
         /// True if the addition succeeded, false if there already was a theme definition for the element
-        /// of type <see cref="TElement"/>.
+        /// of type TElement.
         /// </returns>
         public bool AddThemeDefinition<TElement>(ThemeDefinition<ElementThemeData> themeDefinition)
             where TElement : Element
@@ -36,7 +36,7 @@ namespace CatUI.Elements.Themes
 
         /// <inheritdoc cref="AddThemeDefinition{TElement}"/>
         /// <summary>
-        /// Adds the given theme definition if one wasn't found for the element of type <see cref="TElement"/>
+        /// Adds the given theme definition if one wasn't found for the element of type TElement
         /// (basically works exactly like <see cref="AddThemeDefinition{TElement}"/> in this case)
         /// or overwrites it if it exists.
         /// </summary>
@@ -52,7 +52,7 @@ namespace CatUI.Elements.Themes
         /// <summary>
         /// Given the Element type, attempts to find a theme definition for that element and casts it to
         /// <see cref="ThemeDefinition{T}"/> if it finds one, returns null otherwise. If it cannot cast because
-        /// the type is not <see cref="T"/>, an InvalidCastException is thrown. 
+        /// the type is not T, an InvalidCastException is thrown. 
         /// </summary>
         /// <typeparam name="TElement">The type of element for which you want to get the theme definition.</typeparam>
         /// <typeparam name="T">
@@ -62,7 +62,7 @@ namespace CatUI.Elements.Themes
         /// </typeparam>
         /// <returns>The existing definition if one was found, null otherwise.</returns>
         /// <exception cref="InvalidCastException">
-        /// If the stored theme definition has a type that is incompatible with type <see cref="T"/>.
+        /// If the stored theme definition has a type that is incompatible with type T.
         /// </exception>
         public ThemeDefinition<T>? GetThemeDefinition<TElement, T>()
             where TElement : Element

@@ -121,6 +121,10 @@ namespace CatUI.Elements
 
         private readonly ObservableList<Element> _children = new();
 
+        /// <summary>
+        /// Represents the top-left corner's position relative to the parent's top-left corner. When the element is
+        /// inside a container, this value generally won't get considered. Default is (0, 0). 
+        /// </summary>
         public Dimension2 Position
         {
             get => _position;
@@ -135,16 +139,19 @@ namespace CatUI.Elements
             }
         }
 
-        private Dimension2 _position = new();
-        public ObservableProperty<Dimension2> PositionProperty { get; } = new();
+        private Dimension2 _position = new(0, 0);
+        public ObservableProperty<Dimension2> PositionProperty { get; } = new(new Dimension2(0, 0));
 
         /// <summary>
+        /// <para>
         /// Represents the preferred width of the element. The layout engine will try to honor this value, but this might be
-        /// influenced
-        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />) or if the element is
-        /// inside a container.
+        /// influenced by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />)
+        /// or if the element is inside a container.
+        /// </para>
+        /// <para>
         /// Please consult the documentation for the properties of the element you want to use, as well as the containers that
-        /// the element will be in.
+        /// the element will be in. The default value is <see cref="Dimension.Unset"/>.
+        /// </para>
         /// </summary>
         public Dimension PreferredWidth
         {
@@ -161,15 +168,18 @@ namespace CatUI.Elements
         }
 
         private Dimension _preferredWidth;
-        public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new();
+        public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new(Dimension.Unset);
 
         /// <summary>
+        /// <para>
         /// Represents the preferred height of the element. The layout engine will try to honor this value, but this might be
-        /// influenced
-        /// by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />) or if the element is
-        /// inside a container.
+        /// influenced by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />)
+        /// or if the element is inside a container.
+        /// </para>
+        /// <para>
         /// Please consult the documentation for the properties of the element you want to use, as well as the containers that
-        /// the element will be in.
+        /// the element will be in. The default value is <see cref="Dimension.Unset"/>.
+        /// </para>
         /// </summary>
         public Dimension PreferredHeight
         {
@@ -186,11 +196,11 @@ namespace CatUI.Elements
         }
 
         private Dimension _preferredHeight;
-        public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new();
+        public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new(Dimension.Unset);
 
         /// <summary>
         /// Represents the minimum width that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
+        /// By default, it has the invalid value (<see cref="Dimension.Unset"/>), meaning the restriction is not applied.
         /// </summary>
         public Dimension MinWidth
         {
@@ -207,11 +217,11 @@ namespace CatUI.Elements
         }
 
         private Dimension _minWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MinWidthProperty { get; } = new();
+        public ObservableProperty<Dimension> MinWidthProperty { get; } = new(Dimension.Unset);
 
         /// <summary>
         /// Represents the minimum height that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
+        /// By default, it has the invalid value (<see cref="Dimension.Unset"/>), meaning the restriction is not applied.
         /// </summary>
         public Dimension MinHeight
         {
@@ -228,11 +238,11 @@ namespace CatUI.Elements
         }
 
         private Dimension _minHeight = Dimension.Unset;
-        public ObservableProperty<Dimension> MinHeightProperty { get; } = new();
+        public ObservableProperty<Dimension> MinHeightProperty { get; } = new(Dimension.Unset);
 
         /// <summary>
         /// Represents the maximum width that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
+        /// By default, it has the invalid value (<see cref="Dimension.Unset"/>), meaning the restriction is not applied.
         /// </summary>
         public Dimension MaxWidth
         {
@@ -249,11 +259,11 @@ namespace CatUI.Elements
         }
 
         private Dimension _maxWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new();
+        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new(Dimension.Unset);
 
         /// <summary>
         /// Represents the minimum height that the element can have.
-        /// By default, it has the invalid value, meaning the restriction is not applied.
+        /// By default, it has the invalid value (<see cref="Dimension.Unset"/>), meaning the restriction is not applied.
         /// </summary>
         public Dimension MaxHeight
         {
@@ -270,8 +280,11 @@ namespace CatUI.Elements
         }
 
         private Dimension _maxHeight = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxHeightProperty { get; } = new();
+        public ObservableProperty<Dimension> MaxHeightProperty { get; } = new(Dimension.Unset);
 
+        /// <summary>
+        /// The default value is a new <see cref="EdgeInset"/> with all the dimensions invalid (<see cref="Dimension.Unset"/>).
+        /// </summary>
         public EdgeInset Padding
         {
             get => _padding;
@@ -287,8 +300,11 @@ namespace CatUI.Elements
         }
 
         private EdgeInset _padding = new();
-        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new();
+        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
 
+        /// <summary>
+        /// The default value is a new <see cref="EdgeInset"/> with all the dimensions invalid (<see cref="Dimension.Unset"/>).
+        /// </summary>
         public EdgeInset Margin
         {
             get => _margin;
@@ -304,8 +320,13 @@ namespace CatUI.Elements
         }
 
         private EdgeInset _margin = new();
-        public ObservableProperty<EdgeInset> MarginProperty { get; } = new();
+        public ObservableProperty<EdgeInset> MarginProperty { get; } = new(new EdgeInset());
 
+        /// <summary>
+        /// Represents the name of this element. This is useful for finding the element inside a hierarchy.
+        /// The default value is an empty string; it can have any value, except null.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Thrown if the name is set to null.</exception>
         public string Name
         {
             get => _name;
@@ -319,11 +340,12 @@ namespace CatUI.Elements
         }
 
         private string _name = "";
-        public ObservableProperty<string> NameProperty { get; } = new();
+        public ObservableProperty<string> NameProperty { get; } = new("");
 
         /// <summary>
         /// Controls whether this element is visible or not in the application. An invisible element will still occupy
-        /// space in the layout and be moved in a container, just that it is not visible (hidden).
+        /// space in the layout and be moved in a container, just that it is not visible (it is hidden).
+        /// The default value is true.
         /// </summary>
         /// <seealso cref="Enabled" />
         public bool Visible
@@ -347,12 +369,12 @@ namespace CatUI.Elements
         }
 
         private bool _visible = true;
-        public ObservableProperty<bool> VisibleProperty { get; } = new();
+        public ObservableProperty<bool> VisibleProperty { get; } = new(true);
 
         /// <summary>
         /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
         /// a layout and will generally give misleading values on properties that are related to layout in any way
-        /// such as <see cref="Bounds" /> or <see cref="AbsolutePosition" />.
+        /// such as <see cref="Bounds" /> or <see cref="AbsolutePosition" />. The default value is true.
         /// </summary>
         /// <seealso cref="Visible" />
         public bool Enabled
@@ -376,8 +398,18 @@ namespace CatUI.Elements
         }
 
         private bool _enabled = true;
-        public ObservableProperty<bool> EnabledProperty { get; } = new();
+        public ObservableProperty<bool> EnabledProperty { get; } = new(true);
 
+        /// <summary>
+        /// Gives information on how to work with this element inside a container. The value is dependent on each
+        /// type of container. If the given value is incompatible with what the container expects, the container will
+        /// simply ignore the value and act as if it was null (see remarks). The default value is null.
+        /// </summary>
+        /// <remarks>
+        /// If this is null (the default value), the container will interpret this element as stated in the documentation
+        /// corresponding to that type of container from <see cref="ContainerSizing"/> for the default value
+        /// (e.g. for a <see cref="HBoxContainer"/> the documentation will be present in <see cref="HBoxContainerSizing"/>).
+        /// </remarks>
         public ContainerSizing? ElementContainerSizing
         {
             get => _elementContainerSizing;
@@ -514,8 +546,11 @@ namespace CatUI.Elements
 
             //we can't set the property itself because it calls RecalculateLayout(), which is a virtual method,
             //and it might cause the trouble to the more derived types
-            _preferredWidth = preferredWidth ?? new Dimension();
-            _preferredHeight = preferredHeight ?? new Dimension();
+            _preferredWidth = preferredWidth ?? Dimension.Unset;
+            PreferredWidthProperty.Value = _preferredWidth;
+
+            _preferredHeight = preferredHeight ?? Dimension.Unset;
+            PreferredHeightProperty.Value = _preferredHeight;
         }
 
         ~Element()

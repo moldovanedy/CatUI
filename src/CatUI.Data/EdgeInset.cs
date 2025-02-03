@@ -11,7 +11,7 @@ namespace CatUI.Data
     /// for margins, it represents the distance from the current element to the next one in one of the four directions (top, left, bottom, right);
     /// for position, it represents the distance from the current element to one or more of the containing element's border.
     /// </remarks>
-    public readonly struct EdgeInset
+    public readonly struct EdgeInset : IEquatable<EdgeInset>
     {
         public Dimension Top { get; } = new();
         public Dimension Right { get; } = new();
@@ -98,6 +98,21 @@ namespace CatUI.Data
         public EdgeInset Duplicate()
         {
             return new EdgeInset(Top, Right, Bottom, Left);
+        }
+
+        public bool Equals(EdgeInset other)
+        {
+            //it IS somehow possible to have a non-null object, but with the values not initialized yet,
+            //so check here to avoid NRE
+            if (Top == null || Left == null || Right == null || Bottom == null)
+            {
+                return false;
+            }
+
+            return Top.Equals(other.Top) &&
+                   Right.Equals(other.Right) &&
+                   Bottom.Equals(other.Bottom) &&
+                   Left.Equals(other.Left);
         }
     }
 }

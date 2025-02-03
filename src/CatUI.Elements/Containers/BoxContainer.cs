@@ -8,7 +8,18 @@ namespace CatUI.Elements.Containers
         /// <summary>
         /// Specifies the dimension of the space left between each of the elements in the container. By default, it's 0.
         /// </summary>
-        public Dimension Spacing { get; set; } = Dimension.Unset;
+        public Dimension Spacing
+        {
+            get => _spacing;
+            set
+            {
+                _spacing = value;
+                SpacingProperty.Value = _spacing;
+            }
+        }
+
+        private Dimension _spacing = new(0);
+        public ObservableProperty<Dimension> SpacingProperty { get; } = new(new Dimension(0));
 
         /// <summary>
         /// Specifies the orientation of this BoxContainer. Can be vertical or horizontal.

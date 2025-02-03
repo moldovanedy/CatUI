@@ -13,6 +13,10 @@ namespace CatUI.Elements.Text
 {
     public class Label : TextElement
     {
+        /// <summary>
+        /// Represents the text's word break mode. It is only relevant when <see cref="TextElement.WordWrap"/> is true.
+        /// See <see cref="TextBreakMode"/> for more info. The default value is <see cref="TextBreakMode.SoftBreak"/>.
+        /// </summary>
         public TextBreakMode BreakMode
         {
             get => _breakMode;
@@ -25,9 +29,14 @@ namespace CatUI.Elements.Text
 
         private TextBreakMode _breakMode = TextBreakMode.SoftBreak;
 
-        public ObservableProperty<TextBreakMode> BreakModeProperty { get; }
-            = new();
+        public ObservableProperty<TextBreakMode> BreakModeProperty { get; } = new(TextBreakMode.SoftBreak);
 
+        /// <summary>
+        /// Represents the character that will be used for hyphenation when <see cref="BreakMode"/> is
+        /// <see cref="TextBreakMode.SoftBreak"/> and <see cref="TextElement.Text"/> has soft hyphens. In other cases
+        /// it's irrelevant (that's most of the time because hyphenation is not used that much). The default value is
+        /// '-' (U+002D or ASCII 45).
+        /// </summary>
         public char HyphenCharacter
         {
             get => _hyphenCharacter;
@@ -39,7 +48,7 @@ namespace CatUI.Elements.Text
         }
 
         private char _hyphenCharacter = '-';
-        public ObservableProperty<char> HyphenCharacterProperty { get; } = new();
+        public ObservableProperty<char> HyphenCharacterProperty { get; } = new('-');
 
         /// <summary>
         /// Represents the rows given by the user. These are not affected by word wrap or expansion, they are purely data.

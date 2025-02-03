@@ -45,9 +45,9 @@ namespace CatTest
                 _window = new DesktopWindow(
                     800,
                     600,
-                    minWidth: 300,
-                    minHeight: 200,
-                    title: "Test");
+                    //minWidth: 300,
+                    //minHeight: 200,
+                    "Test");
 
                 _window.Document.BackgroundColor = new Color(0x21_21_21);
                 _window.Document.Root = new Element();
@@ -60,10 +60,10 @@ namespace CatTest
                         preferredHeight: "20%")
                     {
                         Position = "10 5",
-                        MinWidth = 10,
-                        MaxWidth = 350,
-                        MinHeight = 20,
-                        MaxHeight = 250,
+                        //MinWidth = 10,
+                        //MaxWidth = 350,
+                        //MinHeight = 20,
+                        //MaxHeight = 250,
                         Children =
                         [
                             new ImageView(
@@ -78,8 +78,15 @@ namespace CatTest
                                                 new ColorBrush(new Color(0xff_00_ff))
                                         })
                                     .Build(),
-                                "50%",
-                                "50%") { Position = "20 20" }
+                                "100%",
+                                "100%")
+                            {
+                                //Position = "20 20",
+                                HorizontalAlignment = HorizontalAlignmentType.Right,
+                                VerticalAlignment = VerticalAlignmentType.Bottom,
+                                ImageFit = ImageFitType.CanShrinkAndGrow,
+                                ShouldKeepAspectRatio = true
+                            }
                         ]
                     },
                     new Rectangle(
