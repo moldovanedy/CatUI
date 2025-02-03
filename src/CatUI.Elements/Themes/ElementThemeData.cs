@@ -61,7 +61,7 @@ namespace CatUI.Elements.Themes
         /// </summary>
         /// <remarks>
         /// If you override this method, make sure to always call the base method
-        /// (<code>base.ApplyDataAdditively(theme)</code>) first, because otherwise this will result in unexpected issues.
+        /// (base.ApplyDataAdditively(theme)) first, because otherwise this will result in unexpected issues.
         /// </remarks>
         /// <param name="themeData">The theme data object to consider.</param>
         public virtual void ApplyDataAdditively(ElementThemeData themeData)

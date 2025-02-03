@@ -14,7 +14,7 @@ namespace CatUI.Elements.Shapes
 
         /// <summary>
         /// If true, the path will be scaled to respect the element's width and height. If false, no scaling will be applied,
-        /// but the path might exceed the element's bounds (width and height).
+        /// but the path might exceed the element's bounds (width and height). The default value is false.
         /// </summary>
         public bool ShouldApplyScaling
         {
@@ -28,8 +28,25 @@ namespace CatUI.Elements.Shapes
 
         private bool _shouldApplyScaling;
 
-        public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new();
+        public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new(false);
 
+        /// <summary>
+        /// The path's string description in the Scalable Vector Graphics (SVG) format. The only relevant element from an
+        /// SVG object is its &lt;path&gt; "d" attribute; you can use that here. The default value is an empty string.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// While you can create the description manually, SVGs are generally created with a vector-based editing software
+        /// like Inkscape. Remember you can only use the data from the "d" attribute of the &lt;path&gt; element.
+        /// For full-fledged SVG support, consult other packages that create SkiaSharp objects from SVG objects.
+        /// </para>
+        /// <para>
+        /// If you prefer a more straightforward approach when you create paths, see <see cref="SetNewSkiaPath"/>, that accepts
+        /// a <see cref="SKPath"/> object where you can use methods like <see cref="SKPath.AddPoly"/> or
+        /// <see cref="SKPath.AddPath(SkiaSharp.SKPath,float,float,SkiaSharp.SKPathAddMode)"/> to create a path in a
+        /// more readable way than using this string format.
+        /// </para>
+        /// </remarks>
         public string SvgPath
         {
             get => _svgPath;
@@ -48,7 +65,7 @@ namespace CatUI.Elements.Shapes
         }
 
         private string _svgPath = "";
-        public ObservableProperty<string> SvgPathProperty { get; } = new();
+        public ObservableProperty<string> SvgPathProperty { get; } = new("");
 
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
         private Vector2 _lastScale = Vector2.One;
@@ -94,9 +111,9 @@ namespace CatUI.Elements.Shapes
         }
 
         /// <summary>
-        /// Will reset the current path to the newly given SVG data from the SVG <code>path</code> element.
+        /// Will reset the current path to the newly given SVG data from the SVG &lt;path&gt; element.
         /// </summary>
-        /// <param name="svgPath">The SVG data from the SVG <code>path</code> element.</param>
+        /// <param name="svgPath">The SVG data from the SVG &lt;path&gt; element.</param>
         public void RecreateFromSvgPath(string svgPath)
         {
             PathCache.RemovePath(_scaledCachedPath);

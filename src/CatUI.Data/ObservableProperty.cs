@@ -27,6 +27,13 @@ namespace CatUI.Data
 
         private T? _value;
 
+        public ObservableProperty() { }
+
+        public ObservableProperty(T? value)
+        {
+            Value = value;
+        }
+
         /// <summary>
         /// Not implemented because cannot guarantee that T is CatObject, therefore the duplication method for T is unknown.
         /// </summary>
