@@ -1,7 +1,6 @@
 using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Elements.Themes;
 using CatUI.RenderingEngine.GraphicsCaching;
 using SkiaSharp;
 
@@ -74,13 +73,11 @@ namespace CatUI.Elements.Shapes
             string svgPath = "",
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
             : base(
                 fillBrush,
                 outlineBrush,
-                themeOverrides,
                 preferredWidth,
                 preferredHeight)
         {
@@ -129,26 +126,13 @@ namespace CatUI.Elements.Shapes
                 return;
             }
 
-            ElementThemeData currentTheme =
-                GetElementFinalThemeData<ElementThemeData>(ElementThemeData.STYLE_NORMAL) ??
-                new ElementThemeData().GetDefaultData(ElementThemeData.STYLE_NORMAL);
-
-            IBrush? bgBrush = currentTheme.Background;
-            if (bgBrush == null)
-            {
-                return;
-            }
-
-            if (!bgBrush.IsSkippable)
-            {
-                Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), bgBrush);
-            }
-
+            base.DrawBackground();
             var startPoint = new Vector2(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
             var scale = new Vector2(1, 1);
 
             //TODO: use caching as much as possible, and investigate whether saving the canvas state,
             // transforming the whole canvas, drawing and then restoring the canvas is a better choice when there are many paths
+            // another strategy would be to apply the inverse of the matrix to the drawn path
             _scaledCachedPath = new SKPath(_skiaPath);
 
             if (ShouldApplyScaling)

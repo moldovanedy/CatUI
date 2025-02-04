@@ -9,7 +9,6 @@ using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.Elements.Containers;
-using CatUI.Elements.Themes;
 using CatUI.Utils;
 
 namespace CatUI.Elements
@@ -323,6 +322,40 @@ namespace CatUI.Elements
         public ObservableProperty<EdgeInset> MarginProperty { get; } = new(new EdgeInset());
 
         /// <summary>
+        /// Specifies the brush to use to draw the element's background. By default, it's completely transparent,
+        /// so no drawing of the background happens.
+        /// </summary>
+        public IBrush Background
+        {
+            get => _background;
+            set
+            {
+                _background = value;
+                BackgroundProperty.Value = value;
+            }
+        }
+
+        private IBrush _background = new ColorBrush(Color.Default);
+        public ObservableProperty<IBrush> BackgroundProperty { get; } = new(new ColorBrush(Color.Default));
+
+        /// <summary>
+        /// The radius of the corners of the element. Influences the <see cref="Background"/> drawing, as well as clipping.
+        /// The default value is a new <see cref="CornerInset"/> with no radius, so all corners have a radius of 0.
+        /// </summary>
+        public CornerInset CornerRadius
+        {
+            get => _cornerRadius;
+            set
+            {
+                _cornerRadius = value;
+                CornerRadiusProperty.Value = value;
+            }
+        }
+
+        private CornerInset _cornerRadius = new();
+        public ObservableProperty<CornerInset> CornerRadiusProperty { get; } = new(new CornerInset());
+
+        /// <summary>
         /// Represents the name of this element. This is useful for finding the element inside a hierarchy.
         /// The default value is an empty string; it can have any value, except null.
         /// </summary>
@@ -529,7 +562,6 @@ namespace CatUI.Elements
 
 
         public Element(
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
         {
@@ -538,11 +570,6 @@ namespace CatUI.Elements
             Children.ItemInsertedEvent += OnChildInserted;
             Children.ItemRemovedEvent += OnChildRemoved;
             Children.ListClearingEvent += OnChildrenListClearing;
-
-            if (themeOverrides != null)
-            {
-                SetElementThemeOverrides(themeOverrides);
-            }
 
             //we can't set the property itself because it calls RecalculateLayout(), which is a virtual method,
             //and it might cause the trouble to the more derived types
@@ -587,19 +614,9 @@ namespace CatUI.Elements
                 return;
             }
 
-            ElementThemeData currentTheme =
-                GetElementFinalThemeData<ElementThemeData>(ElementThemeData.STYLE_NORMAL) ??
-                new ElementThemeData().GetDefaultData(ElementThemeData.STYLE_NORMAL);
-
-            IBrush? fillBrush = currentTheme.Background;
-            if (fillBrush == null)
+            if (!Background.IsSkippable)
             {
-                return;
-            }
-
-            if (!fillBrush.IsSkippable)
-            {
-                Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), fillBrush);
+                Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), Background);
             }
         }
 

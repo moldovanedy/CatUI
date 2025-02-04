@@ -5,8 +5,6 @@ using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
-using CatUI.Elements.Themes;
-using CatUI.Elements.Themes.Text;
 using CatUI.RenderingEngine.GraphicsCaching;
 using SkiaSharp;
 
@@ -52,6 +50,79 @@ namespace CatUI.Elements.Text
         public ObservableProperty<char> HyphenCharacterProperty { get; } = new('-');
 
         /// <summary>
+        /// Represents the brush that is used to draw the text. The default value is a solid black color.
+        /// </summary>
+        public IBrush TextBrush
+        {
+            get => _textBrush;
+            set
+            {
+                _textBrush = value;
+                TextBrushProperty.Value = value;
+            }
+        }
+
+        private IBrush _textBrush = new ColorBrush(new Color(0));
+        public ObservableProperty<IBrush> TextBrushProperty { get; } = new(new ColorBrush(new Color(0)));
+
+        /// <summary>
+        /// Represents the brush that is used to create the text outline. The default value is a completely transparent
+        /// color, so it won't get drawn.
+        /// </summary>
+        public IBrush OutlineTextBrush
+        {
+            get => _outlineTextBrush;
+            set
+            {
+                _outlineTextBrush = value;
+                OutlineTextBrushProperty.Value = value;
+            }
+        }
+
+        private IBrush _outlineTextBrush = new ColorBrush(Color.Default);
+        public ObservableProperty<IBrush> OutlineTextBrushProperty { get; } = new(new ColorBrush(Color.Default));
+
+        /// <summary>
+        /// Represents the size of the font to use when drawing the text. The default value is 16dp.
+        /// </summary>
+        public Dimension FontSize
+        {
+            get => _fontSize;
+            set
+            {
+                _fontSize = value;
+                FontSizeProperty.Value = value;
+            }
+        }
+
+        private Dimension _fontSize = new(16);
+        public ObservableProperty<Dimension> FontSizeProperty { get; } = new(new Dimension(16));
+
+        /// <summary>
+        /// A dimensionless value that represents the spacing between the rows. A value of 1 will not leave any space
+        /// (note that space might be visible depending on the text and the used font), otherwise it's this value - 1
+        /// multiplied with <see cref="FontSize"/>. The default value is 1.2.
+        /// </summary>
+        /// <remarks>Negative values are not allowed and will be clamped to 0.</remarks>
+        public float LineHeight
+        {
+            get => _lineHeight;
+            set
+            {
+                if (value < 0)
+                {
+                    value = 0;
+                }
+
+                _lineHeight = value;
+                LineHeightProperty.Value = value;
+            }
+        }
+
+        private float _lineHeight = 1.2f;
+        public ObservableProperty<float> LineHeightProperty { get; } = new(1.2f);
+
+        /// <summary>
         /// Represents the rows given by the user. These are not affected by word wrap or expansion, they are purely data.
         /// The <see cref="RowInformation.Width"/> and <see cref="RowInformation.WidthWithoutLastBreakPoint"/>
         /// fields are irrelevant here and always have the default value.
@@ -77,27 +148,18 @@ namespace CatUI.Elements.Text
         /// </summary>
         private float _visibleTextTotalHeight;
 
-        private LabelThemeData? _themeCache;
-
         public Label(
             string text,
             TextAlignmentType textAlignment = TextAlignmentType.Left,
-            ThemeDefinition<LabelThemeData>? themeOverrides = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
             : base(
                 text,
                 textAlignment,
-                preferredWidth: preferredWidth,
-                preferredHeight: preferredHeight)
+                preferredWidth,
+                preferredHeight)
         {
             TextProperty.ValueChangedEvent += OnTextChanged;
-
-            if (themeOverrides != null)
-            {
-                SetElementThemeOverrides(themeOverrides);
-            }
-
             TextProperty.ForceRecallEvents();
         }
 
@@ -174,11 +236,6 @@ namespace CatUI.Elements.Text
 
             CreateFinalText();
 
-            if (AbsoluteHeight < _visibleTextTotalHeight)
-            {
-                //TODO: skip the last row, draw the ellipsis on the second to last row
-            }
-
         ChildRecalculation:
             foreach (Element child in Children)
             {
@@ -188,13 +245,10 @@ namespace CatUI.Elements.Text
 
         public override void Draw()
         {
-            base.DrawBackground();
+            base.Draw();
 
-            LabelThemeData currentTheme =
-                GetElementFinalThemeData<LabelThemeData>(LabelThemeData.STYLE_NORMAL) ??
-                new LabelThemeData().GetDefaultData<LabelThemeData>(LabelThemeData.STYLE_NORMAL);
-            float fontSize = CalculateDimension(currentTheme.FontSize!);
-            float rowSize = fontSize * (currentTheme.LineHeight ?? 1.2f);
+            float fontSize = CalculateDimension(FontSize);
+            float rowSize = fontSize * LineHeight;
             //half of line height + 0.5 (so for line height of 2 it is 1 + 0.5, for 4 is 2 + 0.5 etc.)
             Point2D rowPosition = new(Bounds.StartPoint.X, Bounds.StartPoint.Y + (rowSize / 2f) + (fontSize / 2f));
 
@@ -210,8 +264,8 @@ namespace CatUI.Elements.Text
                     rowPosition,
                     fontSize,
                     new Size(AbsoluteWidth, AbsoluteHeight),
-                    currentTheme.FillBrush ?? new ColorBrush(new Color(0x00_00_00)),
-                    currentTheme.OutlineBrush,
+                    TextBrush,
+                    OutlineTextBrush,
                     TextAlignment);
                 charactersDrawn += _drawableRows[rowsDrawn].Text.Length;
                 rowPosition = new Point2D(rowPosition.X, rowPosition.Y + rowSize);
@@ -227,7 +281,6 @@ namespace CatUI.Elements.Text
             RowInformation rowInfo;
 
             List<int> possibleBreakPoints = new();
-            _themeCache = GetElementFinalThemeData<LabelThemeData>(LabelThemeData.STYLE_NORMAL);
 
             if (newText == null)
             {
@@ -292,8 +345,8 @@ namespace CatUI.Elements.Text
             _visibleTextTotalHeight = 0;
             bool stoppedEarly = false;
 
-            float fontSize = CalculateDimension(_themeCache!.FontSize!);
-            float rowHeight = fontSize * (_themeCache!.LineHeight ?? 1.2f);
+            float fontSize = CalculateDimension(FontSize);
+            float rowHeight = fontSize * LineHeight;
             SKPaint painter = PaintManager.GetPaint(fontSize: fontSize);
 
             float overflowStringWidth = TextMeasuringCache.GetValueOrCalculate(OverflowString.AsMemory(), fontSize);
@@ -557,12 +610,14 @@ namespace CatUI.Elements.Text
                 //the height minus last row (because it is added even when there are no more characters left)
                 AbsoluteHeight = currentHeight - ((rowHeight / 2f) + (fontSize / 2f));
             }
-
-            //edge case: the label doesn't have the width necessary for not even a single row
-            if (AbsoluteHeight < (rowHeight / 2f) + (fontSize / 2f))
+            else
             {
-                _drawableRows.Clear();
-                return;
+                //edge case: the label doesn't have the height necessary for not even a single row
+                if (AbsoluteHeight < (rowHeight / 2f) + (fontSize / 2f))
+                {
+                    _drawableRows.Clear();
+                    return;
+                }
             }
 
             if (stoppedEarly)

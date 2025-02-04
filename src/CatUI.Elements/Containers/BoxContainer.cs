@@ -1,5 +1,4 @@
 using CatUI.Data;
-using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Containers
 {
@@ -27,11 +26,9 @@ namespace CatUI.Elements.Containers
         public abstract Orientation BoxOrientation { get; }
 
         public BoxContainer(
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
             : base(
-                themeOverrides,
                 preferredWidth,
                 preferredHeight)
         {

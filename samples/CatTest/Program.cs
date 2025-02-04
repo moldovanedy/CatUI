@@ -8,8 +8,6 @@ using CatUI.Data.Managers;
 using CatUI.Elements;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
-using CatUI.Elements.Themes;
-using CatUI.Elements.Themes.Text;
 using CatUI.Windowing.Desktop;
 
 namespace CatTest
@@ -68,20 +66,11 @@ namespace CatTest
                         [
                             new ImageView(
                                 image,
-                                ThemeBuilder<ImageViewThemeData>
-                                    .New()
-                                    .AddData(
-                                        LabelThemeData.STYLE_NORMAL,
-                                        new ImageViewThemeData
-                                        {
-                                            Background =
-                                                new ColorBrush(new Color(0xff_00_ff))
-                                        })
-                                    .Build(),
                                 "100%",
                                 "100%")
                             {
                                 //Position = "20 20",
+                                Background = new ColorBrush(new Color(0xff_00_ff)),
                                 HorizontalAlignment = HorizontalAlignmentType.Right,
                                 VerticalAlignment = VerticalAlignmentType.Bottom,
                                 ImageFit = ImageFitType.CanShrinkAndGrow,
@@ -101,16 +90,11 @@ namespace CatTest
                                 "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
                                 new ColorBrush(new Color(0xff_98_00)),
                                 new ColorBrush(new Color(0x21_96_f3)),
-                                ThemeBuilder<ElementThemeData>
-                                    .New()
-                                    .AddData(
-                                        ElementThemeData.STYLE_NORMAL,
-                                        new ElementThemeData() { Background = new ColorBrush(new Color(0xff_ff_ff)) })
-                                    .Build(),
                                 "25%",
                                 "15%")
                             {
                                 Position = "5 10",
+                                Background = new ColorBrush(new Color(0xff_ff_ff)),
                                 ShouldApplyScaling = true,
                                 OutlineParameters = new OutlineParams(
                                     2,
@@ -123,25 +107,16 @@ namespace CatTest
                                 preferredHeight: "15%") { Position = "55% 10%" },
                             new Label(
                                 "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
-                                themeOverrides: ThemeBuilder<LabelThemeData>
-                                                .New()
-                                                .AddData(
-                                                    LabelThemeData.STYLE_NORMAL,
-                                                    new LabelThemeData
-                                                    {
-                                                        FontSize = 32,
-                                                        Background =
-                                                            new ColorBrush(new Color(0x00_ff_ff_80,
-                                                                Color.ColorType.RGBA))
-                                                    })
-                                                .Build(),
                                 preferredWidth: "25%",
                                 preferredHeight: "80%")
                             {
+                                FontSize = 32,
+                                LineHeight = 0.1f,
+                                Background = new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA)),
                                 WordWrap = true,
                                 Position = new Dimension2(0, 0),
-                                MaxHeight = "150",
-                                AllowsExpansion = false
+                                MaxHeight = "150"
+                                //AllowsExpansion = false
                             }
                         ]
                     }

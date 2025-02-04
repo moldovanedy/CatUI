@@ -1,7 +1,6 @@
 using System;
 using CatUI.Data;
 using CatUI.Data.Containers;
-using CatUI.Elements.Themes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Containers
@@ -11,11 +10,9 @@ namespace CatUI.Elements.Containers
         public override Orientation BoxOrientation => Orientation.Horizontal;
 
         public HBoxContainer(
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
             : base(
-                themeOverrides,
                 preferredWidth,
                 preferredHeight)
         {

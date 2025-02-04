@@ -14,7 +14,6 @@ namespace CatUI.Data
             get => _value;
             set
             {
-                //if (_value == value)
                 if (EqualityComparer<T>.Default.Equals(_value, value))
                 {
                     return;
@@ -58,22 +57,56 @@ namespace CatUI.Data
             ValueChangedEvent?.Invoke(_value);
         }
 
+        /// <summary>
+        /// Will set the newValue of the property without invoking <see cref="ValueChangedEvent"/>.
+        /// </summary>
+        /// <param name="newValue">The new value that the property will have.</param>
+        public void SetValueNoNotify(T newValue)
+        {
+            if (EqualityComparer<T>.Default.Equals(_value, newValue))
+            {
+                return;
+            }
+
+            _value = newValue;
+        }
+
+        /// <summary>
+        /// Connects the given property to this one such as when that property changes, this one will take its value
+        /// and use it. The opposite (when this property changes) will not work (i.e. the other property won't be notified).
+        /// So it makes the two properties connected, but only in one way.
+        /// </summary>
+        /// <param name="otherProperty">The property to listen to.</param>
         public void BindUnidirectional(ObservableProperty<T> otherProperty)
         {
             otherProperty.ValueChangedEvent += OnChangeCall;
         }
 
+        /// <summary>
+        /// Disconnects the given property. It's basically the opposite of <see cref="BindUnidirectional"/>.
+        /// </summary>
+        /// <param name="otherProperty">The property to disconnect from.</param>
         public void UnbindUnidirectional(ObservableProperty<T> otherProperty)
         {
             otherProperty.ValueChangedEvent -= OnChangeCall;
         }
 
+        /// <summary>
+        /// Connects the given property to this one and viceversa, so when either of the properties change its
+        /// value, the other one will be notified and will change its value as well. It makes the two properties
+        /// completely connected.
+        /// </summary>
+        /// <param name="otherProperty">The property to listen to and from.</param>
         public void BindBidirectional(ObservableProperty<T> otherProperty)
         {
             otherProperty.ValueChangedEvent += OnChangeCall;
             ValueChangedEvent += otherProperty.OnChangeCall;
         }
 
+        /// <summary>
+        /// Disconnects the given property. It's basically the opposite of <see cref="BindBidirectional"/>.
+        /// </summary>
+        /// <param name="otherProperty">The property to disconnect.</param>
         public void UnbindBidirectional(ObservableProperty<T> otherProperty)
         {
             otherProperty.ValueChangedEvent -= OnChangeCall;
