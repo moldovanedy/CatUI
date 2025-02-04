@@ -111,7 +111,6 @@ namespace CatTest
                                 preferredHeight: "80%")
                             {
                                 FontSize = 32,
-                                LineHeight = 0.1f,
                                 Background = new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA)),
                                 WordWrap = true,
                                 Position = new Dimension2(0, 0),

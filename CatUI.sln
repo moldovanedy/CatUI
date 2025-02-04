@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxContainersExample", "sam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Windowing.Common", "src\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj", "{8198F5E0-E84E-4ED7-AF45-CA11FBC9C8F5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windowing", "Windowing", "{85F159D3-64E3-49A3-BD84-75FB677A27EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,5 +88,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{ED1101FC-3881-4FFA-A1EB-7B0AA6BA2388} = {FAE66DA4-C96D-4A88-BDD2-CB0F802CD6A0}
 		{71739093-0780-40A5-B69B-E13485C928E0} = {FAE66DA4-C96D-4A88-BDD2-CB0F802CD6A0}
+		{8198F5E0-E84E-4ED7-AF45-CA11FBC9C8F5} = {85F159D3-64E3-49A3-BD84-75FB677A27EC}
+		{37A66CA9-A72C-42CB-B593-5E316C85F5BE} = {85F159D3-64E3-49A3-BD84-75FB677A27EC}
 	EndGlobalSection
 EndGlobal
