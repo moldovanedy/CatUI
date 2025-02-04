@@ -1,7 +1,5 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Enums;
-using CatUI.Elements.Themes;
-using CatUI.Elements.Themes.Text;
 
 namespace CatUI.Elements.Text
 {
@@ -137,20 +135,14 @@ namespace CatUI.Elements.Text
         public TextElement(
             string text,
             TextAlignmentType textAlignment = TextAlignmentType.Left,
-            ThemeDefinition<TextElementThemeData>? themeOverrides = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
             : base(
-                preferredWidth: preferredWidth,
-                preferredHeight: preferredHeight)
+                preferredWidth,
+                preferredHeight)
         {
             Text = text;
             TextAlignment = textAlignment;
-
-            if (themeOverrides != null)
-            {
-                SetElementThemeOverrides(themeOverrides);
-            }
         }
     }
 }

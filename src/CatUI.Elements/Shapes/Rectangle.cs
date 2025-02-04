@@ -1,6 +1,5 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Elements.Themes;
 
 namespace CatUI.Elements.Shapes
 {
@@ -9,13 +8,11 @@ namespace CatUI.Elements.Shapes
         public Rectangle(
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
-            ThemeDefinition<ElementThemeData>? themeOverrides = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
             : base(
                 fillBrush,
                 outlineBrush,
-                themeOverrides,
                 preferredWidth,
                 preferredHeight)
         {

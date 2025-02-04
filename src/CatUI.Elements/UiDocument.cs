@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CatUI.Data;
-using CatUI.Elements.Shapes;
-using CatUI.Elements.Text;
-using CatUI.Elements.Themes;
 using CatUI.RenderingEngine;
 using SkiaSharp;
 
@@ -91,38 +88,11 @@ namespace CatUI.Elements
 
         private float _contentScale = 1f;
 
-        public Theme RootTheme { get; private set; } = new();
-
         private readonly Dictionary<string, Element> _cachedElements = new();
-
-        public UiDocument()
-        {
-            RootTheme.AddThemeDefinition<Element>(new ThemeDefinition<ElementThemeData>());
-            RootTheme.AddThemeDefinition<AbstractShape>(new ThemeDefinition<ElementThemeData>());
-            RootTheme.AddThemeDefinition<Ellipse>(new ThemeDefinition<ElementThemeData>());
-            RootTheme.AddThemeDefinition<Rectangle>(new ThemeDefinition<ElementThemeData>());
-            RootTheme.AddThemeDefinition<GeometricPath>(new ThemeDefinition<ElementThemeData>());
-
-            //TODO: fix the types so it can accept any T
-            // RootTheme.AddThemeDefinition<TextElement>(new ThemeDefinition<TextElementThemeData>());
-            // RootTheme.AddThemeDefinition<Label>(new ThemeDefinition<TextElementThemeData>());
-            //
-            // RootTheme.AddThemeDefinition<ImageView>(new ThemeDefinition<ImageViewThemeData>());
-
-            RootTheme.AddThemeDefinition<TextElement>(new ThemeDefinition<ElementThemeData>());
-            RootTheme.AddThemeDefinition<Label>(new ThemeDefinition<ElementThemeData>());
-
-            RootTheme.AddThemeDefinition<ImageView>(new ThemeDefinition<ElementThemeData>());
-        }
 
         public void DrawAllElements()
         {
             Root?.InvokeDraw();
-        }
-
-        public void SetRootTheme(Theme theme)
-        {
-            RootTheme = theme;
         }
 
         public Element? GetElementByName(string name)

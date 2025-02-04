@@ -2,7 +2,6 @@ using System;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Enums;
-using CatUI.Elements.Themes;
 using SkiaSharp;
 
 namespace CatUI.Elements
@@ -125,19 +124,13 @@ namespace CatUI.Elements
 
         public ImageView(
             Image source,
-            ThemeDefinition<ImageViewThemeData>? themeOverrides = null,
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
             : base(
-                preferredWidth: preferredWidth,
-                preferredHeight: preferredHeight)
+                preferredWidth,
+                preferredHeight)
         {
             Source = source;
-
-            if (themeOverrides != null)
-            {
-                SetElementThemeOverrides(themeOverrides);
-            }
         }
 
         public override void Draw()
