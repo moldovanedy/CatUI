@@ -436,7 +436,7 @@ namespace CatUI.RenderingEngine
             //fill, but no outline
             else if (
                 fillBrush != null && !fillBrush.IsSkippable &&
-                (outlineBrush == null || !outlineBrush.IsSkippable))
+                (outlineBrush == null || outlineBrush.IsSkippable))
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
@@ -448,7 +448,7 @@ namespace CatUI.RenderingEngine
             //outline, but no fill
             else if (
                 outlineBrush != null && !outlineBrush.IsSkippable &&
-                (fillBrush == null || !fillBrush.IsSkippable))
+                (fillBrush == null || fillBrush.IsSkippable))
             {
                 painter = outlineBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
@@ -491,9 +491,9 @@ namespace CatUI.RenderingEngine
 
         /// <summary>
         /// Draws the specified text on one row without doing any checks or measurements for better performance. 
-        /// Only use this on sanitized text (no newlines, hyphens (because they will be drawn directly) 
-        /// or any kind of control characters, as the text will be drawn directly) and when you are sure that the text 
-        /// is not going to overflow the parent element or that overflowing doesn't matter.
+        /// Only use this on sanitized text (no newlines, hyphens or any kind of control characters,
+        /// as the text will be drawn directly) and when you are sure that the text is not going to overflow
+        /// the parent element or that overflowing doesn't matter.
         /// </summary>
         public void DrawTextRowFast(
             string text,

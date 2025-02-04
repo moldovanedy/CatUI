@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CatUI.Data;
+using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Elements.Themes;
@@ -202,13 +203,16 @@ namespace CatUI.Elements.Text
             while (
                 rowsDrawn < _drawableRows.Count &&
                 charactersDrawn < Text.Length &&
-                //TODO: also take into account the line height and next row's vertical size on the left-hand expression
                 (AllowsExpansion || rowPosition.Y <= Bounds.StartPoint.Y + Bounds.Height))
             {
-                SKPaint painter = PaintManager.GetPaint(fontSize: fontSize);
-                painter.Color = currentTheme.FillBrush!.ToSkiaPaint().Color;
-
-                Document?.Renderer?.DrawTextRowFast(_drawableRows[rowsDrawn].Text, rowPosition, painter);
+                Document?.Renderer?.DrawTextRowFast(
+                    _drawableRows[rowsDrawn].Text,
+                    rowPosition,
+                    fontSize,
+                    new Size(AbsoluteWidth, AbsoluteHeight),
+                    currentTheme.FillBrush ?? new ColorBrush(new Color(0x00_00_00)),
+                    currentTheme.OutlineBrush,
+                    TextAlignment);
                 charactersDrawn += _drawableRows[rowsDrawn].Text.Length;
                 rowPosition = new Point2D(rowPosition.X, rowPosition.Y + rowSize);
                 rowsDrawn++;
