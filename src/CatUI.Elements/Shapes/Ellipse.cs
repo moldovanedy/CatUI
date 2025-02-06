@@ -1,5 +1,6 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.Containers;
 
 namespace CatUI.Elements.Shapes
 {
@@ -48,6 +49,30 @@ namespace CatUI.Elements.Shapes
                 rect.Height / 2f,
                 OutlineBrush,
                 OutlineParameters);
+        }
+
+        public override Ellipse Duplicate()
+        {
+            return new Ellipse
+            {
+                FillBrush = FillBrush.Duplicate(),
+                OutlineBrush = OutlineBrush.Duplicate(),
+                OutlineParameters = OutlineParameters,
+                //
+                Position = Position,
+                PreferredWidth = PreferredWidth,
+                PreferredHeight = PreferredHeight,
+                MinWidth = MinWidth,
+                MinHeight = MinHeight,
+                MaxWidth = MaxWidth,
+                MaxHeight = MaxHeight,
+                Margin = Margin,
+                Background = Background.Duplicate(),
+                CornerRadius = CornerRadius,
+                Visible = Visible,
+                Enabled = Enabled,
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+            };
         }
     }
 }

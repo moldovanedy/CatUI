@@ -1,4 +1,7 @@
-﻿using SkiaSharp;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using SkiaSharp;
 
 namespace CatUI.Data
 {
@@ -8,6 +11,8 @@ namespace CatUI.Data
         public float Y { get; }
         public float Width { get; }
         public float Height { get; }
+
+        public static Rect Empty { get; } = new(0, 0, 0, 0);
 
         public Rect()
         {
@@ -39,16 +44,21 @@ namespace CatUI.Data
 
         public static implicit operator SKRect(Rect rect)
         {
-            return new SKRect() { Left = rect.X, Top = rect.Y, Size = new SKSize(rect.Width, rect.Height) };
+            return new SKRect { Left = rect.X, Top = rect.Y, Size = new SKSize(rect.Width, rect.Height) };
         }
 
         public static implicit operator Rect(SKRect skRect)
         {
             return new Rect(
-                (int)skRect.Left,
-                (int)skRect.Right,
-                (int)skRect.Size.Width,
-                (int)skRect.Size.Height);
+                skRect.Left,
+                skRect.Right,
+                skRect.Size.Width,
+                skRect.Size.Height);
+        }
+
+        public static Rect GetCommonBoundingRect(params Rect[] rects)
+        {
+            return GetCommonBoundingRect(rects.AsEnumerable());
         }
 
         /// <summary>
@@ -57,41 +67,84 @@ namespace CatUI.Data
         /// </summary>
         /// <param name="rects">The rects for which to get the containing rect.</param>
         /// <returns>The smallest rect that contains all the given rects.</returns>
-        public static Rect GetCommonBoundingRect(params Rect[] rects)
+        public static Rect GetCommonBoundingRect(IEnumerable<Rect> rects)
         {
-            if (rects.Length == 0)
+            IEnumerator<Rect> enumerator = rects.GetEnumerator();
+            if (!enumerator.MoveNext())
             {
-                return new Rect();
+                return Empty;
             }
 
-            float x = rects[0].X,
-                  y = rects[0].Y,
-                  endX = rects[0].EndX,
-                  endY = rects[0].EndY;
-            for (int i = 1; i < rects.Length; i++)
+            float x = enumerator.Current.X,
+                  y = enumerator.Current.Y,
+                  endX = enumerator.Current.EndX,
+                  endY = enumerator.Current.EndY;
+
+            while (enumerator.MoveNext())
             {
-                if (x > rects[i].X)
+                if (x > enumerator.Current.X)
                 {
-                    x = rects[i].X;
+                    x = enumerator.Current.X;
                 }
 
-                if (y > rects[i].Y)
+                if (y > enumerator.Current.Y)
                 {
-                    y = rects[i].Y;
+                    y = enumerator.Current.Y;
                 }
 
-                if (endX < rects[i].EndX)
+                if (endX < enumerator.Current.EndX)
                 {
-                    endX = rects[i].EndX;
+                    endX = enumerator.Current.EndX;
                 }
 
-                if (endY < rects[i].EndY)
+                if (endY < enumerator.Current.EndY)
                 {
-                    endY = rects[i].EndY;
+                    endY = enumerator.Current.EndY;
                 }
             }
 
+            enumerator.Dispose();
             return new Rect(x, y, endX - x, endY - y);
+        }
+
+        public static Rect GetIntersectingRect(ref Rect rect1, ref Rect rect2)
+        {
+            if (DoRectsIntersect(ref rect1, ref rect2))
+            {
+                float x = Math.Max(rect1.X, rect2.X);
+                float y = Math.Max(rect1.Y, rect2.Y);
+                float width = Math.Min(rect1.EndX, rect2.EndX) - x;
+                float height = Math.Min(rect1.EndY, rect2.EndY) - y;
+
+                return new Rect(x, y, width, height);
+            }
+
+            return Empty;
+        }
+
+        public static bool DoRectsIntersect(ref Rect rect1, ref Rect rect2)
+        {
+            if (rect2.X >= rect1.EndX)
+            {
+                return false;
+            }
+
+            if (rect2.EndX <= rect1.X)
+            {
+                return false;
+            }
+
+            if (rect2.Y >= rect1.EndY)
+            {
+                return false;
+            }
+
+            if (rect2.EndY <= rect1.Y)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

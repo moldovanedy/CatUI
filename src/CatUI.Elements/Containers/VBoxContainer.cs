@@ -37,10 +37,10 @@ namespace CatUI.Elements.Containers
             }
             else
             {
-                parentWidth = GetParent()?.Bounds.Width ?? 0;
-                parentHeight = GetParent()?.Bounds.Height ?? 0;
-                parentXPos = GetParent()?.Bounds.StartPoint.X ?? 0;
-                parentYPos = GetParent()?.Bounds.StartPoint.Y ?? 0;
+                parentWidth = GetParent()?.Bounds.BoundingRect.Width ?? 0;
+                parentHeight = GetParent()?.Bounds.BoundingRect.Height ?? 0;
+                parentXPos = GetParent()?.Bounds.BoundingRect.X ?? 0;
+                parentYPos = GetParent()?.Bounds.BoundingRect.Y ?? 0;
             }
 
             //this is in order to recalculate the Bounds
@@ -79,11 +79,11 @@ namespace CatUI.Elements.Containers
                     continue;
                 }
 
-                float minHeight = CalculateDimension(child.MinHeight, Bounds.Height);
-                float maxHeight = CalculateDimension(child.MaxHeight, Bounds.Height);
+                float minHeight = CalculateDimension(child.MinHeight, Bounds.BoundingRect.Height);
+                float maxHeight = CalculateDimension(child.MaxHeight, Bounds.BoundingRect.Height);
                 float prefHeight =
                     Math.Clamp(
-                        CalculateDimension(child.PreferredHeight, Bounds.Height),
+                        CalculateDimension(child.PreferredHeight, Bounds.BoundingRect.Height),
                         minHeight != 0 ? minHeight : float.MinValue,
                         maxHeight != 0 ? maxHeight : float.MaxValue);
 
@@ -110,13 +110,15 @@ namespace CatUI.Elements.Containers
             //calculate the container's final Height
             bool elementsNeedShrinking = false;
             float containerPrefHeight =
-                PreferredHeight.IsUnset() ? Bounds.Height : CalculateDimension(PreferredHeight, parentHeight);
+                PreferredHeight.IsUnset()
+                    ? Bounds.BoundingRect.Height
+                    : CalculateDimension(PreferredHeight, parentHeight);
             //it means that the container's preferred height is smaller that the minimum pref height of the content, so shrink the container
             if (minimumPreferredHeight > containerPrefHeight)
             {
                 elementsNeedShrinking = true;
                 float containerMaxHeight =
-                    MaxHeight.IsUnset() ? Bounds.Height : CalculateDimension(MaxHeight, parentHeight);
+                    MaxHeight.IsUnset() ? Bounds.BoundingRect.Height : CalculateDimension(MaxHeight, parentHeight);
                 //it means that the container's max height is smaller that the minimum Height of the content, 
                 //so set the value as the max stretch of the content
                 finalHeight = minimumPreferredHeight > containerMaxHeight ? containerMaxHeight : minimumPreferredHeight;
@@ -142,11 +144,11 @@ namespace CatUI.Elements.Containers
                 //TODO: handle horizontal positioning
                 child.AbsoluteWidth = finalWidth;
 
-                float minHeight = CalculateDimension(child.MinHeight, Bounds.Height);
-                float maxHeight = CalculateDimension(child.MaxHeight, Bounds.Height);
+                float minHeight = CalculateDimension(child.MinHeight, Bounds.BoundingRect.Height);
+                float maxHeight = CalculateDimension(child.MaxHeight, Bounds.BoundingRect.Height);
                 float prefHeight =
                     Math.Clamp(
-                        CalculateDimension(child.PreferredHeight, Bounds.Height),
+                        CalculateDimension(child.PreferredHeight, Bounds.BoundingRect.Height),
                         minHeight != 0 ? minHeight : float.MinValue,
                         maxHeight != 0 ? maxHeight : float.MaxValue);
 
@@ -226,6 +228,28 @@ namespace CatUI.Elements.Containers
             AbsoluteWidth = finalWidth;
             AbsoluteHeight = finalHeight;
             AbsolutePosition = finalPosition;
+        }
+
+        public override VBoxContainer Duplicate()
+        {
+            return new VBoxContainer
+            {
+                Spacing = Spacing,
+                //
+                Position = Position,
+                PreferredWidth = PreferredWidth,
+                PreferredHeight = PreferredHeight,
+                MinWidth = MinWidth,
+                MinHeight = MinHeight,
+                MaxWidth = MaxWidth,
+                MaxHeight = MaxHeight,
+                Margin = Margin,
+                Background = Background.Duplicate(),
+                CornerRadius = CornerRadius,
+                Visible = Visible,
+                Enabled = Enabled,
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+            };
         }
     }
 }

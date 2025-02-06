@@ -39,6 +39,7 @@ namespace CatUI.Data.Containers
             HorizontalAlignment = horizontalAlignment;
         }
 
+        /// <inheritdoc cref="CatObject.Duplicate"/>
         public override VBoxContainerSizing Duplicate()
         {
             return new VBoxContainerSizing(VGrowthFactor, HorizontalAlignment);

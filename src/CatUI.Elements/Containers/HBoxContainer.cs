@@ -36,10 +36,10 @@ namespace CatUI.Elements.Containers
             }
             else
             {
-                parentWidth = GetParent()?.Bounds.Width ?? 0;
-                parentHeight = GetParent()?.Bounds.Height ?? 0;
-                parentXPos = GetParent()?.Bounds.StartPoint.X ?? 0;
-                parentYPos = GetParent()?.Bounds.StartPoint.Y ?? 0;
+                parentWidth = GetParent()?.Bounds.BoundingRect.Width ?? 0;
+                parentHeight = GetParent()?.Bounds.BoundingRect.Height ?? 0;
+                parentXPos = GetParent()?.Bounds.BoundingRect.X ?? 0;
+                parentYPos = GetParent()?.Bounds.BoundingRect.Y ?? 0;
             }
 
             //this is in order to recalculate the Bounds
@@ -78,11 +78,11 @@ namespace CatUI.Elements.Containers
                     continue;
                 }
 
-                float minWidth = CalculateDimension(child.MinWidth, Bounds.Width);
-                float maxWidth = CalculateDimension(child.MaxWidth, Bounds.Width);
+                float minWidth = CalculateDimension(child.MinWidth, Bounds.BoundingRect.Width);
+                float maxWidth = CalculateDimension(child.MaxWidth, Bounds.BoundingRect.Width);
                 float prefWidth =
                     Math.Clamp(
-                        CalculateDimension(child.PreferredWidth, Bounds.Width),
+                        CalculateDimension(child.PreferredWidth, Bounds.BoundingRect.Width),
                         minWidth != 0 ? minWidth : float.MinValue,
                         maxWidth != 0 ? maxWidth : float.MaxValue);
 
@@ -109,13 +109,13 @@ namespace CatUI.Elements.Containers
             //calculate the container's final width
             bool elementsNeedShrinking = false;
             float containerPrefWidth =
-                PreferredWidth.IsUnset() ? Bounds.Width : CalculateDimension(PreferredWidth, parentWidth);
+                PreferredWidth.IsUnset() ? Bounds.BoundingRect.Width : CalculateDimension(PreferredWidth, parentWidth);
             //it means that the container's preferred width is smaller that the minimum pref width of the content, so shrink the container
             if (minimumPreferredWidth > containerPrefWidth)
             {
                 elementsNeedShrinking = true;
                 float containerMaxWidth =
-                    MaxWidth.IsUnset() ? Bounds.Width : CalculateDimension(MaxWidth, parentWidth);
+                    MaxWidth.IsUnset() ? Bounds.BoundingRect.Width : CalculateDimension(MaxWidth, parentWidth);
                 //it means that the container's max width is smaller that the minimum width of the content, 
                 //so set the value as the max stretch of the content
                 finalWidth = minimumPreferredWidth > containerMaxWidth ? containerMaxWidth : minimumPreferredWidth;
@@ -141,11 +141,11 @@ namespace CatUI.Elements.Containers
                 //TODO: handle vertical positioning
                 child.AbsoluteHeight = finalHeight;
 
-                float minWidth = CalculateDimension(child.MinWidth, Bounds.Width);
-                float maxWidth = CalculateDimension(child.MaxWidth, Bounds.Width);
+                float minWidth = CalculateDimension(child.MinWidth, Bounds.BoundingRect.Width);
+                float maxWidth = CalculateDimension(child.MaxWidth, Bounds.BoundingRect.Width);
                 float prefWidth =
                     Math.Clamp(
-                        CalculateDimension(child.PreferredWidth, Bounds.Width),
+                        CalculateDimension(child.PreferredWidth, Bounds.BoundingRect.Width),
                         minWidth != 0 ? minWidth : float.MinValue,
                         maxWidth != 0 ? maxWidth : float.MaxValue);
 
@@ -224,6 +224,28 @@ namespace CatUI.Elements.Containers
             AbsoluteWidth = finalWidth;
             AbsoluteHeight = finalHeight;
             AbsolutePosition = finalPosition;
+        }
+
+        public override HBoxContainer Duplicate()
+        {
+            return new HBoxContainer
+            {
+                Spacing = Spacing,
+                //
+                Position = Position,
+                PreferredWidth = PreferredWidth,
+                PreferredHeight = PreferredHeight,
+                MinWidth = MinWidth,
+                MinHeight = MinHeight,
+                MaxWidth = MaxWidth,
+                MaxHeight = MaxHeight,
+                Margin = Margin,
+                Background = Background.Duplicate(),
+                CornerRadius = CornerRadius,
+                Visible = Visible,
+                Enabled = Enabled,
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+            };
         }
     }
 }

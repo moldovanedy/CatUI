@@ -94,6 +94,8 @@ namespace CatUI.Elements.Text
         private string _overflowString = "\u2026";
         public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
 
+        public TextElement() { }
+
         public TextElement(
             string text,
             TextAlignmentType textAlignment = TextAlignmentType.Left,

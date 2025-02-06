@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Elements.Behaviors;
@@ -193,6 +194,12 @@ namespace CatUI.Elements.Text
         /// </summary>
         private float _visibleTextTotalHeight;
 
+        public Label()
+        {
+            TextProperty.ValueChangedEvent += OnTextChanged;
+            TextProperty.ForceRecallEvents();
+        }
+
         public Label(
             string text,
             TextAlignmentType textAlignment = TextAlignmentType.Left,
@@ -228,10 +235,10 @@ namespace CatUI.Elements.Text
             else
             {
                 Element? parent = GetParent();
-                parentWidth = parent?.Bounds.Width ?? 0;
-                parentHeight = parent?.Bounds.Height ?? 0;
-                parentXPos = parent?.Bounds.StartPoint.X ?? 0;
-                parentYPos = parent?.Bounds.StartPoint.Y ?? 0;
+                parentWidth = parent?.Bounds.BoundingRect.Width ?? 0;
+                parentHeight = parent?.Bounds.BoundingRect.Height ?? 0;
+                parentXPos = parent?.Bounds.BoundingRect.X ?? 0;
+                parentYPos = parent?.Bounds.BoundingRect.Y ?? 0;
             }
 
             float maxWidth = MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth);
@@ -306,14 +313,14 @@ namespace CatUI.Elements.Text
             float fontSize = CalculateDimension(FontSize);
             float rowSize = fontSize * LineHeight;
             //half of line height + 0.5 (so for line height of 2 it is 1 + 0.5, for 4 is 2 + 0.5 etc.)
-            Point2D rowPosition = new(Bounds.StartPoint.X, Bounds.StartPoint.Y + (rowSize / 2f) + (fontSize / 2f));
+            Point2D rowPosition = new(Bounds.BoundingRect.X, Bounds.BoundingRect.Y + (rowSize / 2f) + (fontSize / 2f));
 
             int rowsDrawn = 0;
             int charactersDrawn = 0;
             while (
                 rowsDrawn < _drawableRows.Count &&
                 charactersDrawn < Text.Length &&
-                (CanExpandVertically || rowPosition.Y <= Bounds.StartPoint.Y + Bounds.Height))
+                (CanExpandVertically || rowPosition.Y <= Bounds.BoundingRect.Y + Bounds.BoundingRect.Height))
             {
                 Document?.Renderer?.DrawTextRowFast(
                     _drawableRows[rowsDrawn].Text,
@@ -327,6 +334,41 @@ namespace CatUI.Elements.Text
                 rowPosition = new Point2D(rowPosition.X, rowPosition.Y + rowSize);
                 rowsDrawn++;
             }
+        }
+
+        public override Label Duplicate()
+        {
+            return new Label
+            {
+                WordWrap = _wordWrap,
+                CanExpandHorizontally = _canExpandHorizontally,
+                CanExpandVertically = _canExpandVertically,
+                BreakMode = _breakMode,
+                HyphenCharacter = _hyphenCharacter,
+                TextBrush = _textBrush.Duplicate(),
+                OutlineTextBrush = _outlineTextBrush.Duplicate(),
+                LineHeight = _lineHeight,
+                //
+                Text = Text,
+                FontSize = FontSize,
+                OverflowMode = OverflowMode,
+                TextAlignment = TextAlignment,
+                OverflowString = OverflowString,
+                //
+                Position = Position,
+                PreferredWidth = PreferredWidth,
+                PreferredHeight = PreferredHeight,
+                MinWidth = MinWidth,
+                MinHeight = MinHeight,
+                MaxWidth = MaxWidth,
+                MaxHeight = MaxHeight,
+                Margin = Margin,
+                Background = Background.Duplicate(),
+                CornerRadius = CornerRadius,
+                Visible = Visible,
+                Enabled = Enabled,
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+            };
         }
 
         private void OnTextChanged(string? newText)

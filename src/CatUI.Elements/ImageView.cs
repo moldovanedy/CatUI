@@ -1,6 +1,7 @@
 using System;
 using CatUI.Data;
 using CatUI.Data.Assets;
+using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using SkiaSharp;
 
@@ -109,18 +110,20 @@ namespace CatUI.Elements
         /// </summary>
         public ImageResizeQuality ResizeQuality
         {
-            get => _imageResizeQuality;
+            get => _resizeQuality;
             set
             {
-                _imageResizeQuality = value;
+                _resizeQuality = value;
                 ImageResizeQualityProperty.Value = value;
             }
         }
 
-        private ImageResizeQuality _imageResizeQuality = ImageResizeQuality.Medium;
+        private ImageResizeQuality _resizeQuality = ImageResizeQuality.Medium;
         public ObservableProperty<ImageResizeQuality> ImageResizeQualityProperty { get; } = new();
 
         private SKImage? _cachedScaledImage;
+
+        public ImageView() { }
 
         public ImageView(
             Image source,
@@ -318,6 +321,33 @@ namespace CatUI.Elements
 
                 _cachedScaledImage = scaledImage ?? skiaImage;
             }
+        }
+
+        public override ImageView Duplicate()
+        {
+            return new ImageView
+            {
+                Source = _source,
+                HorizontalAlignment = _horizontalAlignment,
+                VerticalAlignment = _verticalAlignment,
+                ShouldKeepAspectRatio = _shouldKeepAspectRatio,
+                ImageFit = _imageFit,
+                ResizeQuality = _resizeQuality,
+                //
+                Position = Position,
+                PreferredWidth = PreferredWidth,
+                PreferredHeight = PreferredHeight,
+                MinWidth = MinWidth,
+                MinHeight = MinHeight,
+                MaxWidth = MaxWidth,
+                MaxHeight = MaxHeight,
+                Margin = Margin,
+                Background = Background.Duplicate(),
+                CornerRadius = CornerRadius,
+                Visible = Visible,
+                Enabled = Enabled,
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+            };
         }
     }
 }

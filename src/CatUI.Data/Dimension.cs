@@ -51,6 +51,7 @@ namespace CatUI.Data
             return $"{Value} {measuringUnitText}";
         }
 
+        /// <inheritdoc cref="CatObject.Duplicate"/>
         public Dimension Duplicate()
         {
             return new Dimension(Value, MeasuringUnit);
@@ -220,6 +221,7 @@ namespace CatUI.Data
             return $"({X}, {Y})";
         }
 
+        /// <inheritdoc cref="CatObject.Duplicate"/>
         public Dimension2 Duplicate()
         {
             return new Dimension2(X.Duplicate(), Y.Duplicate());

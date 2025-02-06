@@ -109,6 +109,7 @@
             return $"({TopLeft}, {TopRight}, {BottomRight}, {BottomLeft})";
         }
 
+        /// <inheritdoc cref="CatObject.Duplicate"/>
         public CornerInset Duplicate()
         {
             //TODO: handle the case for elliptic insets

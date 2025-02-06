@@ -3,7 +3,7 @@ using SkiaSharp;
 
 namespace CatUI.Data.Brushes
 {
-    public class ColorBrush : CatObject, IBrush
+    public class ColorBrush : IBrush
     {
         public bool IsSkippable => Color.A == 0;
 
@@ -19,7 +19,8 @@ namespace CatUI.Data.Brushes
             Color = color;
         }
 
-        public override ColorBrush Duplicate()
+        /// <inheritdoc cref="CatObject.Duplicate"/>
+        public IBrush Duplicate()
         {
             return new ColorBrush(Color);
         }

@@ -39,6 +39,7 @@ namespace CatUI.Data
             MiterLimit = miterLimit;
         }
 
+        /// <inheritdoc cref="CatObject.Duplicate"/>
         public OutlineParams Duplicate()
         {
             return new OutlineParams(1, LineCap, LineJoin, MiterLimit);
