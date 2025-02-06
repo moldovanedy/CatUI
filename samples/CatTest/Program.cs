@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Assets;
@@ -114,8 +115,10 @@ namespace CatTest
                                 Background = new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA)),
                                 WordWrap = true,
                                 Position = new Dimension2(0, 0),
-                                MaxHeight = "150"
-                                //AllowsExpansion = false
+                                MaxHeight = "250",
+                                MaxWidth = "35%",
+                                CanExpandVertically = true,
+                                CanExpandHorizontally = false
                             }
                         ]
                     }

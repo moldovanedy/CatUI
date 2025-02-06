@@ -7,17 +7,16 @@ namespace CatUI.Data
     /// <summary>
     /// Represents any dimension by having a value and a measurement unit. It's used for widths, heights and more.
     /// </summary>
-    public class Dimension : CatObject
+    public readonly struct Dimension : IEquatable<Dimension>
     {
         /// <summary>
         /// Represents the actual value. NaN represents the "unset dimension".
         /// </summary>
-        public float Value { get; set; }
+        public float Value { get; }
 
-        public Unit MeasuringUnit { get; set; } = Unit.Dp;
+        public Unit MeasuringUnit { get; } = Unit.Dp;
 
-        public static Dimension Unset =>
-            new() { Value = float.NaN, MeasuringUnit = Unit.Dp };
+        public static Dimension Unset => new(float.NaN);
 
         public Dimension()
         {
@@ -52,7 +51,7 @@ namespace CatUI.Data
             return $"{Value} {measuringUnitText}";
         }
 
-        public override CatObject Duplicate()
+        public Dimension Duplicate()
         {
             return new Dimension(Value, MeasuringUnit);
         }
@@ -119,7 +118,6 @@ namespace CatUI.Data
 
         public static bool operator !=(Dimension? x, Dimension? y)
         {
-            //this will silence the nullable warnings
             if (x is null)
             {
                 return y is not null;
@@ -131,12 +129,12 @@ namespace CatUI.Data
             }
 
             //if one of them is NaN, but not both
-            if (double.IsNaN(x.Value) ^ double.IsNaN(y.Value))
+            if (double.IsNaN(x.Value.Value) ^ double.IsNaN(y.Value.Value))
             {
                 return true;
             }
 
-            return Math.Abs(x.Value - y.Value) > 0.001 || x.MeasuringUnit != y.MeasuringUnit;
+            return Math.Abs(x.Value.Value - y.Value.Value) > 0.001 || x.Value.MeasuringUnit != y.Value.MeasuringUnit;
         }
 
         public static bool operator ==(Dimension? x, Dimension? y)
@@ -153,12 +151,12 @@ namespace CatUI.Data
             }
 
             //if one of them is NaN, but not both
-            if (double.IsNaN(x.Value) ^ double.IsNaN(y.Value))
+            if (double.IsNaN(x.Value.Value) ^ double.IsNaN(y.Value.Value))
             {
                 return false;
             }
 
-            return Math.Abs(x.Value - y.Value) < 0.001 && x.MeasuringUnit == y.MeasuringUnit;
+            return Math.Abs(x.Value.Value - y.Value.Value) < 0.001 && x.Value.MeasuringUnit == y.Value.MeasuringUnit;
         }
 
         public override bool Equals([NotNullWhen(true)] object? obj)
@@ -175,15 +173,20 @@ namespace CatUI.Data
         {
             throw new NotSupportedException("Using Dimension as a key in a dictionary/hash map is not supported.");
         }
+
+        public bool Equals(Dimension other)
+        {
+            return Value.Equals(other.Value) && MeasuringUnit == other.MeasuringUnit;
+        }
     }
 
     /// <summary>
     /// A set of 2 dimensions for X and Y. Generally used for setting the position of an element.
     /// </summary>
-    public class Dimension2 : CatObject
+    public readonly struct Dimension2 : IEquatable<Dimension2>
     {
-        public Dimension X { get; set; }
-        public Dimension Y { get; set; }
+        public Dimension X { get; }
+        public Dimension Y { get; }
 
         public static Dimension2 Unset => new(Dimension.Unset, Dimension.Unset);
 
@@ -217,9 +220,9 @@ namespace CatUI.Data
             return $"({X}, {Y})";
         }
 
-        public override Dimension2 Duplicate()
+        public Dimension2 Duplicate()
         {
-            return new Dimension2((Dimension)X.Duplicate(), (Dimension)Y.Duplicate());
+            return new Dimension2(X.Duplicate(), Y.Duplicate());
         }
 
         public bool IsUnset()
@@ -240,7 +243,7 @@ namespace CatUI.Data
                 return false;
             }
 
-            return x.X == y.X && x.Y == y.Y;
+            return x.Value.X == y.Value.X && x.Value.Y == y.Value.Y;
         }
 
         public static bool operator !=(Dimension2? x, Dimension2? y)
@@ -256,7 +259,7 @@ namespace CatUI.Data
                 return true;
             }
 
-            return x.X != y.X || x.Y != y.Y;
+            return x.Value.X != y.Value.X || x.Value.Y != y.Value.Y;
         }
 
         public static implicit operator Dimension2(string literal)
@@ -283,6 +286,11 @@ namespace CatUI.Data
         public override int GetHashCode()
         {
             throw new NotSupportedException("Using Dimension as a key in a dictionary/hash map is not supported.");
+        }
+
+        public bool Equals(Dimension2 other)
+        {
+            return X.Equals(other.X) && Y.Equals(other.Y);
         }
     }
 }

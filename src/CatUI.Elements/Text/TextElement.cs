@@ -24,29 +24,24 @@ namespace CatUI.Elements.Text
         public ObservableProperty<string> TextProperty { get; } = new(string.Empty);
 
         /// <summary>
-        /// If true, it makes the text wrap itself if the width is too small to fit an entire row. Beware that word wrapping
-        /// involves quite a lot of calculations and elements without word wrapping are generally faster. Use only when
-        /// needed. See the remarks on each element that implements this interface for more information.
-        /// The default value is false.
+        /// Represents the size of the font to use when drawing the text. The default value is 16dp.
         /// </summary>
-
-        //TODO: implement this in an interface (like IWordWrappable)
-        public bool WordWrap
+        public Dimension FontSize
         {
-            get => _wordWrap;
+            get => _fontSize;
             set
             {
-                _wordWrap = value;
-                WordWrapProperty.Value = value;
+                _fontSize = value;
+                FontSizeProperty.Value = value;
             }
         }
 
-        private bool _wordWrap;
-        public ObservableProperty<bool> WordWrapProperty { get; } = new(false);
+        private Dimension _fontSize = new(16);
+        public ObservableProperty<Dimension> FontSizeProperty { get; } = new(new Dimension(16));
 
         /// <summary>
         /// Specifies the behavior of the text element when the text is too large to render in the given space.
-        /// The actual behavior depends on <see cref="AllowsExpansion"/>. See <see cref="TextOverflowMode"/> for information
+        /// The actual behavior depends on each element. See <see cref="TextOverflowMode"/> for information
         /// about possible values. The default value is <see cref="TextOverflowMode.Ellipsis"/>.
         /// </summary>
         public TextOverflowMode OverflowMode
@@ -83,7 +78,8 @@ namespace CatUI.Elements.Text
         public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; } = new(TextAlignmentType.Left);
 
         /// <summary>
-        /// 
+        /// Specifies the string that will be appended at the end of a row if the text cannot be drawn completely
+        /// (because it will overflow the element, for example).
         /// </summary>
         public string OverflowString
         {
@@ -97,40 +93,6 @@ namespace CatUI.Elements.Text
 
         private string _overflowString = "\u2026";
         public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
-
-        /// <summary>
-        /// If true, the element will ignore <see cref="Element.PreferredWidth"/> and <see cref="Element.PreferredHeight"/>,
-        /// only respecting the minimum and maximum width and height constraints (like <see cref="Element.MaxHeight"/>).
-        /// It tries to occupy as little space as possible (in regard to the minimum size), but is free to expand until
-        /// the maximum size is reached.
-        /// </summary>
-        /// <remarks>
-        /// This expansion will generally happen:
-        /// <list type="bullet">
-        /// <item>when <see cref="WordWrap"/> is false if the element implements that interface</item>
-        /// <item>when a word's width is larger than the element's width</item>
-        /// <item>when the text is so large that it won't fit in the element's height (as it occupies more rows)</item>
-        /// </list>
-        /// <para>
-        /// What exactly happens when this property is false and the text is larger than the element's size depends
-        /// on each element that implements this interface. For example, <see cref="Label"/> will have the
-        /// <see cref="OverflowString"/> at the end of the last row.
-        /// </para>
-        /// </remarks>
-
-        //TODO: implement the stated behavior and also put it in some interface
-        public bool AllowsExpansion
-        {
-            get => _allowsExpansion;
-            set
-            {
-                _allowsExpansion = value;
-                AllowsExpansionProperty.Value = value;
-            }
-        }
-
-        private bool _allowsExpansion = true;
-        public ObservableProperty<bool> AllowsExpansionProperty { get; } = new(true);
 
         public TextElement(
             string text,
