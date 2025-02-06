@@ -4,12 +4,13 @@ using System.Diagnostics.CodeAnalysis;
 namespace CatUI.Data
 {
     /// <summary>
-    /// A set of offsets in each of the 4 cardinal directions: top, left, bottom, right.
+    /// A set of offsets in each of the 4 cardinal directions: top, right, bottom, left.
     /// </summary>
     /// <remarks>
     /// The inset represents different dimensions depending on its use:
-    /// for margins, it represents the distance from the current element to the next one in one of the four directions (top, left, bottom, right);
-    /// for position, it represents the distance from the current element to one or more of the containing element's border.
+    /// for margins, it represents the distance from the current element to the next one in one of the four directions
+    /// (top, right, bottom, left); for position, it represents the distance from the current element to one or more
+    /// of the containing element's bounds (as determined by element's AbsoluteWidth and AbsoluteHeight).
     /// </remarks>
     public readonly struct EdgeInset : IEquatable<EdgeInset>
     {
@@ -95,6 +96,7 @@ namespace CatUI.Data
             return $"({Top}, {Right}, {Bottom}, {Left})";
         }
 
+        /// <inheritdoc cref="CatObject.Duplicate"/>
         public EdgeInset Duplicate()
         {
             return new EdgeInset(Top, Right, Bottom, Left);

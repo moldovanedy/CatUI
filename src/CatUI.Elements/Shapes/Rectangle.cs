@@ -1,5 +1,6 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.Containers;
 
 namespace CatUI.Elements.Shapes
 {
@@ -75,6 +76,30 @@ namespace CatUI.Elements.Shapes
             }
 
             Document?.Renderer.DrawRectOutline(rect, OutlineBrush, OutlineParameters);
+        }
+
+        public override Rectangle Duplicate()
+        {
+            return new Rectangle
+            {
+                FillBrush = FillBrush.Duplicate(),
+                OutlineBrush = OutlineBrush.Duplicate(),
+                OutlineParameters = OutlineParameters,
+                //
+                Position = Position,
+                PreferredWidth = PreferredWidth,
+                PreferredHeight = PreferredHeight,
+                MinWidth = MinWidth,
+                MinHeight = MinHeight,
+                MaxWidth = MaxWidth,
+                MaxHeight = MaxHeight,
+                Margin = Margin,
+                Background = Background.Duplicate(),
+                CornerRadius = CornerRadius,
+                Visible = Visible,
+                Enabled = Enabled,
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+            };
         }
     }
 }

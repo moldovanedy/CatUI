@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using CatUI.Data;
+using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
+using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers;
 using CatUI.Utils;
 
@@ -144,7 +147,7 @@ namespace CatUI.Elements
         /// <summary>
         /// <para>
         /// Represents the preferred width of the element. The layout engine will try to honor this value, but this might be
-        /// influenced by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />)
+        /// influenced by other properties of an element (e.g. <see cref="IExpandable.CanExpandHorizontally" />)
         /// or if the element is inside a container.
         /// </para>
         /// <para>
@@ -172,7 +175,7 @@ namespace CatUI.Elements
         /// <summary>
         /// <para>
         /// Represents the preferred height of the element. The layout engine will try to honor this value, but this might be
-        /// influenced by other properties of an element (e.g. <see cref="Text.TextElement.AllowsExpansion" />)
+        /// influenced by other properties of an element (e.g. <see cref="IExpandable.CanExpandVertically" />)
         /// or if the element is inside a container.
         /// </para>
         /// <para>
@@ -280,26 +283,6 @@ namespace CatUI.Elements
 
         private Dimension _maxHeight = Dimension.Unset;
         public ObservableProperty<Dimension> MaxHeightProperty { get; } = new(Dimension.Unset);
-
-        /// <summary>
-        /// The default value is a new <see cref="EdgeInset"/> with all the dimensions invalid (<see cref="Dimension.Unset"/>).
-        /// </summary>
-        public EdgeInset Padding
-        {
-            get => _padding;
-            set
-            {
-                if (value != _padding)
-                {
-                    _padding = value;
-                    PaddingProperty.Value = value;
-                    RecalculateLayout();
-                }
-            }
-        }
-
-        private EdgeInset _padding = new();
-        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
 
         /// <summary>
         /// The default value is a new <see cref="EdgeInset"/> with all the dimensions invalid (<see cref="Dimension.Unset"/>).
@@ -616,7 +599,7 @@ namespace CatUI.Elements
 
             if (!Background.IsSkippable)
             {
-                Document?.Renderer.DrawRect(Bounds.GetPaddingBox(), Background);
+                Document?.Renderer.DrawRect(Bounds.GetContentBox(), Background);
             }
         }
 
@@ -752,10 +735,10 @@ namespace CatUI.Elements
             }
             else
             {
-                parentWidth = _parent?.Bounds.Width ?? 0;
-                parentHeight = _parent?.Bounds.Height ?? 0;
-                parentXPos = _parent?.Bounds.StartPoint.X ?? 0;
-                parentYPos = _parent?.Bounds.StartPoint.Y ?? 0;
+                parentWidth = _parent?.Bounds.BoundingRect.Width ?? 0;
+                parentHeight = _parent?.Bounds.BoundingRect.Height ?? 0;
+                parentXPos = _parent?.Bounds.BoundingRect.X ?? 0;
+                parentYPos = _parent?.Bounds.BoundingRect.Y ?? 0;
             }
 
             if (!PreferredWidth.IsUnset())
@@ -785,25 +768,13 @@ namespace CatUI.Elements
             {
                 child.RecalculateLayout();
             }
-
-            // Bounds = new ElementBounds(
-            //     new Point2D(
-            //         parentXPos + CalculateDimension(Position.X, parentWidth),
-            //         parentYPos + CalculateDimension(Position.Y, parentHeight)),
-            //     elementFinalWidth,
-            //     elementFinalHeight,
-            //     new float[4],
-            //     new float[4]);
         }
 
         private void RecalculateBounds()
         {
             Bounds = new ElementBounds(
-                AbsolutePosition,
-                AbsoluteWidth,
-                AbsoluteHeight,
-                new float[4],
-                new float[4]);
+                new Rect(AbsolutePosition.X, AbsolutePosition.Y, AbsoluteWidth, AbsoluteHeight),
+                new Vector4());
         }
 
         private void MakeChildrenEnterDocument(ObservableList<Element> children)
@@ -831,9 +802,31 @@ namespace CatUI.Elements
         public virtual void PointerLeave(object sender, PointerLeaveEventArgs e) { }
         public virtual void PointerMove(object sender, PointerMoveEventArgs e) { }
 
+        /// <summary>
+        /// Deep clones the element. The element will not belong to the document, but will have all the original properties
+        /// cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like <see cref="Image"/>).
+        /// </summary>
+        /// <returns>
+        /// A new clone of the object that is not attached to the document, but has the properties of the original.
+        /// </returns>
         public virtual Element Duplicate()
         {
-            return new Element();
+            return new Element
+            {
+                Position = _position,
+                PreferredWidth = _preferredWidth,
+                PreferredHeight = _preferredHeight,
+                MinWidth = _minWidth,
+                MinHeight = _minHeight,
+                MaxWidth = _maxWidth,
+                MaxHeight = _maxHeight,
+                Margin = _margin,
+                Background = _background.Duplicate(),
+                CornerRadius = _cornerRadius,
+                Visible = _visible,
+                Enabled = _enabled,
+                ElementContainerSizing = (ContainerSizing?)_elementContainerSizing?.Duplicate()
+            };
         }
 
         /// <summary>
@@ -864,7 +857,9 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Will return the actual pixel value of the given dimension.
+        /// Will return the actual pixel value of the given dimension. If the element is not inside a document,
+        /// this method might give unpredictable results that are incorrect (e.g. 0 when the measuring unit is
+        /// <see cref="Unit.ViewportWidth"/> or <see cref="Unit.ViewportHeight"/>).
         /// </summary>
         /// <param name="dimension">The dimension to get the pixel value from.</param>
         /// <param name="pixelDimensionForPercent">

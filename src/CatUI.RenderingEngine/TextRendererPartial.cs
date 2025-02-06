@@ -41,7 +41,7 @@ namespace CatUI.RenderingEngine
         public int DrawTextRow(
             string text,
             Point2D topLeftPoint,
-            Dimension fontSize,
+            float fontSize,
             Size elementSize,
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
@@ -66,7 +66,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.Fill,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             //outline, but no fill
             else if (
@@ -78,7 +78,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.Outline,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             //both fill and outline
             else if (
@@ -90,7 +90,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.FillAndOutline,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             else
             {
@@ -269,7 +269,7 @@ namespace CatUI.RenderingEngine
         public int DrawTextRow(
             string text,
             Point2D topLeftPoint,
-            Dimension fontSize,
+            float fontSize,
             Size elementSize,
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
@@ -293,7 +293,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.Fill,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             //outline, but no fill
             else if (
@@ -305,7 +305,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.Outline,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             //both fill and outline
             else if (
@@ -317,7 +317,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.FillAndOutline,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             else
             {
@@ -421,7 +421,7 @@ namespace CatUI.RenderingEngine
         public void DrawTextRowFast(
             string text,
             Point2D topLeftPoint,
-            Dimension fontSize,
+            float fontSize,
             Size elementSize,
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
@@ -443,7 +443,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.Fill,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             //outline, but no fill
             else if (
@@ -455,7 +455,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.Outline,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             //both fill and outline
             else if (
@@ -467,7 +467,7 @@ namespace CatUI.RenderingEngine
                     painter,
                     PaintMode.FillAndOutline,
                     textAlignment: textAlignment,
-                    fontSize: CalculateDimension(fontSize));
+                    fontSize: fontSize);
             }
             else
             {

@@ -1,6 +1,7 @@
 using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.Containers;
 using CatUI.RenderingEngine.GraphicsCaching;
 using SkiaSharp;
 
@@ -138,19 +139,46 @@ namespace CatUI.Elements.Shapes
             if (ShouldApplyScaling)
             {
                 scale = new Vector2(
-                    Bounds.Width / _skiaPath.TightBounds.Width,
-                    Bounds.Height / _skiaPath.TightBounds.Height);
+                    Bounds.BoundingRect.Width / _skiaPath.TightBounds.Width,
+                    Bounds.BoundingRect.Height / _skiaPath.TightBounds.Height);
             }
 
             var thisTopLeftPoint = new Vector2(
-                Bounds.StartPoint.X - (startPoint.X * scale.X),
-                Bounds.StartPoint.Y - (startPoint.Y * scale.Y));
+                Bounds.BoundingRect.X - (startPoint.X * scale.X),
+                Bounds.BoundingRect.Y - (startPoint.Y * scale.Y));
 
             _scaledCachedPath.Transform(SKMatrix.CreateScaleTranslation(
                 scale.X, scale.Y, thisTopLeftPoint.X, thisTopLeftPoint.Y));
             Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush, OutlineBrush, OutlineParameters);
 
             _lastScale = scale;
+        }
+
+        public override GeometricPath Duplicate()
+        {
+            return new GeometricPath
+            {
+                SvgPath = _svgPath,
+                ShouldApplyScaling = _shouldApplyScaling,
+                //
+                FillBrush = FillBrush.Duplicate(),
+                OutlineBrush = OutlineBrush.Duplicate(),
+                OutlineParameters = OutlineParameters,
+                //
+                Position = Position,
+                PreferredWidth = PreferredWidth,
+                PreferredHeight = PreferredHeight,
+                MinWidth = MinWidth,
+                MinHeight = MinHeight,
+                MaxWidth = MaxWidth,
+                MaxHeight = MaxHeight,
+                Margin = Margin,
+                Background = Background.Duplicate(),
+                CornerRadius = CornerRadius,
+                Visible = Visible,
+                Enabled = Enabled,
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+            };
         }
     }
 }
