@@ -76,7 +76,7 @@ namespace CatUI.Elements.Containers
             {
                 if (!child.Enabled)
                 {
-                    return;
+                    continue;
                 }
 
                 float minHeight = CalculateDimension(child.MinHeight, Bounds.Height);
@@ -134,7 +134,7 @@ namespace CatUI.Elements.Containers
             {
                 if (!child.Enabled)
                 {
-                    return;
+                    continue;
                 }
 
                 child.AbsolutePosition = new Point2D(currentPosX, currentPosY);

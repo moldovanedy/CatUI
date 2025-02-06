@@ -21,7 +21,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// dictionary where the key is the font size (rounded to 2 decimals) and the value is yet another dictionary,
         /// with the key being the font weight and the value being finally the width of the text.
         /// </summary>
-        private static readonly Dictionary<ReadOnlyMemory<char>, List<Dictionary<float, Dictionary<int, float>>>>
+        private static readonly Dictionary<string, List<Dictionary<float, Dictionary<int, float>>>>
             _cache =
                 new(500);
 
@@ -41,7 +41,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
         /// Thrown if the font index or the font size are negative. Also when the font weight is not between 100 and 1000
         /// and the modulus to 100 is not 0 (x % 100 != 0).
         /// </exception>
-        public static float GetValueOrCalculate(ReadOnlyMemory<char> text, float fontSize, int fontWeight = 400,
+        public static float GetValueOrCalculate(string text, float fontSize, int fontWeight = 400,
             int fontIndex = 0)
         {
             if (fontIndex < 0)
@@ -96,7 +96,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             //if the given weight doesn't exist
             if (!weightDictionary.TryGetValue(fontWeight, out float value))
             {
-                value = Calculate(text.Span, fontSize, fontWeight, fontIndex);
+                value = Calculate(text.AsSpan(), fontSize, fontWeight, fontIndex);
                 weightDictionary[fontWeight] = value;
                 NumberOfEntries++;
             }
@@ -148,7 +148,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
                 //only for a font
                 else
                 {
-                    foreach (ReadOnlyMemory<char> key in _cache.Keys)
+                    foreach (string key in _cache.Keys)
                     {
                         Dictionary<float, Dictionary<int, float>> toDelete = _cache[key][forFontIndex];
                         foreach (KeyValuePair<float, Dictionary<int, float>> pair in toDelete)
@@ -163,7 +163,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             //a specific text, all fonts
             else if (forFontIndex < 0)
             {
-                Memory<char> text = (Memory<char>)forText;
+                string text = forText.ToString()!;
 
                 if (_cache.TryGetValue(text, out List<Dictionary<float, Dictionary<int, float>>>? records))
                 {
@@ -181,7 +181,7 @@ namespace CatUI.RenderingEngine.GraphicsCaching
             //a specific text and a specific font
             else
             {
-                Memory<char> text = (Memory<char>)forText;
+                string text = forText.ToString()!;
 
                 Dictionary<float, Dictionary<int, float>> toDelete = _cache[text][forFontIndex];
                 foreach (KeyValuePair<float, Dictionary<int, float>> pair in toDelete)
