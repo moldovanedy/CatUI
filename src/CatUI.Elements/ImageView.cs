@@ -114,16 +114,19 @@ namespace CatUI.Elements
             set
             {
                 _resizeQuality = value;
-                ImageResizeQualityProperty.Value = value;
+                ResizeQualityProperty.Value = value;
             }
         }
 
         private ImageResizeQuality _resizeQuality = ImageResizeQuality.Medium;
-        public ObservableProperty<ImageResizeQuality> ImageResizeQualityProperty { get; } = new();
+        public ObservableProperty<ImageResizeQuality> ResizeQualityProperty { get; } = new();
 
         private SKImage? _cachedScaledImage;
 
-        public ImageView() { }
+        public ImageView()
+        {
+            InitPropertiesEvents();
+        }
 
         public ImageView(
             Image source,
@@ -134,6 +137,57 @@ namespace CatUI.Elements
                 preferredHeight)
         {
             Source = source;
+            InitPropertiesEvents();
+        }
+
+        private void InitPropertiesEvents()
+        {
+            SourceProperty.ValueChangedEvent += SetSource;
+            HorizontalAlignmentProperty.ValueChangedEvent += SetHorizontalAlignment;
+            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+            ShouldKeepAspectRatioProperty.ValueChangedEvent += SetShouldKeepAspectRatio;
+            ImageFitProperty.ValueChangedEvent += SetImageFit;
+            ResizeQualityProperty.ValueChangedEvent += SetResizeQuality;
+        }
+
+        ~ImageView()
+        {
+            SourceProperty.ValueChangedEvent -= SetSource;
+            HorizontalAlignmentProperty.ValueChangedEvent -= SetHorizontalAlignment;
+            VerticalAlignmentProperty.ValueChangedEvent -= SetVerticalAlignment;
+            ShouldKeepAspectRatioProperty.ValueChangedEvent -= SetShouldKeepAspectRatio;
+            ImageFitProperty.ValueChangedEvent -= SetImageFit;
+            ResizeQualityProperty.ValueChangedEvent -= SetResizeQuality;
+        }
+
+        private void SetSource(Image? value)
+        {
+            _source = value;
+        }
+
+        private void SetHorizontalAlignment(HorizontalAlignmentType value)
+        {
+            _horizontalAlignment = value;
+        }
+
+        private void SetVerticalAlignment(VerticalAlignmentType value)
+        {
+            _verticalAlignment = value;
+        }
+
+        private void SetShouldKeepAspectRatio(bool value)
+        {
+            _shouldKeepAspectRatio = value;
+        }
+
+        private void SetImageFit(ImageFitType value)
+        {
+            _imageFit = value;
+        }
+
+        private void SetResizeQuality(ImageResizeQuality value)
+        {
+            _resizeQuality = value;
         }
 
         public override void Draw()

@@ -94,7 +94,10 @@ namespace CatUI.Elements.Text
         private string _overflowString = "\u2026";
         public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
 
-        public TextElement() { }
+        public TextElement()
+        {
+            InitPropertiesEvents();
+        }
 
         public TextElement(
             string text,
@@ -107,6 +110,50 @@ namespace CatUI.Elements.Text
         {
             Text = text;
             TextAlignment = textAlignment;
+            InitPropertiesEvents();
+        }
+
+        ~TextElement()
+        {
+            TextProperty.ValueChangedEvent -= SetText;
+            FontSizeProperty.ValueChangedEvent -= SetFontSize;
+            OverflowModeProperty.ValueChangedEvent -= SetOverflowMode;
+            TextAlignmentProperty.ValueChangedEvent -= SetTextAlignment;
+            OverflowStringProperty.ValueChangedEvent -= SetOverflowString;
+        }
+
+        private void InitPropertiesEvents()
+        {
+            TextProperty.ValueChangedEvent += SetText;
+            FontSizeProperty.ValueChangedEvent += SetFontSize;
+            OverflowModeProperty.ValueChangedEvent += SetOverflowMode;
+            TextAlignmentProperty.ValueChangedEvent += SetTextAlignment;
+            OverflowStringProperty.ValueChangedEvent += SetOverflowString;
+        }
+
+        private void SetText(string? value)
+        {
+            _text = value ?? string.Empty;
+        }
+
+        private void SetFontSize(Dimension value)
+        {
+            _fontSize = value;
+        }
+
+        private void SetOverflowMode(TextOverflowMode value)
+        {
+            _overflowMode = value;
+        }
+
+        private void SetTextAlignment(TextAlignmentType value)
+        {
+            _textAlignment = value;
+        }
+
+        private void SetOverflowString(string? value)
+        {
+            _overflowString = value ?? string.Empty;
         }
     }
 }

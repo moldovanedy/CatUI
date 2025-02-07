@@ -32,6 +32,17 @@ namespace CatUI.Elements.Containers
                 preferredWidth,
                 preferredHeight)
         {
+            SpacingProperty.ValueChangedEvent += SetSpacing;
+        }
+
+        ~BoxContainer()
+        {
+            SpacingProperty.ValueChangedEvent -= SetSpacing;
+        }
+
+        private void SetSpacing(Dimension value)
+        {
+            _spacing = value;
         }
 
         public enum Orientation

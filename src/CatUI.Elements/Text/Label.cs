@@ -198,6 +198,7 @@ namespace CatUI.Elements.Text
         {
             TextProperty.ValueChangedEvent += OnTextChanged;
             TextProperty.ForceRecallEvents();
+            InitPropertiesEvents();
         }
 
         public Label(
@@ -213,11 +214,73 @@ namespace CatUI.Elements.Text
         {
             TextProperty.ValueChangedEvent += OnTextChanged;
             TextProperty.ForceRecallEvents();
+            InitPropertiesEvents();
         }
 
         ~Label()
         {
             TextProperty.ValueChangedEvent -= OnTextChanged;
+
+            WordWrapProperty.ValueChangedEvent -= SetWordWrap;
+            CanExpandHorizontallyProperty.ValueChangedEvent -= SetCanExpandHorizontally;
+            CanExpandVerticallyProperty.ValueChangedEvent -= SetCanExpandVertically;
+            BreakModeProperty.ValueChangedEvent -= SetBreakMode;
+            HyphenCharacterProperty.ValueChangedEvent -= SetHyphenCharacter;
+            TextBrushProperty.ValueChangedEvent -= SetTextBrush;
+            OutlineTextBrushProperty.ValueChangedEvent -= SetOutlineTextBrush;
+            LineHeightProperty.ValueChangedEvent -= SetLineHeight;
+        }
+
+        private void InitPropertiesEvents()
+        {
+            WordWrapProperty.ValueChangedEvent += SetWordWrap;
+            CanExpandHorizontallyProperty.ValueChangedEvent += SetCanExpandHorizontally;
+            CanExpandVerticallyProperty.ValueChangedEvent += SetCanExpandVertically;
+            BreakModeProperty.ValueChangedEvent += SetBreakMode;
+            HyphenCharacterProperty.ValueChangedEvent += SetHyphenCharacter;
+            TextBrushProperty.ValueChangedEvent += SetTextBrush;
+            OutlineTextBrushProperty.ValueChangedEvent += SetOutlineTextBrush;
+            LineHeightProperty.ValueChangedEvent += SetLineHeight;
+        }
+
+        private void SetWordWrap(bool value)
+        {
+            _wordWrap = value;
+        }
+
+        private void SetCanExpandHorizontally(bool value)
+        {
+            _canExpandHorizontally = value;
+        }
+
+        private void SetCanExpandVertically(bool value)
+        {
+            _canExpandVertically = value;
+        }
+
+        private void SetBreakMode(TextBreakMode value)
+        {
+            _breakMode = value;
+        }
+
+        private void SetHyphenCharacter(char value)
+        {
+            _hyphenCharacter = value;
+        }
+
+        private void SetTextBrush(IBrush? value)
+        {
+            _textBrush = value ?? new ColorBrush(Color.Default);
+        }
+
+        private void SetOutlineTextBrush(IBrush? value)
+        {
+            _outlineTextBrush = value ?? new ColorBrush(Color.Default);
+        }
+
+        private void SetLineHeight(float value)
+        {
+            _lineHeight = value;
         }
 
         internal override void RecalculateLayout()

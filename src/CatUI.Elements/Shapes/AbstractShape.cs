@@ -77,6 +77,32 @@ namespace CatUI.Elements.Shapes
             {
                 OutlineBrush = outlineBrush;
             }
+
+            FillBrushProperty.ValueChangedEvent += SetFillBrush;
+            OutlineBrushProperty.ValueChangedEvent += SetOutlineBrush;
+            OutlineParametersProperty.ValueChangedEvent += SetOutlineParameters;
+        }
+
+        ~AbstractShape()
+        {
+            FillBrushProperty.ValueChangedEvent -= SetFillBrush;
+            OutlineBrushProperty.ValueChangedEvent -= SetOutlineBrush;
+            OutlineParametersProperty.ValueChangedEvent -= SetOutlineParameters;
+        }
+
+        private void SetFillBrush(IBrush? brush)
+        {
+            _fillBrush = brush ?? new ColorBrush(Color.Default);
+        }
+
+        private void SetOutlineBrush(IBrush? brush)
+        {
+            _outlineBrush = brush ?? new ColorBrush(Color.Default);
+        }
+
+        private void SetOutlineParameters(OutlineParams outlineParameters)
+        {
+            _outlineParameters = outlineParameters;
         }
     }
 }

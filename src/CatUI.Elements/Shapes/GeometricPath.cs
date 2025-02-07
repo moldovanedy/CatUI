@@ -83,11 +83,27 @@ namespace CatUI.Elements.Shapes
                 preferredHeight)
         {
             SvgPath = svgPath;
+
+            ShouldApplyScalingProperty.ValueChangedEvent += SetShouldApplyScaling;
+            SvgPathProperty.ValueChangedEvent += SetSvgPath;
         }
 
         ~GeometricPath()
         {
             PathCache.RemovePath(_scaledCachedPath);
+
+            ShouldApplyScalingProperty.ValueChangedEvent -= SetShouldApplyScaling;
+            SvgPathProperty.ValueChangedEvent -= SetSvgPath;
+        }
+
+        private void SetShouldApplyScaling(bool value)
+        {
+            _shouldApplyScaling = value;
+        }
+
+        private void SetSvgPath(string? value)
+        {
+            _svgPath = value ?? string.Empty;
         }
 
         public SKPath GetSkiaPathClone()

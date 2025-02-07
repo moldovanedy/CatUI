@@ -443,6 +443,7 @@ namespace CatUI.Elements
         public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
 
         public ElementBounds Bounds { get; internal set; } = new();
+        public int IndexInParent { get; private set; } = -1;
 
         /// <summary>
         /// Gets or sets the document of this element and all its children. Will also add the element to the document.
@@ -548,10 +549,31 @@ namespace CatUI.Elements
             Dimension? preferredWidth = null,
             Dimension? preferredHeight = null)
         {
-            InitEvents();
+            DrawEvent += Draw;
+            EnterDocumentEvent += EnterDocument;
+            ExitDocumentEvent += ExitDocument;
+            LoadEvent += Loaded;
+            PointerEnterEvent += PointerEnter;
+            PointerLeaveEvent += PointerLeave;
+            PointerMoveEvent += PointerMove;
+
+            PositionProperty.ValueChangedEvent += SetPosition;
+            PreferredWidthProperty.ValueChangedEvent += SetPrefWidth;
+            PreferredHeightProperty.ValueChangedEvent += SetPrefHeight;
+            MinWidthProperty.ValueChangedEvent += SetMinWidth;
+            MinHeightProperty.ValueChangedEvent += SetMinHeight;
+            MaxWidthProperty.ValueChangedEvent += SetMaxWidth;
+            MaxHeightProperty.ValueChangedEvent += SetMaxHeight;
+            MarginProperty.ValueChangedEvent += SetMargin;
+            BackgroundProperty.ValueChangedEvent += SetBackground;
+            CornerRadiusProperty.ValueChangedEvent += SetCornerRadius;
+            VisibleProperty.ValueChangedEvent += SetVisible;
+            EnabledProperty.ValueChangedEvent += SetEnabled;
+            ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
 
             Children.ItemInsertedEvent += OnChildInserted;
             Children.ItemRemovedEvent += OnChildRemoved;
+            Children.ItemMovedEvent += OnChildMoved;
             Children.ListClearingEvent += OnChildrenListClearing;
 
             //we can't set the property itself because it calls RecalculateLayout(), which is a virtual method,
@@ -565,27 +587,34 @@ namespace CatUI.Elements
 
         ~Element()
         {
-            DrawEvent -= OnDraw;
-            DrawEvent -= Draw;
-            EnterDocumentEvent -= OnEnterDocument;
-            EnterDocumentEvent -= EnterDocument;
-            ExitDocumentEvent -= OnExitDocument;
-            ExitDocumentEvent -= ExitDocument;
-            LoadEvent -= OnLoad;
-            LoadEvent -= Loaded;
-            PointerEnterEvent -= OnPointerEnter;
-            PointerEnterEvent -= PointerEnter;
-            PointerLeaveEvent -= OnPointerLeave;
-            PointerLeaveEvent -= PointerLeave;
-            PointerMoveEvent -= OnPointerMove;
-            PointerMoveEvent -= PointerMove;
+            DrawEvent = null;
+            EnterDocumentEvent = null;
+            ExitDocumentEvent = null;
+            LoadEvent = null;
+            PointerEnterEvent = null;
+            PointerLeaveEvent = null;
+            PointerMoveEvent = null;
+
+            PositionProperty.ValueChangedEvent -= SetPosition;
+            PreferredWidthProperty.ValueChangedEvent -= SetPrefWidth;
+            PreferredHeightProperty.ValueChangedEvent -= SetPrefHeight;
+            MinWidthProperty.ValueChangedEvent -= SetMinWidth;
+            MinHeightProperty.ValueChangedEvent -= SetMinHeight;
+            MaxWidthProperty.ValueChangedEvent -= SetMaxWidth;
+            MaxHeightProperty.ValueChangedEvent -= SetMaxHeight;
+            MarginProperty.ValueChangedEvent -= SetMargin;
+            BackgroundProperty.ValueChangedEvent -= SetBackground;
+            CornerRadiusProperty.ValueChangedEvent -= SetCornerRadius;
+            VisibleProperty.ValueChangedEvent -= SetVisible;
+            EnabledProperty.ValueChangedEvent -= SetEnabled;
+            ElementContainerSizingProperty.ValueChangedEvent -= SetElementContainerSizing;
 
             Children.ItemInsertedEvent -= OnChildInserted;
             Children.ItemRemovedEvent -= OnChildRemoved;
+            Children.ItemMovedEvent -= OnChildMoved;
             Children.ListClearingEvent -= OnChildrenListClearing;
 
             Document = null;
-            _parent = null;
         }
 
         #region Visual
@@ -618,17 +647,6 @@ namespace CatUI.Elements
             }
         }
 
-        private void InitEvents()
-        {
-            DrawEvent += Draw;
-            EnterDocumentEvent += EnterDocument;
-            ExitDocumentEvent += ExitDocument;
-            LoadEvent += Loaded;
-            PointerEnterEvent += PointerEnter;
-            PointerLeaveEvent += PointerLeave;
-            PointerMoveEvent += PointerMove;
-        }
-
 
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
@@ -639,6 +657,7 @@ namespace CatUI.Elements
 
             e.Item.IsChildOfContainer = this is Container;
             e.Item._parent = this;
+            e.Item.IndexInParent = e.Index;
 
             if (Document != null)
             {
@@ -659,7 +678,13 @@ namespace CatUI.Elements
             e.Item.Children.Clear();
             e.Item._parent = null;
             e.Item._document = null;
+            e.Item.IndexInParent = -1;
             RecalculateLayout();
+        }
+
+        private static void OnChildMoved(object? sender, ObservableListMoveEventArgs<Element> e)
+        {
+            e.Item.IndexInParent = e.NewIndex;
         }
 
         private void OnChildrenListClearing(object? sender, EventArgs e)
@@ -712,6 +737,71 @@ namespace CatUI.Elements
         internal void InvokePointerMove()
         {
             PointerMoveEvent?.Invoke(this, new PointerMoveEventArgs(Point2D.Zero, false));
+        }
+
+        private void SetPosition(Dimension2 value)
+        {
+            _position = value;
+        }
+
+        private void SetPrefWidth(Dimension value)
+        {
+            _preferredWidth = value;
+        }
+
+        private void SetPrefHeight(Dimension value)
+        {
+            _preferredHeight = value;
+        }
+
+        private void SetMinWidth(Dimension value)
+        {
+            _minWidth = value;
+        }
+
+        private void SetMinHeight(Dimension value)
+        {
+            _minHeight = value;
+        }
+
+        private void SetMaxWidth(Dimension value)
+        {
+            _maxWidth = value;
+        }
+
+        private void SetMaxHeight(Dimension value)
+        {
+            _maxHeight = value;
+        }
+
+        private void SetMargin(EdgeInset value)
+        {
+            _margin = value;
+        }
+
+        private void SetBackground(IBrush? value)
+        {
+            _background = value ?? new ColorBrush(Color.Default);
+        }
+
+        private void SetCornerRadius(CornerInset value)
+        {
+            _cornerRadius = value;
+        }
+
+        private void SetVisible(bool value)
+        {
+            _visible = value;
+        }
+
+        private void SetEnabled(bool value)
+        {
+            _enabled = value;
+        }
+
+        private void SetElementContainerSizing(ContainerSizing? value)
+        {
+            _elementContainerSizing = value;
         }
 
         #endregion //Internal invoke
@@ -920,6 +1010,16 @@ namespace CatUI.Elements
 
         [SuppressMessage("Performance", "CA1822:Mark members as static")]
         public void RequestRedraw()
+        {
+            //TODO: implement
+        }
+
+        /// <summary>
+        /// Will notify the parent that this child modified its layout and must act accordingly (i.e. call
+        /// <see cref="RecalculateLayout"/> on this child and recompute bounds if necessary).
+        /// </summary>
+        [SuppressMessage("Performance", "CA1822:Mark members as static")]
+        public void MarkLayoutDirty()
         {
             //TODO: implement
         }
