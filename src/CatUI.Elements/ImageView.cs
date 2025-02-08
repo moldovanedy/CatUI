@@ -3,12 +3,29 @@ using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Containers;
 using CatUI.Data.Enums;
+using CatUI.Utils;
 using SkiaSharp;
 
 namespace CatUI.Elements
 {
     public class ImageView : Element
     {
+        /// <inheritdoc cref="Element.Ref"/>
+        public new ObjectRef<ImageView>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<ImageView>? _ref;
+
         /// <summary>
         /// Represents the source image object that will be drawn. It is always the original image an is not subject
         /// to internal resizing (it might get resized, but everything will only affect a copy of this, not the original

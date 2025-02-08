@@ -9,6 +9,7 @@ using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Elements.Behaviors;
 using CatUI.RenderingEngine.GraphicsCaching;
+using CatUI.Utils;
 using SkiaSharp;
 
 namespace CatUI.Elements.Text
@@ -20,6 +21,23 @@ namespace CatUI.Elements.Text
     /// </summary>
     public class Label : TextElement, IWordWrappable, IExpandable
     {
+        /// <inheritdoc cref="Element.Ref"/>
+        public new ObjectRef<Label>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<Label>? _ref;
+
+
         /// <inheritdoc cref="IWordWrappable.WordWrap"/>
         /// <remarks>
         /// </remarks>
@@ -38,7 +56,7 @@ namespace CatUI.Elements.Text
 
         /// <inheritdoc cref="IExpandable.CanExpandHorizontally"/>
         /// <remarks>
-        /// By default, this is false.
+        /// By default, this is true.
         /// </remarks>
         public bool CanExpandHorizontally
         {
@@ -50,12 +68,12 @@ namespace CatUI.Elements.Text
             }
         }
 
-        private bool _canExpandHorizontally;
-        public ObservableProperty<bool> CanExpandHorizontallyProperty { get; } = new(false);
+        private bool _canExpandHorizontally = true;
+        public ObservableProperty<bool> CanExpandHorizontallyProperty { get; } = new(true);
 
         /// <inheritdoc cref="IExpandable.CanExpandVertically"/>
         /// <remarks>
-        /// By default, this is false. If it's true, when <see cref="Element.MaxHeight"/> is reached,
+        /// By default, this is true. If it's true, when <see cref="Element.MaxHeight"/> is reached,
         /// <see cref="TextElement.OverflowString"/> will be put at the end of the last row IF it can be drawn without
         /// exceeding the maximum width; otherwise, it will remove some characters from the row (not taking into account
         /// the hyphens or spaces, simply removing a maximum of 3 characters regardless of the length of
@@ -71,8 +89,8 @@ namespace CatUI.Elements.Text
             }
         }
 
-        private bool _canExpandVertically;
-        public ObservableProperty<bool> CanExpandVerticallyProperty { get; } = new(false);
+        private bool _canExpandVertically = true;
+        public ObservableProperty<bool> CanExpandVerticallyProperty { get; } = new(true);
 
         /// <summary>
         /// Represents the text's word break mode. It is only relevant when <see cref="WordWrap"/> is true.
@@ -283,7 +301,7 @@ namespace CatUI.Elements.Text
             _lineHeight = value;
         }
 
-        internal override void RecalculateLayout()
+        protected override void RecalculateLayout()
         {
             float normalWidth = 0, normalHeight = 0;
 
@@ -361,11 +379,6 @@ namespace CatUI.Elements.Text
                 CreateFinalText(
                     CanExpandHorizontally ? maxWidth : AbsoluteWidth,
                     CanExpandVertically ? maxHeight : AbsoluteHeight);
-            }
-
-            foreach (Element child in Children)
-            {
-                child.RecalculateLayout();
             }
         }
 

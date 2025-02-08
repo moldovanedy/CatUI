@@ -1,12 +1,29 @@
 using System;
 using CatUI.Data;
 using CatUI.Data.Containers;
+using CatUI.Elements.Behaviors;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Containers
 {
     public class HBoxContainer : BoxContainer
     {
+        /// <inheritdoc cref="Element.Ref"/>
+        public new ObjectRef<HBoxContainer>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<HBoxContainer>? _ref;
+
         public override Orientation BoxOrientation => Orientation.Horizontal;
 
         public HBoxContainer(
@@ -18,13 +35,8 @@ namespace CatUI.Elements.Containers
         {
         }
 
-        internal override void RecalculateLayout()
+        protected override void RecalculateLayout()
         {
-            if (IsChildOfContainer || !Enabled)
-            {
-                return;
-            }
-
             float finalWidth, finalHeight = 0;
             float parentWidth, parentHeight, parentXPos, parentYPos;
             if (Document?.Root == this)
@@ -76,6 +88,12 @@ namespace CatUI.Elements.Containers
                 if (!child.Enabled)
                 {
                     continue;
+                }
+
+                //it's allowed to expand or shrink if it is IExpandable
+                if (child is IExpandable expandable && expandable.CanExpandHorizontally)
+                {
+                    child.MarkLayoutDirty();
                 }
 
                 float minWidth = CalculateDimension(child.MinWidth, Bounds.BoundingRect.Width);
@@ -218,7 +236,6 @@ namespace CatUI.Elements.Containers
                 }
 
                 currentPosX += child.AbsoluteWidth;
-                child.RecalculateLayout();
             }
 
             AbsoluteWidth = finalWidth;

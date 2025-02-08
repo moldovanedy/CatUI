@@ -1,6 +1,7 @@
 using System;
 using CatUI.Data;
 using CatUI.Data.Containers;
+using CatUI.Utils;
 
 namespace CatUI.Elements
 {
@@ -14,6 +15,22 @@ namespace CatUI.Elements
     /// </remarks>
     public class PaddingElement : Element
     {
+        /// <inheritdoc cref="Element.Ref"/>
+        public new ObjectRef<PaddingElement>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<PaddingElement>? _ref;
+
         /// <summary>
         /// Represents the padding values. The default value is a default <see cref="EdgeInset"/> (0 padding on all sides).
         /// </summary>
@@ -52,13 +69,8 @@ namespace CatUI.Elements
             _padding = value;
         }
 
-        internal override void RecalculateLayout()
+        protected override void RecalculateLayout()
         {
-            if (!Enabled)
-            {
-                return;
-            }
-
             float parentWidth, parentHeight, parentXPos, parentYPos;
             if (Document?.Root == this)
             {

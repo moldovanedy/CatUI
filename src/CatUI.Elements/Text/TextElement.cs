@@ -24,7 +24,7 @@ namespace CatUI.Elements.Text
         public ObservableProperty<string> TextProperty { get; } = new(string.Empty);
 
         /// <summary>
-        /// Represents the size of the font to use when drawing the text. The default value is 16dp.
+        /// Represents the size of the font to use when drawing the text. The default value is 12dp.
         /// </summary>
         public Dimension FontSize
         {
@@ -36,7 +36,7 @@ namespace CatUI.Elements.Text
             }
         }
 
-        private Dimension _fontSize = new(16);
+        private Dimension _fontSize = new(12);
         public ObservableProperty<Dimension> FontSizeProperty { get; } = new(new Dimension(16));
 
         /// <summary>

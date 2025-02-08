@@ -55,7 +55,7 @@ namespace CatUI.Elements
             {
                 _viewportSize = value;
                 Renderer.SetNewSize(new SKSize(value.Width, value.Height));
-                Root?.RecalculateLayout();
+                Root?.MarkLayoutDirty();
             }
         }
 
@@ -89,6 +89,13 @@ namespace CatUI.Elements
         private float _contentScale = 1f;
 
         private readonly Dictionary<string, Element> _cachedElements = new();
+
+        public UiDocument()
+        {
+            Renderer.SetNewSize(new SKSize(0, 0));
+            Renderer.SetBgColor(_background);
+            Renderer.SetContentScale(_contentScale);
+        }
 
         public void DrawAllElements()
         {

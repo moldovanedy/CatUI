@@ -3,12 +3,29 @@ using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
 using CatUI.RenderingEngine.GraphicsCaching;
+using CatUI.Utils;
 using SkiaSharp;
 
 namespace CatUI.Elements.Shapes
 {
     public class GeometricPath : AbstractShape
     {
+        /// <inheritdoc cref="Element.Ref"/>
+        public new ObjectRef<GeometricPath>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<GeometricPath>? _ref;
+
         private SKPath _skiaPath = new();
         private SKPath _scaledCachedPath = new();
 

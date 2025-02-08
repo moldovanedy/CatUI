@@ -56,7 +56,7 @@ namespace CatUI.Data.Managers
         /// </summary>
         /// <remarks>
         /// You can also use .dat files for resources, together with methods like
-        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, AsyncRef{long})"/>
+        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, ObjectRef{T})"/>
         /// for efficient asset handling.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
@@ -113,7 +113,7 @@ namespace CatUI.Data.Managers
         /// </summary>
         /// <remarks>
         /// You can also use .dat files for resources, together with methods like
-        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, AsyncRef{long})"/>
+        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, ObjectRef{T})"/>
         /// for efficient asset handling.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
@@ -178,19 +178,19 @@ namespace CatUI.Data.Managers
                 return (T)asset;
             }
 
-            AsyncRef<long> endPositionRef = new();
+            ObjectRef<long> endPositionRef = new();
             FileStream? stream = GetAssetFileStream(path, endPositionRef);
             if (stream == null)
             {
                 return null;
             }
 
-            byte[] assetRawData = new byte[endPositionRef.Ref - stream.Position];
+            byte[] assetRawData = new byte[endPositionRef.Value - stream.Position];
             long bytesWritten = 0;
 
             byte[] buffer = new byte[4096];
             long position = stream.Position;
-            while (position < endPositionRef.Ref)
+            while (position < endPositionRef.Value)
             {
                 int limit = await stream.ReadAsync(buffer.AsMemory(0, 4096));
                 Array.Copy(buffer, 0, assetRawData, bytesWritten, limit);
@@ -221,12 +221,12 @@ namespace CatUI.Data.Managers
         /// </remarks>
         /// <param name="path">The path of the assembly, always beginning with "/", pointing to the project root directory.</param>
         /// <param name="endPosition">
-        /// An <see cref="AsyncRef{T}"/> ref object whose <see cref="AsyncRef{T}.Ref"/> will be set to
+        /// An <see cref="ObjectRef{T}"/> ref object whose <see cref="ObjectRef{T}.Value"/> will be set to
         /// the absolute byte position of the end of the asset data.
         /// </param>
         /// <returns>A FileStream configured as specified above if the asset was found, null otherwise.</returns>
         /// <exception cref="IOException">Thrown if it can't read the asset size.</exception>
-        public static FileStream? GetAssetFileStream(string path, AsyncRef<long> endPosition)
+        public static FileStream? GetAssetFileStream(string path, ObjectRef<long> endPosition)
         {
             if (!_assetPaths.TryGetValue(path, out ulong value))
             {
@@ -252,7 +252,7 @@ namespace CatUI.Data.Managers
 
             long assetSize = BinaryUtils.ConvertBytesToLong(assetSizeRaw, 0);
 
-            endPosition.Ref = position + 6 + assetSize;
+            endPosition.Value = position + 6 + assetSize;
             return fs;
         }
 

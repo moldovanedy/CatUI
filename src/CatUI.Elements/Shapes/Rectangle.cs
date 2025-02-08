@@ -1,11 +1,28 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
+using CatUI.Utils;
 
 namespace CatUI.Elements.Shapes
 {
     public class Rectangle : AbstractShape
     {
+        /// <inheritdoc cref="Element.Ref"/>
+        public new ObjectRef<Rectangle>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<Rectangle>? _ref;
+
         public Rectangle(
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
