@@ -337,7 +337,13 @@ namespace CatUI.Elements.Text
                         CalculateDimension(PreferredWidth, parentWidth),
                         MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
                         maxWidth);
-                    AbsoluteWidth = normalWidth;
+                    Bounds = new ElementBounds(
+                        new Rect(
+                            Bounds.BoundingRect.X,
+                            Bounds.BoundingRect.Y,
+                            normalWidth,
+                            Bounds.BoundingRect.Height),
+                        Bounds.Margins);
                 }
             }
 
@@ -353,7 +359,13 @@ namespace CatUI.Elements.Text
                         CalculateDimension(PreferredHeight, parentHeight),
                         MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
                         maxHeight);
-                    AbsoluteHeight = normalHeight;
+                    Bounds = new ElementBounds(
+                        new Rect(
+                            Bounds.BoundingRect.X,
+                            Bounds.BoundingRect.Y,
+                            Bounds.BoundingRect.Width,
+                            normalHeight),
+                        Bounds.Margins);
                 }
             }
 
@@ -362,7 +374,13 @@ namespace CatUI.Elements.Text
                 var normalPosition = new Point2D(
                     parentXPos + CalculateDimension(Position.X, parentWidth),
                     parentYPos + CalculateDimension(Position.Y, parentHeight));
-                AbsolutePosition = normalPosition;
+                Bounds = new ElementBounds(
+                    new Rect(
+                        normalPosition.X,
+                        normalPosition.Y,
+                        Bounds.BoundingRect.Width,
+                        Bounds.BoundingRect.Height),
+                    Bounds.Margins);
             }
 
             //it is very likely that this is when the label is instantiated, and it is unnecessary to calculate text here
@@ -377,32 +395,33 @@ namespace CatUI.Elements.Text
             if (!string.IsNullOrEmpty(Text) && (normalWidth < _maxRowWidth || normalHeight < _visibleTextTotalHeight))
             {
                 CreateFinalText(
-                    CanExpandHorizontally ? maxWidth : AbsoluteWidth,
-                    CanExpandVertically ? maxHeight : AbsoluteHeight);
+                    CanExpandHorizontally ? maxWidth : Bounds.BoundingRect.Width,
+                    CanExpandVertically ? maxHeight : Bounds.BoundingRect.Height);
             }
         }
 
         public override void Draw()
         {
             base.Draw();
+            Rect bounds = Bounds.BoundingRect;
 
             float fontSize = CalculateDimension(FontSize);
             float rowSize = fontSize * LineHeight;
             //half of line height + 0.5 (so for line height of 2 it is 1 + 0.5, for 4 is 2 + 0.5 etc.)
-            Point2D rowPosition = new(Bounds.BoundingRect.X, Bounds.BoundingRect.Y + (rowSize / 2f) + (fontSize / 2f));
+            Point2D rowPosition = new(bounds.X, bounds.Y + (rowSize / 2f) + (fontSize / 2f));
 
             int rowsDrawn = 0;
             int charactersDrawn = 0;
             while (
                 rowsDrawn < _drawableRows.Count &&
                 charactersDrawn < Text.Length &&
-                (CanExpandVertically || rowPosition.Y <= Bounds.BoundingRect.Y + Bounds.BoundingRect.Height))
+                (CanExpandVertically || rowPosition.Y <= bounds.Y + bounds.Height))
             {
                 Document?.Renderer?.DrawTextRowFast(
                     _drawableRows[rowsDrawn].Text,
                     rowPosition,
                     fontSize,
-                    new Size(AbsoluteWidth, AbsoluteHeight),
+                    new Size(bounds.Width, bounds.Height),
                     TextBrush,
                     OutlineTextBrush,
                     TextAlignment);
@@ -445,6 +464,16 @@ namespace CatUI.Elements.Text
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
             };
+        }
+
+        public Size ComputeSizeInContainer()
+        {
+            if (!string.IsNullOrEmpty(Text))
+            {
+                CreateFinalText(Bounds.BoundingRect.Width, Bounds.BoundingRect.Height);
+            }
+
+            return new Size(_maxRowWidth, _visibleTextTotalHeight);
         }
 
         private void OnTextChanged(string? newText)
@@ -509,7 +538,7 @@ namespace CatUI.Elements.Text
             //for the last (or the single) row
             rowInfo = new RowInformation { Text = sb.ToString(), PossibleBreakPoints = possibleBreakPoints };
             _userRows.Add(rowInfo);
-            RecalculateLayout();
+            MarkLayoutDirty();
         }
 
         private void CreateFinalText(float maxAllowedWidth, float maxAllowedHeight)
@@ -789,29 +818,40 @@ namespace CatUI.Elements.Text
             }
 
         End:
+            float height;
             if (CanExpandVertically)
             {
                 //the height minus last row (because it is added even when there are no more characters left)
-                AbsoluteHeight = currentHeight - ((rowHeight / 2f) + (fontSize / 2f));
+                height = currentHeight - ((rowHeight / 2f) + (fontSize / 2f));
             }
             else
             {
-                AbsoluteHeight = maxAllowedHeight;
+                height = maxAllowedHeight;
             }
 
+            float width;
             if (CanExpandHorizontally && !usedBreakPoints)
             {
-                AbsoluteWidth = _maxRowWidth;
+                width = _maxRowWidth;
             }
             else
             {
-                AbsoluteWidth = maxAllowedWidth;
+                width = maxAllowedWidth;
             }
 
+            Bounds = new ElementBounds(
+                new Rect(
+                    Bounds.BoundingRect.X,
+                    Bounds.BoundingRect.Y,
+                    width,
+                    height),
+                Bounds.Margins);
+
             //edge case: the label doesn't have the height necessary for not even a single row
-            if (AbsoluteHeight < (rowHeight / 2f) + (fontSize / 2f))
+            if (Bounds.BoundingRect.Height < (rowHeight / 2f) + (fontSize / 2f))
             {
                 _drawableRows.Clear();
+                _visibleTextTotalHeight = Bounds.BoundingRect.Height;
                 return;
             }
 
@@ -827,6 +867,7 @@ namespace CatUI.Elements.Text
                         Width = _drawableRows[^1].Width + overflowStringWidth,
                         WidthWithoutLastBreakPoint = 0
                     };
+                    _visibleTextTotalHeight = Bounds.BoundingRect.Height;
                     return;
                 }
 
@@ -856,11 +897,13 @@ namespace CatUI.Elements.Text
                     WidthWithoutLastBreakPoint = 0
                 };
             }
+
+            _visibleTextTotalHeight = Bounds.BoundingRect.Height;
         }
 
         private bool MustStop(float currentHeight, float rowHeight, float maxAllowedHeight = 0)
         {
-            float referenceHeight = CanExpandVertically ? maxAllowedHeight : AbsoluteHeight;
+            float referenceHeight = CanExpandVertically ? maxAllowedHeight : Bounds.BoundingRect.Height;
 
             switch (OverflowMode)
             {

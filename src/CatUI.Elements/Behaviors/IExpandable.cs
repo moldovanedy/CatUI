@@ -1,3 +1,5 @@
+using CatUI.Data;
+
 namespace CatUI.Elements.Behaviors
 {
     /// <summary>
@@ -8,8 +10,8 @@ namespace CatUI.Elements.Behaviors
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Elements that implement this interface can compute their size in a container, so they can set
-    /// <see cref="Element.AbsoluteWidth"/> and <see cref="Element.AbsoluteHeight"/> whilst in a container.
+    /// Elements that implement this interface can compute their size in a container, so they can return the
+    /// width and height whilst in a container using <see cref="ComputeSizeInContainer"/>.
     /// </para>
     /// <para>
     /// What exactly happens with an element depends on each element that implements this interface. See the remarks
@@ -29,5 +31,7 @@ namespace CatUI.Elements.Behaviors
         /// until <see cref="Element.MaxHeight"/> if necessary. <see cref="Element.PreferredHeight"/> will be ignored.
         /// </summary>
         public bool CanExpandVertically { get; set; }
+
+        public Size ComputeSizeInContainer();
     }
 }

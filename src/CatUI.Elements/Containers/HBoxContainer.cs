@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Containers;
 using CatUI.Elements.Behaviors;
@@ -35,7 +36,7 @@ namespace CatUI.Elements.Containers
         {
         }
 
-        protected override void RecalculateLayout()
+        public override void RecalculateContainerChildren()
         {
             float finalWidth, finalHeight = 0;
             float parentWidth, parentHeight, parentXPos, parentYPos;
@@ -53,12 +54,6 @@ namespace CatUI.Elements.Containers
                 parentXPos = GetParent()?.Bounds.BoundingRect.X ?? 0;
                 parentYPos = GetParent()?.Bounds.BoundingRect.Y ?? 0;
             }
-
-            //this is in order to recalculate the Bounds
-            AbsoluteWidth = Math.Clamp(
-                PreferredWidth.IsUnset() ? parentWidth : CalculateDimension(PreferredWidth, parentWidth),
-                MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
-                MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
 
             Point2D finalPosition = Point2D.Zero;
             if (!Position.IsUnset())
@@ -82,6 +77,7 @@ namespace CatUI.Elements.Containers
 
             float minimumPreferredWidth = 0, minimumMinWidth = 0;
             float allocatedPreferredWidth = 0, totalGrowthFactors = 0;
+            Rect bounds = Bounds.BoundingRect;
 
             foreach (Element child in Children)
             {
@@ -90,19 +86,23 @@ namespace CatUI.Elements.Containers
                     continue;
                 }
 
+                float minWidth = CalculateDimension(child.MinWidth, bounds.Width);
+                float maxWidth = CalculateDimension(child.MaxWidth, bounds.Width);
+                float prefWidth;
+
                 //it's allowed to expand or shrink if it is IExpandable
                 if (child is IExpandable expandable && expandable.CanExpandHorizontally)
                 {
-                    child.MarkLayoutDirty();
+                    Size size = expandable.ComputeSizeInContainer();
+                    prefWidth = CalculateDimension(size.Width, bounds.Width);
                 }
-
-                float minWidth = CalculateDimension(child.MinWidth, Bounds.BoundingRect.Width);
-                float maxWidth = CalculateDimension(child.MaxWidth, Bounds.BoundingRect.Width);
-                float prefWidth =
-                    Math.Clamp(
-                        CalculateDimension(child.PreferredWidth, Bounds.BoundingRect.Width),
+                else
+                {
+                    prefWidth = Math.Clamp(
+                        CalculateDimension(child.PreferredWidth, bounds.Width),
                         minWidth != 0 ? minWidth : float.MinValue,
                         maxWidth != 0 ? maxWidth : float.MaxValue);
+                }
 
                 if (child.ElementContainerSizing == null ||
                     (child.ElementContainerSizing is HBoxContainerSizing boxContainerSizing &&
@@ -127,13 +127,13 @@ namespace CatUI.Elements.Containers
             //calculate the container's final width
             bool elementsNeedShrinking = false;
             float containerPrefWidth =
-                PreferredWidth.IsUnset() ? Bounds.BoundingRect.Width : CalculateDimension(PreferredWidth, parentWidth);
+                PreferredWidth.IsUnset() ? bounds.Width : CalculateDimension(PreferredWidth, parentWidth);
             //it means that the container's preferred width is smaller that the minimum pref width of the content, so shrink the container
             if (minimumPreferredWidth > containerPrefWidth)
             {
                 elementsNeedShrinking = true;
                 float containerMaxWidth =
-                    MaxWidth.IsUnset() ? Bounds.BoundingRect.Width : CalculateDimension(MaxWidth, parentWidth);
+                    MaxWidth.IsUnset() ? bounds.Width : CalculateDimension(MaxWidth, parentWidth);
                 //it means that the container's max width is smaller that the minimum width of the content, 
                 //so set the value as the max stretch of the content
                 finalWidth = minimumPreferredWidth > containerMaxWidth ? containerMaxWidth : minimumPreferredWidth;
@@ -154,16 +154,16 @@ namespace CatUI.Elements.Containers
                     continue;
                 }
 
-                child.AbsolutePosition = new Point2D(currentPosX, currentPosY);
+                var childPosition = new Point2D(currentPosX, currentPosY);
 
                 //TODO: handle vertical positioning
-                child.AbsoluteHeight = finalHeight;
+                float childWidth;
 
-                float minWidth = CalculateDimension(child.MinWidth, Bounds.BoundingRect.Width);
-                float maxWidth = CalculateDimension(child.MaxWidth, Bounds.BoundingRect.Width);
+                float minWidth = CalculateDimension(child.MinWidth, bounds.Width);
+                float maxWidth = CalculateDimension(child.MaxWidth, bounds.Width);
                 float prefWidth =
                     Math.Clamp(
-                        CalculateDimension(child.PreferredWidth, Bounds.BoundingRect.Width),
+                        CalculateDimension(child.PreferredWidth, bounds.Width),
                         minWidth != 0 ? minWidth : float.MinValue,
                         maxWidth != 0 ? maxWidth : float.MaxValue);
 
@@ -179,25 +179,25 @@ namespace CatUI.Elements.Containers
                             {
                                 //make it proportional with the shrinking of the other elements
                                 growthSectionWidth = (finalWidth - (allocatedPreferredWidth * t)) / totalGrowthFactors;
-                                child.AbsoluteWidth = boxContainerSizing.HGrowthFactor * growthSectionWidth;
+                                childWidth = boxContainerSizing.HGrowthFactor * growthSectionWidth;
 
                                 //if the result was smaller than the minWidth, set it to minWidth and update the allocated
                                 //width accordingly (so that other elements can shrink correctly)
-                                if (child.AbsoluteWidth < minWidth)
+                                if (childWidth < minWidth)
                                 {
-                                    allocatedPreferredWidth += minWidth - child.AbsoluteWidth;
-                                    child.AbsoluteWidth = minWidth;
+                                    allocatedPreferredWidth += minWidth - childWidth;
+                                    childWidth = minWidth;
                                 }
                             }
                             else
                             {
-                                child.AbsoluteWidth = prefWidth;
+                                childWidth = prefWidth;
                             }
                         }
                         else
                         {
                             //if the pref width wasn't set, only the min width, just set it as the min width
-                            child.AbsoluteWidth = prefWidth <= minWidth
+                            childWidth = prefWidth <= minWidth
                                 ? minWidth
                                 : NumberUtils.Lerp(minWidth, prefWidth, t);
                         }
@@ -205,7 +205,7 @@ namespace CatUI.Elements.Containers
                     //when the elements can no longer be shrunk
                     else
                     {
-                        child.AbsoluteWidth = minWidth;
+                        childWidth = minWidth;
                     }
                 }
                 else
@@ -214,33 +214,38 @@ namespace CatUI.Elements.Containers
                     {
                         if (boxContainerSizing.HGrowthFactor > 0)
                         {
-                            child.AbsoluteWidth = boxContainerSizing.HGrowthFactor * growthSectionWidth;
+                            childWidth = boxContainerSizing.HGrowthFactor * growthSectionWidth;
 
                             //if the result was smaller than the minWidth, set it to minWidth and update the allocated
                             //width accordingly (so that other elements can shrink correctly)
-                            if (child.AbsoluteWidth < minWidth)
+                            if (childWidth < minWidth)
                             {
-                                allocatedPreferredWidth += minWidth - child.AbsoluteWidth;
-                                child.AbsoluteWidth = minWidth;
+                                allocatedPreferredWidth += minWidth - childWidth;
+                                childWidth = minWidth;
                             }
                         }
                         else
                         {
-                            child.AbsoluteWidth = prefWidth;
+                            childWidth = prefWidth;
                         }
                     }
                     else
                     {
-                        child.AbsoluteWidth = prefWidth;
+                        childWidth = prefWidth;
                     }
                 }
 
-                currentPosX += child.AbsoluteWidth;
+                child.Bounds = new ElementBounds(
+                    new Rect(childPosition.X, childPosition.Y, finalWidth, finalHeight),
+                    new Vector4());
+                child.MarkLayoutDirty();
+
+                currentPosX += childWidth;
             }
 
-            AbsoluteWidth = finalWidth;
-            AbsoluteHeight = finalHeight;
-            AbsolutePosition = finalPosition;
+            Bounds = new ElementBounds(
+                new Rect(finalPosition.X, finalPosition.Y, finalWidth, finalHeight),
+                new Vector4());
         }
 
         public override HBoxContainer Duplicate()
