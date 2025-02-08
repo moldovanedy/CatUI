@@ -1,11 +1,28 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
+using CatUI.Utils;
 
 namespace CatUI.Elements.Shapes
 {
     public class Ellipse : AbstractShape
     {
+        /// <inheritdoc cref="Element.Ref"/>
+        public new ObjectRef<Ellipse>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<Ellipse>? _ref;
+
         public Ellipse(
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,

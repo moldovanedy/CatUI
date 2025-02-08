@@ -1,12 +1,29 @@
 using System;
 using CatUI.Data;
 using CatUI.Data.Containers;
+using CatUI.Elements.Behaviors;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Containers
 {
     public class VBoxContainer : BoxContainer
     {
+        /// <inheritdoc cref="Element.Ref"/>
+        public new ObjectRef<VBoxContainer>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<VBoxContainer>? _ref;
+
         public override Orientation BoxOrientation => Orientation.Vertical;
 
         public VBoxContainer(
@@ -18,13 +35,8 @@ namespace CatUI.Elements.Containers
         {
         }
 
-        internal override void RecalculateLayout()
+        protected override void RecalculateLayout()
         {
-            if (IsChildOfContainer || !Enabled)
-            {
-                return;
-            }
-
             float finalWidth = 0, finalHeight;
 
             float parentWidth, parentHeight, parentXPos, parentYPos;
@@ -77,6 +89,12 @@ namespace CatUI.Elements.Containers
                 if (!child.Enabled)
                 {
                     continue;
+                }
+
+                //it's allowed to expand or shrink if it is IExpandable
+                if (child is IExpandable expandable && expandable.CanExpandVertically)
+                {
+                    child.MarkLayoutDirty();
                 }
 
                 float minHeight = CalculateDimension(child.MinHeight, Bounds.BoundingRect.Height);
@@ -222,7 +240,6 @@ namespace CatUI.Elements.Containers
                 }
 
                 currentPosY += child.AbsoluteHeight;
-                child.RecalculateLayout();
             }
 
             AbsoluteWidth = finalWidth;

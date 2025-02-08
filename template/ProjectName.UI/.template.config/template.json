@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "moldovanedy",
+  "classifications": [ "UI", "CatUI", "Library", "Windows", "MacOS", "Linux" ],
+  "name": "CatUI application (Library)",
+  "identity": "CatUI.App.Library",
+  "groupIdentity":"CatUI.App.Library",
+  "shortName": "catuilib",
+  "tags": {
+    "language": "C#",
+    "type":"project"
+  },
+  "sourceName": "ProjectName",
+  "preferNameDirectory": true,
+  "sources":[
+    {
+      "modifiers": [
+        {
+          "condition": "true",
+          "exclude": [ "bin/**/*"]
+        },
+        {
+          "condition": "true",
+          "exclude": [ "obj/**/*"]
+        }
+      ]
+    }
+  ]
+}

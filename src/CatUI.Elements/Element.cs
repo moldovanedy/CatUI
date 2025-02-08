@@ -111,6 +111,26 @@ namespace CatUI.Elements
 
         private Element? _parent;
 
+        /// <summary>
+        /// Set this to another <see cref="ObjectRef{T}"/> variable to be able to use this element using
+        /// <see cref="ObjectRef{T}.Value"/> (which will be this element). Very useful for accessing this element
+        /// outside the scope of a single method.
+        /// </summary>
+        public ObjectRef<Element>? Ref
+        {
+            get => _ref;
+            set
+            {
+                _ref = value;
+                if (_ref != null)
+                {
+                    _ref.Value = this;
+                }
+            }
+        }
+
+        private ObjectRef<Element>? _ref;
+
         public ObservableList<Element> Children
         {
             get => _children;
@@ -136,7 +156,7 @@ namespace CatUI.Elements
                 {
                     _position = value;
                     PositionProperty.Value = value;
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -164,7 +184,7 @@ namespace CatUI.Elements
                 {
                     _preferredWidth = value;
                     PreferredWidthProperty.Value = value;
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -192,7 +212,7 @@ namespace CatUI.Elements
                 {
                     _preferredHeight = value;
                     PreferredHeightProperty.Value = value;
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -213,7 +233,7 @@ namespace CatUI.Elements
                 {
                     _minWidth = value;
                     MinWidthProperty.Value = value;
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -234,7 +254,7 @@ namespace CatUI.Elements
                 {
                     _minHeight = value;
                     MinHeightProperty.Value = value;
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -255,7 +275,7 @@ namespace CatUI.Elements
                 {
                     _maxWidth = value;
                     MaxWidthProperty.Value = value;
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -276,7 +296,7 @@ namespace CatUI.Elements
                 {
                     _maxHeight = value;
                     MaxHeightProperty.Value = value;
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -296,7 +316,7 @@ namespace CatUI.Elements
                 {
                     _margin = value;
                     MarginProperty.Value = value;
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -463,7 +483,7 @@ namespace CatUI.Elements
                 {
                     _document = value;
                     InvokeEnterDocument();
-                    RecalculateLayout();
+                    MarkLayoutDirty();
                     MakeChildrenEnterDocument(Children);
                 }
                 //the element is in a document and the given document is another document or null
@@ -576,7 +596,7 @@ namespace CatUI.Elements
             Children.ItemMovedEvent += OnChildMoved;
             Children.ListClearingEvent += OnChildrenListClearing;
 
-            //we can't set the property itself because it calls RecalculateLayout(), which is a virtual method,
+            //we can't set the property itself because it calls MarkLayoutDirty(), which is a virtual method,
             //and it might cause the trouble to the more derived types
             _preferredWidth = preferredWidth ?? Dimension.Unset;
             PreferredWidthProperty.Value = _preferredWidth;
@@ -662,7 +682,7 @@ namespace CatUI.Elements
             if (Document != null)
             {
                 e.Item.Document = Document;
-                RecalculateLayout();
+                MarkLayoutDirty();
             }
         }
 
@@ -679,7 +699,7 @@ namespace CatUI.Elements
             e.Item._parent = null;
             e.Item._document = null;
             e.Item.IndexInParent = -1;
-            RecalculateLayout();
+            MarkLayoutDirty();
         }
 
         private static void OnChildMoved(object? sender, ObservableListMoveEventArgs<Element> e)
@@ -742,41 +762,49 @@ namespace CatUI.Elements
         private void SetPosition(Dimension2 value)
         {
             _position = value;
+            MarkLayoutDirty();
         }
 
         private void SetPrefWidth(Dimension value)
         {
             _preferredWidth = value;
+            MarkLayoutDirty();
         }
 
         private void SetPrefHeight(Dimension value)
         {
             _preferredHeight = value;
+            MarkLayoutDirty();
         }
 
         private void SetMinWidth(Dimension value)
         {
             _minWidth = value;
+            MarkLayoutDirty();
         }
 
         private void SetMinHeight(Dimension value)
         {
             _minHeight = value;
+            MarkLayoutDirty();
         }
 
         private void SetMaxWidth(Dimension value)
         {
             _maxWidth = value;
+            MarkLayoutDirty();
         }
 
         private void SetMaxHeight(Dimension value)
         {
             _maxHeight = value;
+            MarkLayoutDirty();
         }
 
         private void SetMargin(EdgeInset value)
         {
             _margin = value;
+            MarkLayoutDirty();
         }
 
         private void SetBackground(IBrush? value)
@@ -808,13 +836,8 @@ namespace CatUI.Elements
 
         #region Internal event handlers
 
-        internal virtual void RecalculateLayout()
+        protected virtual void RecalculateLayout()
         {
-            if (IsChildOfContainer || !_enabled)
-            {
-                return;
-            }
-
             float parentWidth, parentHeight, parentXPos, parentYPos;
             if (Document?.Root == this)
             {
@@ -852,11 +875,6 @@ namespace CatUI.Elements
                 AbsolutePosition = new Point2D(
                     parentXPos + CalculateDimension(Position.X, parentWidth),
                     parentYPos + CalculateDimension(Position.Y, parentHeight));
-            }
-
-            foreach (Element child in Children)
-            {
-                child.RecalculateLayout();
             }
         }
 
@@ -1018,10 +1036,21 @@ namespace CatUI.Elements
         /// Will notify the parent that this child modified its layout and must act accordingly (i.e. call
         /// <see cref="RecalculateLayout"/> on this child and recompute bounds if necessary).
         /// </summary>
-        [SuppressMessage("Performance", "CA1822:Mark members as static")]
         public void MarkLayoutDirty()
         {
-            //TODO: implement
+            if (IsChildOfContainer || !Enabled)
+            {
+                return;
+            }
+
+            RecalculateLayout();
+            foreach (Element child in Children)
+            {
+                if (!child.IsChildOfContainer && child.Enabled)
+                {
+                    child.MarkLayoutDirty();
+                }
+            }
         }
 
         #endregion //Public API

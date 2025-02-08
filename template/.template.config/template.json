@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "moldovanedy",
+  "classifications": [ "UI", "CatUI", "Desktop", "Library", "Windows", "MacOS", "Linux" ],
+  "name": "CatUI application",
+  "identity": "CatUI.App",
+  "groupIdentity":"CatUI.App",
+  "shortName": "catui",
+  "tags": {
+    "language": "C#",
+    "type":"project"
+  },
+  "sourceName": "ProjectName",
+  "preferNameDirectory": true,
+  "symbols": {
+    "platforms": {
+      "type": "parameter",
+      "dataType": "choice",
+      "allowMultipleValues": true,
+      "enableQuotelessLiterals": true,
+      "isRequired": true,
+      "defaultValue": "Lib",
+      "choices": [
+        {
+          "choice": "Lib",
+          "description": "The shared library that controls all UI."
+        },
+        {
+          "choice": "Desktop",
+          "description": "The specific code for cross-platform desktop development; handles the windowing."
+        }
+      ]
+    },
+    "usesLib": {
+      "type": "computed",
+      "value": "(platforms == Lib)"
+    }
+  },
+  "sources":[
+    {
+      "modifiers": [
+        {
+          "condition": "(platforms != Desktop)",
+          "exclude": [ "ProjectName.Desktop/**/*"]
+        },
+        {
+          "condition": "(platforms != Lib)",
+          "exclude": [ "ProjectName.UI/**/*"]
+        }
+      ]
+    }
+  ]
+}

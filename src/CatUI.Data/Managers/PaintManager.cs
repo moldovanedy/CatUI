@@ -13,7 +13,8 @@ namespace CatUI.Data.Managers
                 Color = new SKColor(0x00_00_00_00),
                 TextEncoding = SKTextEncoding.Utf8,
                 TextSize = DEFAULT_FONT_SIZE,
-                IsAntialias = true
+                IsAntialias = true,
+                SubpixelText = true
             };
 
         public static SKPaint GetPaint(
