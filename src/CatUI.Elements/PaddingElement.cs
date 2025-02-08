@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Containers;
 using CatUI.Utils;
@@ -94,9 +95,9 @@ namespace CatUI.Elements
             float height = parentHeight -
                            Math.Min(parentHeight / 2f, CalculateDimension(_padding.Bottom, parentHeight));
 
-            AbsoluteWidth = width;
-            AbsoluteHeight = height;
-            AbsolutePosition = new Point2D(x, y);
+            Bounds = new ElementBounds(
+                new Rect(x, y, width, height),
+                new Vector4());
         }
 
         public override PaddingElement Duplicate()

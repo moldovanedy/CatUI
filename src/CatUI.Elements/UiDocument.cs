@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using CatUI.Data;
 using CatUI.RenderingEngine;
 using SkiaSharp;
@@ -40,9 +41,9 @@ namespace CatUI.Elements
                 _root.PreferredHeight = "100%";
                 _root.PreferredWidth = "100%";
 
-                _root.AbsolutePosition = Point2D.Zero;
-                _root.AbsoluteWidth = ViewportSize.Width;
-                _root.AbsoluteHeight = ViewportSize.Height;
+                _root.Bounds = new ElementBounds(
+                    new Rect(0, 0, ViewportSize.Width, ViewportSize.Height),
+                    new Vector4());
             }
         }
 

@@ -410,7 +410,7 @@ namespace CatUI.Elements
         /// <summary>
         /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
         /// a layout and will generally give misleading values on properties that are related to layout in any way
-        /// such as <see cref="Bounds" /> or <see cref="AbsolutePosition" />. The default value is true.
+        /// such as <see cref="Bounds" /> or Bounds' position. The default value is true.
         /// </summary>
         /// <seealso cref="Visible" />
         public bool Enabled
@@ -507,52 +507,6 @@ namespace CatUI.Elements
         /// etc.
         /// </summary>
         public bool IsChildOfContainer { get; private set; }
-
-        public Point2D AbsolutePosition
-        {
-            get => _absolutePosition;
-            set
-            {
-                if (Math.Abs(value.X - _absolutePosition.X) > 0.01 ||
-                    Math.Abs(value.Y - _absolutePosition.Y) > 0.01)
-                {
-                    _absolutePosition = value;
-                    RecalculateBounds();
-                }
-            }
-        }
-
-        private Point2D _absolutePosition = Point2D.Zero;
-
-        public float AbsoluteWidth
-        {
-            get => _absoluteWidth;
-            set
-            {
-                if (Math.Abs(value - _absoluteWidth) > 0.01)
-                {
-                    _absoluteWidth = value;
-                    RecalculateBounds();
-                }
-            }
-        }
-
-        private float _absoluteWidth;
-
-        public float AbsoluteHeight
-        {
-            get => _absoluteHeight;
-            set
-            {
-                if (Math.Abs(value - _absoluteHeight) > 0.01)
-                {
-                    _absoluteHeight = value;
-                    RecalculateBounds();
-                }
-            }
-        }
-
-        private float _absoluteHeight;
 
         private bool _shouldCheckForDuplicateChildren = true;
 
@@ -854,34 +808,46 @@ namespace CatUI.Elements
                 parentYPos = _parent?.Bounds.BoundingRect.Y ?? 0;
             }
 
+            float width, height;
+            Point2D position;
+
             if (!PreferredWidth.IsUnset())
             {
-                AbsoluteWidth = Math.Clamp(
+                width = Math.Clamp(
                     CalculateDimension(PreferredWidth, parentWidth),
                     MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
                     MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
             }
+            else
+            {
+                width = MinWidth.IsUnset() ? 0 : CalculateDimension(MinWidth, parentWidth);
+            }
 
             if (!PreferredHeight.IsUnset())
             {
-                AbsoluteHeight = Math.Clamp(
+                height = Math.Clamp(
                     CalculateDimension(PreferredHeight, parentHeight),
                     MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
                     MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
             }
+            else
+            {
+                height = MinHeight.IsUnset() ? 0 : CalculateDimension(MinHeight, parentHeight);
+            }
 
             if (!Position.IsUnset())
             {
-                AbsolutePosition = new Point2D(
+                position = new Point2D(
                     parentXPos + CalculateDimension(Position.X, parentWidth),
                     parentYPos + CalculateDimension(Position.Y, parentHeight));
             }
-        }
+            else
+            {
+                position = new Point2D(parentXPos, parentYPos);
+            }
 
-        private void RecalculateBounds()
-        {
             Bounds = new ElementBounds(
-                new Rect(AbsolutePosition.X, AbsolutePosition.Y, AbsoluteWidth, AbsoluteHeight),
+                new Rect(position.X, position.Y, width, height),
                 new Vector4());
         }
 
@@ -1033,24 +999,47 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Will notify the parent that this child modified its layout and must act accordingly (i.e. call
-        /// <see cref="RecalculateLayout"/> on this child and recompute bounds if necessary).
+        /// Will recalculate the layout of this element (<see cref="RecalculateLayout"/>) and call this function
+        /// on all its children (can be an expensive operation). Then it will notify the parent that this child modified
+        /// its layout and must act accordingly (i.e. recompute bounds if necessary). It is generally not necessary
+        /// to call this directly, as changing the parameters will call this automatically if it's necessary.
         /// </summary>
+        /// <remarks>
+        /// If this element is not <see cref="Enabled"/>, it does nothing (the same for any child). If the element
+        /// is a child of a <see cref="Container"/>, it will only call this for children, as bounds should already
+        /// be set by the parent, and it's the responsibility of the <see cref="Container"/> to recalculate the bounds
+        /// of this element (inside <see cref="Container.RecalculateContainerChildren"/>). If this element is a
+        /// <see cref="Container"/>, it calls <see cref="RecalculateLayout"/> only for this element, not calling
+        /// this method on any child (if the container is NOT a child of another container, otherwise it will simply
+        /// call <see cref="Container.RecalculateContainerChildren"/>).
+        /// </remarks>
         public void MarkLayoutDirty()
         {
-            if (IsChildOfContainer || !Enabled)
+            if (!Enabled)
             {
                 return;
             }
 
-            RecalculateLayout();
+            if (!IsChildOfContainer)
+            {
+                RecalculateLayout();
+            }
+
+            if (this is Container container)
+            {
+                container.RecalculateContainerChildren();
+                return;
+            }
+
             foreach (Element child in Children)
             {
-                if (!child.IsChildOfContainer && child.Enabled)
+                if (child.Enabled)
                 {
                     child.MarkLayoutDirty();
                 }
             }
+
+            //TODO: notify parent
         }
 
         #endregion //Public API

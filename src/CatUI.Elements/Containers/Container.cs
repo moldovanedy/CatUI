@@ -1,4 +1,5 @@
 ﻿using CatUI.Data;
+using CatUI.Elements.Behaviors;
 
 namespace CatUI.Elements.Containers
 {
@@ -12,5 +13,12 @@ namespace CatUI.Elements.Containers
                 preferredHeight)
         {
         }
+
+        /// <summary>
+        /// Recalculates the children's bounds. It shouldn't be called from outside code, as it's internally called when
+        /// needed. If you implement this, you have to manually take care of all the relevant children, especially
+        /// those that implement <see cref="IExpandable"/>, as they can expand depending on the content.
+        /// </summary>
+        public abstract void RecalculateContainerChildren();
     }
 }
