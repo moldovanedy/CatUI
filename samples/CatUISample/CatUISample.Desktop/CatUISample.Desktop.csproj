@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PublishAot>true</PublishAot>
+        <InvariantGlobalization>true</InvariantGlobalization>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\src\CatUI.Windowing.Desktop\CatUI.Windowing.Desktop.csproj" />
+        <ProjectReference Include="..\..\..\src\CatUI\CatUI.csproj" />
+
+        <ProjectReference Include="..\CatUISample.UI\CatUISample.UI.csproj" />
+    </ItemGroup>
+
+</Project>

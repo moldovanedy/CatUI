@@ -56,11 +56,7 @@ namespace CatUI.Elements.Containers
                 parentYPos = GetParent()?.Bounds.BoundingRect.Y ?? 0;
             }
 
-            float finalHeight = Math.Clamp(
-                PreferredHeight.IsUnset() ? parentHeight : CalculateDimension(PreferredHeight, parentHeight),
-                MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
-                MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
-
+            float finalHeight;
             Point2D finalPosition = Point2D.Zero;
             if (!Position.IsUnset())
             {
@@ -244,11 +240,19 @@ namespace CatUI.Elements.Containers
                     }
                 }
 
+                //we already performed the necessary calculations for this one 
+                if (child is IExpandable)
+                {
+                    childHeight = child.Bounds.BoundingRect.Height;
+                }
+                else
+                {
+                    child.MarkLayoutDirty();
+                }
+
                 child.Bounds = new ElementBounds(
                     new Rect(childPosition.X, childPosition.Y, finalWidth, childHeight),
                     new Vector4());
-                child.MarkLayoutDirty();
-
                 currentPosY += childHeight;
             }
 

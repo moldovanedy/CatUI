@@ -235,11 +235,19 @@ namespace CatUI.Elements.Containers
                     }
                 }
 
-                child.Bounds = new ElementBounds(
-                    new Rect(childPosition.X, childPosition.Y, finalWidth, finalHeight),
-                    new Vector4());
-                child.MarkLayoutDirty();
+                //we already performed the necessary calculations for this one 
+                if (child is IExpandable)
+                {
+                    childWidth = child.Bounds.BoundingRect.Width;
+                }
+                else
+                {
+                    child.MarkLayoutDirty();
+                }
 
+                child.Bounds = new ElementBounds(
+                    new Rect(childPosition.X, childPosition.Y, childWidth, finalHeight),
+                    new Vector4());
                 currentPosX += childWidth;
             }
 
