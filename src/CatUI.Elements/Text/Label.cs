@@ -470,7 +470,25 @@ namespace CatUI.Elements.Text
         {
             if (!string.IsNullOrEmpty(Text))
             {
-                CreateFinalText(Bounds.BoundingRect.Width, Bounds.BoundingRect.Height);
+                float parentWidth, parentHeight;
+                if (Document?.Root == this)
+                {
+                    parentWidth = Document.ViewportSize.Width;
+                    parentHeight = Document.ViewportSize.Height;
+                }
+                else
+                {
+                    Element? parent = GetParent();
+                    parentWidth = parent?.Bounds.BoundingRect.Width ?? 0;
+                    parentHeight = parent?.Bounds.BoundingRect.Height ?? 0;
+                }
+
+                float maxWidth = MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth);
+                float maxHeight = MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight);
+
+                CreateFinalText(
+                    CanExpandHorizontally ? maxWidth : Bounds.BoundingRect.Width,
+                    CanExpandVertically ? maxHeight : Bounds.BoundingRect.Height);
             }
 
             return new Size(_maxRowWidth, _visibleTextTotalHeight);
@@ -772,6 +790,11 @@ namespace CatUI.Elements.Text
 
                                 _drawableRows.Add(new RowInformation { Text = row.Text, Width = row.Width });
                                 currentHeight += rowHeight;
+
+                                if (row.Width > _maxRowWidth)
+                                {
+                                    _maxRowWidth = row.Width;
+                                }
                             }
 
                             break;
@@ -809,6 +832,10 @@ namespace CatUI.Elements.Text
                                 });
 
                                 currentHeight += rowHeight;
+                                if (_drawableRows[^1].Width > _maxRowWidth)
+                                {
+                                    _maxRowWidth = _drawableRows[^1].Width;
+                                }
                             }
                         }
                         break;
