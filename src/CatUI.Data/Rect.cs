@@ -146,5 +146,20 @@ namespace CatUI.Data
 
             return true;
         }
+
+        public static bool IsPointInside(ref Rect rect, Point2D point)
+        {
+            if (point.X >= rect.EndX || point.X <= rect.X)
+            {
+                return false;
+            }
+
+            if (point.Y >= rect.EndY || point.Y <= rect.Y)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

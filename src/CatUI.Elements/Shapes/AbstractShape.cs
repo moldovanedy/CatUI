@@ -21,7 +21,7 @@ namespace CatUI.Elements.Shapes
         }
 
         private IBrush _fillBrush = new ColorBrush(Color.Default);
-        public ObservableProperty<IBrush> FillBrushProperty { get; } = new(new ColorBrush(Color.Default));
+        public ObservableProperty<IBrush> FillBrushProperty { get; private set; } = new(new ColorBrush(Color.Default));
 
         /// <summary>
         /// The "brush" used to make an outline (stroke) of the shape. A brush contains information like the color to use,
@@ -39,7 +39,9 @@ namespace CatUI.Elements.Shapes
         }
 
         private IBrush _outlineBrush = new ColorBrush(Color.Default);
-        public ObservableProperty<IBrush> OutlineBrushProperty { get; } = new(new ColorBrush(Color.Default));
+
+        public ObservableProperty<IBrush> OutlineBrushProperty { get; private set; } =
+            new(new ColorBrush(Color.Default));
 
         /// <summary>
         /// The parameters that describe the outline of the shape. It is irrelevant when <see cref="OutlineBrush"/> is
@@ -57,7 +59,9 @@ namespace CatUI.Elements.Shapes
         }
 
         private OutlineParams _outlineParameters = new();
-        public ObservableProperty<OutlineParams> OutlineParametersProperty { get; } = new(new OutlineParams());
+
+        public ObservableProperty<OutlineParams> OutlineParametersProperty { get; private set; } =
+            new(new OutlineParams());
 
         public AbstractShape(
             IBrush? fillBrush = null,
@@ -85,9 +89,9 @@ namespace CatUI.Elements.Shapes
 
         ~AbstractShape()
         {
-            FillBrushProperty.ValueChangedEvent -= SetFillBrush;
-            OutlineBrushProperty.ValueChangedEvent -= SetOutlineBrush;
-            OutlineParametersProperty.ValueChangedEvent -= SetOutlineParameters;
+            FillBrushProperty = null!;
+            OutlineBrushProperty = null!;
+            OutlineParametersProperty = null!;
         }
 
         private void SetFillBrush(IBrush? brush)

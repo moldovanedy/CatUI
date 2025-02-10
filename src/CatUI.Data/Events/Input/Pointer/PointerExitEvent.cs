@@ -1,10 +1,10 @@
 namespace CatUI.Data.Events.Input.Pointer
 {
-    public delegate void PointerEnterEventHandler(object sender, PointerEnterEventArgs e);
+    public delegate void PointerExitEventHandler(object sender, PointerExitEventArgs e);
 
-    public class PointerEnterEventArgs : AbstractPointerEventArgs
+    public class PointerExitEventArgs : AbstractPointerEventArgs
     {
-        public PointerEnterEventArgs(PointerEnterEventArgs other) :
+        public PointerExitEventArgs(PointerExitEventArgs other) :
             this(
                 other.Position,
                 other.AbsolutePosition,
@@ -12,7 +12,7 @@ namespace CatUI.Data.Events.Input.Pointer
         {
         }
 
-        public PointerEnterEventArgs(Point2D position, Point2D absolutePosition, bool isPressed)
+        public PointerExitEventArgs(Point2D position, Point2D absolutePosition, bool isPressed)
         {
             Position = position;
             AbsolutePosition = absolutePosition;

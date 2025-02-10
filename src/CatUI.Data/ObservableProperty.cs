@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace CatUI.Data
 {
+    /// <summary>
+    /// An object that holds a value and notifies all subscribers of <see cref="ValueChangedEvent"/> when that value
+    /// changes. It is also capable of binding two ObservableProperty objects so their values are synchronized.
+    /// On destruction, this object will automatically remove all the listeners of <see cref="ValueChangedEvent"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the contained object.</typeparam>
     public class ObservableProperty<T> : CatObject where T : notnull
     {
         /// <summary>
@@ -31,6 +37,11 @@ namespace CatUI.Data
         public ObservableProperty(T? value)
         {
             Value = value;
+        }
+
+        ~ObservableProperty()
+        {
+            ValueChangedEvent = null;
         }
 
         /// <summary>

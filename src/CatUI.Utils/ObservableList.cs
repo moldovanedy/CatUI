@@ -18,6 +18,15 @@ namespace CatUI.Utils
         /// </summary>
         public event EventHandler<EventArgs>? ListClearingEvent;
 
+        ~ObservableList()
+        {
+            ItemInsertedEvent = null;
+            ItemRemovedEvent = null;
+            ItemMovedEvent = null;
+            ListClearedEvent = null;
+            ListClearingEvent = null;
+        }
+
         protected override void InsertItem(int index, T item)
         {
             base.InsertItem(index, item);

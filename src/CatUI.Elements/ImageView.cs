@@ -42,7 +42,7 @@ namespace CatUI.Elements
         }
 
         private Image? _source;
-        public ObservableProperty<Image> SourceProperty { get; } = new();
+        public ObservableProperty<Image> SourceProperty { get; private set; } = new();
 
         /// <summary>
         /// Specifies the image's horizontal alignment (on the X axis). <see cref="HorizontalAlignmentType.Stretch"/> is
@@ -61,7 +61,7 @@ namespace CatUI.Elements
 
         private HorizontalAlignmentType _horizontalAlignment = HorizontalAlignmentType.Left;
 
-        public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; }
+        public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; private set; }
             = new(HorizontalAlignmentType.Left);
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace CatUI.Elements
 
         private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Top;
 
-        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
+        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; private set; }
             = new(VerticalAlignmentType.Top);
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace CatUI.Elements
         }
 
         private bool _shouldKeepAspectRatio = true;
-        public ObservableProperty<bool> ShouldKeepAspectRatioProperty { get; } = new(true);
+        public ObservableProperty<bool> ShouldKeepAspectRatioProperty { get; private set; } = new(true);
 
         /// <summary>
         /// Specifies how will the image fit inside the element's space. The default value is
@@ -118,7 +118,7 @@ namespace CatUI.Elements
         }
 
         private ImageFitType _imageFit = ImageFitType.CanShrink;
-        public ObservableProperty<ImageFitType> ImageFitProperty { get; } = new(ImageFitType.CanShrink);
+        public ObservableProperty<ImageFitType> ImageFitProperty { get; private set; } = new(ImageFitType.CanShrink);
 
         /// <summary>
         /// Specifies the quality of the drawn image after it has been resized (or simply the quality of the resizing
@@ -136,7 +136,7 @@ namespace CatUI.Elements
         }
 
         private ImageResizeQuality _resizeQuality = ImageResizeQuality.Medium;
-        public ObservableProperty<ImageResizeQuality> ResizeQualityProperty { get; } = new();
+        public ObservableProperty<ImageResizeQuality> ResizeQualityProperty { get; private set; } = new();
 
         private SKImage? _cachedScaledImage;
 
@@ -169,12 +169,12 @@ namespace CatUI.Elements
 
         ~ImageView()
         {
-            SourceProperty.ValueChangedEvent -= SetSource;
-            HorizontalAlignmentProperty.ValueChangedEvent -= SetHorizontalAlignment;
-            VerticalAlignmentProperty.ValueChangedEvent -= SetVerticalAlignment;
-            ShouldKeepAspectRatioProperty.ValueChangedEvent -= SetShouldKeepAspectRatio;
-            ImageFitProperty.ValueChangedEvent -= SetImageFit;
-            ResizeQualityProperty.ValueChangedEvent -= SetResizeQuality;
+            SourceProperty = null!;
+            HorizontalAlignmentProperty = null!;
+            VerticalAlignmentProperty = null!;
+            ShouldKeepAspectRatioProperty = null!;
+            ImageFitProperty = null!;
+            ResizeQualityProperty = null!;
         }
 
         private void SetSource(Image? value)

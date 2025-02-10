@@ -52,7 +52,7 @@ namespace CatUI.Elements.Text
         }
 
         private bool _wordWrap;
-        public ObservableProperty<bool> WordWrapProperty { get; } = new(false);
+        public ObservableProperty<bool> WordWrapProperty { get; private set; } = new(false);
 
         /// <inheritdoc cref="IExpandable.CanExpandHorizontally"/>
         /// <remarks>
@@ -69,7 +69,7 @@ namespace CatUI.Elements.Text
         }
 
         private bool _canExpandHorizontally = true;
-        public ObservableProperty<bool> CanExpandHorizontallyProperty { get; } = new(true);
+        public ObservableProperty<bool> CanExpandHorizontallyProperty { get; private set; } = new(true);
 
         /// <inheritdoc cref="IExpandable.CanExpandVertically"/>
         /// <remarks>
@@ -90,7 +90,7 @@ namespace CatUI.Elements.Text
         }
 
         private bool _canExpandVertically = true;
-        public ObservableProperty<bool> CanExpandVerticallyProperty { get; } = new(true);
+        public ObservableProperty<bool> CanExpandVerticallyProperty { get; private set; } = new(true);
 
         /// <summary>
         /// Represents the text's word break mode. It is only relevant when <see cref="WordWrap"/> is true.
@@ -108,7 +108,7 @@ namespace CatUI.Elements.Text
 
         private TextBreakMode _breakMode = TextBreakMode.SoftBreak;
 
-        public ObservableProperty<TextBreakMode> BreakModeProperty { get; } = new(TextBreakMode.SoftBreak);
+        public ObservableProperty<TextBreakMode> BreakModeProperty { get; private set; } = new(TextBreakMode.SoftBreak);
 
         /// <summary>
         /// Represents the character that will be used for hyphenation when <see cref="BreakMode"/> is
@@ -127,7 +127,7 @@ namespace CatUI.Elements.Text
         }
 
         private char _hyphenCharacter = '-';
-        public ObservableProperty<char> HyphenCharacterProperty { get; } = new('-');
+        public ObservableProperty<char> HyphenCharacterProperty { get; private set; } = new('-');
 
         /// <summary>
         /// Represents the brush that is used to draw the text. The default value is a solid black color.
@@ -143,7 +143,7 @@ namespace CatUI.Elements.Text
         }
 
         private IBrush _textBrush = new ColorBrush(new Color(0));
-        public ObservableProperty<IBrush> TextBrushProperty { get; } = new(new ColorBrush(new Color(0)));
+        public ObservableProperty<IBrush> TextBrushProperty { get; private set; } = new(new ColorBrush(new Color(0)));
 
         /// <summary>
         /// Represents the brush that is used to create the text outline. The default value is a completely transparent
@@ -160,7 +160,9 @@ namespace CatUI.Elements.Text
         }
 
         private IBrush _outlineTextBrush = new ColorBrush(Color.Default);
-        public ObservableProperty<IBrush> OutlineTextBrushProperty { get; } = new(new ColorBrush(Color.Default));
+
+        public ObservableProperty<IBrush> OutlineTextBrushProperty { get; private set; } =
+            new(new ColorBrush(Color.Default));
 
         /// <summary>
         /// A dimensionless value that represents the spacing between the rows. A value of 1 will not leave any space
@@ -184,7 +186,7 @@ namespace CatUI.Elements.Text
         }
 
         private float _lineHeight = 1.2f;
-        public ObservableProperty<float> LineHeightProperty { get; } = new(1.2f);
+        public ObservableProperty<float> LineHeightProperty { get; private set; } = new(1.2f);
 
         /// <summary>
         /// Represents the rows given by the user. These are not affected by word wrap or expansion, they are purely data.
@@ -239,14 +241,14 @@ namespace CatUI.Elements.Text
         {
             TextProperty.ValueChangedEvent -= OnTextChanged;
 
-            WordWrapProperty.ValueChangedEvent -= SetWordWrap;
-            CanExpandHorizontallyProperty.ValueChangedEvent -= SetCanExpandHorizontally;
-            CanExpandVerticallyProperty.ValueChangedEvent -= SetCanExpandVertically;
-            BreakModeProperty.ValueChangedEvent -= SetBreakMode;
-            HyphenCharacterProperty.ValueChangedEvent -= SetHyphenCharacter;
-            TextBrushProperty.ValueChangedEvent -= SetTextBrush;
-            OutlineTextBrushProperty.ValueChangedEvent -= SetOutlineTextBrush;
-            LineHeightProperty.ValueChangedEvent -= SetLineHeight;
+            WordWrapProperty = null!;
+            CanExpandHorizontallyProperty = null!;
+            CanExpandVerticallyProperty = null!;
+            BreakModeProperty = null!;
+            HyphenCharacterProperty = null!;
+            TextBrushProperty = null!;
+            OutlineTextBrushProperty = null!;
+            LineHeightProperty = null!;
         }
 
         private void InitPropertiesEvents()
