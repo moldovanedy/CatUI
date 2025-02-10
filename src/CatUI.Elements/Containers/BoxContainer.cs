@@ -18,7 +18,7 @@ namespace CatUI.Elements.Containers
         }
 
         private Dimension _spacing = new(0);
-        public ObservableProperty<Dimension> SpacingProperty { get; } = new(new Dimension(0));
+        public ObservableProperty<Dimension> SpacingProperty { get; private set; } = new(new Dimension(0));
 
         /// <summary>
         /// Specifies the orientation of this BoxContainer. Can be vertical or horizontal.
@@ -37,7 +37,7 @@ namespace CatUI.Elements.Containers
 
         ~BoxContainer()
         {
-            SpacingProperty.ValueChangedEvent -= SetSpacing;
+            SpacingProperty = null!;
         }
 
         private void SetSpacing(Dimension value)

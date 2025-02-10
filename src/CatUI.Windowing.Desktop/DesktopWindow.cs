@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using CatUI.Data;
+using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
+using CatUI.Utils;
 using CatUI.Windowing.Common;
 using OpenTK;
 using OpenTK.Graphics.Egl;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Platform.Windows;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace CatUI.Windowing.Desktop
@@ -60,6 +64,19 @@ namespace CatUI.Windowing.Desktop
 #endif
 
         private GLFWCallbacks.WindowSizeCallback? _resizeCallback;
+        private GLFWCallbacks.CursorPosCallback? _cursorMoveCallback;
+        private GLFWCallbacks.CursorEnterCallback? _cursorEnterOrLeaveCallback;
+        private GLFWCallbacks.MouseButtonCallback? _mouseButtonCallback;
+
+        private float _lastMouseX;
+        private float _lastMouseY;
+
+        /// <summary>
+        /// Represents a bitmap of all the pressed buttons of the mouse. Do NOT convert directly to a
+        /// <see cref="MouseButtonType"/> as it's a bitmap, it won't give correct results. GLFW already caches this state,
+        /// but it's probably more efficient to get it from here instead of constantly calling GLFW functions.
+        /// </summary>
+        private MouseButtonType _mousePressedBitmap;
 
         #region Properties
 
@@ -278,6 +295,9 @@ namespace CatUI.Windowing.Desktop
 
         public Func<bool> OnCloseRequested { get; set; } = () => true;
 
+        /// <summary>
+        /// Fired when the window is resized, either by the user, by the platform or by your app.
+        /// </summary>
         public event ResizedEventHandler? ResizedEvent;
 
         #endregion
@@ -352,6 +372,7 @@ namespace CatUI.Windowing.Desktop
                 throw new Exception($"Internal GLFW error ({errorCode}): {description}");
             }
 
+            //TODO: this is wrong, as this callback is per application, not per window; fix this
             GLFW.SetErrorCallback((code, desc) =>
             {
                 ErrorOccurred?.Invoke(code, desc);
@@ -366,7 +387,7 @@ namespace CatUI.Windowing.Desktop
             GLFW.WindowHint(WindowHintBool.Floating, (_flags & WindowFlags.AlwaysOnTop) != 0);
             GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (_flags & WindowFlags.TransparentFramebuffer) != 0);
 
-            Document = new UiDocument { ViewportSize = new Size(_width, _height) };
+            Document = new UiDocument(new Size(_width, _height));
         }
 
         ~DesktopWindow()
@@ -375,13 +396,10 @@ namespace CatUI.Windowing.Desktop
 
             if (GlfwWindow != null)
             {
-                GLFW.SetWindowSizeCallback(GlfwWindow, null);
+                UnregisterCallbacks();
             }
 
-            ResizedEvent -= ResizeWindow;
-            GLFW.SetErrorCallback(null);
-
-            _resizeCallback = null;
+            //GLFW.SetErrorCallback(null);
         }
 
         #endregion
@@ -401,7 +419,7 @@ namespace CatUI.Windowing.Desktop
             Document.Renderer.SetCanvasDirty();
 
             GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out float xScale, out float _);
-            Document.ContentScale = xScale;
+            DocumentInvoke("WndSetContentScale", xScale);
 
             //don't use Glfw.WindowShouldClose because that is handled by OnCloseRequested
             while (!_shouldCloseWindow)
@@ -510,16 +528,7 @@ namespace CatUI.Windowing.Desktop
             GL.LoadBindings(new GLFWBindingsContext());
 #endif
 
-            _resizeCallback = (_, newWidth, newHeight) =>
-            {
-                ResizedEvent?.Invoke(
-                    this,
-                    new ResizedEventArgs(Width, Height, newWidth, newHeight)
-                );
-            };
-            ResizedEvent += ResizeWindow;
-            GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
-
+            RegisterCallbacks();
             FullyRedraw();
         }
 
@@ -538,6 +547,98 @@ namespace CatUI.Windowing.Desktop
         {
             GLFW.PostEmptyEvent();
             _animationFrameCallbacks.Add(frameCallback);
+        }
+
+        private void RegisterCallbacks()
+        {
+            _resizeCallback = (_, newWidth, newHeight) =>
+            {
+                ResizedEvent?.Invoke(
+                    this,
+                    new ResizedEventArgs(Width, Height, newWidth, newHeight)
+                );
+            };
+            ResizedEvent += OnResize;
+            GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
+
+            _cursorMoveCallback = (_, posX, posY) =>
+            {
+                float positionX = (float)posX;
+                float positionY = (float)posY;
+                var pos = new Point2D(positionX, positionY);
+                bool pressed = (_mousePressedBitmap & MouseButtonType.Primary) == MouseButtonType.Primary;
+
+                DocumentInvoke(
+                    "WndCallPointerMove",
+                    new PointerMoveEventArgs(
+                        pos,
+                        pos,
+                        positionX - _lastMouseX,
+                        positionY - _lastMouseY,
+                        pressed));
+
+                _lastMouseX = positionX;
+                _lastMouseY = positionY;
+            };
+            GLFW.SetCursorPosCallback(GlfwWindow, _cursorMoveCallback);
+
+            _cursorEnterOrLeaveCallback = (_, entered) =>
+            {
+                GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
+                var pos = new Point2D((float)x, (float)y);
+                bool pressed = (_mousePressedBitmap & MouseButtonType.Primary) == MouseButtonType.Primary;
+
+                if (entered)
+                {
+                    DocumentInvoke(
+                        "WndCallPointerEnter",
+                        new PointerEnterEventArgs(pos, pos, pressed));
+                }
+                else
+                {
+                    DocumentInvoke(
+                        "WndCallPointerLeave",
+                        new PointerExitEventArgs(pos, pos, pressed));
+                }
+            };
+            GLFW.SetCursorEnterCallback(GlfwWindow, _cursorEnterOrLeaveCallback);
+
+            _mouseButtonCallback = (_, glfwMouseBtn, action, glfwKbdModifiers) =>
+            {
+                int bitmap = (int)_mousePressedBitmap;
+
+                //for these buttons, there's a 1:1 correspondence with our own MouseButtonType
+                if (glfwMouseBtn == MouseButton.Left ||
+                    glfwMouseBtn == MouseButton.Right ||
+                    glfwMouseBtn == MouseButton.Middle)
+                {
+                    BinaryUtils.SetBit(ref bitmap, action == InputAction.Press, (int)glfwMouseBtn);
+                }
+                //for the others, it's just GLFW's button + 4 for indices
+                else
+                {
+                    BinaryUtils.SetBit(ref bitmap, action == InputAction.Press, (int)(glfwMouseBtn + 4));
+                }
+
+                _mousePressedBitmap = (MouseButtonType)bitmap;
+            };
+            GLFW.SetMouseButtonCallback(GlfwWindow, _mouseButtonCallback);
+        }
+
+        private void UnregisterCallbacks()
+        {
+            ResizedEvent = null;
+            _resizeCallback = null;
+            GLFW.SetWindowSizeCallback(GlfwWindow, null);
+
+            _cursorMoveCallback = null;
+            GLFW.SetCursorPosCallback(GlfwWindow, null);
+
+            _cursorEnterOrLeaveCallback = null;
+            GLFW.SetCursorEnterCallback(GlfwWindow, null);
+
+            _mouseButtonCallback = null;
+            GLFW.SetMouseButtonCallback(GlfwWindow, null);
         }
 
         private void DoFrameActions()
@@ -661,7 +762,6 @@ namespace CatUI.Windowing.Desktop
         {
             //remove all the elements from the document
             Document.Root = null;
-            GLFW.SetErrorCallback(null);
 
 #if USE_ANGLE
             Egl.DestroySurface(_eglDisplay, _eglSurface);
@@ -676,7 +776,9 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
-        private void ResizeWindow(object sender, ResizedEventArgs e)
+        #region Callback functions
+
+        private void OnResize(object sender, ResizedEventArgs e)
         {
             //GL.Viewport(0, 0, width, height);
             //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
@@ -686,16 +788,35 @@ namespace CatUI.Windowing.Desktop
             GL.GetInteger(GetPName.Samples, out int samples);
             Document.Renderer.SetFramebufferData(frame, stencil, samples);
 
-            Document.ViewportSize = new Size(e.NewWidth, e.NewHeight);
+            DocumentInvoke("WndSetViewportSize", new Size(e.NewWidth, e.NewHeight));
             Document.Renderer.SetCanvasDirty();
             DoFrameActions();
         }
+
+        #endregion
 
         private void FullyRedraw()
         {
             Document.Renderer.ResetAndClear();
             Document.DrawAllElements();
             Document.Renderer.Flush();
+        }
+
+        /// <summary>
+        /// Dangerously calls non-internal instance methods from <see cref="Document"/>. These are necessary to make
+        /// sure we don't have public access to those setters, only implementations of <see cref="IApplicationWindow"/>
+        /// should be allowed to modify those.
+        /// </summary>
+        /// <param name="methodName">The name of the method.</param>
+        /// <param name="args">The arguments to give.</param>
+        private void DocumentInvoke(string methodName, params object[] args)
+        {
+            MethodInfo? func = Document.GetType().GetMethod(
+                methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+            if (func != null)
+            {
+                func.Invoke(Document, args);
+            }
         }
 
         private sealed class AngleBindingsContext : IBindingsContext

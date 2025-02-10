@@ -4,15 +4,26 @@ namespace CatUI.Data.Events.Input.Pointer
 
     public class PointerMoveEventArgs : AbstractPointerEventArgs
     {
+        public float DeltaX { get; protected set; }
+        public float DeltaY { get; protected set; }
+
         public PointerMoveEventArgs(PointerMoveEventArgs other) :
             this(
-                position: other.Position,
-                isPressed: other.IsPressed)
-        { }
+                other.Position,
+                other.AbsolutePosition,
+                other.DeltaX,
+                other.DeltaY,
+                other.IsPressed)
+        {
+        }
 
-        public PointerMoveEventArgs(Point2D position, bool isPressed)
+        public PointerMoveEventArgs(
+            Point2D position, Point2D absolutePosition, float deltaX, float deltaY, bool isPressed)
         {
             Position = position;
+            AbsolutePosition = absolutePosition;
+            DeltaX = deltaX;
+            DeltaY = deltaY;
             IsPressed = isPressed;
         }
     }

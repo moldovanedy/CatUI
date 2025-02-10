@@ -83,18 +83,18 @@ namespace CatUI.Elements
 
         private PointerEnterEventHandler? _onPointerEnter;
 
-        public PointerLeaveEventHandler? OnPointerLeave
+        public PointerExitEventHandler? OnPointerExit
         {
-            get => _onPointerLeave;
+            get => _onPointerExit;
             set
             {
-                PointerLeaveEvent -= _onPointerLeave;
-                _onPointerLeave = value;
-                PointerLeaveEvent += _onPointerLeave;
+                PointerExitEvent -= _onPointerExit;
+                _onPointerExit = value;
+                PointerExitEvent += _onPointerExit;
             }
         }
 
-        private PointerLeaveEventHandler? _onPointerLeave;
+        private PointerExitEventHandler? _onPointerExit;
 
         public PointerMoveEventHandler? OnPointerMove
         {
@@ -162,7 +162,7 @@ namespace CatUI.Elements
         }
 
         private Dimension2 _position = new(0, 0);
-        public ObservableProperty<Dimension2> PositionProperty { get; } = new(new Dimension2(0, 0));
+        public ObservableProperty<Dimension2> PositionProperty { get; private set; } = new(new Dimension2(0, 0));
 
         /// <summary>
         /// <para>
@@ -190,7 +190,7 @@ namespace CatUI.Elements
         }
 
         private Dimension _preferredWidth;
-        public ObservableProperty<Dimension> PreferredWidthProperty { get; } = new(Dimension.Unset);
+        public ObservableProperty<Dimension> PreferredWidthProperty { get; private set; } = new(Dimension.Unset);
 
         /// <summary>
         /// <para>
@@ -218,7 +218,7 @@ namespace CatUI.Elements
         }
 
         private Dimension _preferredHeight;
-        public ObservableProperty<Dimension> PreferredHeightProperty { get; } = new(Dimension.Unset);
+        public ObservableProperty<Dimension> PreferredHeightProperty { get; private set; } = new(Dimension.Unset);
 
         /// <summary>
         /// Represents the minimum width that the element can have.
@@ -239,7 +239,7 @@ namespace CatUI.Elements
         }
 
         private Dimension _minWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MinWidthProperty { get; } = new(Dimension.Unset);
+        public ObservableProperty<Dimension> MinWidthProperty { get; private set; } = new(Dimension.Unset);
 
         /// <summary>
         /// Represents the minimum height that the element can have.
@@ -260,7 +260,7 @@ namespace CatUI.Elements
         }
 
         private Dimension _minHeight = Dimension.Unset;
-        public ObservableProperty<Dimension> MinHeightProperty { get; } = new(Dimension.Unset);
+        public ObservableProperty<Dimension> MinHeightProperty { get; private set; } = new(Dimension.Unset);
 
         /// <summary>
         /// Represents the maximum width that the element can have.
@@ -281,7 +281,7 @@ namespace CatUI.Elements
         }
 
         private Dimension _maxWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxWidthProperty { get; } = new(Dimension.Unset);
+        public ObservableProperty<Dimension> MaxWidthProperty { get; private set; } = new(Dimension.Unset);
 
         /// <summary>
         /// Represents the minimum height that the element can have.
@@ -302,7 +302,7 @@ namespace CatUI.Elements
         }
 
         private Dimension _maxHeight = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxHeightProperty { get; } = new(Dimension.Unset);
+        public ObservableProperty<Dimension> MaxHeightProperty { get; private set; } = new(Dimension.Unset);
 
         /// <summary>
         /// The default value is a new <see cref="EdgeInset"/> with all the dimensions invalid (<see cref="Dimension.Unset"/>).
@@ -322,7 +322,7 @@ namespace CatUI.Elements
         }
 
         private EdgeInset _margin = new();
-        public ObservableProperty<EdgeInset> MarginProperty { get; } = new(new EdgeInset());
+        public ObservableProperty<EdgeInset> MarginProperty { get; private set; } = new(new EdgeInset());
 
         /// <summary>
         /// Specifies the brush to use to draw the element's background. By default, it's completely transparent,
@@ -339,7 +339,7 @@ namespace CatUI.Elements
         }
 
         private IBrush _background = new ColorBrush(Color.Default);
-        public ObservableProperty<IBrush> BackgroundProperty { get; } = new(new ColorBrush(Color.Default));
+        public ObservableProperty<IBrush> BackgroundProperty { get; private set; } = new(new ColorBrush(Color.Default));
 
         /// <summary>
         /// The radius of the corners of the element. Influences the <see cref="Background"/> drawing, as well as clipping.
@@ -356,7 +356,7 @@ namespace CatUI.Elements
         }
 
         private CornerInset _cornerRadius = new();
-        public ObservableProperty<CornerInset> CornerRadiusProperty { get; } = new(new CornerInset());
+        public ObservableProperty<CornerInset> CornerRadiusProperty { get; private set; } = new(new CornerInset());
 
         /// <summary>
         /// Represents the name of this element. This is useful for finding the element inside a hierarchy.
@@ -376,7 +376,7 @@ namespace CatUI.Elements
         }
 
         private string _name = "";
-        public ObservableProperty<string> NameProperty { get; } = new("");
+        public ObservableProperty<string> NameProperty { get; private set; } = new("");
 
         /// <summary>
         /// Controls whether this element is visible or not in the application. An invisible element will still occupy
@@ -405,7 +405,7 @@ namespace CatUI.Elements
         }
 
         private bool _visible = true;
-        public ObservableProperty<bool> VisibleProperty { get; } = new(true);
+        public ObservableProperty<bool> VisibleProperty { get; private set; } = new(true);
 
         /// <summary>
         /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
@@ -434,7 +434,7 @@ namespace CatUI.Elements
         }
 
         private bool _enabled = true;
-        public ObservableProperty<bool> EnabledProperty { get; } = new(true);
+        public ObservableProperty<bool> EnabledProperty { get; private set; } = new(true);
 
         /// <summary>
         /// Gives information on how to work with this element inside a container. The value is dependent on each
@@ -460,7 +460,7 @@ namespace CatUI.Elements
         }
 
         private ContainerSizing? _elementContainerSizing;
-        public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
+        public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; private set; } = new();
 
         public ElementBounds Bounds { get; internal set; } = new();
         public int IndexInParent { get; private set; } = -1;
@@ -510,12 +510,43 @@ namespace CatUI.Elements
 
         private bool _shouldCheckForDuplicateChildren = true;
 
+        /// <summary>
+        /// Fired when the element needs to be redrawn. Do NOT use this as a continuous consistent source of events (like
+        /// a "game loop" that fires x times a second) because this only fires when it's necessary.
+        /// </summary>
         public event Action? DrawEvent;
+
+        /// <summary>
+        /// Fired when the element is added to a document (see <see cref="Document"/>).
+        /// </summary>
         public event EnterDocumentEventHandler? EnterDocumentEvent;
+
+        /// <summary>
+        /// Fired when the element is removed from a document (see <see cref="Document"/>).
+        /// </summary>
         public event ExitDocumentEventHandler? ExitDocumentEvent;
+
+        /// <summary>
+        /// Fired when the element is loaded (i.e. all the resources like images or icons are loaded and can be shown).
+        /// Does NOT fire until all the children have loaded so, contrary to most of the other events, this event is
+        /// fired in post-order (to children first, then itself), not pre-order.
+        /// </summary>
         public event LoadEventHandler? LoadEvent;
+
+        /// <summary>
+        /// Fired when a pointer (like a mouse cursor, for example) enters the <see cref="Bounds"/> of the element.
+        /// </summary>
         public event PointerEnterEventHandler? PointerEnterEvent;
-        public event PointerLeaveEventHandler? PointerLeaveEvent;
+
+        /// <summary>
+        /// Fired when a pointer (like a mouse cursor, for example) exits the <see cref="Bounds"/> of the element.
+        /// </summary>
+        public event PointerExitEventHandler? PointerExitEvent;
+
+        /// <summary>
+        /// Fired when a pointer (like a mouse cursor, for example) moves inside <see cref="Bounds"/> of the element.
+        /// This will be fired a lot of times, so ensure your logic is not computationally heavy.
+        /// </summary>
         public event PointerMoveEventHandler? PointerMoveEvent;
 
 
@@ -528,7 +559,7 @@ namespace CatUI.Elements
             ExitDocumentEvent += ExitDocument;
             LoadEvent += Loaded;
             PointerEnterEvent += PointerEnter;
-            PointerLeaveEvent += PointerLeave;
+            PointerExitEvent += PointerExit;
             PointerMoveEvent += PointerMove;
 
             PositionProperty.ValueChangedEvent += SetPosition;
@@ -566,29 +597,26 @@ namespace CatUI.Elements
             ExitDocumentEvent = null;
             LoadEvent = null;
             PointerEnterEvent = null;
-            PointerLeaveEvent = null;
+            PointerExitEvent = null;
             PointerMoveEvent = null;
 
-            PositionProperty.ValueChangedEvent -= SetPosition;
-            PreferredWidthProperty.ValueChangedEvent -= SetPrefWidth;
-            PreferredHeightProperty.ValueChangedEvent -= SetPrefHeight;
-            MinWidthProperty.ValueChangedEvent -= SetMinWidth;
-            MinHeightProperty.ValueChangedEvent -= SetMinHeight;
-            MaxWidthProperty.ValueChangedEvent -= SetMaxWidth;
-            MaxHeightProperty.ValueChangedEvent -= SetMaxHeight;
-            MarginProperty.ValueChangedEvent -= SetMargin;
-            BackgroundProperty.ValueChangedEvent -= SetBackground;
-            CornerRadiusProperty.ValueChangedEvent -= SetCornerRadius;
-            VisibleProperty.ValueChangedEvent -= SetVisible;
-            EnabledProperty.ValueChangedEvent -= SetEnabled;
-            ElementContainerSizingProperty.ValueChangedEvent -= SetElementContainerSizing;
+            PositionProperty = null!;
+            PreferredWidthProperty = null!;
+            PreferredHeightProperty = null!;
+            MinWidthProperty = null!;
+            MinHeightProperty = null!;
+            MaxWidthProperty = null!;
+            MaxHeightProperty = null!;
+            MarginProperty = null!;
+            BackgroundProperty = null!;
+            CornerRadiusProperty = null!;
+            VisibleProperty = null!;
+            EnabledProperty = null!;
+            ElementContainerSizingProperty = null!;
 
-            Children.ItemInsertedEvent -= OnChildInserted;
-            Children.ItemRemovedEvent -= OnChildRemoved;
-            Children.ItemMovedEvent -= OnChildMoved;
-            Children.ListClearingEvent -= OnChildrenListClearing;
-
+            //remove from the document, along with all children
             Document = null;
+            Children = null!;
         }
 
         #region Visual
@@ -698,19 +726,111 @@ namespace CatUI.Elements
             LoadEvent?.Invoke(this);
         }
 
-        internal void InvokePointerEnter()
+        private bool _isPointerInside;
+        //TODO: check if we can put this inside a single method
+        //
+
+        /// <summary>
+        /// This should only be called by the document and only for the root element. It will call this recursively
+        /// where applicable so in the end it will fire <see cref="PointerEnterEvent"/> on all the eligible elements.
+        /// </summary>
+        /// <param name="e">
+        /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
+        /// relative to the top-left corner) and whether the pointer is pressed or not.
+        /// </param>
+        internal virtual void CheckInvokePointerEnter(PointerEnterEventArgs e)
         {
-            PointerEnterEvent?.Invoke(this, new PointerEnterEventArgs(Point2D.Zero, false));
+            Rect bounds = Bounds.BoundingRect;
+            if (!Rect.IsPointInside(ref bounds, e.Position))
+            {
+                return;
+            }
+
+            foreach (Element child in Children)
+            {
+                child.CheckInvokePointerEnter(e);
+            }
+
+            if (_isPointerInside)
+            {
+                return;
+            }
+
+            _isPointerInside = true;
+            var elementArgs = new PointerEnterEventArgs(
+                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                e.AbsolutePosition,
+                e.IsPressed);
+            PointerEnterEvent?.Invoke(this, elementArgs);
         }
 
-        internal void InvokePointerLeave()
+        /// <summary>
+        /// This should only be called by the document and only for the root element. It will call this recursively
+        /// where applicable so in the end it will fire <see cref="PointerExitEvent"/> on all the eligible elements.
+        /// </summary>
+        /// <param name="e">
+        /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
+        /// relative to the top-left corner) and whether the pointer is pressed or not.
+        /// </param>
+        internal virtual void CheckInvokePointerExit(PointerExitEventArgs e)
         {
-            PointerLeaveEvent?.Invoke(this, new PointerLeaveEventArgs(Point2D.Zero, false));
+            foreach (Element child in Children)
+            {
+                child.CheckInvokePointerExit(e);
+            }
+
+            Rect bounds = Bounds.BoundingRect;
+            if (Rect.IsPointInside(ref bounds, e.Position))
+            {
+                return;
+            }
+
+            if (!_isPointerInside)
+            {
+                return;
+            }
+
+            _isPointerInside = false;
+            var elementArgs = new PointerExitEventArgs(
+                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                e.AbsolutePosition,
+                e.IsPressed);
+            PointerExitEvent?.Invoke(this, elementArgs);
         }
 
-        internal void InvokePointerMove()
+        /// <summary>
+        /// This should only be called by the document and only for the root element. It will call this recursively
+        /// where applicable so in the end it will fire <see cref="PointerMoveEvent"/> on all the eligible elements.
+        /// </summary>
+        /// <param name="e">
+        /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
+        /// relative to the top-left corner) and whether the pointer is pressed or not.
+        /// </param>
+        internal virtual void CheckInvokePointerMove(PointerMoveEventArgs e)
         {
-            PointerMoveEvent?.Invoke(this, new PointerMoveEventArgs(Point2D.Zero, false));
+            if (!_isPointerInside)
+            {
+                return;
+            }
+
+            Rect bounds = Bounds.BoundingRect;
+            if (!Rect.IsPointInside(ref bounds, e.Position))
+            {
+                return;
+            }
+
+            foreach (Element child in Children)
+            {
+                child.CheckInvokePointerMove(e);
+            }
+
+            var elementArgs = new PointerMoveEventArgs(
+                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                e.AbsolutePosition,
+                e.DeltaX,
+                e.DeltaY,
+                e.IsPressed);
+            PointerMoveEvent?.Invoke(this, elementArgs);
         }
 
         private void SetPosition(Dimension2 value)
@@ -873,7 +993,7 @@ namespace CatUI.Elements
         public virtual void ExitDocument(object sender) { }
         public virtual void Loaded(object sender) { }
         public virtual void PointerEnter(object sender, PointerEnterEventArgs e) { }
-        public virtual void PointerLeave(object sender, PointerLeaveEventArgs e) { }
+        public virtual void PointerExit(object sender, PointerExitEventArgs e) { }
         public virtual void PointerMove(object sender, PointerMoveEventArgs e) { }
 
         /// <summary>

@@ -5,12 +5,14 @@ namespace CatUI.Data.Events.Input.Pointer
     public class PointerUpEventArgs : AbstractPointerEventArgs
     {
         public PointerUpEventArgs(PointerUpEventArgs other) :
-            this(position: other.Position)
-        { }
+            this(other.Position, other.AbsolutePosition)
+        {
+        }
 
-        public PointerUpEventArgs(Point2D position)
+        public PointerUpEventArgs(Point2D position, Point2D absolutePosition)
         {
             Position = position;
+            AbsolutePosition = absolutePosition;
             IsPressed = false;
         }
     }

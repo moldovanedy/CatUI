@@ -45,7 +45,7 @@ namespace CatUI.Elements.Shapes
 
         private bool _shouldApplyScaling;
 
-        public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new(false);
+        public ObservableProperty<bool> ShouldApplyScalingProperty { get; private set; } = new(false);
 
         /// <summary>
         /// The path's string description in the Scalable Vector Graphics (SVG) format. The only relevant element from an
@@ -82,7 +82,7 @@ namespace CatUI.Elements.Shapes
         }
 
         private string _svgPath = "";
-        public ObservableProperty<string> SvgPathProperty { get; } = new("");
+        public ObservableProperty<string> SvgPathProperty { get; private set; } = new("");
 
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
         private Vector2 _lastScale = Vector2.One;
@@ -109,8 +109,8 @@ namespace CatUI.Elements.Shapes
         {
             PathCache.RemovePath(_scaledCachedPath);
 
-            ShouldApplyScalingProperty.ValueChangedEvent -= SetShouldApplyScaling;
-            SvgPathProperty.ValueChangedEvent -= SetSvgPath;
+            ShouldApplyScalingProperty = null!;
+            SvgPathProperty = null!;
         }
 
         private void SetShouldApplyScaling(bool value)
