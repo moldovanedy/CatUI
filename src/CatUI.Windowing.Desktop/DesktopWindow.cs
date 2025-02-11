@@ -663,6 +663,12 @@ namespace CatUI.Windowing.Desktop
                 _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
             }
 
+            if (CatApplication.Instance.AppInitializer != null &&
+                CatApplication.Instance.Dispatcher is DesktopDispatcher dispatcher)
+            {
+                dispatcher.CallActions();
+            }
+
             if (hadFrameCallbacks || Document.Renderer.IsCanvasDirty)
             {
                 if (Document.Renderer.IsCanvasDirty)

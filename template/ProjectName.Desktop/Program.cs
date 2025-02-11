@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using CatUI.Data;
 using CatUI.Windowing.Desktop;
 #if (usesLib)
 using ProjectName.UI;
@@ -10,6 +11,8 @@ namespace ProjectName.Desktop
     {
         private static void Main(string[] args)
         {
+            Init();
+
             //we create a new window
             var window = new DesktopWindow(title: "ProjectName", minWidth: 250, minHeight: 200);
 #if (usesLib)
@@ -34,6 +37,17 @@ namespace ProjectName.Desktop
             {
                 Debug.WriteLine(ex.Message);
             }
+        }
+
+
+        private static void Init()
+        {
+            //early initialization of the app
+            CatApplication
+                .NewBuilder()
+                //you should ALWAYS set the initializer to ensure you hava access to everything from CatApplication
+                .SetInitializer(new DesktopPlatformInfo().AppInitializer)
+                .Build();
         }
     }
 }
