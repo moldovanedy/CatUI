@@ -713,6 +713,7 @@ namespace CatUI.Elements
             }
 
             _shouldRecalculateLayoutOnExit = true;
+            MarkLayoutDirty();
         }
 
         #region Internal invoke
