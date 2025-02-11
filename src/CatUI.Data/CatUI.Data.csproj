@@ -19,7 +19,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SkiaSharp" Version="2.88.8"/>
+        <PackageReference Include="SkiaSharp" Version="2.88.8" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -33,7 +33,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj"/>
+        <ProjectReference Include="..\..\CatUI.PlatformExtension\CatUI.PlatformExtension.csproj" />
+        <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj" />
     </ItemGroup>
 
 </Project>

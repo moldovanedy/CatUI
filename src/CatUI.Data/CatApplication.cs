@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using CatUI.PlatformExtension;
 
 namespace CatUI.Data
 {
@@ -28,6 +29,12 @@ namespace CatUI.Data
         private static CatApplication? _instance;
 
         /// <summary>
+        /// Represents the version of CatUI used by your application.
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        public static Version? CatUIVersion { get; private set; }
+
+        /// <summary>
         /// The application name. It is not used yet.
         /// </summary>
         public string AppName { get; private set; } = "";
@@ -43,6 +50,19 @@ namespace CatUI.Data
         /// </summary>
         public CatLogger.LogLevel ReleaseLogLevel { get; set; } = CatLogger.LogLevel.None;
 
+        /// <summary>
+        /// The platform dispatcher. See <see cref="DispatcherBase"/> for more info.
+        /// </summary>
+        /// <exception cref="NotImplementedException">
+        /// Thrown if the dispatcher wasn't available because you didn't set the <see cref="AppInitializer"/> in the
+        /// builder (using <see cref="AppBuilder.SetInitializer"/>).
+        /// </exception>
+        public DispatcherBase Dispatcher =>
+            AppInitializer?.Dispatcher ?? throw new NotImplementedException(
+                "Dispatcher is not available. Did you forgot to set the initializer?");
+
+        public CatApplicationInitializer? AppInitializer { get; private set; }
+
         private CatApplication()
         {
 #if DEBUG
@@ -52,10 +72,14 @@ namespace CatUI.Data
             }
 
             Debug.WriteLine(
-                @"Initializing CatApplication. This message will only appear in debug mode if 
-DebugLogLevel is LogLevel.Debug or lower. To configure debugging, use SetMinimumDebugLogLevel and SetMinimumReleaseLogLevel.
-                ");
+                "Initializing CatApplication. This message will only appear in debug mode if DebugLogLevel" +
+                " is LogLevel.Debug or lower. To configure debugging, use SetMinimumDebugLogLevel and " +
+                "SetMinimumReleaseLogLevel.");
 #endif
+
+            CatUIVersion = typeof(CatApplication).Assembly.GetName().Version;
+
+            AppInitializer?.PostInitializationAction?.Invoke();
         }
 
         /// <summary>
@@ -79,6 +103,7 @@ DebugLogLevel is LogLevel.Debug or lower. To configure debugging, use SetMinimum
             private string _appName = "";
             private CatLogger.LogLevel _debugLogLevel = CatLogger.LogLevel.Debug;
             private CatLogger.LogLevel _releaseLogLevel = CatLogger.LogLevel.Warning;
+            private CatApplicationInitializer? _initializer;
 
             /// <summary>
             /// Sets the application name.
@@ -110,6 +135,21 @@ DebugLogLevel is LogLevel.Debug or lower. To configure debugging, use SetMinimum
             public AppBuilder SetMinimumReleaseLogLevel(CatLogger.LogLevel releaseLogLevel)
             {
                 _releaseLogLevel = releaseLogLevel;
+                return this;
+            }
+
+            /// <summary>
+            /// Sets the platform-specific app initializer (this should be already given as a property for each
+            /// platform, like IPlatformInfo.PlatformInitializer). 
+            /// </summary>
+            /// <param name="initializer">
+            /// The app initializer. Without it, you will not be able to use critical functionality like
+            /// <see cref="CatApplication.Dispatcher"/>.
+            /// </param>
+            /// <returns>This builder.</returns>
+            public AppBuilder SetInitializer(CatApplicationInitializer initializer)
+            {
+                _initializer = initializer;
                 return this;
             }
 
@@ -149,6 +189,7 @@ DebugLogLevel is LogLevel.Debug or lower. To configure debugging, use SetMinimum
                 Instance.AppName = _appName;
                 Instance.DebugLogLevel = _debugLogLevel;
                 Instance.ReleaseLogLevel = _releaseLogLevel;
+                Instance.AppInitializer = _initializer;
                 return Instance;
             }
         }
