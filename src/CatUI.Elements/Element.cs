@@ -462,7 +462,13 @@ namespace CatUI.Elements
         private ContainerSizing? _elementContainerSizing;
         public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; private set; } = new();
 
+        /// <summary>
+        /// Represents the absolute coordinates of this element relative to the viewport. When the element is not
+        /// inside the document, these bounds are not reliable (generally representing an empty rect). This also
+        /// holds the margins of this element (not used yet).
+        /// </summary>
         public ElementBounds Bounds { get; internal set; } = new();
+
         public int IndexInParent { get; private set; } = -1;
 
         /// <summary>
@@ -650,6 +656,8 @@ namespace CatUI.Elements
         }
 
 
+        private bool _shouldRecalculateLayoutOnExit = true;
+
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
             if (_shouldCheckForDuplicateChildren && Children.Count(el => el == e.Item) > 1)
@@ -681,7 +689,12 @@ namespace CatUI.Elements
             e.Item._parent = null;
             e.Item._document = null;
             e.Item.IndexInParent = -1;
-            MarkLayoutDirty();
+            e.Item.Bounds = new ElementBounds();
+
+            if (_shouldRecalculateLayoutOnExit)
+            {
+                MarkLayoutDirty();
+            }
         }
 
         private static void OnChildMoved(object? sender, ObservableListMoveEventArgs<Element> e)
@@ -691,11 +704,15 @@ namespace CatUI.Elements
 
         private void OnChildrenListClearing(object? sender, EventArgs e)
         {
+            _shouldRecalculateLayoutOnExit = false;
+
             //will clear all children
             while (Children.Count > 0)
             {
                 Children.RemoveAt(0);
             }
+
+            _shouldRecalculateLayoutOnExit = true;
         }
 
         #region Internal invoke
@@ -1135,7 +1152,7 @@ namespace CatUI.Elements
         /// </remarks>
         public void MarkLayoutDirty()
         {
-            if (!Enabled)
+            if (!Enabled || !IsInsideDocument())
             {
                 return;
             }

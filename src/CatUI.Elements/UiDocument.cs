@@ -59,11 +59,11 @@ namespace CatUI.Elements
                     return;
                 }
 
-                _root.Document = this;
                 _root.MinHeight = "100%";
                 _root.MinWidth = "100%";
                 _root.PreferredHeight = "100%";
                 _root.PreferredWidth = "100%";
+                _root.Document = this;
 
                 _root.Bounds = new ElementBounds(
                     new Rect(0, 0, ViewportSize.Width, ViewportSize.Height),
