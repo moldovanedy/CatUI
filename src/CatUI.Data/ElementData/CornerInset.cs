@@ -1,4 +1,4 @@
-﻿namespace CatUI.Data
+﻿namespace CatUI.Data.ElementData
 {
     /// <summary>
     /// A set of offsets in each of the 4 rectangle corners: top-left, top-right, bottom-right, bottom-left.

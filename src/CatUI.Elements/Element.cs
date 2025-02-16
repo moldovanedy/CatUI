@@ -6,6 +6,7 @@ using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
+using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
@@ -619,6 +620,8 @@ namespace CatUI.Elements
             VisibleProperty = null!;
             EnabledProperty = null!;
             ElementContainerSizingProperty = null!;
+
+            LayoutProperty = null!;
 
             //remove from the document, along with all children
             Document = null;

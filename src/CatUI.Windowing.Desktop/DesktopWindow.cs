@@ -9,7 +9,6 @@ using CatUI.Windowing.Common;
 using OpenTK;
 using OpenTK.Graphics.Egl;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Platform.Windows;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace CatUI.Windowing.Desktop
@@ -446,6 +445,11 @@ namespace CatUI.Windowing.Desktop
 
         public void Open()
         {
+            //request OpenGL 3.3 core
+            GLFW.WindowHint(WindowHintInt.ContextVersionMajor, 3);
+            GLFW.WindowHint(WindowHintInt.ContextVersionMinor, 3);
+            GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Core);
+
             switch (_startupMode)
             {
                 default:

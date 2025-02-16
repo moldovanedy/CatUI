@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace CatUI.Data
+namespace CatUI.Data.ElementData
 {
     /// <summary>
     /// A set of offsets in each of the 4 cardinal directions: top, right, bottom, left.

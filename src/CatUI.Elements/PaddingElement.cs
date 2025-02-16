@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Containers;
+using CatUI.Data.ElementData;
 using CatUI.Utils;
 
 namespace CatUI.Elements
@@ -98,6 +99,42 @@ namespace CatUI.Elements
             Bounds = new ElementBounds(
                 new Rect(x, y, width, height),
                 new Vector4());
+        }
+
+        public override Size RecomputeLayout(
+            Size parentSize,
+            Size parentMaxSize,
+            Point2D parentAbsolutePosition,
+            Size? parentEnforcedSize = null)
+        {
+            float x =
+                parentAbsolutePosition.X +
+                Math.Min(parentSize.Width / 2f, CalculateDimension(_padding.Left, parentSize.Width));
+            float y =
+                parentAbsolutePosition.Y +
+                Math.Min(parentSize.Height / 2f, CalculateDimension(_padding.Top, parentSize.Height));
+
+            Size thisSize;
+            if (parentEnforcedSize == null)
+            {
+                float width = parentSize.Width -
+                              Math.Min(parentSize.Width / 2f, CalculateDimension(_padding.Right, parentSize.Width));
+                float height = parentSize.Height -
+                               Math.Min(parentSize.Height / 2f, CalculateDimension(_padding.Bottom, parentSize.Height));
+                thisSize = new Size(width, height);
+            }
+            else
+            {
+                thisSize = parentEnforcedSize.Value;
+            }
+
+            Point2D thisAbsolutePosition = new(x, y);
+            RecomputeChildrenUtil(thisSize, thisSize, thisAbsolutePosition);
+
+            Bounds = new ElementBounds(
+                new Rect(x, y, thisSize.Width, thisSize.Height),
+                new Vector4());
+            return thisSize;
         }
 
         public override PaddingElement Duplicate()

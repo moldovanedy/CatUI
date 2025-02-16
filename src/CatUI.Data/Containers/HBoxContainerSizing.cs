@@ -6,14 +6,14 @@ namespace CatUI.Data.Containers
     {
         /// <summary>
         /// Controls the growth factor of the element. The growth factor is the portion of the HBoxContainer that is allocated to
-        /// this element that is left after all non-growing elements' size (the ones with this property set to 0, the default value)
+        /// this element that is left after all non-growing elements' minimum size (the ones with this property set to 0, the default value)
         /// are subtracted from the total width of the HBoxContainer. See remarks for more details.
         /// This takes precedence over the element's preferred width as long as this is larger than 0
         /// (in which case the width will be considered).
         /// </summary>
         /// <remarks>
         /// <para>
-        /// The remaining "unallocated space" of the HBoxContainer is its width without the widths of non-growing element's size.
+        /// The remaining "unallocated space" of the HBoxContainer is its width without the widths of non-growing element's minimum size.
         /// All the growing elements' HorizontalGrow are summed, then each element gets the corresponding amount of space.
         /// </para>
         /// <para>

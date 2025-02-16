@@ -5,6 +5,7 @@ using System.Text;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
+using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Elements.Behaviors;
@@ -400,6 +401,39 @@ namespace CatUI.Elements.Text
                     CanExpandHorizontally ? maxWidth : Bounds.BoundingRect.Width,
                     CanExpandVertically ? maxHeight : Bounds.BoundingRect.Height);
             }
+        }
+
+        public override Size RecomputeLayout(
+            Size parentSize,
+            Size parentMaxSize,
+            Point2D parentAbsolutePosition,
+            Size? parentEnforcedSize = null)
+        {
+            Size thisSize, thisMaxSize;
+            Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
+
+            if (parentEnforcedSize == null)
+            {
+                thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+                thisMaxSize = GetMaxSizeUtil(parentSize);
+            }
+            else
+            {
+                thisSize = parentEnforcedSize.Value;
+                thisMaxSize = parentEnforcedSize.Value;
+            }
+
+            //temp
+            _visibleTextTotalHeight = float.PositiveInfinity;
+
+            if (!string.IsNullOrEmpty(Text) &&
+                (thisSize.Width < _maxRowWidth || thisSize.Height < _visibleTextTotalHeight))
+            {
+                CreateFinalText(thisSize.Width, thisSize.Height);
+            }
+
+            RecomputeChildrenUtil(thisSize, thisMaxSize, absolutePosition);
+            return thisSize;
         }
 
         public override void Draw()

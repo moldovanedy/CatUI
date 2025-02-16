@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Containers;
+using CatUI.Data.ElementData;
 using CatUI.Elements.Behaviors;
 using CatUI.Utils;
 
