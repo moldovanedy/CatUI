@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
@@ -11,7 +10,6 @@ using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
-using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers;
 using CatUI.Utils;
 
@@ -164,146 +162,6 @@ namespace CatUI.Elements
 
         private Dimension2 _position = new(0, 0);
         public ObservableProperty<Dimension2> PositionProperty { get; private set; } = new(new Dimension2(0, 0));
-
-        /// <summary>
-        /// <para>
-        /// Represents the preferred width of the element. The layout engine will try to honor this value, but this might be
-        /// influenced by other properties of an element (e.g. <see cref="IExpandable.CanExpandHorizontally" />)
-        /// or if the element is inside a container.
-        /// </para>
-        /// <para>
-        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that
-        /// the element will be in. The default value is <see cref="Dimension.Unset"/>.
-        /// </para>
-        /// </summary>
-        public Dimension PreferredWidth
-        {
-            get => _preferredWidth;
-            set
-            {
-                if (value != _preferredWidth)
-                {
-                    _preferredWidth = value;
-                    PreferredWidthProperty.Value = value;
-                    MarkLayoutDirty();
-                }
-            }
-        }
-
-        private Dimension _preferredWidth;
-        public ObservableProperty<Dimension> PreferredWidthProperty { get; private set; } = new(Dimension.Unset);
-
-        /// <summary>
-        /// <para>
-        /// Represents the preferred height of the element. The layout engine will try to honor this value, but this might be
-        /// influenced by other properties of an element (e.g. <see cref="IExpandable.CanExpandVertically" />)
-        /// or if the element is inside a container.
-        /// </para>
-        /// <para>
-        /// Please consult the documentation for the properties of the element you want to use, as well as the containers that
-        /// the element will be in. The default value is <see cref="Dimension.Unset"/>.
-        /// </para>
-        /// </summary>
-        public Dimension PreferredHeight
-        {
-            get => _preferredHeight;
-            set
-            {
-                if (value != _preferredHeight)
-                {
-                    _preferredHeight = value;
-                    PreferredHeightProperty.Value = value;
-                    MarkLayoutDirty();
-                }
-            }
-        }
-
-        private Dimension _preferredHeight;
-        public ObservableProperty<Dimension> PreferredHeightProperty { get; private set; } = new(Dimension.Unset);
-
-        /// <summary>
-        /// Represents the minimum width that the element can have.
-        /// By default, it has the invalid value (<see cref="Dimension.Unset"/>), meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MinWidth
-        {
-            get => _minWidth;
-            set
-            {
-                if (value != _minWidth)
-                {
-                    _minWidth = value;
-                    MinWidthProperty.Value = value;
-                    MarkLayoutDirty();
-                }
-            }
-        }
-
-        private Dimension _minWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MinWidthProperty { get; private set; } = new(Dimension.Unset);
-
-        /// <summary>
-        /// Represents the minimum height that the element can have.
-        /// By default, it has the invalid value (<see cref="Dimension.Unset"/>), meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MinHeight
-        {
-            get => _minHeight;
-            set
-            {
-                if (value != _minHeight)
-                {
-                    _minHeight = value;
-                    MinHeightProperty.Value = value;
-                    MarkLayoutDirty();
-                }
-            }
-        }
-
-        private Dimension _minHeight = Dimension.Unset;
-        public ObservableProperty<Dimension> MinHeightProperty { get; private set; } = new(Dimension.Unset);
-
-        /// <summary>
-        /// Represents the maximum width that the element can have.
-        /// By default, it has the invalid value (<see cref="Dimension.Unset"/>), meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MaxWidth
-        {
-            get => _maxWidth;
-            set
-            {
-                if (value != _maxWidth)
-                {
-                    _maxWidth = value;
-                    MaxWidthProperty.Value = value;
-                    MarkLayoutDirty();
-                }
-            }
-        }
-
-        private Dimension _maxWidth = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxWidthProperty { get; private set; } = new(Dimension.Unset);
-
-        /// <summary>
-        /// Represents the minimum height that the element can have.
-        /// By default, it has the invalid value (<see cref="Dimension.Unset"/>), meaning the restriction is not applied.
-        /// </summary>
-        public Dimension MaxHeight
-        {
-            get => _maxHeight;
-            set
-            {
-                if (value != _maxHeight)
-                {
-                    _maxHeight = value;
-                    MaxHeightProperty.Value = value;
-                    MarkLayoutDirty();
-                }
-            }
-        }
-
-        private Dimension _maxHeight = Dimension.Unset;
-        public ObservableProperty<Dimension> MaxHeightProperty { get; private set; } = new(Dimension.Unset);
 
         /// <summary>
         /// The default value is a new <see cref="EdgeInset"/> with all the dimensions invalid (<see cref="Dimension.Unset"/>).
@@ -468,7 +326,7 @@ namespace CatUI.Elements
         /// inside the document, these bounds are not reliable (generally representing an empty rect). This also
         /// holds the margins of this element (not used yet).
         /// </summary>
-        public ElementBounds Bounds { get; internal set; } = new();
+        public Rect Bounds { get; internal set; } = new();
 
         public int IndexInParent { get; private set; } = -1;
 
@@ -490,8 +348,8 @@ namespace CatUI.Elements
                 {
                     _document = value;
                     InvokeEnterDocument();
-                    MarkLayoutDirty();
                     MakeChildrenEnterDocument(Children);
+                    MarkLayoutDirty();
                 }
                 //the element is in a document and the given document is another document or null
                 else if (_document != value)
@@ -514,6 +372,8 @@ namespace CatUI.Elements
         /// etc.
         /// </summary>
         public bool IsChildOfContainer { get; private set; }
+
+        public bool IsInsideDocument => Document != null;
 
         private bool _shouldCheckForDuplicateChildren = true;
 
@@ -557,9 +417,7 @@ namespace CatUI.Elements
         public event PointerMoveEventHandler? PointerMoveEvent;
 
 
-        public Element(
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null)
+        public Element()
         {
             DrawEvent += Draw;
             EnterDocumentEvent += EnterDocument;
@@ -569,13 +427,9 @@ namespace CatUI.Elements
             PointerExitEvent += PointerExit;
             PointerMoveEvent += PointerMove;
 
+            ChildLayoutChangedEvent += OnChildLayoutChanged;
+
             PositionProperty.ValueChangedEvent += SetPosition;
-            PreferredWidthProperty.ValueChangedEvent += SetPrefWidth;
-            PreferredHeightProperty.ValueChangedEvent += SetPrefHeight;
-            MinWidthProperty.ValueChangedEvent += SetMinWidth;
-            MinHeightProperty.ValueChangedEvent += SetMinHeight;
-            MaxWidthProperty.ValueChangedEvent += SetMaxWidth;
-            MaxHeightProperty.ValueChangedEvent += SetMaxHeight;
             MarginProperty.ValueChangedEvent += SetMargin;
             BackgroundProperty.ValueChangedEvent += SetBackground;
             CornerRadiusProperty.ValueChangedEvent += SetCornerRadius;
@@ -587,14 +441,6 @@ namespace CatUI.Elements
             Children.ItemRemovedEvent += OnChildRemoved;
             Children.ItemMovedEvent += OnChildMoved;
             Children.ListClearingEvent += OnChildrenListClearing;
-
-            //we can't set the property itself because it calls MarkLayoutDirty(), which is a virtual method,
-            //and it might cause the trouble to the more derived types
-            _preferredWidth = preferredWidth ?? Dimension.Unset;
-            PreferredWidthProperty.Value = _preferredWidth;
-
-            _preferredHeight = preferredHeight ?? Dimension.Unset;
-            PreferredHeightProperty.Value = _preferredHeight;
         }
 
         ~Element()
@@ -607,13 +453,9 @@ namespace CatUI.Elements
             PointerExitEvent = null;
             PointerMoveEvent = null;
 
+            ChildLayoutChangedEvent = null;
+
             PositionProperty = null!;
-            PreferredWidthProperty = null!;
-            PreferredHeightProperty = null!;
-            MinWidthProperty = null!;
-            MinHeightProperty = null!;
-            MaxWidthProperty = null!;
-            MaxHeightProperty = null!;
             MarginProperty = null!;
             BackgroundProperty = null!;
             CornerRadiusProperty = null!;
@@ -639,7 +481,7 @@ namespace CatUI.Elements
 
             if (!Background.IsSkippable)
             {
-                Document?.Renderer.DrawRect(Bounds.GetContentBox(), Background);
+                Document?.Renderer.DrawRect(Bounds, Background);
             }
         }
 
@@ -692,7 +534,7 @@ namespace CatUI.Elements
             e.Item._parent = null;
             e.Item._document = null;
             e.Item.IndexInParent = -1;
-            e.Item.Bounds = new ElementBounds();
+            e.Item.Bounds = new Rect();
 
             if (_shouldRecalculateLayoutOnExit)
             {
@@ -761,7 +603,7 @@ namespace CatUI.Elements
         /// </param>
         internal virtual void CheckInvokePointerEnter(PointerEnterEventArgs e)
         {
-            Rect bounds = Bounds.BoundingRect;
+            Rect bounds = Bounds;
             if (!Rect.IsPointInside(ref bounds, e.Position))
             {
                 return;
@@ -800,7 +642,7 @@ namespace CatUI.Elements
                 child.CheckInvokePointerExit(e);
             }
 
-            Rect bounds = Bounds.BoundingRect;
+            Rect bounds = Bounds;
             if (Rect.IsPointInside(ref bounds, e.Position))
             {
                 return;
@@ -834,7 +676,7 @@ namespace CatUI.Elements
                 return;
             }
 
-            Rect bounds = Bounds.BoundingRect;
+            Rect bounds = Bounds;
             if (!Rect.IsPointInside(ref bounds, e.Position))
             {
                 return;
@@ -857,42 +699,6 @@ namespace CatUI.Elements
         private void SetPosition(Dimension2 value)
         {
             _position = value;
-            MarkLayoutDirty();
-        }
-
-        private void SetPrefWidth(Dimension value)
-        {
-            _preferredWidth = value;
-            MarkLayoutDirty();
-        }
-
-        private void SetPrefHeight(Dimension value)
-        {
-            _preferredHeight = value;
-            MarkLayoutDirty();
-        }
-
-        private void SetMinWidth(Dimension value)
-        {
-            _minWidth = value;
-            MarkLayoutDirty();
-        }
-
-        private void SetMinHeight(Dimension value)
-        {
-            _minHeight = value;
-            MarkLayoutDirty();
-        }
-
-        private void SetMaxWidth(Dimension value)
-        {
-            _maxWidth = value;
-            MarkLayoutDirty();
-        }
-
-        private void SetMaxHeight(Dimension value)
-        {
-            _maxHeight = value;
             MarkLayoutDirty();
         }
 
@@ -931,73 +737,12 @@ namespace CatUI.Elements
 
         #region Internal event handlers
 
-        protected virtual void RecalculateLayout()
-        {
-            float parentWidth, parentHeight, parentXPos, parentYPos;
-            if (Document?.Root == this)
-            {
-                parentWidth = Document.ViewportSize.Width;
-                parentHeight = Document.ViewportSize.Height;
-                parentXPos = 0;
-                parentYPos = 0;
-            }
-            else
-            {
-                parentWidth = _parent?.Bounds.BoundingRect.Width ?? 0;
-                parentHeight = _parent?.Bounds.BoundingRect.Height ?? 0;
-                parentXPos = _parent?.Bounds.BoundingRect.X ?? 0;
-                parentYPos = _parent?.Bounds.BoundingRect.Y ?? 0;
-            }
-
-            float width, height;
-            Point2D position;
-
-            if (!PreferredWidth.IsUnset())
-            {
-                width = Math.Clamp(
-                    CalculateDimension(PreferredWidth, parentWidth),
-                    MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
-                    MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth));
-            }
-            else
-            {
-                width = MinWidth.IsUnset() ? 0 : CalculateDimension(MinWidth, parentWidth);
-            }
-
-            if (!PreferredHeight.IsUnset())
-            {
-                height = Math.Clamp(
-                    CalculateDimension(PreferredHeight, parentHeight),
-                    MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
-                    MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight));
-            }
-            else
-            {
-                height = MinHeight.IsUnset() ? 0 : CalculateDimension(MinHeight, parentHeight);
-            }
-
-            if (!Position.IsUnset())
-            {
-                position = new Point2D(
-                    parentXPos + CalculateDimension(Position.X, parentWidth),
-                    parentYPos + CalculateDimension(Position.Y, parentHeight));
-            }
-            else
-            {
-                position = new Point2D(parentXPos, parentYPos);
-            }
-
-            Bounds = new ElementBounds(
-                new Rect(position.X, position.Y, width, height),
-                new Vector4());
-        }
-
         private void MakeChildrenEnterDocument(ObservableList<Element> children)
         {
             foreach (Element child in children)
             {
                 child.Document = Document;
-                MakeChildrenEnterDocument(child.Children);
+                //MakeChildrenEnterDocument(child.Children);
             }
         }
 
@@ -1029,12 +774,6 @@ namespace CatUI.Elements
             return new Element
             {
                 Position = _position,
-                PreferredWidth = _preferredWidth,
-                PreferredHeight = _preferredHeight,
-                MinWidth = _minWidth,
-                MinHeight = _minHeight,
-                MaxWidth = _maxWidth,
-                MaxHeight = _maxHeight,
                 Margin = _margin,
                 Background = _background.Duplicate(),
                 CornerRadius = _cornerRadius,
@@ -1064,11 +803,6 @@ namespace CatUI.Elements
         public Element? GetParent()
         {
             return _parent;
-        }
-
-        public bool IsInsideDocument()
-        {
-            return Document != null;
         }
 
         /// <summary>
@@ -1140,47 +874,28 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Will recalculate the layout of this element (<see cref="RecalculateLayout"/>) and call this function
-        /// on all its children (can be an expensive operation). Then it will notify the parent that this child modified
-        /// its layout and must act accordingly (i.e. recompute bounds if necessary). It is generally not necessary
-        /// to call this directly, as changing the parameters will call this automatically if it's necessary.
+        /// It will notify the parent that this child modified its layout, and it will call <see cref="RecomputeLayout"/>
+        /// for this element. It is generally not necessary to call this directly, as changing the parameters will call
+        /// this automatically if it's necessary.
         /// </summary>
         /// <remarks>
-        /// If this element is not <see cref="Enabled"/>, it does nothing (the same for any child). If the element
-        /// is a child of a <see cref="Container"/>, it will only call this for children, as bounds should already
-        /// be set by the parent, and it's the responsibility of the <see cref="Container"/> to recalculate the bounds
-        /// of this element (inside <see cref="Container.RecalculateContainerChildren"/>). If this element is a
-        /// <see cref="Container"/>, it calls <see cref="RecalculateLayout"/> only for this element, not calling
-        /// this method on any child (if the container is NOT a child of another container, otherwise it will simply
-        /// call <see cref="Container.RecalculateContainerChildren"/>).
+        /// If this element is not <see cref="Enabled"/> or not inside the document, it does nothing (the same for any
+        /// child). If this element is the root, it will simply call <see cref="RecomputeLayout"/>.
         /// </remarks>
         public void MarkLayoutDirty()
         {
-            if (!Enabled || !IsInsideDocument())
+            if (!Enabled || !IsInsideDocument)
             {
                 return;
             }
 
-            if (!IsChildOfContainer)
+            if (this == Document?.Root)
             {
-                RecalculateLayout();
+                RecomputeLayout(Document.ViewportSize, Document.ViewportSize, Point2D.Zero);
             }
 
-            if (this is Container container)
-            {
-                container.RecalculateContainerChildren();
-                return;
-            }
-
-            foreach (Element child in Children)
-            {
-                if (child.Enabled)
-                {
-                    child.MarkLayoutDirty();
-                }
-            }
-
-            //TODO: notify parent
+            //notify parent
+            _parent?.ChildLayoutChangedEvent?.Invoke(this, new ChildLayoutChangedEventArgs(IndexInParent));
         }
 
         #endregion //Public API

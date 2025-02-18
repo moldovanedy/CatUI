@@ -1,8 +1,9 @@
 using System;
-using System.Numerics;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using CatUI.Data;
 using CatUI.Data.ElementData;
+using CatUI.Data.Events.Document;
 
 namespace CatUI.Elements
 {
@@ -21,6 +22,44 @@ namespace CatUI.Elements
         private ElementLayout _layout = new();
         public ObservableProperty<ElementLayout> LayoutProperty { get; private set; } = new(new ElementLayout());
 
+        public event ChildLayoutChangedEventHandler? ChildLayoutChangedEvent;
+
+        protected virtual void OnChildLayoutChanged(object? sender, ChildLayoutChangedEventArgs e)
+        {
+            Rect parentBounds = _parent?.Bounds ?? new Rect();
+            Point2D parentAbsolutePosition = new(parentBounds.X, parentBounds.Y);
+            Size parentSize = new(parentBounds.Width, parentBounds.Height);
+
+            Element currentElement = this;
+            List<int> childIndices = new();
+            while (currentElement._parent != null)
+            {
+                currentElement = currentElement._parent;
+                childIndices.Add(currentElement.IndexInParent);
+            }
+
+            //the root will always have its max size the same as its bounds 
+            Size parentMaxSize = new(currentElement.Bounds.Width, currentElement.Bounds.Height);
+            //from the direct child of root to this element's parent
+            for (int i = childIndices.Count - 2; i >= 0; i--)
+            {
+                Element next = currentElement._children[childIndices[i]];
+                parentMaxSize = next.GetMaxSizeUtil(parentMaxSize);
+                currentElement = next;
+            }
+
+            Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
+            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+            Size thisMaxSize = GetMaxSizeUtil(parentSize);
+
+            if (e.ChildIndex >= _children.Count)
+            {
+                return;
+            }
+
+            _children[e.ChildIndex].RecomputeLayout(thisSize, thisMaxSize, absolutePosition);
+        }
+
         /// <summary>
         /// The most important function for the layout system. You should generally not override this and instead use
         /// already existing elements to achieve the desired result. If you however do override this, see the remarks for
@@ -31,7 +70,7 @@ namespace CatUI.Elements
         /// also calling this method recursively to all the children and making sure to give children the correct data.
         /// Before returning, you MUST set <see cref="Bounds"/> to in absolute coordinates (relative only to the viewport).
         /// You can call this only on children that are visible in the viewport or are important to the general layout
-        /// of this element.
+        /// of this element for more efficiency.
         /// </remarks>
         /// <param name="parentSize">
         /// The parent's preferred size. For children, you should pass your element's preferred size.
@@ -50,7 +89,8 @@ namespace CatUI.Elements
         /// An optional parameter that is generally given inside containers. It represents the parent's forced
         /// size for this element. You MUST respect this and not give your own value, as the container is free to
         /// assume that the given value was set or even set it manually, in which case not obeying will create a broken
-        /// UI.</param>
+        /// UI.
+        /// </param>
         /// <returns>
         /// The preferred size of this element. This might NOT be your final size, especially inside containers.
         /// </returns>
@@ -75,7 +115,7 @@ namespace CatUI.Elements
             }
 
             RecomputeChildrenUtil(thisSize, thisMaxSize, absolutePosition);
-            Bounds = new ElementBounds(new Rect(absolutePosition, thisSize), new Vector4());
+            Bounds = new Rect(absolutePosition, thisSize);
 
             return thisSize;
         }
@@ -235,7 +275,7 @@ namespace CatUI.Elements
         protected Point2D GetAbsolutePositionUtil(Point2D parentAbsolutePosition, Size parentSize)
         {
             Point2D absolutePosition;
-            if (Position.IsUnset())
+            if (!Position.IsUnset())
             {
                 absolutePosition = new Point2D(
                     parentAbsolutePosition.X + CalculateDimension(Position.X, parentSize.Width),

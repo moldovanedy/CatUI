@@ -229,6 +229,9 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 # ReSharper properties
 resharper_align_multiline_calls_chain = true
 resharper_align_multiple_declaration = true
+resharper_arguments_literal = positional
+resharper_arguments_named = positional
+resharper_arguments_string_literal = positional
 resharper_braces_for_for = required
 resharper_braces_for_foreach = required
 resharper_braces_for_ifelse = required

@@ -145,13 +145,7 @@ namespace CatUI.Elements
             InitPropertiesEvents();
         }
 
-        public ImageView(
-            Image source,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null)
-            : base(
-                preferredWidth,
-                preferredHeight)
+        public ImageView(Image source)
         {
             Source = source;
             InitPropertiesEvents();
@@ -244,22 +238,22 @@ namespace CatUI.Elements
                         {
                             float aspectRatio = skiaImage.Width / (float)skiaImage.Height;
 
-                            if (width > Bounds.BoundingRect.Width)
+                            if (width > Bounds.Width)
                             {
-                                width = Bounds.BoundingRect.Width;
+                                width = Bounds.Width;
                                 height = width * aspectRatio;
                             }
 
-                            if (height > Bounds.BoundingRect.Height)
+                            if (height > Bounds.Height)
                             {
-                                height = Bounds.BoundingRect.Height;
+                                height = Bounds.Height;
                                 width = height * (1f / aspectRatio);
                             }
                         }
                         else
                         {
-                            width = Math.Clamp(skiaImage.Width, 0f, Bounds.BoundingRect.Width);
-                            height = Math.Clamp(skiaImage.Height, 0f, Bounds.BoundingRect.Height);
+                            width = Math.Clamp(skiaImage.Width, 0f, Bounds.Width);
+                            height = Math.Clamp(skiaImage.Height, 0f, Bounds.Height);
                         }
 
                         break;
@@ -270,22 +264,22 @@ namespace CatUI.Elements
                         {
                             float aspectRatio = skiaImage.Width / (float)skiaImage.Height;
 
-                            if (width < Bounds.BoundingRect.Width)
+                            if (width < Bounds.Width)
                             {
-                                width = Bounds.BoundingRect.Width;
+                                width = Bounds.Width;
                                 height = width * aspectRatio;
                             }
 
-                            if (height < Bounds.BoundingRect.Height)
+                            if (height < Bounds.Height)
                             {
-                                height = Bounds.BoundingRect.Height;
+                                height = Bounds.Height;
                                 width = height * (1f / aspectRatio);
                             }
                         }
                         else
                         {
-                            width = Math.Max(skiaImage.Width, Bounds.BoundingRect.Width);
-                            height = Math.Max(skiaImage.Height, Bounds.BoundingRect.Height);
+                            width = Math.Max(skiaImage.Width, Bounds.Width);
+                            height = Math.Max(skiaImage.Height, Bounds.Height);
                         }
 
                         break;
@@ -296,21 +290,21 @@ namespace CatUI.Elements
                         {
                             float aspectRatio = skiaImage.Width / (float)skiaImage.Height;
 
-                            if (Bounds.BoundingRect.Width < Bounds.BoundingRect.Height)
+                            if (Bounds.Width < Bounds.Height)
                             {
-                                width = Bounds.BoundingRect.Width;
+                                width = Bounds.Width;
                                 height = width * aspectRatio;
                             }
                             else
                             {
-                                height = Bounds.BoundingRect.Height;
+                                height = Bounds.Height;
                                 width = height * (1f / aspectRatio);
                             }
                         }
                         else
                         {
-                            width = Bounds.BoundingRect.Width;
-                            height = Bounds.BoundingRect.Height;
+                            width = Bounds.Width;
+                            height = Bounds.Height;
                         }
 
                         break;
@@ -320,14 +314,14 @@ namespace CatUI.Elements
                         //cover always obeys the aspect ratio
                         float aspectRatio = skiaImage.Width / (float)skiaImage.Height;
 
-                        if (Bounds.BoundingRect.Width > Bounds.BoundingRect.Height)
+                        if (Bounds.Width > Bounds.Height)
                         {
-                            width = Bounds.BoundingRect.Width;
+                            width = Bounds.Width;
                             height = width * aspectRatio;
                         }
                         else
                         {
-                            height = Bounds.BoundingRect.Height;
+                            height = Bounds.Height;
                             width = height * (1f / aspectRatio);
                         }
 
@@ -343,13 +337,13 @@ namespace CatUI.Elements
             {
                 case HorizontalAlignmentType.Stretch:
                 case HorizontalAlignmentType.Left:
-                    x = Bounds.BoundingRect.X;
+                    x = Bounds.X;
                     break;
                 case HorizontalAlignmentType.Center:
-                    x = Bounds.BoundingRect.X + ((Bounds.BoundingRect.Width - width) / 2f);
+                    x = Bounds.X + ((Bounds.Width - width) / 2f);
                     break;
                 case HorizontalAlignmentType.Right:
-                    x = Bounds.BoundingRect.X + (Bounds.BoundingRect.Width - width);
+                    x = Bounds.X + (Bounds.Width - width);
                     break;
                 default:
                     throw new ArgumentException("Invalid HorizontalAlignment", nameof(HorizontalAlignment));
@@ -359,13 +353,13 @@ namespace CatUI.Elements
             {
                 case VerticalAlignmentType.Stretch:
                 case VerticalAlignmentType.Top:
-                    y = Bounds.BoundingRect.Y;
+                    y = Bounds.Y;
                     break;
                 case VerticalAlignmentType.Center:
-                    y = Bounds.BoundingRect.Y + ((Bounds.BoundingRect.Height - height) / 2f);
+                    y = Bounds.Y + ((Bounds.Height - height) / 2f);
                     break;
                 case VerticalAlignmentType.Bottom:
-                    y = Bounds.BoundingRect.Y + (Bounds.BoundingRect.Height - height);
+                    y = Bounds.Y + (Bounds.Height - height);
                     break;
                 default:
                     throw new ArgumentException("Invalid VerticalAlignment", nameof(VerticalAlignment));
@@ -406,12 +400,6 @@ namespace CatUI.Elements
                 ResizeQuality = _resizeQuality,
                 //
                 Position = Position,
-                PreferredWidth = PreferredWidth,
-                PreferredHeight = PreferredHeight,
-                MinWidth = MinWidth,
-                MinHeight = MinHeight,
-                MaxWidth = MaxWidth,
-                MaxHeight = MaxHeight,
                 Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,

@@ -1,5 +1,6 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Elements.Containers;
 using CatUI.Elements.Text;
@@ -12,7 +13,7 @@ namespace ProjectName.UI
     public class RootElement : VBoxContainer
     {
         //you can use an ObjectRef<Element> to acces an element in another context (see below)
-        private readonly ObjectRef<Label>? _labelRef = new();
+        private readonly ObjectRef<TextBlock>? _textBlockRef = new();
 
         //called when this element is added to the window's document
         public override void EnterDocument(object sender)
@@ -20,25 +21,25 @@ namespace ProjectName.UI
             //set this element's children
             Children =
             [
-                new Label(
-                    "Hello World from CatUI!",
-                    preferredWidth: "100%",
-                    preferredHeight: 20)
+                new TextBlock(
+                    "Hello World from CatUI!")
                 {
+                    Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(20),
                     TextAlignment = TextAlignmentType.Center,
                     FontSize = 16,
                     Background = new ColorBrush(new Color(0xff_00_ff))
                 },
-                new Label("", preferredWidth: "100%")
+                new TextBlock("")
                 {
-                    Ref = _labelRef,
+                    Ref = _textBlockRef,
+                    Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(20),
                     TextAlignment = TextAlignmentType.Center,
                     Background = new ColorBrush(new Color(0xff_ff_00))
                 }
             ];
 
-            //you can access the label here!
-            _labelRef!.Value!.Text = "Current time: ";
+            //you can access the text block here!
+            _textBlockRef!.Value!.Text = "Current time: ";
         }
     }
 }

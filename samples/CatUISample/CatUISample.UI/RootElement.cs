@@ -1,5 +1,6 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.ElementData;
 using CatUI.Elements.Containers;
 
 namespace CatUISample.UI
@@ -13,7 +14,11 @@ namespace CatUISample.UI
             Children =
             [
                 //sidebar
-                new VBoxContainer(250) { Background = new ColorBrush(new Color(0x31_31_31)) }
+                new VBoxContainer
+                {
+                    Layout = new ElementLayout().SetFixedWidth(250).SetFixedHeight("100%"),
+                    Background = new ColorBrush(new Color(0x31_31_31))
+                }
             ];
         }
     }

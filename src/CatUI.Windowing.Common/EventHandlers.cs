@@ -2,18 +2,10 @@ using System;
 
 namespace CatUI.Windowing.Common
 {
-    public delegate void ResizedEventHandler(object sender, ResizedEventArgs e);
+    public delegate void WindowResizedEventHandler(object sender, WindowResizedEventArgs e);
 
-    public class ResizedEventArgs : EventArgs
+    public class WindowResizedEventArgs : EventArgs
     {
-        public ResizedEventArgs(int oldWidth, int oldHeight, int newWidth, int newHeight)
-        {
-            OldWidth = oldWidth;
-            OldHeight = oldHeight;
-            NewWidth = newWidth;
-            NewHeight = newHeight;
-        }
-
         /// <summary>
         /// The new width of the window.
         /// </summary>
@@ -33,5 +25,13 @@ namespace CatUI.Windowing.Common
         /// The old height of the window.
         /// </summary>
         public int OldHeight { get; }
+
+        public WindowResizedEventArgs(int oldWidth, int oldHeight, int newWidth, int newHeight)
+        {
+            OldWidth = oldWidth;
+            OldHeight = oldHeight;
+            NewWidth = newWidth;
+            NewHeight = newHeight;
+        }
     }
 }

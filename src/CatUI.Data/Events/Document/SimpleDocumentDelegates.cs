@@ -5,4 +5,6 @@ namespace CatUI.Data.Events.Document
     public delegate void EnterDocumentEventHandler(object sender);
     public delegate void ExitDocumentEventHandler(object sender);
     public delegate void LoadEventHandler(object sender);
+
+    public delegate void ChildLayoutChangedEventHandler(object sender, ChildLayoutChangedEventArgs e);
 }

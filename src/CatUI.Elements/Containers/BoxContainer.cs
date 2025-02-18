@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
@@ -29,12 +28,7 @@ namespace CatUI.Elements.Containers
         /// </summary>
         public abstract Orientation BoxOrientation { get; }
 
-        public BoxContainer(
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null)
-            : base(
-                preferredWidth,
-                preferredHeight)
+        public BoxContainer()
         {
             SpacingProperty.ValueChangedEvent += SetSpacing;
         }
@@ -221,7 +215,7 @@ namespace CatUI.Elements.Containers
             }
 
             //if true, the content cannot have its preferred size, but at least the minimum sizes can be respected
-            bool needsForcedShrinking = containerDim >= minimumElementsDim;
+            bool needsForcedShrinking = containerDim < estimatedDim && containerDim >= minimumElementsDim;
             //represents the remaining size for the growing elements
             float remainingDimForGrowth = containerDim - allocatedMinDim;
             float growthSectionDim = remainingDimForGrowth / totalGrowthFactors;
@@ -247,10 +241,14 @@ namespace CatUI.Elements.Containers
                     {
                         Orientation.Horizontal when
                             child.ElementContainerSizing is HBoxContainerSizing hBoxContainerSizing =>
-                            hBoxContainerSizing.HGrowthFactor * growthSectionDim,
+                            Math.Max(
+                                hBoxContainerSizing.HGrowthFactor * growthSectionDim,
+                                CalculateDimension(child.Layout.MinWidth ?? Dimension.Unset, thisSize.Width)),
                         Orientation.Vertical when
                             child.ElementContainerSizing is VBoxContainerSizing vBoxContainerSizing =>
-                            vBoxContainerSizing.VGrowthFactor * growthSectionDim,
+                            Math.Max(
+                                vBoxContainerSizing.VGrowthFactor * growthSectionDim,
+                                CalculateDimension(child.Layout.MinHeight ?? Dimension.Unset, thisSize.Height)),
                         _ => 0
                     };
 
@@ -258,22 +256,29 @@ namespace CatUI.Elements.Containers
 
                     if (!isTainted)
                     {
-                        Size finalSize = new(
-                            Math.Max(
-                                CalculateDimension(child.Layout.GetSuggestedWidth() ?? Dimension.Unset, thisSize.Width),
-                                finalDim),
-                            Math.Max(
-                                CalculateDimension(child.Layout.GetSuggestedHeight() ?? Dimension.Unset,
-                                    thisSize.Height),
-                                finalDim));
+                        Size finalSize;
+                        if (BoxOrientation == Orientation.Horizontal)
+                        {
+                            finalSize = new Size(
+                                finalDim,
+                                CalculateDimension(
+                                    child.Layout.GetSuggestedHeight() ?? Dimension.Unset,
+                                    thisSize.Height));
+                        }
+                        else
+                        {
+                            finalSize = new Size(
+                                CalculateDimension(
+                                    child.Layout.GetSuggestedWidth() ?? Dimension.Unset,
+                                    thisSize.Width),
+                                finalDim);
+                        }
 
                         //TODO: handle positioning on the different axis that the one from BoxOrientation
                         float x = thisAbsolutePosition.X;
                         float y = thisAbsolutePosition.Y;
 
-                        child.Bounds = new ElementBounds(
-                            new Rect(x, y, finalSize.Width, finalSize.Height),
-                            child.Bounds.Margins);
+                        child.Bounds = new Rect(x, y, finalSize.Width, finalSize.Height);
 
                         finalContainerDim +=
                             BoxOrientation == Orientation.Horizontal
@@ -300,7 +305,7 @@ namespace CatUI.Elements.Containers
                         CalculateDimension(child.Layout.GetSuggestedHeight() ?? Dimension.Unset, thisSize.Height);
                     Size actualSize;
 
-                    if (canRespectPositioning || needsForcedShrinking)
+                    if (canRespectPositioning || !needsForcedShrinking)
                     {
                         actualSize = child.RecomputeLayout(thisSize, thisMaxSize, Point2D.Zero);
                     }
@@ -343,9 +348,7 @@ namespace CatUI.Elements.Containers
                         float x = thisAbsolutePosition.X;
                         float y = thisAbsolutePosition.Y;
 
-                        child.Bounds = new ElementBounds(
-                            new Rect(x, y, actualSize.Width, actualSize.Height),
-                            child.Bounds.Margins);
+                        child.Bounds = new Rect(x, y, actualSize.Width, actualSize.Height);
 
                         finalContainerDim +=
                             BoxOrientation == Orientation.Horizontal
@@ -366,14 +369,18 @@ namespace CatUI.Elements.Containers
                 }
             }
 
+            //a third pass happens only if an element declared a size, but after recalculation it was a different
+            //size
+            if (isTainted)
+            {
+            }
+
             Size size =
                 BoxOrientation == Orientation.Horizontal
                     ? new Size(finalContainerDim, thisSize.Height)
                     : new Size(thisSize.Width, finalContainerDim);
 
-            Bounds = new ElementBounds(
-                new Rect(initialAbsolutePosition.X, initialAbsolutePosition.Y, size.Width, size.Height),
-                new Vector4());
+            Bounds = new Rect(initialAbsolutePosition.X, initialAbsolutePosition.Y, size.Width, size.Height);
 
             return thisSize;
         }

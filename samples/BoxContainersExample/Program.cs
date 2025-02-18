@@ -1,6 +1,7 @@
 ﻿using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
+using CatUI.Data.ElementData;
 using CatUI.Elements.Containers;
 using CatUI.Elements.Shapes;
 using CatUI.Windowing.Desktop;
@@ -25,16 +26,22 @@ namespace BoxContainersExample
 
             window.Document.Root.Children.AddItems(
             [
-                new Rectangle { PreferredHeight = "50dp", FillBrush = new ColorBrush(new Color(0x80_00_ff)) },
                 new Rectangle
                 {
-                    //maxHeight: "400dp",
-                    //preferredHeight: "5%",
-                    MinHeight = "250dp",
+                    FillBrush = new ColorBrush(new Color(0x80_00_ff)),
+                    Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(50)
+                },
+                new Rectangle
+                {
+                    Layout = new ElementLayout().SetFixedWidth("100%").SetMinMaxHeight(250, Dimension.Unset),
                     FillBrush = new ColorBrush(new Color(0x75_75_75)),
                     ElementContainerSizing = new VBoxContainerSizing(1f)
                 },
-                new Rectangle { PreferredHeight = "15%", FillBrush = new ColorBrush(new Color(0x40_00_80)) }
+                new Rectangle
+                {
+                    FillBrush = new ColorBrush(new Color(0x40_00_80)),
+                    Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("15%")
+                }
                 // new Rectangle(
                 //     maxHeight: "400dp",
                 //     preferredHeight: "5%",

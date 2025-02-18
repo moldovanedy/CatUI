@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
@@ -71,36 +70,6 @@ namespace CatUI.Elements
             _padding = value;
         }
 
-        protected override void RecalculateLayout()
-        {
-            float parentWidth, parentHeight, parentXPos, parentYPos;
-            if (Document?.Root == this)
-            {
-                parentWidth = Document.ViewportSize.Width;
-                parentHeight = Document.ViewportSize.Height;
-                parentXPos = 0;
-                parentYPos = 0;
-            }
-            else
-            {
-                parentWidth = GetParent()?.Bounds.BoundingRect.Width ?? 0;
-                parentHeight = GetParent()?.Bounds.BoundingRect.Height ?? 0;
-                parentXPos = GetParent()?.Bounds.BoundingRect.X ?? 0;
-                parentYPos = GetParent()?.Bounds.BoundingRect.Y ?? 0;
-            }
-
-            float x = parentXPos + Math.Min(parentWidth / 2f, CalculateDimension(_padding.Left, parentWidth));
-            float y = parentYPos + Math.Min(parentHeight / 2f, CalculateDimension(_padding.Top, parentHeight));
-            float width = parentWidth -
-                          Math.Min(parentWidth / 2f, CalculateDimension(_padding.Right, parentWidth));
-            float height = parentHeight -
-                           Math.Min(parentHeight / 2f, CalculateDimension(_padding.Bottom, parentHeight));
-
-            Bounds = new ElementBounds(
-                new Rect(x, y, width, height),
-                new Vector4());
-        }
-
         public override Size RecomputeLayout(
             Size parentSize,
             Size parentMaxSize,
@@ -131,9 +100,7 @@ namespace CatUI.Elements
             Point2D thisAbsolutePosition = new(x, y);
             RecomputeChildrenUtil(thisSize, thisSize, thisAbsolutePosition);
 
-            Bounds = new ElementBounds(
-                new Rect(x, y, thisSize.Width, thisSize.Height),
-                new Vector4());
+            Bounds = new Rect(x, y, thisSize.Width, thisSize.Height);
             return thisSize;
         }
 
@@ -144,12 +111,6 @@ namespace CatUI.Elements
                 Padding = _padding,
                 //
                 Position = Position,
-                PreferredWidth = PreferredWidth,
-                PreferredHeight = PreferredHeight,
-                MinWidth = MinWidth,
-                MinHeight = MinHeight,
-                MaxWidth = MaxWidth,
-                MaxHeight = MaxHeight,
                 Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,

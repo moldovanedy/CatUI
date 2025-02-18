@@ -63,14 +63,7 @@ namespace CatUI.Elements.Shapes
         public ObservableProperty<OutlineParams> OutlineParametersProperty { get; private set; } =
             new(new OutlineParams());
 
-        public AbstractShape(
-            IBrush? fillBrush = null,
-            IBrush? outlineBrush = null,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null)
-            : base(
-                preferredWidth,
-                preferredHeight)
+        public AbstractShape(IBrush? fillBrush = null, IBrush? outlineBrush = null)
         {
             if (fillBrush != null)
             {
