@@ -23,16 +23,8 @@ namespace CatUI.Elements.Shapes
 
         private ObjectRef<Rectangle>? _ref;
 
-        public Rectangle(
-            IBrush? fillBrush = null,
-            IBrush? outlineBrush = null,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null)
-            : base(
-                fillBrush,
-                outlineBrush,
-                preferredWidth,
-                preferredHeight)
+        public Rectangle(IBrush? fillBrush = null, IBrush? outlineBrush = null)
+            : base(fillBrush, outlineBrush)
         {
         }
 
@@ -63,12 +55,12 @@ namespace CatUI.Elements.Shapes
 
             if (rectDescriptor.Width != 0)
             {
-                PreferredWidth = new Dimension(rectDescriptor.Width);
+                Layout.SetFixedWidth(new Dimension(rectDescriptor.Width));
             }
 
             if (rectDescriptor.Height != 0)
             {
-                PreferredHeight = new Dimension(rectDescriptor.Height);
+                Layout.SetFixedHeight(new Dimension(rectDescriptor.Height));
             }
         }
 
@@ -84,15 +76,14 @@ namespace CatUI.Elements.Shapes
                 return;
             }
 
-            Rect rect = Bounds.GetContentBox();
-            Document?.Renderer.DrawRect(rect, FillBrush);
+            Document?.Renderer.DrawRect(Bounds, FillBrush);
 
             if (OutlineBrush.IsSkippable || OutlineParameters.OutlineWidth == 0)
             {
                 return;
             }
 
-            Document?.Renderer.DrawRectOutline(rect, OutlineBrush, OutlineParameters);
+            Document?.Renderer.DrawRectOutline(Bounds, OutlineBrush, OutlineParameters);
         }
 
         public override Rectangle Duplicate()
@@ -104,12 +95,6 @@ namespace CatUI.Elements.Shapes
                 OutlineParameters = OutlineParameters,
                 //
                 Position = Position,
-                PreferredWidth = PreferredWidth,
-                PreferredHeight = PreferredHeight,
-                MinWidth = MinWidth,
-                MinHeight = MinHeight,
-                MaxWidth = MaxWidth,
-                MaxHeight = MaxHeight,
                 Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,

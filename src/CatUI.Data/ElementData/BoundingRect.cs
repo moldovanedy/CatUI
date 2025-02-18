@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CatUI.Data
+namespace CatUI.Data.ElementData
 {
     public readonly struct BoundingRect : ICloneable
     {

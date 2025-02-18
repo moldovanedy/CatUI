@@ -30,6 +30,14 @@ namespace CatUI.Data
             Height = height;
         }
 
+        public Rect(Point2D position, Size size)
+        {
+            X = position.X;
+            Y = position.Y;
+            Width = size.Width;
+            Height = size.Height;
+        }
+
         public override string ToString()
         {
             return $"{{X: {X}, Y: {Y}, W:{Width}, H:{Height}}}";

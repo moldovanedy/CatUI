@@ -1,7 +1,7 @@
 using System;
-using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Containers;
+using CatUI.Data.ElementData;
 using CatUI.Utils;
 
 namespace CatUI.Elements
@@ -70,34 +70,38 @@ namespace CatUI.Elements
             _padding = value;
         }
 
-        protected override void RecalculateLayout()
+        public override Size RecomputeLayout(
+            Size parentSize,
+            Size parentMaxSize,
+            Point2D parentAbsolutePosition,
+            Size? parentEnforcedSize = null)
         {
-            float parentWidth, parentHeight, parentXPos, parentYPos;
-            if (Document?.Root == this)
+            float x =
+                parentAbsolutePosition.X +
+                Math.Min(parentSize.Width / 2f, CalculateDimension(_padding.Left, parentSize.Width));
+            float y =
+                parentAbsolutePosition.Y +
+                Math.Min(parentSize.Height / 2f, CalculateDimension(_padding.Top, parentSize.Height));
+
+            Size thisSize;
+            if (parentEnforcedSize == null)
             {
-                parentWidth = Document.ViewportSize.Width;
-                parentHeight = Document.ViewportSize.Height;
-                parentXPos = 0;
-                parentYPos = 0;
+                float width = parentSize.Width -
+                              Math.Min(parentSize.Width / 2f, CalculateDimension(_padding.Right, parentSize.Width));
+                float height = parentSize.Height -
+                               Math.Min(parentSize.Height / 2f, CalculateDimension(_padding.Bottom, parentSize.Height));
+                thisSize = new Size(width, height);
             }
             else
             {
-                parentWidth = GetParent()?.Bounds.BoundingRect.Width ?? 0;
-                parentHeight = GetParent()?.Bounds.BoundingRect.Height ?? 0;
-                parentXPos = GetParent()?.Bounds.BoundingRect.X ?? 0;
-                parentYPos = GetParent()?.Bounds.BoundingRect.Y ?? 0;
+                thisSize = parentEnforcedSize.Value;
             }
 
-            float x = parentXPos + Math.Min(parentWidth / 2f, CalculateDimension(_padding.Left, parentWidth));
-            float y = parentYPos + Math.Min(parentHeight / 2f, CalculateDimension(_padding.Top, parentHeight));
-            float width = parentWidth -
-                          Math.Min(parentWidth / 2f, CalculateDimension(_padding.Right, parentWidth));
-            float height = parentHeight -
-                           Math.Min(parentHeight / 2f, CalculateDimension(_padding.Bottom, parentHeight));
+            Point2D thisAbsolutePosition = new(x, y);
+            RecomputeChildrenUtil(thisSize, thisSize, thisAbsolutePosition);
 
-            Bounds = new ElementBounds(
-                new Rect(x, y, width, height),
-                new Vector4());
+            Bounds = new Rect(x, y, thisSize.Width, thisSize.Height);
+            return thisSize;
         }
 
         public override PaddingElement Duplicate()
@@ -107,12 +111,6 @@ namespace CatUI.Elements
                 Padding = _padding,
                 //
                 Position = Position,
-                PreferredWidth = PreferredWidth,
-                PreferredHeight = PreferredHeight,
-                MinWidth = MinWidth,
-                MinHeight = MinHeight,
-                MaxWidth = MaxWidth,
-                MaxHeight = MaxHeight,
                 Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,

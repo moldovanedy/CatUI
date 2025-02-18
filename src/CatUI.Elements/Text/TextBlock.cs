@@ -7,7 +7,6 @@ using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
-using CatUI.Elements.Behaviors;
 using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
 using SkiaSharp;
@@ -19,10 +18,10 @@ namespace CatUI.Elements.Text
     /// lines support and is expandable. It is pretty efficient for both small and large amounts of text, so it can
     /// be used to display entire paragraphs of text.
     /// </summary>
-    public class Label : TextElement, IWordWrappable, IExpandable
+    public class TextBlock : TextElement, IWordWrappable
     {
         /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<Label>? Ref
+        public new ObjectRef<TextBlock>? Ref
         {
             get => _ref;
             set
@@ -35,7 +34,7 @@ namespace CatUI.Elements.Text
             }
         }
 
-        private ObjectRef<Label>? _ref;
+        private ObjectRef<TextBlock>? _ref;
 
 
         /// <inheritdoc cref="IWordWrappable.WordWrap"/>
@@ -53,44 +52,6 @@ namespace CatUI.Elements.Text
 
         private bool _wordWrap;
         public ObservableProperty<bool> WordWrapProperty { get; private set; } = new(false);
-
-        /// <inheritdoc cref="IExpandable.CanExpandHorizontally"/>
-        /// <remarks>
-        /// By default, this is true.
-        /// </remarks>
-        public bool CanExpandHorizontally
-        {
-            get => _canExpandHorizontally;
-            set
-            {
-                _canExpandHorizontally = value;
-                CanExpandHorizontallyProperty.Value = value;
-            }
-        }
-
-        private bool _canExpandHorizontally = true;
-        public ObservableProperty<bool> CanExpandHorizontallyProperty { get; private set; } = new(true);
-
-        /// <inheritdoc cref="IExpandable.CanExpandVertically"/>
-        /// <remarks>
-        /// By default, this is true. If it's true, when <see cref="Element.MaxHeight"/> is reached,
-        /// <see cref="TextElement.OverflowString"/> will be put at the end of the last row IF it can be drawn without
-        /// exceeding the maximum width; otherwise, it will remove some characters from the row (not taking into account
-        /// the hyphens or spaces, simply removing a maximum of 3 characters regardless of the length of
-        /// <see cref="TextElement.OverflowString"/>) to accomodate for <see cref="TextElement.OverflowString"/>.
-        /// </remarks>
-        public bool CanExpandVertically
-        {
-            get => _canExpandVertically;
-            set
-            {
-                _canExpandVertically = value;
-                CanExpandVerticallyProperty.Value = value;
-            }
-        }
-
-        private bool _canExpandVertically = true;
-        public ObservableProperty<bool> CanExpandVerticallyProperty { get; private set; } = new(true);
 
         /// <summary>
         /// Represents the text's word break mode. It is only relevant when <see cref="WordWrap"/> is true.
@@ -214,36 +175,26 @@ namespace CatUI.Elements.Text
         /// </summary>
         private float _visibleTextTotalHeight;
 
-        public Label()
+        public TextBlock()
         {
             TextProperty.ValueChangedEvent += OnTextChanged;
             TextProperty.ForceRecallEvents();
             InitPropertiesEvents();
         }
 
-        public Label(
-            string text,
-            TextAlignmentType textAlignment = TextAlignmentType.Left,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null)
-            : base(
-                text,
-                textAlignment,
-                preferredWidth,
-                preferredHeight)
+        public TextBlock(string text, TextAlignmentType textAlignment = TextAlignmentType.Left)
+            : base(text, textAlignment)
         {
             TextProperty.ValueChangedEvent += OnTextChanged;
             TextProperty.ForceRecallEvents();
             InitPropertiesEvents();
         }
 
-        ~Label()
+        ~TextBlock()
         {
             TextProperty.ValueChangedEvent -= OnTextChanged;
 
             WordWrapProperty = null!;
-            CanExpandHorizontallyProperty = null!;
-            CanExpandVerticallyProperty = null!;
             BreakModeProperty = null!;
             HyphenCharacterProperty = null!;
             TextBrushProperty = null!;
@@ -254,8 +205,6 @@ namespace CatUI.Elements.Text
         private void InitPropertiesEvents()
         {
             WordWrapProperty.ValueChangedEvent += SetWordWrap;
-            CanExpandHorizontallyProperty.ValueChangedEvent += SetCanExpandHorizontally;
-            CanExpandVerticallyProperty.ValueChangedEvent += SetCanExpandVertically;
             BreakModeProperty.ValueChangedEvent += SetBreakMode;
             HyphenCharacterProperty.ValueChangedEvent += SetHyphenCharacter;
             TextBrushProperty.ValueChangedEvent += SetTextBrush;
@@ -266,16 +215,6 @@ namespace CatUI.Elements.Text
         private void SetWordWrap(bool value)
         {
             _wordWrap = value;
-        }
-
-        private void SetCanExpandHorizontally(bool value)
-        {
-            _canExpandHorizontally = value;
-        }
-
-        private void SetCanExpandVertically(bool value)
-        {
-            _canExpandVertically = value;
         }
 
         private void SetBreakMode(TextBreakMode value)
@@ -303,109 +242,44 @@ namespace CatUI.Elements.Text
             _lineHeight = value;
         }
 
-        protected override void RecalculateLayout()
+        public override Size RecomputeLayout(
+            Size parentSize,
+            Size parentMaxSize,
+            Point2D parentAbsolutePosition,
+            Size? parentEnforcedSize = null)
         {
-            float normalWidth = 0, normalHeight = 0;
+            Size thisSize, thisMaxSize;
+            Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
 
-            float parentWidth, parentHeight, parentXPos, parentYPos;
-            if (Document?.Root == this)
+            if (parentEnforcedSize == null)
             {
-                parentWidth = Document.ViewportSize.Width;
-                parentHeight = Document.ViewportSize.Height;
-                parentXPos = 0;
-                parentYPos = 0;
+                thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+                thisMaxSize = GetMaxSizeUtil(parentSize);
             }
             else
             {
-                Element? parent = GetParent();
-                parentWidth = parent?.Bounds.BoundingRect.Width ?? 0;
-                parentHeight = parent?.Bounds.BoundingRect.Height ?? 0;
-                parentXPos = parent?.Bounds.BoundingRect.X ?? 0;
-                parentYPos = parent?.Bounds.BoundingRect.Y ?? 0;
-            }
-
-            float maxWidth = MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth);
-            float maxHeight = MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight);
-
-            if (!PreferredWidth.IsUnset())
-            {
-                if (CanExpandHorizontally)
-                {
-                    normalWidth = maxWidth;
-                }
-                else
-                {
-                    normalWidth = Math.Clamp(
-                        CalculateDimension(PreferredWidth, parentWidth),
-                        MinWidth.IsUnset() ? float.MinValue : CalculateDimension(MinWidth, parentWidth),
-                        maxWidth);
-                    Bounds = new ElementBounds(
-                        new Rect(
-                            Bounds.BoundingRect.X,
-                            Bounds.BoundingRect.Y,
-                            normalWidth,
-                            Bounds.BoundingRect.Height),
-                        Bounds.Margins);
-                }
-            }
-
-            if (!PreferredHeight.IsUnset())
-            {
-                if (CanExpandVertically)
-                {
-                    normalHeight = maxHeight;
-                }
-                else
-                {
-                    normalHeight = Math.Clamp(
-                        CalculateDimension(PreferredHeight, parentHeight),
-                        MinHeight.IsUnset() ? float.MinValue : CalculateDimension(MinHeight, parentHeight),
-                        maxHeight);
-                    Bounds = new ElementBounds(
-                        new Rect(
-                            Bounds.BoundingRect.X,
-                            Bounds.BoundingRect.Y,
-                            Bounds.BoundingRect.Width,
-                            normalHeight),
-                        Bounds.Margins);
-                }
-            }
-
-            if (!Position.IsUnset())
-            {
-                var normalPosition = new Point2D(
-                    parentXPos + CalculateDimension(Position.X, parentWidth),
-                    parentYPos + CalculateDimension(Position.Y, parentHeight));
-                Bounds = new ElementBounds(
-                    new Rect(
-                        normalPosition.X,
-                        normalPosition.Y,
-                        Bounds.BoundingRect.Width,
-                        Bounds.BoundingRect.Height),
-                    Bounds.Margins);
-            }
-
-            //it is very likely that this is when the label is instantiated, and it is unnecessary to calculate text here
-            if (normalWidth == 0 && normalHeight == 0)
-            {
-                return;
+                thisSize = parentEnforcedSize.Value;
+                thisMaxSize = parentEnforcedSize.Value;
             }
 
             //temp
             _visibleTextTotalHeight = float.PositiveInfinity;
 
-            if (!string.IsNullOrEmpty(Text) && (normalWidth < _maxRowWidth || normalHeight < _visibleTextTotalHeight))
+            if (!string.IsNullOrEmpty(Text) &&
+                (thisSize.Width < _maxRowWidth || thisSize.Height < _visibleTextTotalHeight))
             {
-                CreateFinalText(
-                    CanExpandHorizontally ? maxWidth : Bounds.BoundingRect.Width,
-                    CanExpandVertically ? maxHeight : Bounds.BoundingRect.Height);
+                thisSize = CreateFinalText(thisSize, thisMaxSize);
             }
+
+            RecomputeChildrenUtil(thisSize, thisMaxSize, absolutePosition);
+            Bounds = new Rect(absolutePosition, thisSize);
+            return thisSize;
         }
 
         public override void Draw()
         {
             base.Draw();
-            Rect bounds = Bounds.BoundingRect;
+            Rect bounds = Bounds;
 
             float fontSize = CalculateDimension(FontSize);
             float rowSize = fontSize * LineHeight;
@@ -417,7 +291,7 @@ namespace CatUI.Elements.Text
             while (
                 rowsDrawn < _drawableRows.Count &&
                 charactersDrawn < Text.Length &&
-                (CanExpandVertically || rowPosition.Y <= bounds.Y + bounds.Height))
+                rowPosition.Y <= bounds.Y + bounds.Height)
             {
                 Document?.Renderer?.DrawTextRowFast(
                     _drawableRows[rowsDrawn].Text,
@@ -433,13 +307,11 @@ namespace CatUI.Elements.Text
             }
         }
 
-        public override Label Duplicate()
+        public override TextBlock Duplicate()
         {
-            return new Label
+            return new TextBlock
             {
                 WordWrap = _wordWrap,
-                CanExpandHorizontally = _canExpandHorizontally,
-                CanExpandVertically = _canExpandVertically,
                 BreakMode = _breakMode,
                 HyphenCharacter = _hyphenCharacter,
                 TextBrush = _textBrush.Duplicate(),
@@ -453,12 +325,6 @@ namespace CatUI.Elements.Text
                 OverflowString = OverflowString,
                 //
                 Position = Position,
-                PreferredWidth = PreferredWidth,
-                PreferredHeight = PreferredHeight,
-                MinWidth = MinWidth,
-                MinHeight = MinHeight,
-                MaxWidth = MaxWidth,
-                MaxHeight = MaxHeight,
                 Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,
@@ -466,34 +332,6 @@ namespace CatUI.Elements.Text
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
             };
-        }
-
-        public Size ComputeSizeInContainer()
-        {
-            if (!string.IsNullOrEmpty(Text))
-            {
-                float parentWidth, parentHeight;
-                if (Document?.Root == this)
-                {
-                    parentWidth = Document.ViewportSize.Width;
-                    parentHeight = Document.ViewportSize.Height;
-                }
-                else
-                {
-                    Element? parent = GetParent();
-                    parentWidth = parent?.Bounds.BoundingRect.Width ?? 0;
-                    parentHeight = parent?.Bounds.BoundingRect.Height ?? 0;
-                }
-
-                float maxWidth = MaxWidth.IsUnset() ? float.MaxValue : CalculateDimension(MaxWidth, parentWidth);
-                float maxHeight = MaxHeight.IsUnset() ? float.MaxValue : CalculateDimension(MaxHeight, parentHeight);
-
-                CreateFinalText(
-                    CanExpandHorizontally ? maxWidth : Bounds.BoundingRect.Width,
-                    CanExpandVertically ? maxHeight : Bounds.BoundingRect.Height);
-            }
-
-            return new Size(_maxRowWidth, _visibleTextTotalHeight);
         }
 
         private void OnTextChanged(string? newText)
@@ -561,7 +399,7 @@ namespace CatUI.Elements.Text
             MarkLayoutDirty();
         }
 
-        private void CreateFinalText(float maxAllowedWidth, float maxAllowedHeight)
+        private Size CreateFinalText(Size preferredSize, Size maximumSize)
         {
             _drawableRows.Clear();
             _maxRowWidth = 0;
@@ -586,7 +424,7 @@ namespace CatUI.Elements.Text
                 while (userRowIdx < _userRows.Count)
                 {
                     RowInformation row = _userRows[userRowIdx];
-                    stoppedEarly = MustStop(currentHeight, rowHeight, maxAllowedHeight);
+                    stoppedEarly = MustStop(currentHeight, rowHeight, maximumSize.Height);
                     if (stoppedEarly)
                     {
                         goto End;
@@ -599,7 +437,7 @@ namespace CatUI.Elements.Text
 
                         if (BreakMode == TextBreakMode.HardBreak)
                         {
-                            int length = (int)painter.BreakText(row.Text.AsSpan(), maxAllowedWidth);
+                            int length = (int)painter.BreakText(row.Text.AsSpan(), preferredSize.Width);
                             thisRow = row.Text.AsMemory(0, length);
                         }
                         else
@@ -633,7 +471,7 @@ namespace CatUI.Elements.Text
 
                         while (startIndex < row.Text.Length)
                         {
-                            int charCount = (int)painter.BreakText(row.Text.AsSpan(startIndex), maxAllowedWidth);
+                            int charCount = (int)painter.BreakText(row.Text.AsSpan(startIndex), preferredSize.Width);
                             //at least one char to avoid infinite loops (both in code and in UI as infinite newlines)
                             if (charCount == 0)
                             {
@@ -667,7 +505,7 @@ namespace CatUI.Elements.Text
                     //for the current user row
                     for (int breakPointIndex = -1; breakPointIndex < row.PossibleBreakPoints.Count; breakPointIndex++)
                     {
-                        stoppedEarly = MustStop(currentHeight, rowHeight, maxAllowedHeight);
+                        stoppedEarly = MustStop(currentHeight, rowHeight, maximumSize.Height);
                         if (stoppedEarly)
                         {
                             goto End;
@@ -711,7 +549,7 @@ namespace CatUI.Elements.Text
 
                             //exit when at least one portion was added and there is no room for the next portion
                             if (hasFitAtLeastOne &&
-                                currentRowWidth + nextPortionWidth > maxAllowedWidth)
+                                currentRowWidth + nextPortionWidth > preferredSize.Width)
                             {
                                 usedBreakPoints = true;
 
@@ -784,7 +622,7 @@ namespace CatUI.Elements.Text
                         {
                             foreach (RowInformation row in _userRows)
                             {
-                                stoppedEarly = MustStop(currentHeight, rowHeight, maxAllowedHeight);
+                                stoppedEarly = MustStop(currentHeight, rowHeight, maximumSize.Height);
                                 if (stoppedEarly)
                                 {
                                     goto End;
@@ -805,7 +643,7 @@ namespace CatUI.Elements.Text
                         {
                             foreach (RowInformation row in _userRows)
                             {
-                                stoppedEarly = MustStop(currentHeight, rowHeight, maxAllowedHeight);
+                                stoppedEarly = MustStop(currentHeight, rowHeight, maximumSize.Height);
                                 if (stoppedEarly)
                                 {
                                     goto End;
@@ -814,17 +652,26 @@ namespace CatUI.Elements.Text
                                 StringBuilder sb = new();
 
                                 //if the entire row can be drawn
-                                if (painter.BreakText(row.Text, maxAllowedWidth) == row.Text.Length)
+                                if (painter.BreakText(row.Text, preferredSize.Width) == row.Text.Length)
                                 {
                                     sb.Append(row.Text.AsSpan());
                                 }
                                 else
                                 {
-                                    sb.Append(row.Text.AsSpan(
-                                        0,
-                                        (int)painter.BreakText(
-                                            row.Text, maxAllowedWidth - overflowStringWidth)));
+                                    sb.Append(
+                                        row.Text.AsSpan(
+                                            0,
+                                            Math.Max(
+                                                (int)painter.BreakText(
+                                                    row.Text,
+                                                    preferredSize.Width - overflowStringWidth),
+                                                1)
+                                        )
+                                    );
                                     sb.Append(OverflowString);
+
+                                    //to indicate that we must respect _maxRowWidth
+                                    usedBreakPoints = true;
                                 }
 
                                 string text = sb.ToString();
@@ -847,47 +694,25 @@ namespace CatUI.Elements.Text
             }
 
         End:
-            float height;
-            if (CanExpandVertically)
-            {
+            Size finalSize = new(
+                //if there are breaks, set the maximum between the preferred width and the actual max row width;
+                //if no breaks, set the preferred width
+                usedBreakPoints ? Math.Max(preferredSize.Width, _maxRowWidth) : preferredSize.Width,
                 //the height minus last row (because it is added even when there are no more characters left)
-                height = currentHeight - ((rowHeight / 2f) + (fontSize / 2f));
-            }
-            else
-            {
-                height = maxAllowedHeight;
-            }
-
-            float width;
-            if (CanExpandHorizontally && !usedBreakPoints)
-            {
-                width = _maxRowWidth;
-            }
-            else
-            {
-                width = maxAllowedWidth;
-            }
-
-            Bounds = new ElementBounds(
-                new Rect(
-                    Bounds.BoundingRect.X,
-                    Bounds.BoundingRect.Y,
-                    width,
-                    height),
-                Bounds.Margins);
+                currentHeight - ((rowHeight / 2f) + (fontSize / 2f)));
 
             //edge case: the label doesn't have the height necessary for not even a single row
-            if (Bounds.BoundingRect.Height < (rowHeight / 2f) + (fontSize / 2f))
+            if (finalSize.Height < (rowHeight / 2f) + (fontSize / 2f))
             {
                 _drawableRows.Clear();
-                _visibleTextTotalHeight = Bounds.BoundingRect.Height;
-                return;
+                _visibleTextTotalHeight = finalSize.Height;
+                return finalSize;
             }
 
             if (stoppedEarly)
             {
                 //if we can draw the ellipsis without removing from the row, do it
-                if (_drawableRows[^1].Width + overflowStringWidth < maxAllowedWidth)
+                if (_drawableRows[^1].Width + overflowStringWidth < preferredSize.Width)
                 {
                     _drawableRows[^1] = new RowInformation
                     {
@@ -896,8 +721,9 @@ namespace CatUI.Elements.Text
                         Width = _drawableRows[^1].Width + overflowStringWidth,
                         WidthWithoutLastBreakPoint = 0
                     };
-                    _visibleTextTotalHeight = Bounds.BoundingRect.Height;
-                    return;
+
+                    _visibleTextTotalHeight = finalSize.Height;
+                    return finalSize;
                 }
 
                 int charsToRemove = _drawableRows[^1].Text.Length;
@@ -911,7 +737,7 @@ namespace CatUI.Elements.Text
                                          .AsSpan(_drawableRows[^1].Text.Length - 3)
                                          .ToArray().Reverse().ToArray());
                     //calculate the number of characters needed to remove in order to add the overflow string and add 1
-                    //to ensure we don't exceed the element bounds, but don't remove more than 3 characters
+                    //to ensure we don't exceed the element finalSize, but don't remove more than 3 characters
                     charsToRemove = (int)Math.Min(painter.BreakText(lastChars, overflowStringWidth) + 1, 3);
                     removeWidth = painter.MeasureText(lastChars.AsSpan(0, charsToRemove));
                 }
@@ -927,19 +753,18 @@ namespace CatUI.Elements.Text
                 };
             }
 
-            _visibleTextTotalHeight = Bounds.BoundingRect.Height;
+            _visibleTextTotalHeight = finalSize.Height;
+            return finalSize;
         }
 
         private bool MustStop(float currentHeight, float rowHeight, float maxAllowedHeight = 0)
         {
-            float referenceHeight = CanExpandVertically ? maxAllowedHeight : Bounds.BoundingRect.Height;
-
             switch (OverflowMode)
             {
                 case TextOverflowMode.Ellipsis:
-                    return currentHeight > referenceHeight;
+                    return currentHeight > maxAllowedHeight;
                 case TextOverflowMode.Clip:
-                    return currentHeight + rowHeight > referenceHeight;
+                    return currentHeight + rowHeight > maxAllowedHeight;
                 default:
                 case TextOverflowMode.Overflow:
                     return false;

@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
+using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Elements;
@@ -53,24 +53,17 @@ namespace CatTest
                 {
                     Children =
                     [
-                        new Rectangle(
-                            new ColorBrush(new Color(0x00_ff_ff)),
-                            preferredWidth: "80%",
-                            preferredHeight: "20%")
+                        new Rectangle(new ColorBrush(new Color(0x00_ff_ff)))
                         {
                             Position = "10 5",
-                            //MinWidth = 10,
-                            //MaxWidth = 350,
-                            //MinHeight = 20,
-                            //MaxHeight = 250,
+                            Layout = new ElementLayout().SetFixedWidth("80%").SetFixedHeight("20%"),
                             Children =
                             [
-                                new ImageView(
-                                    image,
-                                    "100%",
-                                    "100%")
+                                new ImageView(image)
                                 {
                                     //Position = "20 20",
+                                    Layout =
+                                        new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                                     Background = new ColorBrush(new Color(0xff_00_ff)),
                                     HorizontalAlignment = HorizontalAlignmentType.Right,
                                     VerticalAlignment = VerticalAlignmentType.Bottom,
@@ -79,22 +72,20 @@ namespace CatTest
                                 }
                             ]
                         },
-                        new Rectangle(
-                            new ColorBrush(new Color(0xff_ff_00)),
-                            preferredWidth: "80%",
-                            preferredHeight: "20%")
+                        new Rectangle(new ColorBrush(new Color(0xff_ff_00)))
                         {
                             Position = new Dimension2(10, "60%"),
+                            Layout = new ElementLayout().SetFixedWidth("80%").SetFixedHeight("20%"),
                             Children =
                             [
                                 new GeometricPath(
                                     "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
                                     new ColorBrush(new Color(0xff_98_00)),
-                                    new ColorBrush(new Color(0x21_96_f3)),
-                                    "25%",
-                                    "15%")
+                                    new ColorBrush(new Color(0x21_96_f3)))
                                 {
                                     Position = "5 10",
+                                    Layout =
+                                        new ElementLayout().SetFixedWidth("25%").SetFixedHeight("15%"),
                                     Background = new ColorBrush(new Color(0xff_ff_ff)),
                                     ShouldApplyScaling = true,
                                     OutlineParameters = new OutlineParams(
@@ -103,22 +94,23 @@ namespace CatTest
                                         miterLimit: 5)
                                 },
                                 new Rectangle(
-                                    new ColorBrush(new Color(0x1d_ea_85)),
-                                    preferredWidth: "35%",
-                                    preferredHeight: "15%") { Position = "55% 10%" },
-                                new Label(
-                                    "He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!",
-                                    preferredWidth: "25%",
-                                    preferredHeight: "80%")
+                                    new ColorBrush(new Color(0x1d_ea_85)))
                                 {
+                                    Position = "55% 10%",
+                                    Layout = new ElementLayout().SetFixedWidth("35%")
+                                                                .SetFixedHeight("15%")
+                                },
+                                new TextBlock("He\u00adllo wor\u00adld!\nHe\u00adllo wor\u00adld!")
+                                {
+                                    Layout = new ElementLayout()
+                                             .SetMinMaxAndPreferredWidth("25%", Dimension.Unset, 250)
+                                             .SetMinMaxAndPreferredHeight("80%", Dimension.Unset, 250),
                                     FontSize = 32,
-                                    Background = new ColorBrush(new Color(0x00_ff_ff_80, Color.ColorType.RGBA)),
+                                    Background =
+                                        new ColorBrush(new Color(0x00_ff_ff_80,
+                                            Color.ColorType.RGBA)),
                                     WordWrap = true,
-                                    Position = new Dimension2(0, 0),
-                                    MaxHeight = "250",
-                                    MaxWidth = "35%",
-                                    CanExpandVertically = true,
-                                    CanExpandHorizontally = false
+                                    Position = new Dimension2(0, 0)
                                 }
                             ]
                         }

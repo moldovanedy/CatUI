@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.RenderingEngine;
@@ -59,15 +57,9 @@ namespace CatUI.Elements
                     return;
                 }
 
-                _root.MinHeight = "100%";
-                _root.MinWidth = "100%";
-                _root.PreferredHeight = "100%";
-                _root.PreferredWidth = "100%";
+                _root.Layout.SetFixedWidth("100%").SetFixedHeight("100%");
                 _root.Document = this;
-
-                _root.Bounds = new ElementBounds(
-                    new Rect(0, 0, ViewportSize.Width, ViewportSize.Height),
-                    new Vector4());
+                _root.Bounds = new Rect(0, 0, ViewportSize.Width, ViewportSize.Height);
             }
         }
 

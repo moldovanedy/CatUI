@@ -92,7 +92,7 @@ namespace CatUI.Windowing.Common
         /// already been set to this instance (<see cref="Width"/> and <see cref="Height"/>), but you have the old
         /// values in this event as well.
         /// </summary>
-        public event ResizedEventHandler? ResizedEvent;
+        public event WindowResizedEventHandler? ResizedEvent;
 
         /// <summary>
         /// An event that is fired when the internal windowing system decides to redraw

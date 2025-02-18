@@ -9,13 +9,25 @@ using CatUI.Windowing.Common;
 using OpenTK;
 using OpenTK.Graphics.Egl;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Platform.Windows;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace CatUI.Windowing.Desktop
 {
+    /// <summary>
+    /// Represents a window on a desktop platform. On desktop, your app can create multiple windows and can generally
+    /// set their size, position on the display etc.
+    /// </summary>
     public unsafe class DesktopWindow : IApplicationWindow
     {
+        /// <summary>
+        /// Represents the pointer to the platform's window representation. You can use this to implement platform-specific
+        /// functionality which almost always require a window handle. If you use this, you are responsible for the
+        /// functionality you use it for; misusing this might cause random crashes. 
+        /// </summary>
+        /// <remarks>
+        /// On Windows, it returns the Win32 HWND. On macOS, it will return the Cocoa window handle. On Linux,
+        /// it returns the X11 or Wayland window pointer, depending on which platform it runs on.
+        /// </remarks>
         public nint NativeHandle
         {
             get
@@ -49,13 +61,19 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
+        /// <summary>
+        /// Represents the window's document. All elements that will appear on this window must be part of this document.
+        /// </summary>
         public UiDocument Document { get; }
 
+        /// <summary>
+        /// Represents the pointer to the GLFW window representation. Use this if you want to implement something using
+        /// GLFW (this is GLFWWindow*). This is only usable inside unsafe code.
+        /// </summary>
         internal Window* GlfwWindow { get; private set; }
 
         private bool _shouldCloseWindow;
         private readonly WindowFlags _flags;
-        private readonly WindowMode _startupMode;
 
 #if USE_ANGLE
         private nint _eglDisplay;
@@ -64,12 +82,17 @@ namespace CatUI.Windowing.Desktop
 #endif
 
         private GLFWCallbacks.WindowSizeCallback? _resizeCallback;
+        private GLFWCallbacks.WindowIconifyCallback? _iconifyCallback;
+        private GLFWCallbacks.WindowMaximizeCallback? _maximizeCallback;
+        private GLFWCallbacks.WindowRefreshCallback? _refreshCallback;
+
         private GLFWCallbacks.CursorPosCallback? _cursorMoveCallback;
         private GLFWCallbacks.CursorEnterCallback? _cursorEnterOrLeaveCallback;
         private GLFWCallbacks.MouseButtonCallback? _mouseButtonCallback;
 
         private float _lastMouseX;
         private float _lastMouseY;
+        private bool _canInvokeMaximize = true;
 
         /// <summary>
         /// Represents a bitmap of all the pressed buttons of the mouse. Do NOT convert directly to a
@@ -80,6 +103,18 @@ namespace CatUI.Windowing.Desktop
 
         #region Properties
 
+        /// <summary>
+        /// Represents the window's width in desktop coordinates (meaning it is scaled with the platform's display scale,
+        /// unless you didn't set <see cref="WindowFlags.DpiAware"/>, in which case all coordinates are physical pixels).
+        /// Setting this will resize the window to that value, but will be restricted to <see cref="MaxWidth"/> and
+        /// <see cref="MinWidth"/>. If you want the physical pixel width, see <see cref="FramebufferWidth"/>.
+        /// </summary>
+        /// <remarks>
+        /// When the <see cref="CurrentWindowMode"/> is <see cref="WindowMode.ExclusiveFullscreen"/>, this is not reliable
+        /// (if the window was in other mode before, this will be the width from that mode). When it's
+        /// <see cref="WindowMode.Fullscreen"/>, it is the display's width. This does NOT take into account the window
+        /// decorations.
+        /// </remarks>
         public int Width
         {
             get => _width;
@@ -96,6 +131,18 @@ namespace CatUI.Windowing.Desktop
 
         private int _width;
 
+        /// <summary>
+        /// Represents the window's height in desktop coordinates (meaning it is scaled with the platform's display scale,
+        /// unless you didn't set <see cref="WindowFlags.DpiAware"/>, in which case all coordinates are physical pixels).
+        /// Setting this will resize the window to that value, but will be restricted to <see cref="MaxHeight"/> and
+        /// <see cref="MinHeight"/>. If you want the physical pixel height, see <see cref="FramebufferHeight"/>.
+        /// </summary>
+        /// <remarks>
+        /// When the <see cref="CurrentWindowMode"/> is <see cref="WindowMode.ExclusiveFullscreen"/>, this is not reliable
+        /// (if the window was in other mode before, this will be the height from that mode). When it's
+        /// <see cref="WindowMode.Fullscreen"/>, it is the display's height. This does NOT take into account the window
+        /// decorations.
+        /// </remarks>
         public int Height
         {
             get => _height;
@@ -112,6 +159,10 @@ namespace CatUI.Windowing.Desktop
 
         private int _height;
 
+        /// <summary>
+        /// Represents the physical pixel width, meaning that this value is not scaled with the platform's display
+        /// scaling. This does NOT take into account the window decorations.
+        /// </summary>
         public int FramebufferWidth
         {
             get
@@ -126,6 +177,10 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
+        /// <summary>
+        /// Represents the physical pixel height, meaning that this value is not scaled with the platform's display
+        /// scaling. This does NOT take into account the window decorations.
+        /// </summary>
         public int FramebufferHeight
         {
             get
@@ -140,9 +195,18 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
+        /// <summary>
+        /// If true, it means that the <see cref="WindowFlags.DpiAware"/> was set.
+        /// </summary>
         public bool IsDpiAware => (_flags & WindowFlags.DpiAware) != 0;
 
 
+        /// <summary>
+        /// It represents the minimum width that the window can have, either resized by the user or by your code.
+        /// Like <see cref="Width"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
+        /// If the current width is smaller than the given value, the window will be resized. This does NOT take into
+        /// account the window decorations.
+        /// </summary>
         public int MinWidth
         {
             get => _minWidth;
@@ -159,6 +223,12 @@ namespace CatUI.Windowing.Desktop
 
         private int _minWidth;
 
+        /// <summary>
+        /// It represents the minimum height that the window can have, either resized by the user or by your code.
+        /// Like <see cref="Height"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
+        /// If the current height is smaller than the given value, the window will be resized. This does NOT take into
+        /// account the window decorations.
+        /// </summary>
         public int MinHeight
         {
             get => _minHeight;
@@ -175,6 +245,12 @@ namespace CatUI.Windowing.Desktop
 
         private int _minHeight;
 
+        /// <summary>
+        /// It represents the maximum width that the window can have, either resized by the user or by your code.
+        /// Like <see cref="Width"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
+        /// If the current width is larger than the given value, the window will be resized. This does NOT take into
+        /// account the window decorations.
+        /// </summary>
         public int MaxWidth
         {
             get => _maxWidth;
@@ -191,6 +267,12 @@ namespace CatUI.Windowing.Desktop
 
         private int _maxWidth;
 
+        /// <summary>
+        /// It represents the maximum height that the window can have, either resized by the user or by your code.
+        /// Like <see cref="Height"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
+        /// If the current height is larger than the given value, the window will be resized. This does NOT take into
+        /// account the window decorations.
+        /// </summary>
         public int MaxHeight
         {
             get => _maxHeight;
@@ -207,6 +289,9 @@ namespace CatUI.Windowing.Desktop
 
         private int _maxHeight;
 
+        /// <summary>
+        /// Represents the window title.
+        /// </summary>
         public string Title
         {
             get => _title;
@@ -221,6 +306,16 @@ namespace CatUI.Windowing.Desktop
         }
 
         private string _title;
+
+        /// <summary>
+        /// Represents the current window mode. To set it, see <see cref="SetWindowMode"/>.
+        /// </summary>
+        public WindowMode CurrentWindowMode { get; private set; }
+
+        /// <summary>
+        /// Represents the window mode last set by you in <see cref="SetWindowMode"/> or at window creation.
+        /// </summary>
+        public WindowMode LastSetWindowMode { get; private set; }
 
         /// <summary>
         /// <para>
@@ -293,18 +388,36 @@ namespace CatUI.Windowing.Desktop
         /// </summary>
         public event Action<OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode, string>? ErrorOccurred;
 
+        /// <summary>
+        /// This function will be called when the user, the platform or your code tries to close the window. You can
+        /// set this to any function that returns a boolean: if it returns true, the window will be closed and its
+        /// resources freed, if it returns false the close request is ignored.
+        /// </summary>
+        /// <remarks>
+        /// This is useful for prompting the user to do some action (e.g. save the file or the modified settings).
+        /// Beware that the user or the platform might still be able to close the window forcefully without this function
+        /// being called.
+        /// </remarks>
         public Func<bool> OnCloseRequested { get; set; } = () => true;
 
         /// <summary>
-        /// Fired when the window is resized, either by the user, by the platform or by your app.
+        /// Fired when the window is resized, either by the user, by the platform or by your code.
         /// </summary>
-        public event ResizedEventHandler? ResizedEvent;
+        public event WindowResizedEventHandler? ResizedEvent;
+
+        /// <summary>
+        /// Fired when the window mode (i.e. windowed, maximized, minimized, or full-screen) is changed either by the user,
+        /// by the platform or by your code. To enter full-screen (simple or exclusive), only your code can trigger this
+        /// event by calling <see cref="SetWindowMode"/>.
+        /// </summary>
+        public event WindowModeChangedEventHandler? WindowModeChangedEvent;
 
         #endregion
 
         /// <summary>
         /// Represents the window startup flags. These are a bitmap that must be set in the constructor, before the call
-        /// to <see cref="DesktopWindow.Open"/> and can not be modified afterward.
+        /// to <see cref="DesktopWindow.Open"/> and can not be modified afterward, however some properties (like
+        /// the window visibility controlled by <see cref="Visible"/> here) can still be controlled by code.
         /// </summary>
         [Flags]
         public enum WindowFlags
@@ -314,8 +427,21 @@ namespace CatUI.Windowing.Desktop
             /// <see cref="Decorated"/>, <see cref="DpiAware"/> and <see cref="Focused"/>).
             /// </summary>
             Default = 0b11111,
+
+            /// <summary>
+            /// Indicates that the window is resizable by the user. Even if this is unset, you can generally set the
+            /// size from code using <see cref="DesktopWindow.Width"/> and <see cref="DesktopWindow.Height"/>.
+            /// </summary>
             Resizable = 1,
+
+            /// <summary>
+            /// Sets the window to be visible. Otherwise, it will be hidden.
+            /// </summary>
             Visible = 2,
+
+            /// <summary>
+            /// Makes the window have the platform's decorations like borders, the title bar and the control buttons. 
+            /// </summary>
             Decorated = 4,
 
             /// <summary>
@@ -323,24 +449,69 @@ namespace CatUI.Windowing.Desktop
             /// the platform preferences. It is highly recommended to set this flag. It is enabled by default.
             /// </summary>
             DpiAware = 8,
+
+            /// <summary>
+            /// Focuses the window so that the user can interact with it directly. 
+            /// </summary>
             Focused = 16,
 
+            /// <summary>
+            /// Makes the window float above other windows even if it's not focused or that other windows are maximized.
+            /// This should generally be a setting controlled by the user, as enabling this without the user to be able
+            /// to disable this behavior might result in a bad UX (note that some window managers might be able to
+            /// override this behavior). 
+            /// </summary>
             AlwaysOnTop = 32,
+
+            /// <summary>
+            /// Makes the window have a transparent background so it can allow the user to see behind this window.
+            /// This might be useful for implementing widget-like apps (like a clock) or splash screens.
+            /// </summary>
             TransparentFramebuffer = 64
         }
 
         public enum WindowMode
         {
+            /// <summary>
+            /// The window occupies a certain position and is visible.
+            /// </summary>
             Windowed = 0,
+
+            /// <summary>
+            /// The window is minimized in the platform's taskbar. It is not visible.
+            /// </summary>
             Minimized = 1,
+
+            /// <summary>
+            /// The window is maximized; it occupies the entire screen, except window decorations and optionally the
+            /// taskbar (depends on the platform and the user settings).
+            /// </summary>
             Maximized = 2,
+
+            /// <summary>
+            /// The window is in full-screen, a.k.a. borderless full-screen or windowed full-screen. This is similar
+            /// to <see cref="Maximized"/>, but the window occupies the entire screen, no decorations or taskbar,
+            /// but the user can easily switch to other apps because the display's video mode is unaffected. This is
+            /// recommended if you want full-screen.
+            /// </summary>
             Fullscreen = 3,
+
+            /// <summary>
+            /// The window is in full-screen, but it alters the display's video mode, makes switching to other apps
+            /// a bit harder and, in some rare situations, can cause GPU crashes more easily when switching. If you
+            /// want full-screen, consider using <see cref="Fullscreen"/> instead, as it's more stable and easier.
+            /// If the window loses focus in this mode, it is automatically minimized.
+            /// </summary>
             ExclusiveFullscreen = 4
         }
 
         private double _lastTime;
         private readonly List<Action<double>> _animationFrameCallbacks = new();
 
+        /// <summary>
+        /// Fired when the window is "dirty" and it needs a repaint, either partially or fully. This is fired before the
+        /// redraw.
+        /// </summary>
         public event Action<double>? FrameUpdatedEvent;
 
         #region Object creation
@@ -364,7 +535,8 @@ namespace CatUI.Windowing.Desktop
             _minHeight = minHeight;
             _maxHeight = maxHeight;
             _flags = windowFlags;
-            _startupMode = startupMode;
+            CurrentWindowMode = startupMode;
+            LastSetWindowMode = CurrentWindowMode;
 
             if (!GLFW.Init())
             {
@@ -441,12 +613,23 @@ namespace CatUI.Windowing.Desktop
 
                 DoFrameActions();
                 GLFW.WaitEventsTimeout(0.02);
+                _canInvokeMaximize = true;
             }
         }
 
+        /// <summary>
+        /// Creates the window and opens it. You must open the window before interacting with it, like calling
+        /// <see cref="Run"/>.
+        /// </summary>
+        /// <exception cref="InternalPlatformException">Thrown when GLFW couldn't create or show the window.</exception>
         public void Open()
         {
-            switch (_startupMode)
+            //request OpenGL 3.3 core
+            GLFW.WindowHint(WindowHintInt.ContextVersionMajor, 3);
+            GLFW.WindowHint(WindowHintInt.ContextVersionMinor, 3);
+            GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Core);
+
+            switch (CurrentWindowMode)
             {
                 default:
                 case WindowMode.Windowed:
@@ -462,10 +645,11 @@ namespace CatUI.Windowing.Desktop
                     break;
                 case WindowMode.Fullscreen:
                     {
+                        _canInvokeMaximize = false;
                         Monitor* monitor = GLFW.GetPrimaryMonitor();
                         if (monitor == null)
                         {
-                            throw new InternalPlatformException("GLFW: Could not get primary monitor");
+                            throw new InternalPlatformException("GLFW: Could not get primary display");
                         }
 
                         VideoMode* videoMode = GLFW.GetVideoMode(monitor);
@@ -485,16 +669,17 @@ namespace CatUI.Windowing.Desktop
                             videoMode->Width,
                             videoMode->Height,
                             _title,
-                            GLFW.GetPrimaryMonitor(),
+                            monitor,
                             (Window*)0);
                         break;
                     }
                 case WindowMode.ExclusiveFullscreen:
                     {
+                        _canInvokeMaximize = false;
                         Monitor* monitor = GLFW.GetPrimaryMonitor();
                         if (monitor == null)
                         {
-                            throw new InternalPlatformException("GLFW: Could not get primary monitor");
+                            throw new InternalPlatformException("GLFW: Could not get primary display");
                         }
 
                         VideoMode* videoMode = GLFW.GetVideoMode(monitor);
@@ -532,10 +717,156 @@ namespace CatUI.Windowing.Desktop
             FullyRedraw();
         }
 
+        /// <summary>
+        /// Closes the window, but if <see cref="OnCloseRequested"/> is overriden, it will be called, so the window might
+        /// not actually close directly.
+        /// </summary>
         public void Close()
         {
             _shouldCloseWindow = true;
             GLFW.PostEmptyEvent();
+        }
+
+        /// <summary>
+        /// Sets the window mode. Any value will trigger <see cref="WindowModeChangedEvent"/>. You can minimize, maximize,
+        /// make full-screen or make windowed this window. Regardless of the mode, the window will only be manipulated
+        /// on the current display.
+        /// </summary>
+        /// <param name="mode">The new mode.</param>
+        /// <param name="exclusiveFullscreenModeOptions">
+        /// If mode is <see cref="WindowMode.ExclusiveFullscreen"/>, this specifies the display resolution and refresh rate;
+        /// if this is left null, the display's preferred values are respected. This is ignored for other types of window mode.
+        /// </param>
+        /// <exception cref="InternalPlatformException">
+        /// Thrown if GLFW (the internal windowing library) could not get the required data from the platform.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Thrown if mode is some invalid value that is not any of the enum values.
+        /// </exception>
+        public void SetWindowMode(
+            WindowMode mode,
+            ExclusiveFullscreenModeOptions? exclusiveFullscreenModeOptions = null)
+        {
+            _canInvokeMaximize = mode != WindowMode.Fullscreen && mode != WindowMode.ExclusiveFullscreen;
+
+            switch (mode)
+            {
+                case WindowMode.Windowed:
+                    if (CurrentWindowMode == WindowMode.Windowed)
+                    {
+                        break;
+                    }
+
+                    GLFW.RestoreWindow(GlfwWindow);
+                    break;
+                case WindowMode.Minimized:
+                    if (CurrentWindowMode == WindowMode.Minimized)
+                    {
+                        break;
+                    }
+
+                    GLFW.IconifyWindow(GlfwWindow);
+                    break;
+                case WindowMode.Maximized:
+                    if (CurrentWindowMode == WindowMode.Maximized)
+                    {
+                        break;
+                    }
+
+                    if (CurrentWindowMode == WindowMode.Fullscreen ||
+                        CurrentWindowMode == WindowMode.ExclusiveFullscreen)
+                    {
+                        GLFW.SetWindowMonitor(GlfwWindow, null, 0, 0, _width, _height, 0);
+                    }
+
+                    GLFW.MaximizeWindow(GlfwWindow);
+                    break;
+                case WindowMode.Fullscreen:
+                    {
+                        if (CurrentWindowMode == WindowMode.Fullscreen)
+                        {
+                            break;
+                        }
+
+                        Monitor* monitor = GLFW.GetWindowMonitor(GlfwWindow);
+                        if (monitor == null)
+                        {
+                            monitor = GLFW.GetPrimaryMonitor();
+
+                            if (monitor == null)
+                            {
+                                throw new InternalPlatformException("GLFW: Could not get the window's display");
+                            }
+                        }
+
+                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                        if (videoMode == null)
+                        {
+                            throw new InternalPlatformException("GLFW: Could not get video mode");
+                        }
+
+                        GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
+                        GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
+                        GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
+                        GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
+
+                        GLFW.SetWindowMonitor(
+                            GlfwWindow, null,
+                            0, 0,
+                            videoMode->Width, videoMode->Height,
+                            0);
+
+                        WindowModeChangedEvent?.Invoke(
+                            this,
+                            new WindowModeChangedEventArgs(mode, CurrentWindowMode));
+                        break;
+                    }
+                case WindowMode.ExclusiveFullscreen:
+                    {
+                        if (CurrentWindowMode == WindowMode.ExclusiveFullscreen)
+                        {
+                            break;
+                        }
+
+                        Monitor* monitor = GLFW.GetWindowMonitor(GlfwWindow);
+                        if (monitor == null)
+                        {
+                            monitor = GLFW.GetPrimaryMonitor();
+
+                            if (monitor == null)
+                            {
+                                throw new InternalPlatformException("GLFW: Could not get window's display");
+                            }
+                        }
+
+                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                        if (videoMode == null)
+                        {
+                            throw new InternalPlatformException("GLFW: Could not get video mode");
+                        }
+
+                        _width = videoMode->Width;
+                        _height = videoMode->Height;
+
+                        GLFW.SetWindowMonitor(
+                            GlfwWindow,
+                            monitor,
+                            0, 0,
+                            exclusiveFullscreenModeOptions?.ResolutionWidth ?? videoMode->Width,
+                            exclusiveFullscreenModeOptions?.ResolutionHeight ?? videoMode->Height,
+                            exclusiveFullscreenModeOptions?.RefreshRate ?? videoMode->RefreshRate);
+
+                        WindowModeChangedEvent?.Invoke(
+                            this,
+                            new WindowModeChangedEventArgs(mode, CurrentWindowMode));
+                        break;
+                    }
+                default:
+                    throw new ArgumentException("Invalid window mode");
+            }
+
+            CurrentWindowMode = mode;
+            LastSetWindowMode = mode;
         }
 
         /// <inheritdoc cref="IApplicationWindow.RequestAnimationFrame"/>
@@ -555,17 +886,50 @@ namespace CatUI.Windowing.Desktop
             {
                 ResizedEvent?.Invoke(
                     this,
-                    new ResizedEventArgs(Width, Height, newWidth, newHeight)
+                    new WindowResizedEventArgs(Width, Height, newWidth, newHeight)
                 );
             };
             ResizedEvent += OnResize;
             GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
 
+            _iconifyCallback = (_, hasMinimizedNow) =>
+            {
+                OnMinimizeOrRestore(hasMinimizedNow);
+            };
+            GLFW.SetWindowIconifyCallback(GlfwWindow, _iconifyCallback);
+
+            _maximizeCallback = (_, hasMaximizedNow) =>
+            {
+                OnMaximizeOrRestore(hasMaximizedNow);
+            };
+            GLFW.SetWindowMaximizeCallback(GlfwWindow, _maximizeCallback);
+
+            _refreshCallback = _ =>
+            {
+                Monitor* monitor = GLFW.GetWindowMonitor(GlfwWindow);
+                if (monitor == null)
+                {
+                    if (GLFW.GetWindowAttrib(GlfwWindow, WindowAttributeGetBool.Iconified))
+                    {
+                        LastSetWindowMode = WindowMode.Minimized;
+                    }
+                    else if (GLFW.GetWindowAttrib(GlfwWindow, WindowAttributeGetBool.Maximized))
+                    {
+                        LastSetWindowMode = WindowMode.Maximized;
+                    }
+                    else
+                    {
+                        LastSetWindowMode = WindowMode.Windowed;
+                    }
+                }
+            };
+            GLFW.SetWindowRefreshCallback(GlfwWindow, _refreshCallback);
+
             _cursorMoveCallback = (_, posX, posY) =>
             {
                 float positionX = (float)posX;
                 float positionY = (float)posY;
-                var pos = new Point2D(positionX, positionY);
+                Point2D pos = new(positionX, positionY);
                 bool pressed = (_mousePressedBitmap & MouseButtonType.Primary) == MouseButtonType.Primary;
 
                 DocumentInvoke(
@@ -603,7 +967,7 @@ namespace CatUI.Windowing.Desktop
             };
             GLFW.SetCursorEnterCallback(GlfwWindow, _cursorEnterOrLeaveCallback);
 
-            _mouseButtonCallback = (_, glfwMouseBtn, action, glfwKbdModifiers) =>
+            _mouseButtonCallback = (_, glfwMouseBtn, action, _) =>
             {
                 int bitmap = (int)_mousePressedBitmap;
 
@@ -630,6 +994,15 @@ namespace CatUI.Windowing.Desktop
             ResizedEvent = null;
             _resizeCallback = null;
             GLFW.SetWindowSizeCallback(GlfwWindow, null);
+
+            _iconifyCallback = null;
+            GLFW.SetWindowIconifyCallback(GlfwWindow, null);
+
+            _maximizeCallback = null;
+            GLFW.SetWindowMaximizeCallback(GlfwWindow, null);
+
+            _refreshCallback = null;
+            GLFW.SetWindowRefreshCallback(GlfwWindow, null);
 
             _cursorMoveCallback = null;
             GLFW.SetCursorPosCallback(GlfwWindow, null);
@@ -707,6 +1080,7 @@ namespace CatUI.Windowing.Desktop
         }
 
 #pragma warning disable CA1822 // Mark members as static
+        // ReSharper disable once MemberCanBeMadeStatic.Local
         private void CreateSurface()
         {
 #if USE_ANGLE
@@ -784,10 +1158,13 @@ namespace CatUI.Windowing.Desktop
 
         #region Callback functions
 
-        private void OnResize(object sender, ResizedEventArgs e)
+        private void OnResize(object sender, WindowResizedEventArgs e)
         {
             //GL.Viewport(0, 0, width, height);
             //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+            _width = e.NewWidth;
+            _height = e.NewHeight;
 
             GL.GetInteger(GetPName.FramebufferBinding, out int frame);
             GL.GetInteger(GetPName.StencilBits, out int stencil);
@@ -797,6 +1174,52 @@ namespace CatUI.Windowing.Desktop
             DocumentInvoke("WndSetViewportSize", new Size(e.NewWidth, e.NewHeight));
             Document.Renderer.SetCanvasDirty();
             DoFrameActions();
+        }
+
+        private void OnMinimizeOrRestore(bool hasMinimizedNow)
+        {
+            CurrentWindowMode = hasMinimizedNow ? WindowMode.Minimized : LastSetWindowMode;
+
+            WindowModeChangedEvent?.Invoke(
+                this,
+                hasMinimizedNow
+                    ? new WindowModeChangedEventArgs(WindowMode.Minimized, LastSetWindowMode)
+                    : new WindowModeChangedEventArgs(LastSetWindowMode, WindowMode.Minimized));
+
+            //This is a workaround for some window managers/display servers like KWin that will show the window framebuffer
+            //as transparent after minimizing or restoring until a redraw happens.
+
+            //TODO: instead of a full redraw, only redraw parts that are different from the back buffer \
+            //TODO (): (this can only be implemented once partial redraws are implemented)
+            GL.GetInteger(GetPName.FramebufferBinding, out int frame);
+            GL.GetInteger(GetPName.StencilBits, out int stencil);
+            GL.GetInteger(GetPName.Samples, out int samples);
+            Document.Renderer.SetFramebufferData(frame, stencil, samples);
+
+            Document.Renderer.SetCanvasDirty();
+            DoFrameActions();
+
+// #if USE_ANGLE
+//             Egl.SwapBuffers(_eglDisplay, _eglSurface);
+// #else
+//             GLFW.SwapBuffers(GlfwWindow);
+// #endif
+        }
+
+        private void OnMaximizeOrRestore(bool hasMaximizedNow)
+        {
+            if (!_canInvokeMaximize)
+            {
+                return;
+            }
+
+            CurrentWindowMode = hasMaximizedNow ? WindowMode.Maximized : WindowMode.Windowed;
+
+            WindowModeChangedEvent?.Invoke(
+                this,
+                hasMaximizedNow
+                    ? new WindowModeChangedEventArgs(WindowMode.Maximized, WindowMode.Windowed)
+                    : new WindowModeChangedEventArgs(WindowMode.Windowed, WindowMode.Maximized));
         }
 
         #endregion
@@ -825,12 +1248,27 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
+        // ReSharper disable once UnusedType.Local
         private sealed class AngleBindingsContext : IBindingsContext
         {
             public nint GetProcAddress(string function)
             {
                 return Egl.GetProcAddress(function);
             }
+        }
+    }
+
+    public readonly struct ExclusiveFullscreenModeOptions
+    {
+        public int ResolutionWidth { get; }
+        public int ResolutionHeight { get; }
+        public int RefreshRate { get; }
+
+        public ExclusiveFullscreenModeOptions(int resolutionWidth, int resolutionHeight, int refreshRate)
+        {
+            ResolutionWidth = resolutionWidth;
+            ResolutionHeight = resolutionHeight;
+            RefreshRate = refreshRate;
         }
     }
 }

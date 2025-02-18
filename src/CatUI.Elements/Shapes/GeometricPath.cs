@@ -87,17 +87,8 @@ namespace CatUI.Elements.Shapes
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
         private Vector2 _lastScale = Vector2.One;
 
-        public GeometricPath(
-            string svgPath = "",
-            IBrush? fillBrush = null,
-            IBrush? outlineBrush = null,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null)
-            : base(
-                fillBrush,
-                outlineBrush,
-                preferredWidth,
-                preferredHeight)
+        public GeometricPath(string svgPath = "", IBrush? fillBrush = null, IBrush? outlineBrush = null)
+            : base(fillBrush, outlineBrush)
         {
             SvgPath = svgPath;
 
@@ -172,13 +163,13 @@ namespace CatUI.Elements.Shapes
             if (ShouldApplyScaling)
             {
                 scale = new Vector2(
-                    Bounds.BoundingRect.Width / _skiaPath.TightBounds.Width,
-                    Bounds.BoundingRect.Height / _skiaPath.TightBounds.Height);
+                    Bounds.Width / _skiaPath.TightBounds.Width,
+                    Bounds.Height / _skiaPath.TightBounds.Height);
             }
 
             var thisTopLeftPoint = new Vector2(
-                Bounds.BoundingRect.X - (startPoint.X * scale.X),
-                Bounds.BoundingRect.Y - (startPoint.Y * scale.Y));
+                Bounds.X - (startPoint.X * scale.X),
+                Bounds.Y - (startPoint.Y * scale.Y));
 
             _scaledCachedPath.Transform(SKMatrix.CreateScaleTranslation(
                 scale.X, scale.Y, thisTopLeftPoint.X, thisTopLeftPoint.Y));
@@ -199,12 +190,6 @@ namespace CatUI.Elements.Shapes
                 OutlineParameters = OutlineParameters,
                 //
                 Position = Position,
-                PreferredWidth = PreferredWidth,
-                PreferredHeight = PreferredHeight,
-                MinWidth = MinWidth,
-                MinHeight = MinHeight,
-                MaxWidth = MaxWidth,
-                MaxHeight = MaxHeight,
                 Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,

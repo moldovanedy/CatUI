@@ -1,5 +1,6 @@
 using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using SkiaSharp;

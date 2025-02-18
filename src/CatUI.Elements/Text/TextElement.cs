@@ -102,14 +102,7 @@ namespace CatUI.Elements.Text
             InitPropertiesEvents();
         }
 
-        public TextElement(
-            string text,
-            TextAlignmentType textAlignment = TextAlignmentType.Left,
-            Dimension? preferredWidth = null,
-            Dimension? preferredHeight = null)
-            : base(
-                preferredWidth,
-                preferredHeight)
+        public TextElement(string text, TextAlignmentType textAlignment = TextAlignmentType.Left)
         {
             Text = text;
             TextAlignment = textAlignment;

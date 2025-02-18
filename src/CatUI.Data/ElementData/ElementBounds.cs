@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace CatUI.Data
+namespace CatUI.Data.ElementData
 {
     /// <summary>
     /// Represents the bounds of an element in device pixels, including the margins.
