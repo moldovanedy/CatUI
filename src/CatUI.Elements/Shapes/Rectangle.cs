@@ -1,10 +1,17 @@
-﻿using CatUI.Data;
+﻿using System;
+using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
+using CatUI.Data.ElementData;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Shapes
 {
+    /// <summary>
+    /// Draws a rectangle, either filled, outlined or both. If the rectangle is both filled and outlined, the filled
+    /// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
+    /// on each size. The outline will also overlap with the filled area by half of the outline width on each side.
+    /// </summary>
     public class Rectangle : AbstractShape
     {
         /// <inheritdoc cref="Element.Ref"/>
@@ -28,40 +35,22 @@ namespace CatUI.Elements.Shapes
         {
         }
 
+        /// <summary>
+        /// Creates a new rectangle from the given <see cref="Rect"/> object. The coordinates are fixed and are
+        /// represented as <see cref="Element.Position"/> and for <see cref="Element.Layout"/> it sets
+        /// <see cref="ElementLayout.SetFixedWidth"/> and <see cref="ElementLayout.SetFixedHeight"/> respectively.
+        /// </summary>
+        /// <param name="rectDescriptor">Serves as the basis upon which the element's position and size are set.</param>
+        /// <param name="fillBrush">Sets <see cref="AbstractShape.FillBrush"/>.</param>
+        /// <param name="outlineBrush">Sets <see cref="AbstractShape.OutlineBrush"/>.</param>
         public Rectangle(
             Rect rectDescriptor,
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null)
+            : base(fillBrush, outlineBrush)
         {
-            if (fillBrush != null)
-            {
-                FillBrush = fillBrush;
-            }
-
-            if (outlineBrush != null)
-            {
-                OutlineBrush = outlineBrush;
-            }
-
-            if (rectDescriptor.X != 0)
-            {
-                Position = new Dimension2(rectDescriptor.X, Position.Y);
-            }
-
-            if (rectDescriptor.Y != 0)
-            {
-                Position = new Dimension2(Position.X, rectDescriptor.Y);
-            }
-
-            if (rectDescriptor.Width != 0)
-            {
-                Layout.SetFixedWidth(new Dimension(rectDescriptor.Width));
-            }
-
-            if (rectDescriptor.Height != 0)
-            {
-                Layout.SetFixedHeight(new Dimension(rectDescriptor.Height));
-            }
+            Position = new Dimension2(rectDescriptor.X, rectDescriptor.Y);
+            Layout.SetFixedWidth(Math.Abs(rectDescriptor.Width)).SetFixedHeight(Math.Abs(rectDescriptor.Height));
         }
 
         protected override void DrawBackground()

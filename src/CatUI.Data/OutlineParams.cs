@@ -21,9 +21,9 @@ namespace CatUI.Data
 
         /// <summary>
         /// Controls the limit of the line joins' extension when <see cref="LineJoin"/> is set to 
-        /// <see cref="LineJoinType.Miter"/>. Default is 1.
+        /// <see cref="LineJoinType.Miter"/>. Default is 10.
         /// </summary>
-        public float MiterLimit { get; } = 1;
+        public float MiterLimit { get; } = 10;
 
         public OutlineParams() { }
 
@@ -31,7 +31,7 @@ namespace CatUI.Data
             float outlineWidth = 1,
             LineCapType lineCap = LineCapType.Butt,
             LineJoinType lineJoin = LineJoinType.Miter,
-            float miterLimit = 1)
+            float miterLimit = 10)
         {
             OutlineWidth = outlineWidth;
             LineCap = lineCap;

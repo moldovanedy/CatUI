@@ -14,19 +14,21 @@ namespace CatUI.RenderingEngine
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
         /// </summary>
         /// <remarks>
-        /// This method can only draw a filled rectangle, for only drawing the outline (aka outline), use <see cref="DrawRectOutline"/>
+        /// This method can only draw a filled rectangle, for only drawing the outline (aka stroke), use
+        /// <see cref="DrawRectOutline"/>.
         /// </remarks>
         /// <param name="rect">The direct pixel measurements of the rect.</param>
         /// <param name="fillBrush">The brush to use to paint the rect.</param>
         /// <param name="roundedCorners">
-        /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless of the measuring unit.
+        /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless
+        /// of the measuring unit.
         /// </param>
         public void DrawRect(Rect rect, IBrush fillBrush, CornerInset? roundedCorners = null)
         {
             SKPaint paint = fillBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(paint);
 
-            if (roundedCorners != null && (roundedCorners?.HasNonTrivialValues ?? false))
+            if (roundedCorners != null && roundedCorners.Value.HasNonTrivialValues)
             {
                 var roundRect = new SKRoundRect();
                 SKPoint[] radii = SetupRectCorners((CornerInset)roundedCorners);
@@ -44,13 +46,15 @@ namespace CatUI.RenderingEngine
         /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
         /// </summary>
         /// <remarks>
-        /// This method can only draw an outlined rectangle, for drawing the rectangle as filled, use <see cref="DrawRect"/>
+        /// This method can only draw an outlined (stroke) rectangle, for drawing the rectangle as filled, use
+        /// <see cref="DrawRect"/>.
         /// </remarks>
         /// <param name="rect">The direct pixel measurements of the rect.</param>
         /// <param name="outlineBrush">The brush to use to paint the rect.</param>
         /// <param name="outlineParams">The parameters that define the outline.</param>
         /// <param name="roundedCorners">
-        /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless of the measuring unit.
+        /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless
+        /// of the measuring unit.
         /// </param>
         public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams,
             CornerInset? roundedCorners = null)
@@ -58,7 +62,7 @@ namespace CatUI.RenderingEngine
             SKPaint paint = outlineBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(paint, PaintMode.Outline, outlineParams: outlineParams);
 
-            if (roundedCorners != null && (roundedCorners?.HasNonTrivialValues ?? false))
+            if (roundedCorners != null && roundedCorners.Value.HasNonTrivialValues)
             {
                 var roundRect = new SKRoundRect();
                 SKPoint[] radii = SetupRectCorners((CornerInset)roundedCorners);
@@ -91,31 +95,34 @@ namespace CatUI.RenderingEngine
             Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
         }
 
-        public void DrawPath(
-            SKPath skiaPath,
-            IBrush fillBrush,
-            IBrush outlineBrush,
-            OutlineParams outlineParams)
+        public void DrawPath(SKPath skiaPath, IBrush fillBrush)
         {
-            if (!fillBrush.IsSkippable)
+            if (fillBrush.IsSkippable)
             {
-                SKPaint fillPaint = fillBrush.ToSkiaPaint();
-                PaintManager.ModifyPaint(
-                    fillPaint);
-
-                Canvas?.DrawPath(skiaPath, fillPaint);
+                return;
             }
 
-            if (!outlineBrush.IsSkippable && outlineParams.OutlineWidth != 0)
-            {
-                SKPaint outlinePaint = outlineBrush.ToSkiaPaint();
-                PaintManager.ModifyPaint(
-                    outlinePaint,
-                    PaintMode.Outline,
-                    outlineParams: outlineParams);
+            SKPaint fillPaint = fillBrush.ToSkiaPaint();
+            PaintManager.ModifyPaint(
+                fillPaint);
 
-                Canvas?.DrawPath(skiaPath, outlinePaint);
+            Canvas?.DrawPath(skiaPath, fillPaint);
+        }
+
+        public void DrawPathOutline(SKPath skiaPath, IBrush outlineBrush, OutlineParams outlineParams)
+        {
+            if (outlineBrush.IsSkippable || outlineParams.OutlineWidth == 0)
+            {
+                return;
             }
+
+            SKPaint outlinePaint = outlineBrush.ToSkiaPaint();
+            PaintManager.ModifyPaint(
+                outlinePaint,
+                PaintMode.Outline,
+                outlineParams: outlineParams);
+
+            Canvas?.DrawPath(skiaPath, outlinePaint);
         }
 
 
