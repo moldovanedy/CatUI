@@ -8,6 +8,26 @@ using SkiaSharp;
 
 namespace CatUI.Elements.Shapes
 {
+    /// <summary>
+    /// Draws a path (see remarks), either filled, outlined or both. If the path is both filled and outlined, the filled
+    /// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
+    /// on each size. The outline will also overlap with the filled area by half of the outline width on each side.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This is the most complex shape element: it can draw polygons, straight lines, curves (quadratic and cubic Bezier)
+    /// etc. You can combine multiple paths, and it's not necessary for the path to be continuous. However, remember that
+    /// this element can affect performance if overused, especially GPU usage. To set a path, you use the SVG's
+    /// &lt;path&gt; syntax or <see cref="SetNewSkiaPath"/> with the methods of <see cref="SKPath"/>.
+    /// See <see cref="SvgPath"/> for more info. This object uses Skia's <see cref="SKPath"/> internally.
+    /// </para>
+    /// <para>
+    /// For the best results, try to avoid having lots of these elements visible on the screen at once, or better on the
+    /// entire app's lifetime. Any modification to the path is similar to creating a new path, so avoid modifying paths
+    /// as well. If you have small objects with a lot of details, consider using images, as images are generally faster
+    /// to draw when the images are small.
+    /// </para>
+    /// </remarks>
     public class GeometricPath : AbstractShape
     {
         /// <inheritdoc cref="Element.Ref"/>
@@ -86,6 +106,7 @@ namespace CatUI.Elements.Shapes
 
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
         private Vector2 _lastScale = Vector2.One;
+        private SKMatrix _lastTransformMatrix = SKMatrix.Identity;
 
         public GeometricPath(string svgPath = "", IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
@@ -152,30 +173,42 @@ namespace CatUI.Elements.Shapes
             }
 
             base.DrawBackground();
-            var startPoint = new Vector2(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
-            var scale = new Vector2(1, 1);
 
-            //TODO: use caching as much as possible, and investigate whether saving the canvas state,
-            // transforming the whole canvas, drawing and then restoring the canvas is a better choice when there are many paths
-            // another strategy would be to apply the inverse of the matrix to the drawn path
-            _scaledCachedPath = new SKPath(_skiaPath);
+            //TODO: investigate whether saving the canvas state, transforming the whole canvas, drawing and then
+            // restoring the canvas is a better choice when there are many paths instead of the inverse matrix technique
+            // also look for ways to minimize the transformations, as it might invalidate Skia's caches, leading to poor
+            // performance; it's especially important for the case where scaling is not applied, as that's only a translation
+            _scaledCachedPath.Transform(_lastTransformMatrix.Invert());
+            var startPoint = new Vector2(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
 
             if (ShouldApplyScaling)
             {
-                scale = new Vector2(
+                var scale = new Vector2(
                     Bounds.Width / _skiaPath.TightBounds.Width,
                     Bounds.Height / _skiaPath.TightBounds.Height);
+
+                _lastTopLeftPoint = new Vector2(
+                    Bounds.X - (startPoint.X * scale.X),
+                    Bounds.Y - (startPoint.Y * scale.Y));
+
+                _lastTransformMatrix = SKMatrix.CreateScaleTranslation(
+                    scale.X, scale.Y, _lastTopLeftPoint.X, _lastTopLeftPoint.Y);
+                _scaledCachedPath.Transform(_lastTransformMatrix);
+
+                Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush);
+                Document?.Renderer.DrawPathOutline(_scaledCachedPath, OutlineBrush, OutlineParameters);
+
+                _lastScale = scale;
             }
+            else
+            {
+                _lastTopLeftPoint = new Vector2(Bounds.X - startPoint.X, Bounds.Y - startPoint.Y);
+                _lastTransformMatrix = SKMatrix.CreateTranslation(_lastTopLeftPoint.X, _lastTopLeftPoint.Y);
+                _scaledCachedPath.Transform(_lastTransformMatrix);
 
-            var thisTopLeftPoint = new Vector2(
-                Bounds.X - (startPoint.X * scale.X),
-                Bounds.Y - (startPoint.Y * scale.Y));
-
-            _scaledCachedPath.Transform(SKMatrix.CreateScaleTranslation(
-                scale.X, scale.Y, thisTopLeftPoint.X, thisTopLeftPoint.Y));
-            Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush, OutlineBrush, OutlineParameters);
-
-            _lastScale = scale;
+                Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush);
+                Document?.Renderer.DrawPathOutline(_scaledCachedPath, OutlineBrush, OutlineParameters);
+            }
         }
 
         public override GeometricPath Duplicate()
