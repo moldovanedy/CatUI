@@ -38,8 +38,6 @@ namespace CatUI.Elements.Text
 
 
         /// <inheritdoc cref="IWordWrappable.WordWrap"/>
-        /// <remarks>
-        /// </remarks>
         public bool WordWrap
         {
             get => _wordWrap;
@@ -357,13 +355,10 @@ namespace CatUI.Elements.Text
             for (int i = 0; i < newText.Length; i++)
             {
                 //check for newline
-                if (
-                    newText[i] == '\n' ||
-                    (newText[i] == '\r' && i + 1 < newText.Length && newText[i + 1] == '\n') ||
-                    newText[i] == '\r')
+                if (TextUtils.IsUnicodeNewline(newText[i]))
                 {
-                    //if it was CRLF
-                    if (newText[i + 1] == '\n')
+                    //CRLF always making things complicated...
+                    if (newText[i] == '\r' && i + 1 < newText.Length && newText[i + 1] == '\n')
                     {
                         i++;
                     }
@@ -383,7 +378,7 @@ namespace CatUI.Elements.Text
                     continue;
                 }
 
-                if (newText[i] == ' ')
+                if (char.IsWhiteSpace(newText[i]) && TextUtils.CanWhitespaceBreakText(newText[i]))
                 {
                     //includes the space
                     possibleBreakPoints.Add(columnIndex);
