@@ -10,4 +10,13 @@ namespace CatUI.Data.Exceptions
         public DuplicateElementException(string message) : base(message) { }
         public DuplicateElementException(string message, Exception innerException) : base(message, innerException) { }
     }
+
+    /// <summary>
+    /// Thrown when you give the same ID to more than one element.
+    /// </summary>
+    public class DuplicateIdException : Exception
+    {
+        public DuplicateIdException(string message) : base(message) { }
+        public DuplicateIdException(string message, Exception innerException) : base(message, innerException) { }
+    }
 }
