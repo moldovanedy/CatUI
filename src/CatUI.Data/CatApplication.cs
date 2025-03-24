@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using CatUI.PlatformExtension;
+using CatUI.Platform.Essentials;
 
 namespace CatUI.Data
 {
