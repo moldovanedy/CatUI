@@ -218,24 +218,39 @@ namespace CatUI.Elements
         public ObservableProperty<CornerInset> CornerRadiusProperty { get; private set; } = new(new CornerInset());
 
         /// <summary>
-        /// Represents the name of this element. This is useful for finding the element inside a hierarchy.
-        /// The default value is an empty string; it can have any value, except null.
+        /// Represents the ID of this element. This is useful for finding the element inside a hierarchy.
+        /// The default value is null. This ID must be unique to all the elements in the document, otherwise setting
+        /// this will result in a <see cref="DuplicateIdException"/> to be thrown.
         /// </summary>
-        /// <exception cref="ArgumentNullException">Thrown if the name is set to null.</exception>
-        public string Name
+        /// <remarks>
+        /// Each time that you add or update the ID, the entry in the document element cache (i.e. the one that's used
+        /// for <see cref="UiDocument.GetElementById"/>) will be updated. Similarly, when you set this to null,
+        /// the entry is removed. The entries are automatically removed when the element is removed from the
+        /// document or added when the element is added to the document if needed. 
+        /// </remarks>
+        public string? Id
         {
-            get => _name;
+            get => _id;
             set
             {
-                _name = value ?? throw new ArgumentNullException(
-                    nameof(value),
-                    "The name of an element can be empty, but not null.");
-                NameProperty.Value = value;
+                if (_id != null)
+                {
+                    Document?.RemoveFromIdCache(_id);
+                }
+
+                _id = value;
+
+                if (_id != null)
+                {
+                    Document?.AddToIdCache(this);
+                }
+
+                IdProperty.Value = value;
             }
         }
 
-        private string _name = "";
-        public ObservableProperty<string> NameProperty { get; private set; } = new("");
+        private string? _id = "";
+        public ObservableProperty<string> IdProperty { get; private set; } = new(null);
 
         /// <summary>
         /// Controls whether this element is visible or not in the application. An invisible element will still occupy
@@ -323,8 +338,7 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Represents the absolute coordinates of this element relative to the viewport. When the element is not
-        /// inside the document, these bounds are not reliable (generally representing an empty rect). This also
-        /// holds the margins of this element (not used yet).
+        /// inside the document, these bounds are not reliable (generally representing an empty rect).
         /// </summary>
         public Rect Bounds { get; internal set; } = new();
 
@@ -375,7 +389,11 @@ namespace CatUI.Elements
 
         public bool IsInsideDocument => Document != null;
 
-        private bool _shouldCheckForDuplicateChildren = true;
+        /// <summary>
+        /// If true, any child addition will be checked first to ensure there are no duplicates. See
+        /// <see cref="ToggleDuplicateChildrenCheck"/> for more info.
+        /// </summary>
+        public bool IsCheckingForDuplicateChildren { get; private set; } = true;
 
         /// <summary>
         /// Fired when the element needs to be redrawn. Do NOT use this as a continuous consistent source of events (like
@@ -459,6 +477,7 @@ namespace CatUI.Elements
             MarginProperty = null!;
             BackgroundProperty = null!;
             CornerRadiusProperty = null!;
+            IdProperty = null!;
             VisibleProperty = null!;
             EnabledProperty = null!;
             ElementContainerSizingProperty = null!;
@@ -505,7 +524,7 @@ namespace CatUI.Elements
 
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
-            if (_shouldCheckForDuplicateChildren && Children.Count(el => el == e.Item) > 1)
+            if (IsCheckingForDuplicateChildren && Children.Count(el => el == e.Item) > 1)
             {
                 throw new DuplicateElementException("Duplicate children are not allowed.");
             }
@@ -517,6 +536,11 @@ namespace CatUI.Elements
             if (Document != null)
             {
                 e.Item.Document = Document;
+                if (e.Item._id != null)
+                {
+                    Document.AddToIdCache(e.Item);
+                }
+
                 MarkLayoutDirty();
             }
         }
@@ -524,6 +548,10 @@ namespace CatUI.Elements
         private void OnChildRemoved(object? sender, ObservableListRemoveEventArgs<Element> e)
         {
             e.Item.IsChildOfContainer = false;
+            if (e.Item._id != null)
+            {
+                Document?.RemoveFromIdCache(e.Item._id);
+            }
 
             if (Document != null)
             {
@@ -785,10 +813,12 @@ namespace CatUI.Elements
 
         /// <summary>
         /// This method is for special cases only! When you have to add a lot of elements at once, and you already ensured
-        /// that you have no duplicates, disable the check before adding the children and enable it immediately afterward.
-        /// Any element insertion will first check to see if the new element isn't already there and, if it is,
-        /// it throws an <see cref="DuplicateElementException"/>. The check is active by default, and you should really
-        /// not mess with it unless you know what you are doing. The case above is the only reason this method exists.
+        /// that you have no duplicates, disable the check before adding the children and enable it immediately afterward
+        /// for performance reasons. Any element insertion will first check to see if the new element isn't already
+        /// there and, if it is, it throws an <see cref="DuplicateElementException"/>. The check is active by default,
+        /// and you should really not mess with it unless you know what you are doing. The case above is the only
+        /// reason this method exists. See <see cref="IsCheckingForDuplicateChildren"/> to see the current state of
+        /// this option.
         /// </summary>
         /// <remarks>
         /// If you disable this check, and you insert duplicate children, the whole element hierarchy might get corrupted,
@@ -797,7 +827,7 @@ namespace CatUI.Elements
         /// <param name="shouldEnable">If true, enables the check; if false, disables it.</param>
         public void ToggleDuplicateChildrenCheck(bool shouldEnable)
         {
-            _shouldCheckForDuplicateChildren = shouldEnable;
+            IsCheckingForDuplicateChildren = shouldEnable;
         }
 
         public Element? GetParent()

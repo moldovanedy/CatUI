@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using CatUI.Data;
 using CatUI.Data.Events.Input.Pointer;
+using CatUI.Data.Exceptions;
 using CatUI.RenderingEngine;
 using SkiaSharp;
 
@@ -105,7 +106,7 @@ namespace CatUI.Elements
 
         private float _contentScale = 1f;
 
-        private readonly Dictionary<string, Element> _cachedElements = new();
+        private readonly Dictionary<string, Element> _elementCache = new();
 
         public UiDocument(Size initialViewportSize = default, float initialContentScale = 1f)
         {
@@ -119,48 +120,27 @@ namespace CatUI.Elements
             Root?.InvokeDraw();
         }
 
-        public Element? GetElementByName(string name)
+        public Element? GetElementById(string id)
         {
-            if (Root == null)
-            {
-                return null;
-            }
-
-            return _cachedElements.TryGetValue(name, out Element? element) ? element : Search(Root, name);
+            return Root == null ? null : _elementCache.GetValueOrDefault(id);
         }
 
-        public void CacheElement(string name, Element element)
+        internal void AddToIdCache(Element element)
         {
-            if (!_cachedElements.TryGetValue(name, out _))
+            if (element.Id == null)
             {
-                _cachedElements.Add(name, element);
+                return;
+            }
 
-                //remove the first element from the cache, as the dictionary is full
-                if (_cachedElements.Count <= ElementCacheSize)
-                {
-                    _cachedElements.Remove(_cachedElements.ElementAt(0).Key);
-                }
+            if (!_elementCache.TryAdd(element.Id, element))
+            {
+                throw new DuplicateIdException($"The ID \"{element.Id}\" is already in use.");
             }
         }
 
-        private Element? Search(Element current, string name)
+        internal void RemoveFromIdCache(string oldId)
         {
-            foreach (Element child in current.Children)
-            {
-                if (child.Name == name)
-                {
-                    if (_cachedElements.Count <= ElementCacheSize)
-                    {
-                        CacheElement(child.Name, child);
-                    }
-
-                    return child;
-                }
-
-                Search(child, name);
-            }
-
-            return null;
+            _elementCache.Remove(oldId);
         }
 
         //Private access for implementations of windowing. This is to avoid having public setters as it's not OK.
@@ -189,7 +169,7 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Called when the pointer moves.
+        /// Called when the pointer moves. Do NOT modify its signature.
         /// </summary>
         /// <param name="e"></param>
         private void WndCallPointerMove(PointerMoveEventArgs e)
@@ -202,7 +182,7 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Called when the pointer enters the window client area.
+        /// Called when the pointer enters the window client area. Do NOT modify its signature.
         /// </summary>
         /// <param name="e"></param>
         private void WndCallPointerEnter(PointerEnterEventArgs e)
@@ -212,7 +192,7 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Called when the pointer leaves the window client area.
+        /// Called when the pointer leaves the window client area. Do NOT modify its signature.
         /// </summary>
         /// <param name="e"></param>
         private void WndCallPointerLeave(PointerExitEventArgs e)
