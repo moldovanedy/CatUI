@@ -44,7 +44,7 @@ namespace CatUI.Windowing.Desktop
 
                 if (OperatingSystem.IsLinux())
                 {
-                    if (GLFW.GetPlatform() == Platform.X11)
+                    if (GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11)
                     {
                         return (nint)(nuint)GLFW.GetX11Window(GlfwWindow);
                     }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CatUI.PlatformExtension
+namespace CatUI.Platform.Essentials
 {
     /// <summary>
     /// The base for all dispatchers. All the dispatchers work the same, it's just that the actual implementation is
@@ -14,7 +14,7 @@ namespace CatUI.PlatformExtension
         private readonly List<Action> _actions = new();
 
         /// <summary>
-        /// The given action will be called on the main thread regardless of what thread this method is called on
+        /// The given action will be called on the UI thread regardless of what thread this method is called on
         /// so that all the operations can be executed in a thread-safe way, so you avoid any undefined behavior
         /// when you set properties of the elements. The actions set here will be called later (deferred), so there
         /// might be a delay of several milliseconds between when this method is called and when the action
@@ -26,8 +26,8 @@ namespace CatUI.PlatformExtension
         /// It is NOT necessary to use it when making element callbacks as async or for methods like
         /// Element.PointerEnter, Element.EnterDocument etc.
         /// </remarks>
-        /// <param name="action">The action that you want to call on the main thread.</param>
-        public void InvokeDeferred(Action action)
+        /// <param name="action">The action that you want to call on the UI thread.</param>
+        public void InvokeOnUiThread(Action action)
         {
             _actions.Add(action);
         }

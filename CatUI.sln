@@ -44,7 +44,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUISample.UI", "samples\C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CatUISample", "CatUISample", "{36CE2A23-D640-4A3B-9D9B-231F98D5FC72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.PlatformExtension", "src\CatUI.PlatformExtension\CatUI.PlatformExtension.csproj", "{F2BD7976-CCAB-449C-B52C-ABB2D5896B88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform.Essentials", "src\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj", "{F2BD7976-CCAB-449C-B52C-ABB2D5896B88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
