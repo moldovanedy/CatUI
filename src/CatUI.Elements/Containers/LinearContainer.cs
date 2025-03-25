@@ -5,7 +5,7 @@ using CatUI.Data.ElementData;
 
 namespace CatUI.Elements.Containers
 {
-    public abstract class BoxContainer : Container
+    public abstract class LinearContainer : Container
     {
         /// <summary>
         /// Specifies the dimension of the space left between each of the elements in the container. By default, it's 0.
@@ -24,16 +24,16 @@ namespace CatUI.Elements.Containers
         public ObservableProperty<Dimension> SpacingProperty { get; private set; } = new(new Dimension(0));
 
         /// <summary>
-        /// Specifies the orientation of this BoxContainer. Can be vertical or horizontal.
+        /// Specifies the orientation of this LinearContainer. Can be vertical or horizontal.
         /// </summary>
-        public abstract Orientation BoxOrientation { get; }
+        public abstract Orientation ContainerOrientation { get; }
 
-        public BoxContainer()
+        public LinearContainer()
         {
             SpacingProperty.ValueChangedEvent += SetSpacing;
         }
 
-        ~BoxContainer()
+        ~LinearContainer()
         {
             SpacingProperty = null!;
         }
@@ -68,12 +68,12 @@ namespace CatUI.Elements.Containers
                     continue;
                 }
 
-                if (BoxOrientation == Orientation.Horizontal)
+                if (ContainerOrientation == Orientation.Horizontal)
                 {
-                    if (child.ElementContainerSizing is HBoxContainerSizing boxContainerSizing &&
-                        boxContainerSizing.HGrowthFactor > 0)
+                    if (child.ElementContainerSizing is RowContainerSizing rowContainerSizing &&
+                        rowContainerSizing.GrowthFactor > 0)
                     {
-                        totalGrowthFactors += boxContainerSizing.HGrowthFactor;
+                        totalGrowthFactors += rowContainerSizing.GrowthFactor;
 
                         float min = CalculateDimension(child.Layout.MinWidth ?? Dimension.Unset, thisMaxSize.Width);
                         minimumElementsDim += min;
@@ -91,10 +91,10 @@ namespace CatUI.Elements.Containers
                 }
                 else
                 {
-                    if (child.ElementContainerSizing is VBoxContainerSizing boxContainerSizing &&
-                        boxContainerSizing.VGrowthFactor > 0)
+                    if (child.ElementContainerSizing is ColumnContainerSizing columnContainerSizing &&
+                        columnContainerSizing.GrowthFactor > 0)
                     {
-                        totalGrowthFactors += boxContainerSizing.VGrowthFactor;
+                        totalGrowthFactors += columnContainerSizing.GrowthFactor;
 
                         float min = CalculateDimension(child.Layout.MinHeight ?? Dimension.Unset, thisMaxSize.Height);
                         minimumElementsDim += min;
@@ -112,12 +112,12 @@ namespace CatUI.Elements.Containers
                 }
 
                 Dimension childPrefDimension =
-                    (BoxOrientation == Orientation.Horizontal
+                    (ContainerOrientation == Orientation.Horizontal
                         ? child.Layout.GetSuggestedWidth()
                         : child.Layout.GetSuggestedHeight()) ?? Dimension.Unset;
                 Dimension childMinDimension;
 
-                if (BoxOrientation == Orientation.Horizontal)
+                if (ContainerOrientation == Orientation.Horizontal)
                 {
                     switch (child.Layout.WidthMode)
                     {
@@ -201,11 +201,11 @@ namespace CatUI.Elements.Containers
                     estimatedDim +=
                         CalculateDimension(
                             childPrefDimension,
-                            BoxOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height);
+                            ContainerOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height);
                 }
             }
 
-            float containerDim = BoxOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height;
+            float containerDim = ContainerOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height;
 
             //when it does NOT enter if, the whole content can fit and there's still space left, making it easy
             //to respect the position of the content
@@ -220,7 +220,7 @@ namespace CatUI.Elements.Containers
             float remainingDimForGrowth = containerDim - allocatedMinDim;
             float growthSectionDim = remainingDimForGrowth / totalGrowthFactors;
 
-            //the pass is "tainted" if an element declared a size, but after recalculation it has a different size
+            //the pass is "tainted" if an element declared a size, but after recalculation it has a different size;
             //this means a third pass is necessary
             bool isTainted = false;
 
@@ -234,20 +234,20 @@ namespace CatUI.Elements.Containers
                 }
 
                 //if it's growing
-                if (child.ElementContainerSizing is HBoxContainerSizing ||
-                    child.ElementContainerSizing is VBoxContainerSizing)
+                if (child.ElementContainerSizing is RowContainerSizing ||
+                    child.ElementContainerSizing is ColumnContainerSizing)
                 {
-                    float finalDim = BoxOrientation switch
+                    float finalDim = ContainerOrientation switch
                     {
                         Orientation.Horizontal when
-                            child.ElementContainerSizing is HBoxContainerSizing hBoxContainerSizing =>
+                            child.ElementContainerSizing is RowContainerSizing rowContainerSizing =>
                             Math.Max(
-                                hBoxContainerSizing.HGrowthFactor * growthSectionDim,
+                                rowContainerSizing.GrowthFactor * growthSectionDim,
                                 CalculateDimension(child.Layout.MinWidth ?? Dimension.Unset, thisSize.Width)),
                         Orientation.Vertical when
-                            child.ElementContainerSizing is VBoxContainerSizing vBoxContainerSizing =>
+                            child.ElementContainerSizing is ColumnContainerSizing columnContainerSizing =>
                             Math.Max(
-                                vBoxContainerSizing.VGrowthFactor * growthSectionDim,
+                                columnContainerSizing.GrowthFactor * growthSectionDim,
                                 CalculateDimension(child.Layout.MinHeight ?? Dimension.Unset, thisSize.Height)),
                         _ => 0
                     };
@@ -257,7 +257,7 @@ namespace CatUI.Elements.Containers
                     if (!isTainted)
                     {
                         Size finalSize;
-                        if (BoxOrientation == Orientation.Horizontal)
+                        if (ContainerOrientation == Orientation.Horizontal)
                         {
                             finalSize = new Size(
                                 finalDim,
@@ -274,18 +274,18 @@ namespace CatUI.Elements.Containers
                                 finalDim);
                         }
 
-                        //TODO: handle positioning on the different axis that the one from BoxOrientation
+                        //TODO: handle positioning on the different axis that the one from ContainerOrientation
                         float x = thisAbsolutePosition.X;
                         float y = thisAbsolutePosition.Y;
 
                         child.Bounds = new Rect(x, y, finalSize.Width, finalSize.Height);
 
                         finalContainerDim +=
-                            BoxOrientation == Orientation.Horizontal
+                            ContainerOrientation == Orientation.Horizontal
                                 ? finalSize.Width
                                 : finalSize.Height;
 
-                        if (BoxOrientation == Orientation.Horizontal)
+                        if (ContainerOrientation == Orientation.Horizontal)
                         {
                             x += finalSize.Width;
                         }
@@ -326,7 +326,7 @@ namespace CatUI.Elements.Containers
                     }
 
                     float difference;
-                    if (BoxOrientation == Orientation.Horizontal)
+                    if (ContainerOrientation == Orientation.Horizontal)
                     {
                         difference = actualSize.Width - declaredWidth;
                     }
@@ -344,18 +344,18 @@ namespace CatUI.Elements.Containers
                     //set the position
                     if (!isTainted)
                     {
-                        //TODO: handle positioning on the different axis that the one from BoxOrientation
+                        //TODO: handle positioning on the different axis that the one from ContainerOrientation
                         float x = thisAbsolutePosition.X;
                         float y = thisAbsolutePosition.Y;
 
                         child.Bounds = new Rect(x, y, actualSize.Width, actualSize.Height);
 
                         finalContainerDim +=
-                            BoxOrientation == Orientation.Horizontal
+                            ContainerOrientation == Orientation.Horizontal
                                 ? actualSize.Width
                                 : actualSize.Height;
 
-                        if (BoxOrientation == Orientation.Horizontal)
+                        if (ContainerOrientation == Orientation.Horizontal)
                         {
                             x += actualSize.Width;
                         }
@@ -373,10 +373,11 @@ namespace CatUI.Elements.Containers
             //size
             if (isTainted)
             {
+                //TODO
             }
 
             Size size =
-                BoxOrientation == Orientation.Horizontal
+                ContainerOrientation == Orientation.Horizontal
                     ? new Size(finalContainerDim, thisSize.Height)
                     : new Size(thisSize.Width, finalContainerDim);
 
