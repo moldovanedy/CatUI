@@ -22,7 +22,7 @@ namespace BoxContainersExample
                 minHeight: 200);
 
             window.Document.BackgroundColor = new Color(0x21_21_21);
-            window.Document.Root = new VBoxContainer();
+            window.Document.Root = new ColumnContainer();
 
             window.Document.Root.Children.AddItems(
             [
@@ -35,7 +35,7 @@ namespace BoxContainersExample
                 {
                     Layout = new ElementLayout().SetFixedWidth("100%").SetMinMaxHeight(250, Dimension.Unset),
                     FillBrush = new ColorBrush(new Color(0x75_75_75)),
-                    ElementContainerSizing = new VBoxContainerSizing(1f)
+                    ElementContainerSizing = new ColumnContainerSizing(1f)
                 },
                 new Rectangle
                 {
@@ -47,7 +47,7 @@ namespace BoxContainersExample
                 //     preferredHeight: "5%",
                 //     minHeight: "250dp",
                 //     fillBrush: new ColorBrush(new Color(0x75_75_75)),
-                //     elementContainerSizing: new VBoxContainerSizing(vGrowthFactor: 3)
+                //     elementContainerSizing: new ColumnContainerSizing(vGrowthFactor: 3)
                 // ),
             ]);
 

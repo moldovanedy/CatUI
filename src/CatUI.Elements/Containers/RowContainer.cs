@@ -3,10 +3,10 @@ using CatUI.Utils;
 
 namespace CatUI.Elements.Containers
 {
-    public class VBoxContainer : BoxContainer
+    public class RowContainer : LinearContainer
     {
         /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<VBoxContainer>? Ref
+        public new ObjectRef<RowContainer>? Ref
         {
             get => _ref;
             set
@@ -19,13 +19,13 @@ namespace CatUI.Elements.Containers
             }
         }
 
-        private ObjectRef<VBoxContainer>? _ref;
+        private ObjectRef<RowContainer>? _ref;
 
-        public override Orientation BoxOrientation => Orientation.Vertical;
+        public override Orientation ContainerOrientation => Orientation.Horizontal;
 
-        public override VBoxContainer Duplicate()
+        public override RowContainer Duplicate()
         {
-            return new VBoxContainer
+            return new RowContainer
             {
                 Spacing = Spacing,
                 //

@@ -8,9 +8,9 @@ using CatUI.Utils;
 
 namespace ProjectName.UI
 {
-    //VBoxContainer arranges its children in a vertical stack, you can derive (almost) any CatUI element, making the
+    //ColumnContainer arranges its children in a vertical stack, you can derive (almost) any CatUI element, making the
     //creation of custom and reusable elements very easy
-    public class RootElement : VBoxContainer
+    public class RootElement : ColumnContainer
     {
         //you can use an ObjectRef<Element> to acces an element in another context (see below)
         private readonly ObjectRef<TextBlock>? _textBlockRef = new();

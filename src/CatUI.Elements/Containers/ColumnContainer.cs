@@ -3,10 +3,10 @@ using CatUI.Utils;
 
 namespace CatUI.Elements.Containers
 {
-    public class HBoxContainer : BoxContainer
+    public class ColumnContainer : LinearContainer
     {
         /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<HBoxContainer>? Ref
+        public new ObjectRef<ColumnContainer>? Ref
         {
             get => _ref;
             set
@@ -19,13 +19,13 @@ namespace CatUI.Elements.Containers
             }
         }
 
-        private ObjectRef<HBoxContainer>? _ref;
+        private ObjectRef<ColumnContainer>? _ref;
 
-        public override Orientation BoxOrientation => Orientation.Horizontal;
+        public override Orientation ContainerOrientation => Orientation.Vertical;
 
-        public override HBoxContainer Duplicate()
+        public override ColumnContainer Duplicate()
         {
-            return new HBoxContainer
+            return new ColumnContainer
             {
                 Spacing = Spacing,
                 //

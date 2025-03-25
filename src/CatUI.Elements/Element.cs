@@ -318,7 +318,7 @@ namespace CatUI.Elements
         /// <remarks>
         /// If this is null (the default value), the container will interpret this element as stated in the documentation
         /// corresponding to that type of container from <see cref="ContainerSizing"/> for the default value
-        /// (e.g. for a <see cref="HBoxContainer"/> the documentation will be present in <see cref="HBoxContainerSizing"/>).
+        /// (e.g. for a <see cref="RowContainer"/> the documentation will be present in <see cref="RowContainerSizing"/>).
         /// </remarks>
         public ContainerSizing? ElementContainerSizing
         {
