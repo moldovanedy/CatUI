@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CatUI.Data;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;

@@ -1,8 +1,10 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using CatUI.Data.Enums;
 
-namespace CatUI.Data.Containers
+namespace CatUI.Data.Containers.LinearContainers
 {
-    public class RowContainerSizing : ContainerSizing
+    public class RowContainerSizing : ContainerSizing, INotifyPropertyChanged
     {
         /// <summary>
         /// Controls the growth factor of the element. The growth factor is the portion of the RowContainer that is
@@ -30,13 +32,35 @@ namespace CatUI.Data.Containers
         /// The elements with the growth factor of 1 will have 150dp each (150 * 1), while the other element will have
         /// 300dp (150 * 2).
         /// </example>
-        public float GrowthFactor { get; set; }
+        public float GrowthFactor
+        {
+            get => _growthFactor;
+            set
+            {
+                _growthFactor = value;
+                NotifyPropertyChanged();
+            }
+        }
 
-        public VerticalAlignmentType VerticalAlignment { get; set; }
+        private float _growthFactor;
+
+        public VerticalAlignmentType VerticalAlignment
+        {
+            get => _verticalAlignment;
+            set
+            {
+                _verticalAlignment = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private VerticalAlignmentType _verticalAlignment;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public RowContainerSizing(
             float growthFactor = 1,
-            VerticalAlignmentType verticalAlignment = VerticalAlignmentType.Stretch)
+            VerticalAlignmentType verticalAlignment = VerticalAlignmentType.Top)
         {
             GrowthFactor = growthFactor;
             VerticalAlignment = verticalAlignment;
@@ -46,6 +70,11 @@ namespace CatUI.Data.Containers
         public override RowContainerSizing Duplicate()
         {
             return new RowContainerSizing(GrowthFactor, VerticalAlignment);
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -45,8 +45,7 @@ namespace CatUI.Elements
         public ObservableProperty<Image> SourceProperty { get; private set; } = new();
 
         /// <summary>
-        /// Specifies the image's horizontal alignment (on the X axis). <see cref="HorizontalAlignmentType.Stretch"/> is
-        /// invalid here and will be treated as <see cref="HorizontalAlignmentType.Left"/>. The default value is
+        /// Specifies the image's horizontal alignment (on the X axis). The default value is
         /// <see cref="HorizontalAlignmentType.Left"/>.
         /// </summary>
         public HorizontalAlignmentType HorizontalAlignment
@@ -65,8 +64,7 @@ namespace CatUI.Elements
             = new(HorizontalAlignmentType.Left);
 
         /// <summary>
-        /// Specifies the image's vertical alignment (on the Y axis). <see cref="VerticalAlignmentType.Stretch"/> is
-        /// invalid here and will be treated as <see cref="VerticalAlignmentType.Top"/>. The default value is
+        /// Specifies the image's vertical alignment (on the Y axis). The default value is
         /// <see cref="VerticalAlignmentType.Top"/>.
         /// </summary>
         public VerticalAlignmentType VerticalAlignment
@@ -335,7 +333,6 @@ namespace CatUI.Elements
             float x, y;
             switch (HorizontalAlignment)
             {
-                case HorizontalAlignmentType.Stretch:
                 case HorizontalAlignmentType.Left:
                     x = Bounds.X;
                     break;
@@ -351,7 +348,6 @@ namespace CatUI.Elements
 
             switch (VerticalAlignment)
             {
-                case VerticalAlignmentType.Stretch:
                 case VerticalAlignmentType.Top:
                     y = Bounds.Y;
                     break;

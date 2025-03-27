@@ -1,4 +1,7 @@
+using CatUI.Data;
 using CatUI.Data.Containers;
+using CatUI.Data.Containers.LinearContainers;
+using CatUI.Data.Enums;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Containers
@@ -21,13 +24,38 @@ namespace CatUI.Elements.Containers
 
         private ObjectRef<RowContainer>? _ref;
 
+        /// <summary>
+        /// Indicates the vertical alignment of the children. A child can override this by having a
+        /// <see cref="RowContainerSizing"/> set as <see cref="Element.ElementContainerSizing"/> and setting
+        /// <see cref="RowContainerSizing.VerticalAlignment"/> to a different value. The default value is
+        /// <see cref="VerticalAlignmentType.Top"/>.
+        /// </summary>
+        public VerticalAlignmentType VerticalAlignment
+        {
+            get => (VerticalAlignmentType)PreferredAlignment;
+            set
+            {
+                PreferredAlignment = (AlignmentType)value;
+                VerticalAlignmentProperty.Value = value;
+            }
+        }
+
+        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; private set; }
+            = new(VerticalAlignmentType.Top);
+
         public override Orientation ContainerOrientation => Orientation.Horizontal;
+
+        ~RowContainer()
+        {
+            VerticalAlignmentProperty = null!;
+        }
 
         public override RowContainer Duplicate()
         {
             return new RowContainer
             {
-                Spacing = Spacing,
+                Arrangement = Arrangement,
+                VerticalAlignment = VerticalAlignment,
                 //
                 Position = Position,
                 Margin = Margin,

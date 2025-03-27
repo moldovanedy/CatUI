@@ -5,6 +5,7 @@ using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
+using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
@@ -249,7 +250,7 @@ namespace CatUI.Elements
             }
         }
 
-        private string? _id = "";
+        private string? _id;
         public ObservableProperty<string> IdProperty { get; private set; } = new(null);
 
         /// <summary>
@@ -860,22 +861,11 @@ namespace CatUI.Elements
             {
                 default:
                 case Unit.Dp:
-                    {
-                        return dimension.Value * (Document?.ContentScale ?? 1);
-                    }
+                    return dimension.Value * (Document?.ContentScale ?? 1);
                 case Unit.Pixels:
-                    {
-                        return dimension.Value;
-                    }
+                    return dimension.Value;
                 case Unit.Percent:
-                    {
-                        if (pixelDimensionForPercent == 0)
-                        {
-                            return 0;
-                        }
-
-                        return dimension.Value * pixelDimensionForPercent / 100f;
-                    }
+                    return dimension.Value * pixelDimensionForPercent / 100f;
                 case Unit.ViewportWidth:
                     {
                         if (Document == null)

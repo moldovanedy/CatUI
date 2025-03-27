@@ -1,46 +1,43 @@
 using System;
 using CatUI.Data;
-using CatUI.Data.Containers;
+using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
+using CatUI.Data.Enums;
 
 namespace CatUI.Elements.Containers
 {
     public abstract class LinearContainer : Container
     {
         /// <summary>
-        /// Specifies the dimension of the space left between each of the elements in the container. By default, it's 0.
+        /// Specifies the arrangement of the children of this container. It only refers to the axis of orientation
+        /// (i.e. <see cref="ContainerOrientation"/>, meaning horizontal for <see cref="RowContainer"/>, vertical
+        /// for <see cref="ColumnContainer"/>); for the other axis, see ....
         /// </summary>
-        public Dimension Spacing
+        public LinearArrangement Arrangement
         {
-            get => _spacing;
+            get => _arrangement;
             set
             {
-                _spacing = value;
-                SpacingProperty.Value = _spacing;
+                _arrangement = value;
+                ArrangementProperty.Value = _arrangement;
             }
         }
 
-        private Dimension _spacing = new(0);
-        public ObservableProperty<Dimension> SpacingProperty { get; private set; } = new(new Dimension(0));
+        private LinearArrangement _arrangement = new();
+
+        public ObservableProperty<LinearArrangement> ArrangementProperty { get; private set; } =
+            new(new LinearArrangement());
+
+        protected AlignmentType PreferredAlignment { get; set; } = AlignmentType.Start;
 
         /// <summary>
         /// Specifies the orientation of this LinearContainer. Can be vertical or horizontal.
         /// </summary>
         public abstract Orientation ContainerOrientation { get; }
 
-        public LinearContainer()
-        {
-            SpacingProperty.ValueChangedEvent += SetSpacing;
-        }
-
         ~LinearContainer()
         {
-            SpacingProperty = null!;
-        }
-
-        private void SetSpacing(Dimension value)
-        {
-            _spacing = value;
+            ArrangementProperty = null!;
         }
 
         public override Size RecomputeLayout(
@@ -59,6 +56,15 @@ namespace CatUI.Elements.Containers
 
             float finalContainerDim = 0;
             Point2D initialAbsolutePosition = thisAbsolutePosition;
+
+            //for the space-... type of justification, it will be set after the content size is estimated
+            float actualSpacing = Arrangement.IsSpacingRelevant
+                ? CalculateDimension(
+                    Arrangement.Spacing,
+                    ContainerOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height)
+                : 0;
+
+            #region First pass
 
             //first pass: calculate the min and max sizes and estimate the final size of the content
             foreach (Element child in Children)
@@ -115,83 +121,29 @@ namespace CatUI.Elements.Containers
                     (ContainerOrientation == Orientation.Horizontal
                         ? child.Layout.GetSuggestedWidth()
                         : child.Layout.GetSuggestedHeight()) ?? Dimension.Unset;
-                Dimension childMinDimension;
 
-                if (ContainerOrientation == Orientation.Horizontal)
+                Dimension childMinDimension =
+                    GetChildMinDimension(
+                        child.Layout,
+                        childPrefDimension,
+                        out bool isConsideredGrowing,
+                        out bool canContainerRespectPositioning);
+
+                if (isConsideredGrowing)
                 {
-                    switch (child.Layout.WidthMode)
-                    {
-                        default:
-                        case ElementLayout.LayoutMode.Fixed:
-                            childMinDimension = childPrefDimension;
-                            break;
-                        case ElementLayout.LayoutMode.MinMax:
-                            if (child.Layout.PrefersMaxWidth)
-                            {
-                                childMinDimension = child.Layout.MinWidth ?? Dimension.Unset;
-
-                                //it considers the element as a growing element
-                                totalGrowthFactors++;
-
-                                //if the max dimension is unset, it means the element will be able to stretch infinitely,
-                                //so there's no point calculating the max dimension
-                                if ((child.Layout.MaxHeight ?? Dimension.Unset).IsUnset())
-                                {
-                                    canRespectPositioning = false;
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                childMinDimension = childPrefDimension;
-                            }
-
-                            break;
-                        case ElementLayout.LayoutMode.MinMaxAndPreferred:
-                            childMinDimension = child.Layout.MinWidth ?? Dimension.Unset;
-                            break;
-                    }
+                    totalGrowthFactors++;
                 }
-                else
+
+                if (!canContainerRespectPositioning)
                 {
-                    switch (child.Layout.HeightMode)
-                    {
-                        default:
-                        case ElementLayout.LayoutMode.Fixed:
-                            childMinDimension = childPrefDimension;
-                            break;
-                        case ElementLayout.LayoutMode.MinMax:
-                            if (child.Layout.PrefersMaxHeight)
-                            {
-                                childMinDimension = child.Layout.MinHeight ?? Dimension.Unset;
-
-                                //it considers the element as a growing element
-                                totalGrowthFactors++;
-
-                                //if the max dimension is unset, it means the element will be able to stretch infinitely,
-                                //so there's no point calculating the max dimension
-                                if ((child.Layout.MaxHeight ?? Dimension.Unset).IsUnset())
-                                {
-                                    canRespectPositioning = false;
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                childMinDimension = childPrefDimension;
-                            }
-
-                            break;
-                        case ElementLayout.LayoutMode.MinMaxAndPreferred:
-                            childMinDimension = child.Layout.MinHeight ?? Dimension.Unset;
-                            break;
-                    }
+                    canRespectPositioning = false;
+                    continue;
                 }
 
                 float directMinDim = CalculateDimension(childMinDimension, thisSize.Height);
 
-                minimumElementsDim += directMinDim;
-                allocatedMinDim += directMinDim;
+                minimumElementsDim += directMinDim + actualSpacing;
+                allocatedMinDim += directMinDim + actualSpacing;
 
                 //if the estimated dimension is infinity, it means that some elements that don't have a growth factor
                 //want to stretch infinitely (ElementLayout.MaxHeight is unset and ElementLayout.PrefersMaxHeight is true
@@ -201,9 +153,12 @@ namespace CatUI.Elements.Containers
                     estimatedDim +=
                         CalculateDimension(
                             childPrefDimension,
-                            ContainerOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height);
+                            ContainerOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height)
+                      + actualSpacing;
                 }
             }
+
+            #endregion
 
             float containerDim = ContainerOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height;
 
@@ -212,6 +167,25 @@ namespace CatUI.Elements.Containers
             if (canRespectPositioning && containerDim < estimatedDim)
             {
                 canRespectPositioning = false;
+            }
+
+            //when the justification type is one of the space-... and it can be respected
+            if (!Arrangement.IsSpacingRelevant && canRespectPositioning && Children.Count > 1)
+            {
+                float totalSpacing = containerDim - estimatedDim;
+                // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+                switch (Arrangement.ContentJustification)
+                {
+                    case LinearArrangement.JustificationType.SpaceAround:
+                        actualSpacing = totalSpacing / Children.Count;
+                        break;
+                    case LinearArrangement.JustificationType.SpaceBetween:
+                        actualSpacing = totalSpacing / (Children.Count - 1);
+                        break;
+                    case LinearArrangement.JustificationType.SpaceEvenly:
+                        actualSpacing = totalSpacing / (Children.Count + 1);
+                        break;
+                }
             }
 
             //if true, the content cannot have its preferred size, but at least the minimum sizes can be respected
@@ -223,6 +197,16 @@ namespace CatUI.Elements.Containers
             //the pass is "tainted" if an element declared a size, but after recalculation it has a different size;
             //this means a third pass is necessary
             bool isTainted = false;
+            float deviation = 0;
+
+            thisAbsolutePosition =
+                CalculateStartingPosition(
+                    thisAbsolutePosition,
+                    containerDim,
+                    estimatedDim,
+                    actualSpacing);
+
+            #region Second pass
 
             //second pass: constrain the elements to the available space and call this function on them (the actual
             //layout part)
@@ -274,27 +258,18 @@ namespace CatUI.Elements.Containers
                                 finalDim);
                         }
 
-                        //TODO: handle positioning on the different axis that the one from ContainerOrientation
-                        float x = thisAbsolutePosition.X;
-                        float y = thisAbsolutePosition.Y;
-
-                        child.Bounds = new Rect(x, y, finalSize.Width, finalSize.Height);
-
+                        //works like an iterator
+                        thisAbsolutePosition =
+                            PositionChild(
+                                child,
+                                finalSize,
+                                thisSize,
+                                thisAbsolutePosition,
+                                actualSpacing);
                         finalContainerDim +=
                             ContainerOrientation == Orientation.Horizontal
                                 ? finalSize.Width
                                 : finalSize.Height;
-
-                        if (ContainerOrientation == Orientation.Horizontal)
-                        {
-                            x += finalSize.Width;
-                        }
-                        else
-                        {
-                            y += finalSize.Height;
-                        }
-
-                        thisAbsolutePosition = new Point2D(x, y);
                     }
                 }
                 else
@@ -325,49 +300,42 @@ namespace CatUI.Elements.Containers
                         }
                     }
 
-                    float difference;
                     if (ContainerOrientation == Orientation.Horizontal)
                     {
-                        difference = actualSize.Width - declaredWidth;
+                        deviation += actualSize.Width - declaredWidth;
                     }
                     else
                     {
-                        difference = actualSize.Height - declaredHeight;
+                        deviation += actualSize.Height - declaredHeight;
                     }
 
-                    if (Math.Abs(difference) > 0.01)
+                    if (Math.Abs(deviation) > 0.5)
                     {
-                        estimatedDim += difference;
+                        estimatedDim += deviation;
+                        deviation = 0;
                         isTainted = true;
                     }
 
                     //set the position
                     if (!isTainted)
                     {
-                        //TODO: handle positioning on the different axis that the one from ContainerOrientation
-                        float x = thisAbsolutePosition.X;
-                        float y = thisAbsolutePosition.Y;
-
-                        child.Bounds = new Rect(x, y, actualSize.Width, actualSize.Height);
-
+                        //works like an iterator
+                        thisAbsolutePosition =
+                            PositionChild(
+                                child,
+                                actualSize,
+                                thisSize,
+                                thisAbsolutePosition,
+                                actualSpacing);
                         finalContainerDim +=
                             ContainerOrientation == Orientation.Horizontal
                                 ? actualSize.Width
                                 : actualSize.Height;
-
-                        if (ContainerOrientation == Orientation.Horizontal)
-                        {
-                            x += actualSize.Width;
-                        }
-                        else
-                        {
-                            y += actualSize.Height;
-                        }
-
-                        thisAbsolutePosition = new Point2D(x, y);
                     }
                 }
             }
+
+            #endregion
 
             //a third pass happens only if an element declared a size, but after recalculation it was a different
             //size
@@ -385,6 +353,222 @@ namespace CatUI.Elements.Containers
 
             return thisSize;
         }
+
+        private Dimension GetChildMinDimension(
+            ElementLayout layout,
+            Dimension childPrefDimension,
+            out bool isConsideredGrowing,
+            out bool canContainerRespectPositioning)
+        {
+            isConsideredGrowing = false;
+            canContainerRespectPositioning = true;
+
+            if (ContainerOrientation == Orientation.Horizontal)
+            {
+                switch (layout.WidthMode)
+                {
+                    default:
+                    case ElementLayout.LayoutMode.Fixed:
+                        return childPrefDimension;
+                    case ElementLayout.LayoutMode.MinMax:
+                        if (layout.PrefersMaxWidth)
+                        {
+                            //it considers the element as a growing element
+                            isConsideredGrowing = true;
+
+                            //if the max dimension is unset, it means the element will be able to stretch infinitely,
+                            //so there's no point calculating the max dimension
+                            if ((layout.MaxHeight ?? Dimension.Unset).IsUnset())
+                            {
+                                canContainerRespectPositioning = false;
+                            }
+
+                            return layout.MinWidth ?? Dimension.Unset;
+                        }
+
+                        return childPrefDimension;
+                    case ElementLayout.LayoutMode.MinMaxAndPreferred:
+                        return layout.MinWidth ?? Dimension.Unset;
+                }
+            }
+            else
+            {
+                switch (layout.HeightMode)
+                {
+                    default:
+                    case ElementLayout.LayoutMode.Fixed:
+                        return childPrefDimension;
+                    case ElementLayout.LayoutMode.MinMax:
+                        if (layout.PrefersMaxHeight)
+                        {
+                            //it considers the element as a growing element
+                            isConsideredGrowing = true;
+
+                            //if the max dimension is unset, it means the element will be able to stretch infinitely,
+                            //so there's no point calculating the max dimension
+                            if ((layout.MaxHeight ?? Dimension.Unset).IsUnset())
+                            {
+                                canContainerRespectPositioning = false;
+                            }
+
+                            return layout.MinHeight ?? Dimension.Unset;
+                        }
+
+                        return childPrefDimension;
+                    case ElementLayout.LayoutMode.MinMaxAndPreferred:
+                        return layout.MinHeight ?? Dimension.Unset;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Positions the child element, then returns the position of the next element. The caller must set
+        /// currentPosition directly for the first element's position, so it must compute that position taking the
+        /// initial space into account.
+        /// </summary>
+        /// <param name="child"></param>
+        /// <param name="childFinalSize">The final size of the child in pixels.</param>
+        /// <param name="containerSize">The size of the container in pixels.</param>
+        /// <param name="currentAbsolutePosition">The current abs. position of this child.</param>
+        /// <param name="constSpacing">
+        /// The spacing between elements, in pixels. This should be constant, so calculate it once and pass it here.
+        /// </param>
+        /// <returns>The absolute position of the next element.</returns>
+        private Point2D PositionChild(
+            Element child,
+            Size childFinalSize,
+            Size containerSize,
+            Point2D currentAbsolutePosition,
+            float constSpacing)
+        {
+            float x = currentAbsolutePosition.X;
+            float y = currentAbsolutePosition.Y;
+
+            float xOffset = 0;
+            float yOffset = 0;
+
+            if (ContainerOrientation == Orientation.Horizontal)
+            {
+                VerticalAlignmentType align =
+                    child.ElementContainerSizing is RowContainerSizing rowSizing
+                        ? rowSizing.VerticalAlignment
+                        : (VerticalAlignmentType)PreferredAlignment;
+
+                switch (align)
+                {
+                    default:
+                    case VerticalAlignmentType.Top:
+                        yOffset = 0;
+                        break;
+                    case VerticalAlignmentType.Center:
+                        yOffset = (containerSize.Height - childFinalSize.Height) / 2f;
+                        break;
+                    case VerticalAlignmentType.Bottom:
+                        yOffset = containerSize.Height - childFinalSize.Height;
+                        break;
+                }
+            }
+            else
+            {
+                HorizontalAlignmentType align =
+                    child.ElementContainerSizing is ColumnContainerSizing columnSizing
+                        ? columnSizing.HorizontalAlignment
+                        : (HorizontalAlignmentType)PreferredAlignment;
+
+                switch (align)
+                {
+                    default:
+                    case HorizontalAlignmentType.Left:
+                        xOffset = 0;
+                        break;
+                    case HorizontalAlignmentType.Center:
+                        xOffset = (containerSize.Width - childFinalSize.Width) / 2f;
+                        break;
+                    case HorizontalAlignmentType.Right:
+                        xOffset = containerSize.Width - childFinalSize.Width;
+                        break;
+                }
+            }
+
+            child.Bounds = new Rect(x + xOffset, y + yOffset, childFinalSize.Width, childFinalSize.Height);
+
+            if (ContainerOrientation == Orientation.Horizontal)
+            {
+                x += childFinalSize.Width + constSpacing;
+            }
+            else
+            {
+                y += childFinalSize.Height + constSpacing;
+            }
+
+            return new Point2D(x, y);
+        }
+
+        private Point2D CalculateStartingPosition(
+            Point2D containerStartPosition,
+            float containerDimension,
+            float contentDimension,
+            float constSpacing)
+        {
+            //if only one child and one of the space-... type of justification, it behaves as center
+            if (
+                Children.Count <= 1 &&
+                (Arrangement.ContentJustification == LinearArrangement.JustificationType.SpaceAround ||
+                 Arrangement.ContentJustification == LinearArrangement.JustificationType.SpaceBetween ||
+                 Arrangement.ContentJustification == LinearArrangement.JustificationType.SpaceEvenly))
+            {
+                if (ContainerOrientation == Orientation.Horizontal)
+                {
+                    return new Point2D(
+                        containerStartPosition.X + ((containerDimension - contentDimension) / 2f),
+                        containerStartPosition.Y);
+                }
+
+                return new Point2D(
+                    containerStartPosition.X,
+                    containerStartPosition.Y + ((containerDimension - contentDimension) / 2f));
+            }
+
+            if (
+                Arrangement.ContentJustification == LinearArrangement.JustificationType.Start ||
+                Arrangement.ContentJustification == LinearArrangement.JustificationType.SpaceBetween)
+            {
+                return containerStartPosition;
+            }
+
+            float x = containerStartPosition.X;
+            float y = containerStartPosition.Y;
+
+            float delta = 0;
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+            switch (Arrangement.ContentJustification)
+            {
+                case LinearArrangement.JustificationType.Center:
+                    delta = (containerDimension - contentDimension) / 2f;
+                    break;
+                case LinearArrangement.JustificationType.End:
+                    delta = containerDimension - contentDimension;
+                    break;
+                case LinearArrangement.JustificationType.SpaceAround:
+                    delta = constSpacing / 2f;
+                    break;
+                case LinearArrangement.JustificationType.SpaceEvenly:
+                    delta = constSpacing;
+                    break;
+            }
+
+            if (ContainerOrientation == Orientation.Horizontal)
+            {
+                x += delta;
+            }
+            else
+            {
+                y += delta;
+            }
+
+            return new Point2D(x, y);
+        }
+
 
         public enum Orientation
         {
