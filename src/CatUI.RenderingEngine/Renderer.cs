@@ -154,18 +154,11 @@ namespace CatUI.RenderingEngine
                 case Unit.Pixels:
                     return dimension.Value;
                 case Unit.Percent:
-                    return
-                        dimension.Value *
-                        (dimensionForPercent == 0
-                            ? Canvas?.DeviceClipBounds.Size.Width ?? 0
-                            : dimensionForPercent) /
-                        100f;
+                    return dimension.Value * dimensionForPercent / 100f;
                 case Unit.ViewportWidth:
-                    return
-                        dimension.Value * (Canvas?.DeviceClipBounds.Size.Width ?? 0) / 100f;
+                    return dimension.Value * (Canvas?.DeviceClipBounds.Size.Width ?? 0) / 100f;
                 case Unit.ViewportHeight:
-                    return
-                        dimension.Value * (Canvas?.DeviceClipBounds.Size.Height ?? 0) / 100f;
+                    return dimension.Value * (Canvas?.DeviceClipBounds.Size.Height ?? 0) / 100f;
             }
         }
     }

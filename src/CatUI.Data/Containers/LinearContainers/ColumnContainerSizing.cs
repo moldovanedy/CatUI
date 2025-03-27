@@ -1,8 +1,10 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using CatUI.Data.Enums;
 
-namespace CatUI.Data.Containers
+namespace CatUI.Data.Containers.LinearContainers
 {
-    public class ColumnContainerSizing : ContainerSizing
+    public class ColumnContainerSizing : ContainerSizing, INotifyPropertyChanged
     {
         /// <summary>
         /// Controls the growth factor of the element. The growth factor is the portion of the ColumnContainer that is
@@ -30,13 +32,35 @@ namespace CatUI.Data.Containers
         /// The elements with the growth factor of 1 will have 150dp each (150 * 1), while the other element will have
         /// 300dp (150 * 2).
         /// </example>
-        public float GrowthFactor { get; set; }
+        public float GrowthFactor
+        {
+            get => _growthFactor;
+            set
+            {
+                _growthFactor = value;
+                NotifyPropertyChanged();
+            }
+        }
 
-        public HorizontalAlignmentType HorizontalAlignment { get; set; }
+        private float _growthFactor;
+
+        public HorizontalAlignmentType HorizontalAlignment
+        {
+            get => _horizontalAlignment;
+            set
+            {
+                _horizontalAlignment = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private HorizontalAlignmentType _horizontalAlignment;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public ColumnContainerSizing(
             float growthFactor = 0,
-            HorizontalAlignmentType horizontalAlignment = HorizontalAlignmentType.Stretch)
+            HorizontalAlignmentType horizontalAlignment = HorizontalAlignmentType.Left)
         {
             GrowthFactor = growthFactor;
             HorizontalAlignment = horizontalAlignment;
@@ -46,6 +70,11 @@ namespace CatUI.Data.Containers
         public override ColumnContainerSizing Duplicate()
         {
             return new ColumnContainerSizing(GrowthFactor, HorizontalAlignment);
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
