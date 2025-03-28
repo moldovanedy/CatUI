@@ -3,6 +3,7 @@ using CatUI.Data;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.RenderingEngine;
+using CatUI.Utils;
 using SkiaSharp;
 
 namespace CatUI.Elements
@@ -11,29 +12,80 @@ namespace CatUI.Elements
     /// Represents the root of all elements. Every window has one document, and all elements attached to the document
     /// will participate in the application lifecycle.
     /// </summary>
-    public partial class UiDocument
+    public class UiDocument
     {
         /// <summary>
-        /// Fired when the pointer (generally mouse cursor) is moved, either by the user, by the platform or by your app.
-        /// The position is always relative to the top-left corner of the client area of the window (this means that
-        /// any kind of window decoration will NOT be taken into account).
+        /// Fired when the pointer (generally mouse cursor or finger) is moved, either by the user, by the platform
+        /// or by your app. The position is always relative to the top-left corner of the client area of the window
+        /// (this means that any kind of window decoration will NOT be taken into account).
         /// </summary>
         /// <remarks>
         /// This will only fire while the pointer is inside the window's client area. The coordinates are in dp, not pixels.
         /// </remarks>
-        public event PointerMoveEventHandler? PointerMoved;
+        public event PointerMoveEventHandler? PointerMoveEvent;
 
         /// <summary>
         /// Fired when the pointer enters the window's client area. The coordinates are relative to the top-left
         /// corner of the window and might be negative, especially on fast pointer movements.
         /// </summary>
-        public event PointerEnterEventHandler? PointerEnter;
+        public event PointerEnterEventHandler? PointerEnterEvent;
 
         /// <summary>
         /// Fired when the pointer leaves the window's client area. The coordinates are relative to the top-left
         /// corner of the window and might be negative, especially on fast pointer movements.
         /// </summary>
-        public event PointerExitEventHandler? PointerLeave;
+        public event PointerExitEventHandler? PointerExitEvent;
+
+        /// <summary>
+        /// Fired when the pointer is down (pressed) inside the window's client area (events outside of it are protected by the
+        /// platform). On mobile, every finger is a pointer, so this event will be fired for each finger. On desktop,
+        /// only the primary mouse button click is considered for this kind of event. See remarks for more details.
+        /// </summary>
+        /// <remarks>
+        /// For desktop, only the mouse's primary button is considered as the pointer. Other buttons won't fire this
+        /// event. See <see cref="MouseButtonEvent"/> to get those mouse button clicks.
+        /// </remarks>
+        public event PointerDownEventHandler? PointerDownEvent;
+
+        /// <summary>
+        /// Fired when the pointer is up (released) inside the window's client area (events outside of it are protected by the
+        /// platform). On mobile, every finger is a pointer, so this event will be fired for each finger. On desktop,
+        /// only the primary mouse button click is considered for this kind of event. See remarks for more details.
+        /// </summary>
+        /// <remarks>
+        /// For desktop, only the mouse's primary button is considered as the pointer. Other buttons won't fire this
+        /// event. See <see cref="MouseButtonEvent"/> to get those mouse button clicks.
+        /// </remarks>
+        public event PointerUpEventHandler? PointerUpEvent;
+
+        /// <summary>
+        /// Fired when one of the mouse buttons is either pressed or released (see
+        /// <see cref="MouseButtonEventArgs.IsPressed"/> for that). To get the currently pressed mouse buttons, see
+        /// <see cref="PressedMouseButtons"/>.
+        /// </summary>
+        public event MouseButtonEventHandler? MouseButtonEvent;
+
+        /// <summary>
+        /// Fired when the user uses the mouse wheel, generally for scrolling. This will also fire for touchpad scrolling,
+        /// but beware that touchpad scrolling will invoke this event very frequently when scrolling, generally once
+        /// per frame (around 60 times per second on most devices), so make sure you don't run expensive functions on
+        /// this event.
+        /// </summary>
+        public event MouseWheelEventHandler? MouseWheelEvent;
+
+        //GLFW already caches this state, but it's probably more efficient to get it from here instead of constantly
+        //calling GLFW functions.
+
+        /// <summary>
+        /// Represents a bitmap of all the pressed buttons of the mouse. Do NOT convert directly to a
+        /// <see cref="MouseButtonType"/> as it's a bitmap, it won't give correct results. Instead, to see for a particular
+        /// button, just bitwise AND it with that button, if the result is not 0, it's pressed, otherwise it's released.
+        /// </summary>
+        /// <example>
+        /// ((PressedMouseButtons & MouseButtonType.Secondary) != 0) is true if the secondary mouse button is pressed,
+        /// false otherwise.
+        /// </example>
+        public MouseButtonType PressedMouseButtons { get; private set; }
 
         /// <summary>
         /// Represents the root element of the document/window. All other elements are children of this element or one of its descendants.
@@ -145,15 +197,13 @@ namespace CatUI.Elements
         //Private access for implementations of windowing. This is to avoid having public setters as it's not OK.
         //There might be better ways of doing this without reflection
 
-        // ReSharper disable UnusedMember.Local
-
         #region Set by window
 
         /// <summary>
         /// Will be used by window implementation to set the viewport's size. Do NOT modify its signature.
         /// </summary>
         /// <param name="viewportSize">The new viewport size.</param>
-        private void WndSetViewportSize(Size viewportSize)
+        internal void WndSetViewportSize(Size viewportSize)
         {
             ViewportSize = viewportSize;
         }
@@ -162,7 +212,7 @@ namespace CatUI.Elements
         /// Will be used by window implementation to set the app content scale. Do NOT modify its signature.
         /// </summary>
         /// <param name="scale">The new scale.</param>
-        private void WndSetContentScale(float scale)
+        internal void WndSetContentScale(float scale)
         {
             ContentScale = scale;
         }
@@ -171,12 +221,12 @@ namespace CatUI.Elements
         /// Called when the pointer moves. Do NOT modify its signature.
         /// </summary>
         /// <param name="e"></param>
-        private void WndCallPointerMove(PointerMoveEventArgs e)
+        internal void WndCallPointerMove(PointerMoveEventArgs e)
         {
-            PointerMoved?.Invoke(this, e);
+            PointerMoveEvent?.Invoke(this, e);
 
-            Root?.CheckInvokePointerEnter(new PointerEnterEventArgs(e.Position, e.AbsolutePosition, false));
-            Root?.CheckInvokePointerExit(new PointerExitEventArgs(e.Position, e.AbsolutePosition, false));
+            Root?.CheckInvokePointerEnter(new PointerEnterEventArgs(e.Position, e.AbsolutePosition, e.IsPressed));
+            Root?.CheckInvokePointerExit(new PointerExitEventArgs(e.Position, e.AbsolutePosition, e.IsPressed));
             Root?.CheckInvokePointerMove(e);
         }
 
@@ -184,22 +234,65 @@ namespace CatUI.Elements
         /// Called when the pointer enters the window client area. Do NOT modify its signature.
         /// </summary>
         /// <param name="e"></param>
-        private void WndCallPointerEnter(PointerEnterEventArgs e)
+        internal void WndCallPointerEnter(PointerEnterEventArgs e)
         {
-            PointerEnter?.Invoke(this, e);
+            PointerEnterEvent?.Invoke(this, e);
             Root?.CheckInvokePointerEnter(e);
         }
 
         /// <summary>
-        /// Called when the pointer leaves the window client area. Do NOT modify its signature.
+        /// Called when the pointer exits the window client area. Do NOT modify its signature.
         /// </summary>
         /// <param name="e"></param>
-        private void WndCallPointerLeave(PointerExitEventArgs e)
+        internal void WndCallPointerExit(PointerExitEventArgs e)
         {
-            PointerLeave?.Invoke(this, e);
+            PointerExitEvent?.Invoke(this, e);
             Root?.CheckInvokePointerExit(e);
         }
-        // ReSharper restore UnusedMember.Local
+
+        /// <summary>
+        /// Called when the pointer is down (pressed) inside the window client area. Do NOT modify its signature.
+        /// </summary>
+        /// <param name="e"></param>
+        internal void WndCallPointerDown(PointerDownEventArgs e)
+        {
+            PointerDownEvent?.Invoke(this, e);
+            Root?.CheckInvokePointerDown(e);
+        }
+
+        /// <summary>
+        /// Called when the pointer is up (released) inside the window client area. Do NOT modify its signature.
+        /// </summary>
+        /// <param name="e"></param>
+        internal void WndCallPointerUp(PointerUpEventArgs e)
+        {
+            PointerUpEvent?.Invoke(this, e);
+            Root?.CheckInvokePointerUp(e);
+        }
+
+        /// <summary>
+        /// Called when a mouse button is pressed or released inside the window client area. Do NOT modify its signature.
+        /// </summary>
+        /// <param name="e"></param>
+        internal void WndCallMouseButton(MouseButtonEventArgs e)
+        {
+            int bitmap = (int)PressedMouseButtons;
+            BinaryUtils.SetBit(ref bitmap, e.IsPressed, (int)e.ButtonType - 1);
+            PressedMouseButtons = (MouseButtonType)bitmap;
+
+            MouseButtonEvent?.Invoke(this, e);
+            Root?.CheckInvokeMouseButton(e);
+        }
+
+        /// <summary>
+        /// Called when the mouse scroll wheel is moved inside the window client area. Do NOT modify its signature.
+        /// </summary>
+        /// <param name="e"></param>
+        internal void WndCallMouseWheel(MouseWheelEventArgs e)
+        {
+            MouseWheelEvent?.Invoke(this, e);
+            Root?.CheckInvokeMouseWheel(e);
+        }
 
         #endregion
     }

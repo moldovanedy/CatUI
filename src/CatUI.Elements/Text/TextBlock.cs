@@ -274,7 +274,7 @@ namespace CatUI.Elements.Text
             return thisSize;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             base.Draw();
             Rect bounds = Bounds;

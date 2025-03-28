@@ -4,7 +4,6 @@ using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
-using CatUI.Utils;
 using CatUI.Windowing.Common;
 using OpenTK;
 using OpenTK.Graphics.Egl;
@@ -87,19 +86,13 @@ namespace CatUI.Windowing.Desktop
         private GLFWCallbacks.WindowRefreshCallback? _refreshCallback;
 
         private GLFWCallbacks.CursorPosCallback? _cursorMoveCallback;
-        private GLFWCallbacks.CursorEnterCallback? _cursorEnterOrLeaveCallback;
+        private GLFWCallbacks.CursorEnterCallback? _cursorEnterOrExitCallback;
         private GLFWCallbacks.MouseButtonCallback? _mouseButtonCallback;
+        private GLFWCallbacks.ScrollCallback? _mouseScrollCallback;
 
         private float _lastMouseX;
         private float _lastMouseY;
         private bool _canInvokeMaximize = true;
-
-        /// <summary>
-        /// Represents a bitmap of all the pressed buttons of the mouse. Do NOT convert directly to a
-        /// <see cref="MouseButtonType"/> as it's a bitmap, it won't give correct results. GLFW already caches this state,
-        /// but it's probably more efficient to get it from here instead of constantly calling GLFW functions.
-        /// </summary>
-        private MouseButtonType _mousePressedBitmap;
 
         #region Properties
 
@@ -930,7 +923,7 @@ namespace CatUI.Windowing.Desktop
                 float positionX = (float)posX;
                 float positionY = (float)posY;
                 Point2D pos = new(positionX, positionY);
-                bool pressed = (_mousePressedBitmap & MouseButtonType.Primary) == MouseButtonType.Primary;
+                bool pressed = (Document.PressedMouseButtons & MouseButtonType.Primary) != 0;
 
                 DocumentInvoke(
                     "WndCallPointerMove",
@@ -946,11 +939,11 @@ namespace CatUI.Windowing.Desktop
             };
             GLFW.SetCursorPosCallback(GlfwWindow, _cursorMoveCallback);
 
-            _cursorEnterOrLeaveCallback = (_, entered) =>
+            _cursorEnterOrExitCallback = (_, entered) =>
             {
                 GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
-                var pos = new Point2D((float)x, (float)y);
-                bool pressed = (_mousePressedBitmap & MouseButtonType.Primary) == MouseButtonType.Primary;
+                Point2D pos = new((float)x, (float)y);
+                bool pressed = (Document.PressedMouseButtons & MouseButtonType.Primary) != 0;
 
                 if (entered)
                 {
@@ -961,32 +954,65 @@ namespace CatUI.Windowing.Desktop
                 else
                 {
                     DocumentInvoke(
-                        "WndCallPointerLeave",
+                        "WndCallPointerExit",
                         new PointerExitEventArgs(pos, pos, pressed));
                 }
             };
-            GLFW.SetCursorEnterCallback(GlfwWindow, _cursorEnterOrLeaveCallback);
+            GLFW.SetCursorEnterCallback(GlfwWindow, _cursorEnterOrExitCallback);
 
             _mouseButtonCallback = (_, glfwMouseBtn, action, _) =>
             {
-                int bitmap = (int)_mousePressedBitmap;
+                //there's a 1:1 correspondence between GLFW button index and our MouseButtonType
+                var button = (MouseButtonType)(1 << (int)glfwMouseBtn);
+                GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
+                Point2D pos = new((float)x, (float)y);
 
-                //for these buttons, there's a 1:1 correspondence with our own MouseButtonType
-                if (glfwMouseBtn == MouseButton.Left ||
-                    glfwMouseBtn == MouseButton.Right ||
-                    glfwMouseBtn == MouseButton.Middle)
+                DocumentInvoke(
+                    "WndCallMouseButton",
+                    new MouseButtonEventArgs(
+                        pos,
+                        pos,
+                        button,
+                        action == InputAction.Press));
+
+                if (button != MouseButtonType.Primary)
                 {
-                    BinaryUtils.SetBit(ref bitmap, action == InputAction.Press, (int)glfwMouseBtn);
+                    return;
                 }
-                //for the others, it's just GLFW's button + 4 for indices
+
+                if (action == InputAction.Press)
+                {
+                    DocumentInvoke(
+                        "WndCallPointerDown",
+                        new PointerDownEventArgs(pos, pos));
+                }
                 else
                 {
-                    BinaryUtils.SetBit(ref bitmap, action == InputAction.Press, (int)(glfwMouseBtn + 4));
+                    DocumentInvoke(
+                        "WndCallPointerUp",
+                        new PointerUpEventArgs(pos, pos));
                 }
-
-                _mousePressedBitmap = (MouseButtonType)bitmap;
             };
             GLFW.SetMouseButtonCallback(GlfwWindow, _mouseButtonCallback);
+
+            _mouseScrollCallback = (_, deltaX, deltaY) =>
+            {
+                //TODO: both mouse and touchpad generate only -1 and 1 (at least on Linux), so we need to somehow
+                // detect if it's a mouse or touchpad and scale the mouse accordingly
+
+                GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
+                Point2D pos = new((float)x, (float)y);
+
+                DocumentInvoke(
+                    "WndCallMouseWheel",
+                    new MouseWheelEventArgs(
+                        pos,
+                        pos,
+                        (float)(deltaX == 0 ? deltaX : -deltaX),
+                        (float)(deltaY == 0 ? deltaY : -deltaY),
+                        (Document.PressedMouseButtons & MouseButtonType.Middle) != 0));
+            };
+            GLFW.SetScrollCallback(GlfwWindow, _mouseScrollCallback);
         }
 
         private void UnregisterCallbacks()
@@ -1007,11 +1033,14 @@ namespace CatUI.Windowing.Desktop
             _cursorMoveCallback = null;
             GLFW.SetCursorPosCallback(GlfwWindow, null);
 
-            _cursorEnterOrLeaveCallback = null;
+            _cursorEnterOrExitCallback = null;
             GLFW.SetCursorEnterCallback(GlfwWindow, null);
 
             _mouseButtonCallback = null;
             GLFW.SetMouseButtonCallback(GlfwWindow, null);
+
+            _mouseScrollCallback = null;
+            GLFW.SetScrollCallback(GlfwWindow, null);
         }
 
         private void DoFrameActions()

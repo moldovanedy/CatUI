@@ -70,45 +70,6 @@ namespace CatUI.Elements
 
         private LoadEventHandler? _onLoad;
 
-        public PointerEnterEventHandler? OnPointerEnter
-        {
-            get => _onPointerEnter;
-            set
-            {
-                PointerEnterEvent -= _onPointerEnter;
-                _onPointerEnter = value;
-                PointerEnterEvent += _onPointerEnter;
-            }
-        }
-
-        private PointerEnterEventHandler? _onPointerEnter;
-
-        public PointerExitEventHandler? OnPointerExit
-        {
-            get => _onPointerExit;
-            set
-            {
-                PointerExitEvent -= _onPointerExit;
-                _onPointerExit = value;
-                PointerExitEvent += _onPointerExit;
-            }
-        }
-
-        private PointerExitEventHandler? _onPointerExit;
-
-        public PointerMoveEventHandler? OnPointerMove
-        {
-            get => _onPointerMove;
-            set
-            {
-                PointerMoveEvent -= _onPointerMove;
-                _onPointerMove = value;
-                PointerMoveEvent += _onPointerMove;
-            }
-        }
-
-        private PointerMoveEventHandler? _onPointerMove;
-
         private Element? _parent;
 
         /// <summary>
@@ -419,22 +380,6 @@ namespace CatUI.Elements
         /// </summary>
         public event LoadEventHandler? LoadEvent;
 
-        /// <summary>
-        /// Fired when a pointer (like a mouse cursor, for example) enters the <see cref="Bounds"/> of the element.
-        /// </summary>
-        public event PointerEnterEventHandler? PointerEnterEvent;
-
-        /// <summary>
-        /// Fired when a pointer (like a mouse cursor, for example) exits the <see cref="Bounds"/> of the element.
-        /// </summary>
-        public event PointerExitEventHandler? PointerExitEvent;
-
-        /// <summary>
-        /// Fired when a pointer (like a mouse cursor, for example) moves inside <see cref="Bounds"/> of the element.
-        /// This will be fired a lot of times, so ensure your logic is not computationally heavy.
-        /// </summary>
-        public event PointerMoveEventHandler? PointerMoveEvent;
-
 
         public Element()
         {
@@ -442,9 +387,15 @@ namespace CatUI.Elements
             EnterDocumentEvent += EnterDocument;
             ExitDocumentEvent += ExitDocument;
             LoadEvent += Loaded;
+
+            //see ElementInputPartial
             PointerEnterEvent += PointerEnter;
             PointerExitEvent += PointerExit;
             PointerMoveEvent += PointerMove;
+            PointerDownEvent += PointerDown;
+            PointerUpEvent += PointerUp;
+            MouseButtonEvent += MouseButton;
+            MouseWheelEvent += MouseWheel;
 
             ChildLayoutChangedEvent += OnChildLayoutChanged;
 
@@ -468,9 +419,15 @@ namespace CatUI.Elements
             EnterDocumentEvent = null;
             ExitDocumentEvent = null;
             LoadEvent = null;
+
+            //see ElementInputPartial
             PointerEnterEvent = null;
             PointerExitEvent = null;
             PointerMoveEvent = null;
+            PointerDownEvent = null;
+            PointerUpEvent = null;
+            MouseButtonEvent = null;
+            MouseWheelEvent = null;
 
             ChildLayoutChangedEvent = null;
 
@@ -592,6 +549,8 @@ namespace CatUI.Elements
 
         #region Internal invoke
 
+        //for 
+
         internal void InvokeDraw()
         {
             DrawEvent?.Invoke();
@@ -616,113 +575,6 @@ namespace CatUI.Elements
             }
 
             LoadEvent?.Invoke(this);
-        }
-
-        private bool _isPointerInside;
-        //TODO: check if we can put this inside a single method
-        //
-
-        /// <summary>
-        /// This should only be called by the document and only for the root element. It will call this recursively
-        /// where applicable so in the end it will fire <see cref="PointerEnterEvent"/> on all the eligible elements.
-        /// </summary>
-        /// <param name="e">
-        /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
-        /// relative to the top-left corner) and whether the pointer is pressed or not.
-        /// </param>
-        internal virtual void CheckInvokePointerEnter(PointerEnterEventArgs e)
-        {
-            Rect bounds = Bounds;
-            if (!Rect.IsPointInside(ref bounds, e.Position))
-            {
-                return;
-            }
-
-            foreach (Element child in Children)
-            {
-                child.CheckInvokePointerEnter(e);
-            }
-
-            if (_isPointerInside)
-            {
-                return;
-            }
-
-            _isPointerInside = true;
-            var elementArgs = new PointerEnterEventArgs(
-                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
-                e.AbsolutePosition,
-                e.IsPressed);
-            PointerEnterEvent?.Invoke(this, elementArgs);
-        }
-
-        /// <summary>
-        /// This should only be called by the document and only for the root element. It will call this recursively
-        /// where applicable so in the end it will fire <see cref="PointerExitEvent"/> on all the eligible elements.
-        /// </summary>
-        /// <param name="e">
-        /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
-        /// relative to the top-left corner) and whether the pointer is pressed or not.
-        /// </param>
-        internal virtual void CheckInvokePointerExit(PointerExitEventArgs e)
-        {
-            foreach (Element child in Children)
-            {
-                child.CheckInvokePointerExit(e);
-            }
-
-            Rect bounds = Bounds;
-            if (Rect.IsPointInside(ref bounds, e.Position))
-            {
-                return;
-            }
-
-            if (!_isPointerInside)
-            {
-                return;
-            }
-
-            _isPointerInside = false;
-            var elementArgs = new PointerExitEventArgs(
-                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
-                e.AbsolutePosition,
-                e.IsPressed);
-            PointerExitEvent?.Invoke(this, elementArgs);
-        }
-
-        /// <summary>
-        /// This should only be called by the document and only for the root element. It will call this recursively
-        /// where applicable so in the end it will fire <see cref="PointerMoveEvent"/> on all the eligible elements.
-        /// </summary>
-        /// <param name="e">
-        /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
-        /// relative to the top-left corner) and whether the pointer is pressed or not.
-        /// </param>
-        internal virtual void CheckInvokePointerMove(PointerMoveEventArgs e)
-        {
-            if (!_isPointerInside)
-            {
-                return;
-            }
-
-            Rect bounds = Bounds;
-            if (!Rect.IsPointInside(ref bounds, e.Position))
-            {
-                return;
-            }
-
-            foreach (Element child in Children)
-            {
-                child.CheckInvokePointerMove(e);
-            }
-
-            var elementArgs = new PointerMoveEventArgs(
-                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
-                e.AbsolutePosition,
-                e.DeltaX,
-                e.DeltaY,
-                e.IsPressed);
-            PointerMoveEvent?.Invoke(this, elementArgs);
         }
 
         private void SetPosition(Dimension2 value)
@@ -779,17 +631,14 @@ namespace CatUI.Elements
 
         #region Public API
 
-        public virtual void Draw()
+        protected virtual void Draw()
         {
             DrawBackground();
         }
 
-        public virtual void EnterDocument(object sender) { }
-        public virtual void ExitDocument(object sender) { }
-        public virtual void Loaded(object sender) { }
-        public virtual void PointerEnter(object sender, PointerEnterEventArgs e) { }
-        public virtual void PointerExit(object sender, PointerExitEventArgs e) { }
-        public virtual void PointerMove(object sender, PointerMoveEventArgs e) { }
+        protected virtual void EnterDocument(object sender) { }
+        protected virtual void ExitDocument(object sender) { }
+        protected virtual void Loaded(object sender) { }
 
         /// <summary>
         /// Deep clones the element. The element will not belong to the document, but will have all the original properties

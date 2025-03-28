@@ -56,7 +56,7 @@ namespace CatUI.Data.Managers
         /// </summary>
         /// <remarks>
         /// You can also use .dat files for resources, together with methods like
-        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, ObjectRef{T})"/>
+        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream"/>
         /// for efficient asset handling.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>
@@ -113,7 +113,7 @@ namespace CatUI.Data.Managers
         /// </summary>
         /// <remarks>
         /// You can also use .dat files for resources, together with methods like
-        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream(string, ObjectRef{T})"/>
+        /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and <see cref="GetAssetFileStream"/>
         /// for efficient asset handling.
         /// </remarks>
         /// <typeparam name="T">The type of asset desired.</typeparam>

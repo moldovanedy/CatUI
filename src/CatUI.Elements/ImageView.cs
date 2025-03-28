@@ -199,7 +199,7 @@ namespace CatUI.Elements
             _resizeQuality = value;
         }
 
-        public override void Draw()
+        protected override void Draw()
         {
             base.Draw();
 
