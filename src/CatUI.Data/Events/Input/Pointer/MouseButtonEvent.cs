@@ -29,7 +29,7 @@ namespace CatUI.Data.Events.Input.Pointer
 
     /// <summary>
     /// Represents the type of the button that is acted upon. All buttons (except the extra ones) should work with
-    /// other types of input like touchpads. For touchscreens, generally only primary click is supported.
+    /// other types of input like touchpads. For desktop touchscreens, generally only primary click is supported.
     /// </summary>
     /// <remarks>
     /// Can be used as a bitmap, as every value represents a bit.
@@ -56,48 +56,28 @@ namespace CatUI.Data.Events.Input.Pointer
         Middle = 4,
 
         /// <summary>
-        /// Represents the scroll up on mice that support scrolling. 
-        /// </summary>
-        WheelUp = 8,
-
-        /// <summary>
-        /// Represents the scroll down on mice that support scrolling. 
-        /// </summary>
-        WheelDown = 16,
-
-        /// <summary>
-        /// Represents the scroll to left on mice that support scrolling sideways. 
-        /// </summary>
-        WheelLeft = 32,
-
-        /// <summary>
-        /// Represents the scroll to right on mice that support scrolling sideways. 
-        /// </summary>
-        WheelRight = 64,
-
-        /// <summary>
         /// Represents the first extra button on a mouse on those that support extra buttons (up to 5 supported in CatUI). 
         /// </summary>
-        Extra1 = 1 << 7,
+        Extra1 = 8,
 
         /// <summary>
         /// Represents the second extra button on a mouse on those that support extra buttons (up to 5 supported in CatUI). 
         /// </summary>
-        Extra2 = 1 << 8,
+        Extra2 = 16,
 
         /// <summary>
         /// Represents the third extra button on a mouse on those that support extra buttons (up to 5 supported in CatUI). 
         /// </summary>
-        Extra3 = 1 << 9,
+        Extra3 = 32,
 
         /// <summary>
         /// Represents the fourth extra button on a mouse on those that support extra buttons (up to 5 supported in CatUI). 
         /// </summary>
-        Extra4 = 1 << 10,
+        Extra4 = 64,
 
         /// <summary>
         /// Represents the fifth extra button on a mouse on those that support extra buttons (up to 5 supported in CatUI). 
         /// </summary>
-        Extra5 = 1 << 11
+        Extra5 = 128
     }
 }

@@ -4,7 +4,7 @@ namespace CatUI.Data.Events.Input.Pointer
 
     public class PointerDownEventArgs : AbstractPointerEventArgs
     {
-        public PointerDownEventArgs(object target, PointerDownEventArgs other) :
+        public PointerDownEventArgs(PointerDownEventArgs other) :
             this(other.Position, other.AbsolutePosition)
         {
         }

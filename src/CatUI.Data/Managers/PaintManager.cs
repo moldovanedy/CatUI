@@ -65,10 +65,10 @@ namespace CatUI.Data.Managers
 
             if (outlineParams != null)
             {
-                paint.StrokeWidth = outlineParams?.OutlineWidth ?? 1;
-                paint.StrokeCap = (SKStrokeCap)(outlineParams?.LineCap ?? LineCapType.Butt);
-                paint.StrokeJoin = (SKStrokeJoin)(outlineParams?.LineJoin ?? LineJoinType.Miter);
-                paint.StrokeMiter = outlineParams?.MiterLimit ?? 1;
+                paint.StrokeWidth = outlineParams.Value.OutlineWidth;
+                paint.StrokeCap = (SKStrokeCap)outlineParams.Value.LineCap;
+                paint.StrokeJoin = (SKStrokeJoin)outlineParams.Value.LineJoin;
+                paint.StrokeMiter = outlineParams.Value.MiterLimit;
             }
 
             if (textAlignment != null && textAlignment != TextAlignmentType.Justify)
