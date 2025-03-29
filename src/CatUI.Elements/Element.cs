@@ -9,7 +9,6 @@ using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
-using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.Elements.Containers;
 using CatUI.Utils;

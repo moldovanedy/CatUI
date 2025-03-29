@@ -4,8 +4,9 @@ namespace CatUI.Data.Events.Input.Pointer
 {
     public delegate void MouseButtonEventHandler(object sender, MouseButtonEventArgs e);
 
-    public class MouseButtonEventArgs : AbstractPointerEventArgs
+    public class MouseButtonEventArgs : AbstractPointerEventArgs, ICancellableInputEvent
     {
+        public bool WasCancelled { get; }
         public MouseButtonType ButtonType { get; }
 
         public MouseButtonEventArgs(MouseButtonEventArgs other) :
@@ -13,17 +14,23 @@ namespace CatUI.Data.Events.Input.Pointer
                 other.Position,
                 other.AbsolutePosition,
                 other.ButtonType,
-                other.IsPressed)
+                other.IsPressed,
+                other.WasCancelled)
         {
         }
 
         public MouseButtonEventArgs(
-            Point2D position, Point2D absolutePosition, MouseButtonType buttonType, bool isPressed)
+            Point2D position,
+            Point2D absolutePosition,
+            MouseButtonType buttonType,
+            bool isPressed,
+            bool wasCancelled = false)
         {
             Position = position;
             AbsolutePosition = absolutePosition;
             IsPressed = isPressed;
             ButtonType = buttonType;
+            WasCancelled = wasCancelled;
         }
     }
 
