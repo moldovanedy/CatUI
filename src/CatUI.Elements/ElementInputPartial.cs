@@ -239,11 +239,10 @@ namespace CatUI.Elements
             if (e.IsPressed)
             {
                 _canBypassPointerChecks = true;
-                CheckInvokePointerUp(new PointerUpEventArgs(e.AbsolutePosition, e.AbsolutePosition));
+                CheckInvokePointerUp(new PointerUpEventArgs(e.Position, e.AbsolutePosition, true));
                 _canBypassPointerChecks = false;
             }
 
-            _canBypassPointerChecks = true;
             //8 is MouseButtonType count
             for (int i = 0; i < 8; i++)
             {
@@ -252,14 +251,22 @@ namespace CatUI.Elements
                     continue;
                 }
 
-                CheckInvokeMouseButton(
-                    new MouseButtonEventArgs(
-                        e.AbsolutePosition,
-                        e.AbsolutePosition,
-                        (MouseButtonType)(1 << i),
-                        e.IsPressed));
+                try
+                {
+                    _canBypassPointerChecks = true;
+                    CheckInvokeMouseButton(
+                        new MouseButtonEventArgs(
+                            e.Position,
+                            e.AbsolutePosition,
+                            (MouseButtonType)(1 << i),
+                            e.IsPressed,
+                            true));
+                }
+                finally
+                {
+                    _canBypassPointerChecks = false;
+                }
             }
-            _canBypassPointerChecks = false;
         }
 
         /// <summary>
