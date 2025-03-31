@@ -86,12 +86,7 @@ namespace CatUI.Elements.Containers
                         //TODO: here it should somehow cache the element's last width, not always assume it's the min width
                         estimatedDim += min;
 
-                        //if the max width is not set, it means it can expand infinitely
-                        if ((child.Layout.MaxWidth ?? Dimension.Unset).IsUnset())
-                        {
-                            canRespectPositioning = false;
-                        }
-
+                        canRespectPositioning = false;
                         continue;
                     }
                 }
@@ -107,12 +102,7 @@ namespace CatUI.Elements.Containers
                         //TODO: here it should somehow cache the element's last height, not always assume it's the min height
                         estimatedDim += min;
 
-                        //if the max height is not set, it means it can expand infinitely
-                        if ((child.Layout.MaxHeight ?? Dimension.Unset).IsUnset())
-                        {
-                            canRespectPositioning = false;
-                        }
-
+                        canRespectPositioning = false;
                         continue;
                     }
                 }
@@ -162,11 +152,20 @@ namespace CatUI.Elements.Containers
 
             float containerDim = ContainerOrientation == Orientation.Horizontal ? thisSize.Width : thisSize.Height;
 
-            //when it does NOT enter if, the whole content can fit and there's still space left, making it easy
-            //to respect the position of the content
-            if (canRespectPositioning && containerDim < estimatedDim)
+            if (canRespectPositioning)
             {
-                canRespectPositioning = false;
+                //when it does NOT enter if, the whole content can fit and there's still space left, making it easy
+                //to respect the position of the content
+                if (containerDim < estimatedDim)
+                {
+                    canRespectPositioning = false;
+                }
+            }
+            //if the content can't fit, but the estimate is smaller than the container dim, make it equal to the container
+            //dim so the calculations match
+            else if (containerDim > estimatedDim)
+            {
+                estimatedDim = containerDim;
             }
 
             //when the justification type is one of the space-... and it can be respected
@@ -236,27 +235,31 @@ namespace CatUI.Elements.Containers
                         _ => 0
                     };
 
-                    child.RecomputeLayout(thisSize, thisMaxSize, Point2D.Zero);
+                    Size actualSize = child.RecomputeLayout(thisSize, thisMaxSize, Point2D.Zero);
 
                     if (!isTainted)
                     {
-                        Size finalSize;
-                        if (ContainerOrientation == Orientation.Horizontal)
-                        {
-                            finalSize = new Size(
-                                finalDim,
-                                CalculateDimension(
-                                    child.Layout.GetSuggestedHeight() ?? Dimension.Unset,
-                                    thisSize.Height));
-                        }
-                        else
-                        {
-                            finalSize = new Size(
-                                CalculateDimension(
-                                    child.Layout.GetSuggestedWidth() ?? Dimension.Unset,
-                                    thisSize.Width),
-                                finalDim);
-                        }
+                        Size finalSize =
+                            ContainerOrientation == Orientation.Horizontal
+                                ? new Size(finalDim, actualSize.Height)
+                                : new Size(actualSize.Width, finalDim);
+
+                        // if (ContainerOrientation == Orientation.Horizontal)
+                        // {
+                        //     finalSize = new Size(
+                        //         finalDim,
+                        //         CalculateDimension(
+                        //             child.Layout.GetSuggestedHeight() ?? Dimension.Unset,
+                        //             thisSize.Height));
+                        // }
+                        // else
+                        // {
+                        //     finalSize = new Size(
+                        //         CalculateDimension(
+                        //             child.Layout.GetSuggestedWidth() ?? Dimension.Unset,
+                        //             thisSize.Width),
+                        //         finalDim);
+                        // }
 
                         //works like an iterator
                         thisAbsolutePosition =

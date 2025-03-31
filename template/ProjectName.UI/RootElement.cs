@@ -16,7 +16,7 @@ namespace ProjectName.UI
         private readonly ObjectRef<TextBlock>? _textBlockRef = new();
 
         //called when this element is added to the window's document
-        public override void EnterDocument(object sender)
+        protected override void EnterDocument(object sender)
         {
             //set this element's children
             Children =

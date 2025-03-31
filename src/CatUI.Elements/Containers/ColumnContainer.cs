@@ -58,7 +58,6 @@ namespace CatUI.Elements.Containers
                 HorizontalAlignment = HorizontalAlignment,
                 //
                 Position = Position,
-                Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,
                 Visible = Visible,

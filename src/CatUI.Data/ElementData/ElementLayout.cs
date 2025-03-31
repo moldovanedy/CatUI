@@ -258,7 +258,9 @@ namespace CatUI.Data.ElementData
                     return
                         PrefersMaxWidth
                             ? (MaxWidth ?? Dimension.Unset).IsUnset() ? float.PositiveInfinity : MaxWidth
-                            : MinWidth;
+                            : (MinWidth ?? Dimension.Unset).IsUnset()
+                                ? 0
+                                : MinWidth;
                 default:
                     return null;
             }
@@ -275,7 +277,9 @@ namespace CatUI.Data.ElementData
                     return
                         PrefersMaxHeight
                             ? (MaxHeight ?? Dimension.Unset).IsUnset() ? float.PositiveInfinity : MaxHeight
-                            : MinHeight;
+                            : (MinHeight ?? Dimension.Unset).IsUnset()
+                                ? 0
+                                : MinHeight;
                 default:
                     return null;
             }

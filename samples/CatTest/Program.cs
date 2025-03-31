@@ -7,6 +7,7 @@ using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Elements;
+using CatUI.Elements.Media;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 using CatUI.Windowing.Desktop;

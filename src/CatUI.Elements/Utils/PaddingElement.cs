@@ -4,11 +4,12 @@ using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
 using CatUI.Utils;
 
-namespace CatUI.Elements
+namespace CatUI.Elements.Utils
 {
     /// <summary>
     /// Represents an element that always spans the entire width and height of the parent minus the padding values
-    /// from top, right, bottom and left. Properties referring to position, width or height are ignored.
+    /// from top, right, bottom and left. Properties referring to position, width or height are ignored. Although its name
+    /// refers to padding, it can also be used as margin.
     /// </summary>
     /// <remarks>
     /// The padding cannot be larger than the half of the width for left and right and larger than height for top and bottom.
@@ -111,7 +112,6 @@ namespace CatUI.Elements
                 Padding = _padding,
                 //
                 Position = Position,
-                Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,
                 Visible = Visible,

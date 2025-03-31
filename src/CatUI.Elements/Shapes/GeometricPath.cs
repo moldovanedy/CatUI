@@ -28,7 +28,7 @@ namespace CatUI.Elements.Shapes
     /// to draw when the images are small.
     /// </para>
     /// </remarks>
-    public class GeometricPath : AbstractShape
+    public class GeometricPath : AbstractShapeElement
     {
         /// <inheritdoc cref="Element.Ref"/>
         public new ObjectRef<GeometricPath>? Ref
@@ -223,7 +223,6 @@ namespace CatUI.Elements.Shapes
                 OutlineParameters = OutlineParameters,
                 //
                 Position = Position,
-                Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,
                 Visible = Visible,

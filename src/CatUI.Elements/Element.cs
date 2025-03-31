@@ -125,26 +125,6 @@ namespace CatUI.Elements
         public ObservableProperty<Dimension2> PositionProperty { get; private set; } = new(new Dimension2(0, 0));
 
         /// <summary>
-        /// The default value is a new <see cref="EdgeInset"/> with all the dimensions invalid (<see cref="Dimension.Unset"/>).
-        /// </summary>
-        public EdgeInset Margin
-        {
-            get => _margin;
-            set
-            {
-                if (value != _margin)
-                {
-                    _margin = value;
-                    MarginProperty.Value = value;
-                    MarkLayoutDirty();
-                }
-            }
-        }
-
-        private EdgeInset _margin = new();
-        public ObservableProperty<EdgeInset> MarginProperty { get; private set; } = new(new EdgeInset());
-
-        /// <summary>
         /// Specifies the brush to use to draw the element's background. By default, it's completely transparent,
         /// so no drawing of the background happens.
         /// </summary>
@@ -399,7 +379,6 @@ namespace CatUI.Elements
             ChildLayoutChangedEvent += OnChildLayoutChanged;
 
             PositionProperty.ValueChangedEvent += SetPosition;
-            MarginProperty.ValueChangedEvent += SetMargin;
             BackgroundProperty.ValueChangedEvent += SetBackground;
             CornerRadiusProperty.ValueChangedEvent += SetCornerRadius;
             VisibleProperty.ValueChangedEvent += SetVisible;
@@ -431,7 +410,6 @@ namespace CatUI.Elements
             ChildLayoutChangedEvent = null;
 
             PositionProperty = null!;
-            MarginProperty = null!;
             BackgroundProperty = null!;
             CornerRadiusProperty = null!;
             IdProperty = null!;
@@ -582,12 +560,6 @@ namespace CatUI.Elements
             MarkLayoutDirty();
         }
 
-        private void SetMargin(EdgeInset value)
-        {
-            _margin = value;
-            MarkLayoutDirty();
-        }
-
         private void SetBackground(IBrush? value)
         {
             _background = value ?? new ColorBrush(Color.Default);
@@ -644,14 +616,13 @@ namespace CatUI.Elements
         /// cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like <see cref="Image"/>).
         /// </summary>
         /// <returns>
-        /// A new clone of the object that is not attached to the document, but has the properties of the original.
+        /// A new deep clone of the object that is not attached to the document, but has the properties of the original.
         /// </returns>
         public virtual Element Duplicate()
         {
             return new Element
             {
                 Position = _position,
-                Margin = _margin,
                 Background = _background.Duplicate(),
                 CornerRadius = _cornerRadius,
                 Visible = _visible,
