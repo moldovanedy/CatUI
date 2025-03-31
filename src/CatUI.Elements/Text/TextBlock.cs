@@ -323,7 +323,6 @@ namespace CatUI.Elements.Text
                 OverflowString = OverflowString,
                 //
                 Position = Position,
-                Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,
                 Visible = Visible,
@@ -455,7 +454,6 @@ namespace CatUI.Elements.Text
                         {
                             _maxRowWidth = currentRowWidth;
                         }
-
 
                         continue;
                     }
@@ -647,7 +645,7 @@ namespace CatUI.Elements.Text
                                 StringBuilder sb = new();
 
                                 //if the entire row can be drawn
-                                if (painter.BreakText(row.Text, preferredSize.Width) == row.Text.Length)
+                                if (painter.BreakText(row.Text, maximumSize.Width) == row.Text.Length)
                                 {
                                     sb.Append(row.Text.AsSpan());
                                 }
@@ -659,7 +657,7 @@ namespace CatUI.Elements.Text
                                             Math.Max(
                                                 (int)painter.BreakText(
                                                     row.Text,
-                                                    preferredSize.Width - overflowStringWidth),
+                                                    maximumSize.Width - overflowStringWidth),
                                                 1)
                                         )
                                     );
@@ -688,6 +686,7 @@ namespace CatUI.Elements.Text
                 }
             }
 
+            //TODO: check how to set the final size when word wrap is false
         End:
             Size finalSize = new(
                 //if there are breaks, set the maximum between the preferred width and the actual max row width;
@@ -697,10 +696,10 @@ namespace CatUI.Elements.Text
                 currentHeight - ((rowHeight / 2f) + (fontSize / 2f)));
 
             //edge case: the label doesn't have the height necessary for not even a single row
-            if (finalSize.Height < (rowHeight / 2f) + (fontSize / 2f))
+            if (maximumSize.Height < (rowHeight / 2f) + (fontSize / 2f))
             {
                 _drawableRows.Clear();
-                _visibleTextTotalHeight = finalSize.Height;
+                _visibleTextTotalHeight = maximumSize.Height;
                 return finalSize;
             }
 

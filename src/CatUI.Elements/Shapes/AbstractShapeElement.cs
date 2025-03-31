@@ -3,7 +3,11 @@ using CatUI.Data.Brushes;
 
 namespace CatUI.Elements.Shapes
 {
-    public abstract class AbstractShape : Element
+    /// <summary>
+    /// The base class for any shapes that can be drawn directly, like <see cref="Rectangle"/>, <see cref="Ellipse"/>
+    /// or <see cref="GeometricPath"/>.
+    /// </summary>
+    public abstract class AbstractShapeElement : Element
     {
         /// <summary>
         /// The "brush" used to fill the shape. A brush contains information like the color to use, if it can use an image
@@ -63,7 +67,7 @@ namespace CatUI.Elements.Shapes
         public ObservableProperty<OutlineParams> OutlineParametersProperty { get; private set; } =
             new(new OutlineParams());
 
-        public AbstractShape(IBrush? fillBrush = null, IBrush? outlineBrush = null)
+        public AbstractShapeElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
         {
             if (fillBrush != null)
             {
@@ -80,7 +84,7 @@ namespace CatUI.Elements.Shapes
             OutlineParametersProperty.ValueChangedEvent += SetOutlineParameters;
         }
 
-        ~AbstractShape()
+        ~AbstractShapeElement()
         {
             FillBrushProperty = null!;
             OutlineBrushProperty = null!;

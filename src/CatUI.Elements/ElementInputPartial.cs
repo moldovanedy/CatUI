@@ -372,7 +372,8 @@ namespace CatUI.Elements
 
             var elementArgs = new PointerUpEventArgs(
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
-                e.AbsolutePosition);
+                e.AbsolutePosition,
+                e.WasCancelled);
             PointerUpEvent?.Invoke(this, elementArgs);
         }
 
@@ -417,7 +418,8 @@ namespace CatUI.Elements
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
                 e.ButtonType,
-                e.IsPressed);
+                e.IsPressed,
+                e.WasCancelled);
             MouseButtonEvent?.Invoke(this, elementArgs);
         }
 

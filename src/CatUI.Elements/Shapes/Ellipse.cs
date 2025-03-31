@@ -12,7 +12,7 @@ namespace CatUI.Elements.Shapes
     /// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
     /// on each size. The outline will also overlap with the filled area by half of the outline width on each side.
     /// </summary>
-    public class Ellipse : AbstractShape
+    public class Ellipse : AbstractShapeElement
     {
         /// <inheritdoc cref="Element.Ref"/>
         public new ObjectRef<Ellipse>? Ref
@@ -44,8 +44,8 @@ namespace CatUI.Elements.Shapes
         /// <param name="centerPoint">The coordinates of the center point of the ellipse.</param>
         /// <param name="radiusX">The radius on the X axis (horizontal). This will represent half of the width.</param>
         /// <param name="radiusY">The radius on the Y axis (vertical). This will represent half of the height.</param>
-        /// <param name="fillBrush">Sets <see cref="AbstractShape.FillBrush"/>.</param>
-        /// <param name="outlineBrush">Sets <see cref="AbstractShape.OutlineBrush"/>.</param>
+        /// <param name="fillBrush">Sets <see cref="AbstractShapeElement.FillBrush"/>.</param>
+        /// <param name="outlineBrush">Sets <see cref="AbstractShapeElement.OutlineBrush"/>.</param>
         public Ellipse(
             Point2D centerPoint,
             float radiusX,
@@ -101,7 +101,6 @@ namespace CatUI.Elements.Shapes
                 OutlineParameters = OutlineParameters,
                 //
                 Position = Position,
-                Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,
                 Visible = Visible,

@@ -6,7 +6,7 @@ using CatUI.Data.Enums;
 using CatUI.Utils;
 using SkiaSharp;
 
-namespace CatUI.Elements
+namespace CatUI.Elements.Media
 {
     public class ImageView : Element
     {
@@ -396,7 +396,6 @@ namespace CatUI.Elements
                 ResizeQuality = _resizeQuality,
                 //
                 Position = Position,
-                Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,
                 Visible = Visible,

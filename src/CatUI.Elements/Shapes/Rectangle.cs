@@ -12,7 +12,7 @@ namespace CatUI.Elements.Shapes
     /// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
     /// on each size. The outline will also overlap with the filled area by half of the outline width on each side.
     /// </summary>
-    public class Rectangle : AbstractShape
+    public class Rectangle : AbstractShapeElement
     {
         /// <inheritdoc cref="Element.Ref"/>
         public new ObjectRef<Rectangle>? Ref
@@ -41,8 +41,8 @@ namespace CatUI.Elements.Shapes
         /// <see cref="ElementLayout.SetFixedWidth"/> and <see cref="ElementLayout.SetFixedHeight"/> respectively.
         /// </summary>
         /// <param name="rectDescriptor">Serves as the basis upon which the element's position and size are set.</param>
-        /// <param name="fillBrush">Sets <see cref="AbstractShape.FillBrush"/>.</param>
-        /// <param name="outlineBrush">Sets <see cref="AbstractShape.OutlineBrush"/>.</param>
+        /// <param name="fillBrush">Sets <see cref="AbstractShapeElement.FillBrush"/>.</param>
+        /// <param name="outlineBrush">Sets <see cref="AbstractShapeElement.OutlineBrush"/>.</param>
         public Rectangle(
             Rect rectDescriptor,
             IBrush? fillBrush = null,
@@ -84,7 +84,6 @@ namespace CatUI.Elements.Shapes
                 OutlineParameters = OutlineParameters,
                 //
                 Position = Position,
-                Margin = Margin,
                 Background = Background.Duplicate(),
                 CornerRadius = CornerRadius,
                 Visible = Visible,
