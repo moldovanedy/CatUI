@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CatUI.Data;
 using CatUI.Data.Assets;
@@ -12,12 +11,13 @@ using CatUI.Data.Events.Document;
 using CatUI.Data.Exceptions;
 using CatUI.Elements.Containers;
 using CatUI.Utils;
+using Container = CatUI.Elements.Containers.Container;
 
 namespace CatUI.Elements
 {
     public partial class Element
     {
-        public Action? OnDraw
+        public DrawEventHandler? OnDraw
         {
             get => _onDraw;
             set
@@ -28,7 +28,7 @@ namespace CatUI.Elements
             }
         }
 
-        private Action? _onDraw;
+        private DrawEventHandler? _onDraw;
 
         public EnterDocumentEventHandler? OnEnterDocument
         {
@@ -114,15 +114,20 @@ namespace CatUI.Elements
             {
                 if (value != _position)
                 {
-                    _position = value;
+                    SetPosition(value);
                     PositionProperty.Value = value;
-                    MarkLayoutDirty();
                 }
             }
         }
 
         private Dimension2 _position = new(0, 0);
         public ObservableProperty<Dimension2> PositionProperty { get; private set; } = new(new Dimension2(0, 0));
+
+        private void SetPosition(Dimension2 value)
+        {
+            _position = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Specifies the brush to use to draw the element's background. By default, it's completely transparent,
@@ -133,13 +138,18 @@ namespace CatUI.Elements
             get => _background;
             set
             {
-                _background = value;
+                SetBackground(value);
                 BackgroundProperty.Value = value;
             }
         }
 
         private IBrush _background = new ColorBrush(Color.Default);
         public ObservableProperty<IBrush> BackgroundProperty { get; private set; } = new(new ColorBrush(Color.Default));
+
+        private void SetBackground(IBrush? value)
+        {
+            _background = value ?? new ColorBrush(Color.Default);
+        }
 
         /// <summary>
         /// The radius of the corners of the element. Influences the <see cref="Background"/> drawing, as well as clipping.
@@ -150,13 +160,18 @@ namespace CatUI.Elements
             get => _cornerRadius;
             set
             {
-                _cornerRadius = value;
+                SetCornerRadius(value);
                 CornerRadiusProperty.Value = value;
             }
         }
 
         private CornerInset _cornerRadius = new();
         public ObservableProperty<CornerInset> CornerRadiusProperty { get; private set; } = new(new CornerInset());
+
+        private void SetCornerRadius(CornerInset value)
+        {
+            _cornerRadius = value;
+        }
 
         /// <summary>
         /// Represents the ID of this element. This is useful for finding the element inside a hierarchy.
@@ -174,24 +189,28 @@ namespace CatUI.Elements
             get => _id;
             set
             {
-                if (_id != null)
-                {
-                    Document?.RemoveFromIdCache(_id);
-                }
-
-                _id = value;
-
-                if (_id != null)
-                {
-                    Document?.AddToIdCache(this);
-                }
-
+                SetId(value);
                 IdProperty.Value = value;
             }
         }
 
         private string? _id;
         public ObservableProperty<string> IdProperty { get; private set; } = new(null);
+
+        private void SetId(string? value)
+        {
+            if (_id != null)
+            {
+                Document?.RemoveFromIdCache(_id);
+            }
+
+            _id = value;
+
+            if (_id != null)
+            {
+                Document?.AddToIdCache(this);
+            }
+        }
 
         /// <summary>
         /// Controls whether this element is visible or not in the application. An invisible element will still occupy
@@ -206,15 +225,8 @@ namespace CatUI.Elements
             {
                 if (value != _visible)
                 {
-                    _visible = value;
+                    SetVisible(value);
                     VisibleProperty.Value = value;
-
-                    foreach (Element child in Children)
-                    {
-                        child.Visible = value;
-                    }
-
-                    RequestRedraw();
                 }
             }
         }
@@ -222,10 +234,21 @@ namespace CatUI.Elements
         private bool _visible = true;
         public ObservableProperty<bool> VisibleProperty { get; private set; } = new(true);
 
+        private void SetVisible(bool value)
+        {
+            _visible = value;
+            foreach (Element child in Children)
+            {
+                child.Visible = value;
+            }
+
+            RequestRedraw();
+        }
+
         /// <summary>
         /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
         /// a layout and will generally give misleading values on properties that are related to layout in any way
-        /// such as <see cref="Bounds" /> or Bounds' position. The default value is true.
+        /// such as <see cref="Bounds" />. The default value is true.
         /// </summary>
         /// <seealso cref="Visible" />
         public bool Enabled
@@ -235,21 +258,25 @@ namespace CatUI.Elements
             {
                 if (value != _enabled)
                 {
-                    _enabled = value;
+                    SetEnabled(value);
                     EnabledProperty.Value = value;
-
-                    foreach (Element child in Children)
-                    {
-                        child.Enabled = value;
-                    }
-
-                    RequestRedraw();
                 }
             }
         }
 
         private bool _enabled = true;
         public ObservableProperty<bool> EnabledProperty { get; private set; } = new(true);
+
+        private void SetEnabled(bool value)
+        {
+            _enabled = value;
+            foreach (Element child in Children)
+            {
+                child.Enabled = value;
+            }
+
+            RequestRedraw();
+        }
 
         /// <summary>
         /// Gives information on how to work with this element inside a container. The value is dependent on each
@@ -268,7 +295,7 @@ namespace CatUI.Elements
             {
                 if (value != _elementContainerSizing)
                 {
-                    _elementContainerSizing = value;
+                    SetElementContainerSizing(value);
                     ElementContainerSizingProperty.Value = value;
                 }
             }
@@ -277,11 +304,42 @@ namespace CatUI.Elements
         private ContainerSizing? _elementContainerSizing;
         public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; private set; } = new();
 
+        private void SetElementContainerSizing(ContainerSizing? value)
+        {
+            _elementContainerSizing = value;
+            MarkLayoutDirty();
+        }
+
+        /// <summary>
+        /// A function that is run directly when set. This is useful for binding properties or running any kind of logic
+        /// at object creation, but after the constructor. The parameter is the object itself (this). See the example
+        /// for more info.
+        /// </summary>
+        /// <example>
+        /// new Element <br/>
+        /// { <br/>
+        ///     Option1 = value, <br/>
+        ///     ... <br/>
+        ///     InitializationFunction = (obj) => ... <br/>
+        /// }
+        /// </example>
+        public Action<Element>? InitializationFunction
+        {
+            get => _initializationFunction;
+            set
+            {
+                _initializationFunction = value;
+                _initializationFunction?.Invoke(this);
+            }
+        }
+
+        private Action<Element>? _initializationFunction;
+
         /// <summary>
         /// Represents the absolute coordinates of this element relative to the viewport. When the element is not
-        /// inside the document, these bounds are not reliable (generally representing an empty rect).
+        /// inside the document, these bounds are not reliable (generally being outdated).
         /// </summary>
-        public Rect Bounds { get; internal set; } = new();
+        public Rect Bounds { get; set; } = new();
 
         public int IndexInParent { get; private set; } = -1;
 
@@ -340,7 +398,7 @@ namespace CatUI.Elements
         /// Fired when the element needs to be redrawn. Do NOT use this as a continuous consistent source of events (like
         /// a "game loop" that fires x times a second) because this only fires when it's necessary.
         /// </summary>
-        public event Action? DrawEvent;
+        public event DrawEventHandler? DrawEvent;
 
         /// <summary>
         /// Fired when the element is added to a document (see <see cref="Document"/>).
@@ -381,6 +439,7 @@ namespace CatUI.Elements
             PositionProperty.ValueChangedEvent += SetPosition;
             BackgroundProperty.ValueChangedEvent += SetBackground;
             CornerRadiusProperty.ValueChangedEvent += SetCornerRadius;
+            IdProperty.ValueChangedEvent += SetId;
             VisibleProperty.ValueChangedEvent += SetVisible;
             EnabledProperty.ValueChangedEvent += SetEnabled;
             ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
@@ -526,11 +585,9 @@ namespace CatUI.Elements
 
         #region Internal invoke
 
-        //for 
-
         internal void InvokeDraw()
         {
-            DrawEvent?.Invoke();
+            DrawEvent?.Invoke(this);
             DrawChildren();
         }
 
@@ -554,37 +611,6 @@ namespace CatUI.Elements
             LoadEvent?.Invoke(this);
         }
 
-        private void SetPosition(Dimension2 value)
-        {
-            _position = value;
-            MarkLayoutDirty();
-        }
-
-        private void SetBackground(IBrush? value)
-        {
-            _background = value ?? new ColorBrush(Color.Default);
-        }
-
-        private void SetCornerRadius(CornerInset value)
-        {
-            _cornerRadius = value;
-        }
-
-        private void SetVisible(bool value)
-        {
-            _visible = value;
-        }
-
-        private void SetEnabled(bool value)
-        {
-            _enabled = value;
-        }
-
-        private void SetElementContainerSizing(ContainerSizing? value)
-        {
-            _elementContainerSizing = value;
-        }
-
         #endregion //Internal invoke
 
         #region Internal event handlers
@@ -602,7 +628,7 @@ namespace CatUI.Elements
 
         #region Public API
 
-        protected virtual void Draw()
+        protected virtual void Draw(object sender)
         {
             DrawBackground();
         }
@@ -706,16 +732,15 @@ namespace CatUI.Elements
             }
         }
 
-        [SuppressMessage("Performance", "CA1822:Mark members as static")]
         public void RequestRedraw()
         {
-            //TODO: implement
+            Document?.RequestRedraw();
         }
 
         /// <summary>
         /// It will notify the parent that this child modified its layout, and it will call <see cref="RecomputeLayout"/>
-        /// for this element. It is generally not necessary to call this directly, as changing the parameters will call
-        /// this automatically if it's necessary.
+        /// for this element if it's the root. It is generally not necessary to call this directly, as changing the
+        /// parameters will call this automatically if it's necessary.
         /// </summary>
         /// <remarks>
         /// If this element is not <see cref="Enabled"/> or not inside the document, it does nothing (the same for any
@@ -735,6 +760,7 @@ namespace CatUI.Elements
 
             //notify parent
             _parent?.ChildLayoutChangedEvent?.Invoke(this, new ChildLayoutChangedEventArgs(IndexInParent));
+            Document?.RequestRedraw();
         }
 
         #endregion //Public API

@@ -36,13 +36,19 @@ namespace CatUI.Elements.Media
             get => _source;
             set
             {
-                _source = value;
+                SetSource(value);
                 SourceProperty.Value = value;
             }
         }
 
         private Image? _source;
         public ObservableProperty<Image> SourceProperty { get; private set; } = new();
+
+        private void SetSource(Image? value)
+        {
+            _source = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Specifies the image's horizontal alignment (on the X axis). The default value is
@@ -53,7 +59,7 @@ namespace CatUI.Elements.Media
             get => _horizontalAlignment;
             set
             {
-                _horizontalAlignment = value;
+                SetHorizontalAlignment(value);
                 HorizontalAlignmentProperty.Value = value;
             }
         }
@@ -62,6 +68,12 @@ namespace CatUI.Elements.Media
 
         public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; private set; }
             = new(HorizontalAlignmentType.Left);
+
+        private void SetHorizontalAlignment(HorizontalAlignmentType value)
+        {
+            _horizontalAlignment = value;
+            RequestRedraw();
+        }
 
         /// <summary>
         /// Specifies the image's vertical alignment (on the Y axis). The default value is
@@ -72,7 +84,7 @@ namespace CatUI.Elements.Media
             get => _verticalAlignment;
             set
             {
-                _verticalAlignment = value;
+                SetVerticalAlignment(value);
                 VerticalAlignmentProperty.Value = value;
             }
         }
@@ -81,6 +93,12 @@ namespace CatUI.Elements.Media
 
         public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; private set; }
             = new(VerticalAlignmentType.Top);
+
+        private void SetVerticalAlignment(VerticalAlignmentType value)
+        {
+            _verticalAlignment = value;
+            RequestRedraw();
+        }
 
         /// <summary>
         /// Specifies whether the image should keep its aspect ratio or not when it's subject to resize. When this is false,
@@ -93,13 +111,19 @@ namespace CatUI.Elements.Media
             get => _shouldKeepAspectRatio;
             set
             {
-                _shouldKeepAspectRatio = value;
+                SetShouldKeepAspectRatio(value);
                 ShouldKeepAspectRatioProperty.Value = value;
             }
         }
 
         private bool _shouldKeepAspectRatio = true;
         public ObservableProperty<bool> ShouldKeepAspectRatioProperty { get; private set; } = new(true);
+
+        private void SetShouldKeepAspectRatio(bool value)
+        {
+            _shouldKeepAspectRatio = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Specifies how will the image fit inside the element's space. The default value is
@@ -110,13 +134,19 @@ namespace CatUI.Elements.Media
             get => _imageFit;
             set
             {
-                _imageFit = value;
+                SetImageFit(value);
                 ImageFitProperty.Value = value;
             }
         }
 
         private ImageFitType _imageFit = ImageFitType.CanShrink;
         public ObservableProperty<ImageFitType> ImageFitProperty { get; private set; } = new(ImageFitType.CanShrink);
+
+        private void SetImageFit(ImageFitType value)
+        {
+            _imageFit = value;
+            RequestRedraw();
+        }
 
         /// <summary>
         /// Specifies the quality of the drawn image after it has been resized (or simply the quality of the resizing
@@ -128,13 +158,19 @@ namespace CatUI.Elements.Media
             get => _resizeQuality;
             set
             {
-                _resizeQuality = value;
+                SetResizeQuality(value);
                 ResizeQualityProperty.Value = value;
             }
         }
 
         private ImageResizeQuality _resizeQuality = ImageResizeQuality.Medium;
         public ObservableProperty<ImageResizeQuality> ResizeQualityProperty { get; private set; } = new();
+
+        private void SetResizeQuality(ImageResizeQuality value)
+        {
+            _resizeQuality = value;
+            RequestRedraw();
+        }
 
         private SKImage? _cachedScaledImage;
 
@@ -169,39 +205,9 @@ namespace CatUI.Elements.Media
             ResizeQualityProperty = null!;
         }
 
-        private void SetSource(Image? value)
+        protected override void Draw(object sender)
         {
-            _source = value;
-        }
-
-        private void SetHorizontalAlignment(HorizontalAlignmentType value)
-        {
-            _horizontalAlignment = value;
-        }
-
-        private void SetVerticalAlignment(VerticalAlignmentType value)
-        {
-            _verticalAlignment = value;
-        }
-
-        private void SetShouldKeepAspectRatio(bool value)
-        {
-            _shouldKeepAspectRatio = value;
-        }
-
-        private void SetImageFit(ImageFitType value)
-        {
-            _imageFit = value;
-        }
-
-        private void SetResizeQuality(ImageResizeQuality value)
-        {
-            _resizeQuality = value;
-        }
-
-        protected override void Draw()
-        {
-            base.Draw();
+            base.Draw(sender);
 
             if (Source == null)
             {

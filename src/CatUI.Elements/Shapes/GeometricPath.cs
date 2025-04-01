@@ -58,7 +58,7 @@ namespace CatUI.Elements.Shapes
             get => _shouldApplyScaling;
             set
             {
-                _shouldApplyScaling = value;
+                SetShouldApplyScaling(value);
                 ShouldApplyScalingProperty.Value = value;
             }
         }
@@ -66,6 +66,12 @@ namespace CatUI.Elements.Shapes
         private bool _shouldApplyScaling;
 
         public ObservableProperty<bool> ShouldApplyScalingProperty { get; private set; } = new(false);
+
+        private void SetShouldApplyScaling(bool value)
+        {
+            _shouldApplyScaling = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// The path's string description in the Scalable Vector Graphics (SVG) format. The only relevant element from an
@@ -89,20 +95,26 @@ namespace CatUI.Elements.Shapes
             get => _svgPath;
             set
             {
-                _svgPath = value;
-                if (!string.IsNullOrEmpty(_svgPath))
-                {
-                    _skiaPath = SKPath.ParseSvgPathData(_svgPath);
-                    _scaledCachedPath = new SKPath(_skiaPath);
-                    PathCache.CacheNewPath(_scaledCachedPath);
-                }
-
+                SetSvgPath(value);
                 SvgPathProperty.Value = value;
             }
         }
 
         private string _svgPath = "";
         public ObservableProperty<string> SvgPathProperty { get; private set; } = new("");
+
+        private void SetSvgPath(string? value)
+        {
+            _svgPath = value ?? string.Empty;
+            if (!string.IsNullOrEmpty(_svgPath))
+            {
+                _skiaPath = SKPath.ParseSvgPathData(_svgPath);
+                _scaledCachedPath = new SKPath(_skiaPath);
+                PathCache.CacheNewPath(_scaledCachedPath);
+            }
+
+            MarkLayoutDirty();
+        }
 
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
         private Vector2 _lastScale = Vector2.One;
@@ -123,16 +135,6 @@ namespace CatUI.Elements.Shapes
 
             ShouldApplyScalingProperty = null!;
             SvgPathProperty = null!;
-        }
-
-        private void SetShouldApplyScaling(bool value)
-        {
-            _shouldApplyScaling = value;
-        }
-
-        private void SetSvgPath(string? value)
-        {
-            _svgPath = value ?? string.Empty;
         }
 
         public SKPath GetSkiaPathClone()
@@ -178,6 +180,7 @@ namespace CatUI.Elements.Shapes
             // restoring the canvas is a better choice when there are many paths instead of the inverse matrix technique
             // also look for ways to minimize the transformations, as it might invalidate Skia's caches, leading to poor
             // performance; it's especially important for the case where scaling is not applied, as that's only a translation
+            //
             _scaledCachedPath.Transform(_lastTransformMatrix.Invert());
             var startPoint = new Vector2(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
 

@@ -43,13 +43,19 @@ namespace CatUI.Elements.Text
             get => _wordWrap;
             set
             {
-                _wordWrap = value;
+                SetWordWrap(value);
                 WordWrapProperty.Value = value;
             }
         }
 
         private bool _wordWrap;
         public ObservableProperty<bool> WordWrapProperty { get; private set; } = new(false);
+
+        private void SetWordWrap(bool value)
+        {
+            _wordWrap = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Represents the text's word break mode. It is only relevant when <see cref="WordWrap"/> is true.
@@ -60,7 +66,7 @@ namespace CatUI.Elements.Text
             get => _breakMode;
             set
             {
-                _breakMode = value;
+                SetBreakMode(value);
                 BreakModeProperty.Value = value;
             }
         }
@@ -68,6 +74,12 @@ namespace CatUI.Elements.Text
         private TextBreakMode _breakMode = TextBreakMode.SoftBreak;
 
         public ObservableProperty<TextBreakMode> BreakModeProperty { get; private set; } = new(TextBreakMode.SoftBreak);
+
+        private void SetBreakMode(TextBreakMode value)
+        {
+            _breakMode = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Represents the character that will be used for hyphenation when <see cref="BreakMode"/> is
@@ -80,13 +92,19 @@ namespace CatUI.Elements.Text
             get => _hyphenCharacter;
             set
             {
-                _hyphenCharacter = value;
+                SetHyphenCharacter(value);
                 HyphenCharacterProperty.Value = value;
             }
         }
 
         private char _hyphenCharacter = '-';
         public ObservableProperty<char> HyphenCharacterProperty { get; private set; } = new('-');
+
+        private void SetHyphenCharacter(char value)
+        {
+            _hyphenCharacter = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Represents the brush that is used to draw the text. The default value is a solid black color.
@@ -96,13 +114,19 @@ namespace CatUI.Elements.Text
             get => _textBrush;
             set
             {
-                _textBrush = value;
+                SetTextBrush(value);
                 TextBrushProperty.Value = value;
             }
         }
 
         private IBrush _textBrush = new ColorBrush(new Color(0));
         public ObservableProperty<IBrush> TextBrushProperty { get; private set; } = new(new ColorBrush(new Color(0)));
+
+        private void SetTextBrush(IBrush? value)
+        {
+            _textBrush = value ?? new ColorBrush(Color.Default);
+            RequestRedraw();
+        }
 
         /// <summary>
         /// Represents the brush that is used to create the text outline. The default value is a completely transparent
@@ -113,7 +137,7 @@ namespace CatUI.Elements.Text
             get => _outlineTextBrush;
             set
             {
-                _outlineTextBrush = value;
+                SetOutlineTextBrush(value);
                 OutlineTextBrushProperty.Value = value;
             }
         }
@@ -122,6 +146,12 @@ namespace CatUI.Elements.Text
 
         public ObservableProperty<IBrush> OutlineTextBrushProperty { get; private set; } =
             new(new ColorBrush(Color.Default));
+
+        private void SetOutlineTextBrush(IBrush? value)
+        {
+            _outlineTextBrush = value ?? new ColorBrush(Color.Default);
+            RequestRedraw();
+        }
 
         /// <summary>
         /// A dimensionless value that represents the spacing between the rows. A value of 1 will not leave any space
@@ -139,13 +169,19 @@ namespace CatUI.Elements.Text
                     value = 0;
                 }
 
-                _lineHeight = value;
+                SetLineHeight(value);
                 LineHeightProperty.Value = value;
             }
         }
 
         private float _lineHeight = 1.2f;
         public ObservableProperty<float> LineHeightProperty { get; private set; } = new(1.2f);
+
+        private void SetLineHeight(float value)
+        {
+            _lineHeight = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Represents the rows given by the user. These are not affected by word wrap or expansion, they are purely data.
@@ -210,36 +246,6 @@ namespace CatUI.Elements.Text
             LineHeightProperty.ValueChangedEvent += SetLineHeight;
         }
 
-        private void SetWordWrap(bool value)
-        {
-            _wordWrap = value;
-        }
-
-        private void SetBreakMode(TextBreakMode value)
-        {
-            _breakMode = value;
-        }
-
-        private void SetHyphenCharacter(char value)
-        {
-            _hyphenCharacter = value;
-        }
-
-        private void SetTextBrush(IBrush? value)
-        {
-            _textBrush = value ?? new ColorBrush(Color.Default);
-        }
-
-        private void SetOutlineTextBrush(IBrush? value)
-        {
-            _outlineTextBrush = value ?? new ColorBrush(Color.Default);
-        }
-
-        private void SetLineHeight(float value)
-        {
-            _lineHeight = value;
-        }
-
         public override Size RecomputeLayout(
             Size parentSize,
             Size parentMaxSize,
@@ -274,9 +280,9 @@ namespace CatUI.Elements.Text
             return thisSize;
         }
 
-        protected override void Draw()
+        protected override void Draw(object sender)
         {
-            base.Draw();
+            base.Draw(sender);
             Rect bounds = Bounds;
 
             float fontSize = CalculateDimension(FontSize);

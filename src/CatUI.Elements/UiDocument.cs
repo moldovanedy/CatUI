@@ -131,7 +131,6 @@ namespace CatUI.Elements
         private Size _viewportSize = new();
 
         public Renderer Renderer { get; private set; } = new();
-        public int ElementCacheSize { get; set; } = 4096;
 
         public Color BackgroundColor
         {
@@ -166,9 +165,27 @@ namespace CatUI.Elements
             Renderer.SetBgColor(_background);
         }
 
+        /// <summary>
+        /// This will invoke draw for the root element and, consequently, to all eligible children (children that are
+        /// visible and can be drawn). You should only call this from the windowing code, not from normal, UI code.
+        /// For UI code, see <see cref="RequestRedraw"/>.
+        /// </summary>
+        /// <remarks>
+        /// Because of hardware acceleration, this is very efficient, as partial redraws are something really uncommon
+        /// when drawing using GPU, so don't worry about potential performance issues when completely redrawing all the elements.
+        /// </remarks>
         public void DrawAllElements()
         {
             Root?.InvokeDraw();
+        }
+
+        /// <summary>
+        /// This will mark the document as "dirty", meaning elements should be redrawn on the next frame. Use this instead
+        /// of <see cref="DrawAllElements"/> as much as possible.
+        /// </summary>
+        public void RequestRedraw()
+        {
+            Renderer.SetCanvasDirty();
         }
 
         public Element? GetElementById(string id)

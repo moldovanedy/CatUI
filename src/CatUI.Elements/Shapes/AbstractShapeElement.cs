@@ -19,13 +19,19 @@ namespace CatUI.Elements.Shapes
             get => _fillBrush;
             set
             {
-                _fillBrush = value;
+                SetFillBrush(value);
                 FillBrushProperty.Value = _fillBrush;
             }
         }
 
         private IBrush _fillBrush = new ColorBrush(Color.Default);
         public ObservableProperty<IBrush> FillBrushProperty { get; private set; } = new(new ColorBrush(Color.Default));
+
+        private void SetFillBrush(IBrush? brush)
+        {
+            _fillBrush = brush ?? new ColorBrush(Color.Default);
+            RequestRedraw();
+        }
 
         /// <summary>
         /// The "brush" used to make an outline (stroke) of the shape. A brush contains information like the color to use,
@@ -37,7 +43,7 @@ namespace CatUI.Elements.Shapes
             get => _outlineBrush;
             set
             {
-                _outlineBrush = value;
+                SetOutlineBrush(value);
                 OutlineBrushProperty.Value = _outlineBrush;
             }
         }
@@ -46,6 +52,12 @@ namespace CatUI.Elements.Shapes
 
         public ObservableProperty<IBrush> OutlineBrushProperty { get; private set; } =
             new(new ColorBrush(Color.Default));
+
+        private void SetOutlineBrush(IBrush? brush)
+        {
+            _outlineBrush = brush ?? new ColorBrush(Color.Default);
+            RequestRedraw();
+        }
 
         /// <summary>
         /// The parameters that describe the outline of the shape. It is irrelevant when <see cref="OutlineBrush"/> is
@@ -57,7 +69,7 @@ namespace CatUI.Elements.Shapes
             get => _outlineParameters;
             set
             {
-                _outlineParameters = value;
+                SetOutlineParameters(value);
                 OutlineParametersProperty.Value = _outlineParameters;
             }
         }
@@ -66,6 +78,12 @@ namespace CatUI.Elements.Shapes
 
         public ObservableProperty<OutlineParams> OutlineParametersProperty { get; private set; } =
             new(new OutlineParams());
+
+        private void SetOutlineParameters(OutlineParams outlineParameters)
+        {
+            _outlineParameters = outlineParameters;
+            MarkLayoutDirty();
+        }
 
         public AbstractShapeElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
         {
@@ -89,21 +107,6 @@ namespace CatUI.Elements.Shapes
             FillBrushProperty = null!;
             OutlineBrushProperty = null!;
             OutlineParametersProperty = null!;
-        }
-
-        private void SetFillBrush(IBrush? brush)
-        {
-            _fillBrush = brush ?? new ColorBrush(Color.Default);
-        }
-
-        private void SetOutlineBrush(IBrush? brush)
-        {
-            _outlineBrush = brush ?? new ColorBrush(Color.Default);
-        }
-
-        private void SetOutlineParameters(OutlineParams outlineParameters)
-        {
-            _outlineParameters = outlineParameters;
         }
     }
 }

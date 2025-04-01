@@ -15,13 +15,19 @@ namespace CatUI.Elements.Text
             get => _text;
             set
             {
-                _text = value;
+                SetText(value);
                 TextProperty.Value = value;
             }
         }
 
         private string _text = string.Empty;
         public ObservableProperty<string> TextProperty { get; private set; } = new(string.Empty);
+
+        private void SetText(string? value)
+        {
+            _text = value ?? string.Empty;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Represents the size of the font to use when drawing the text. The default value is 12dp.
@@ -31,13 +37,19 @@ namespace CatUI.Elements.Text
             get => _fontSize;
             set
             {
-                _fontSize = value;
+                SetFontSize(value);
                 FontSizeProperty.Value = value;
             }
         }
 
         private Dimension _fontSize = new(12);
         public ObservableProperty<Dimension> FontSizeProperty { get; private set; } = new(new Dimension(16));
+
+        private void SetFontSize(Dimension value)
+        {
+            _fontSize = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Specifies the behavior of the text element when the text is too large to render in the given space.
@@ -49,7 +61,7 @@ namespace CatUI.Elements.Text
             get => _overflowMode;
             set
             {
-                _overflowMode = value;
+                SetOverflowMode(value);
                 OverflowModeProperty.Value = value;
             }
         }
@@ -58,6 +70,12 @@ namespace CatUI.Elements.Text
 
         public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; private set; } =
             new(TextOverflowMode.Ellipsis);
+
+        private void SetOverflowMode(TextOverflowMode value)
+        {
+            _overflowMode = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// The text alignment to use. All values except <see cref="TextAlignmentType.Justify"/> are generally supported
@@ -70,7 +88,7 @@ namespace CatUI.Elements.Text
             get => _textAlignment;
             set
             {
-                _textAlignment = value;
+                SetTextAlignment(value);
                 TextAlignmentProperty.Value = value;
             }
         }
@@ -79,6 +97,12 @@ namespace CatUI.Elements.Text
 
         public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; private set; }
             = new(TextAlignmentType.Left);
+
+        private void SetTextAlignment(TextAlignmentType value)
+        {
+            _textAlignment = value;
+            MarkLayoutDirty();
+        }
 
         /// <summary>
         /// Specifies the string that will be appended at the end of a row if the text cannot be drawn completely
@@ -89,13 +113,19 @@ namespace CatUI.Elements.Text
             get => _overflowString;
             set
             {
-                _overflowString = value;
+                SetOverflowString(value);
                 OverflowStringProperty.Value = value;
             }
         }
 
         private string _overflowString = "\u2026";
         public ObservableProperty<string> OverflowStringProperty { get; private set; } = new("\u2026");
+
+        private void SetOverflowString(string? value)
+        {
+            _overflowString = value ?? string.Empty;
+            MarkLayoutDirty();
+        }
 
         public TextElement()
         {
@@ -125,31 +155,6 @@ namespace CatUI.Elements.Text
             OverflowModeProperty.ValueChangedEvent += SetOverflowMode;
             TextAlignmentProperty.ValueChangedEvent += SetTextAlignment;
             OverflowStringProperty.ValueChangedEvent += SetOverflowString;
-        }
-
-        private void SetText(string? value)
-        {
-            _text = value ?? string.Empty;
-        }
-
-        private void SetFontSize(Dimension value)
-        {
-            _fontSize = value;
-        }
-
-        private void SetOverflowMode(TextOverflowMode value)
-        {
-            _overflowMode = value;
-        }
-
-        private void SetTextAlignment(TextAlignmentType value)
-        {
-            _textAlignment = value;
-        }
-
-        private void SetOverflowString(string? value)
-        {
-            _overflowString = value ?? string.Empty;
         }
     }
 }

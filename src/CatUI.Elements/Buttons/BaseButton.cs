@@ -30,13 +30,18 @@ namespace CatUI.Elements.Buttons
             get => _canUserCancelClick;
             set
             {
-                _canUserCancelClick = value;
+                SetCanUserCancelClick(value);
                 CanUserCancelClickProperty.Value = value;
             }
         }
 
         private bool _canUserCancelClick = true;
         public ObservableProperty<bool> CanUserCancelClickProperty { get; private set; } = new(true);
+
+        private void SetCanUserCancelClick(bool value)
+        {
+            _canUserCancelClick = value;
+        }
 
         public event ClickEventHandler? ClickEvent;
 
@@ -62,7 +67,6 @@ namespace CatUI.Elements.Buttons
             PointerUpEvent += PrivatePointerUp;
         }
 
-
         ~BaseButton()
         {
             ClickEvent = null;
@@ -87,11 +91,6 @@ namespace CatUI.Elements.Buttons
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
             };
-        }
-
-        private void SetCanUserCancelClick(bool value)
-        {
-            _canUserCancelClick = value;
         }
 
         private void PrivatePointerDown(object sender, PointerDownEventArgs e)
