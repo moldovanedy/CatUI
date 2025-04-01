@@ -26,7 +26,9 @@ namespace CatUI.Elements
 
         protected virtual void OnChildLayoutChanged(object? sender, ChildLayoutChangedEventArgs e)
         {
-            Rect parentBounds = _parent?.Bounds ?? new Rect();
+            //TODO: this does not update the layout properly (at least in containers)... find out why and fix it
+
+            Rect parentBounds = _parent?.Bounds ?? Bounds;
             Point2D parentAbsolutePosition = new(parentBounds.X, parentBounds.Y);
             Size parentSize = new(parentBounds.Width, parentBounds.Height);
 

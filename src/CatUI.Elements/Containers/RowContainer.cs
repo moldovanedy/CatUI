@@ -35,7 +35,7 @@ namespace CatUI.Elements.Containers
             get => (VerticalAlignmentType)PreferredAlignment;
             set
             {
-                PreferredAlignment = (AlignmentType)value;
+                SetVerticalAlignment(value);
                 VerticalAlignmentProperty.Value = value;
             }
         }
@@ -43,7 +43,18 @@ namespace CatUI.Elements.Containers
         public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; private set; }
             = new(VerticalAlignmentType.Top);
 
-        public override Orientation ContainerOrientation => Orientation.Horizontal;
+        private void SetVerticalAlignment(VerticalAlignmentType value)
+        {
+            PreferredAlignment = (AlignmentType)value;
+            MarkLayoutDirty();
+        }
+
+        public sealed override Orientation ContainerOrientation => Orientation.Horizontal;
+
+        public RowContainer()
+        {
+            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+        }
 
         ~RowContainer()
         {

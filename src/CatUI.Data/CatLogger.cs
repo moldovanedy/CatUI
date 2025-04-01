@@ -10,7 +10,7 @@ namespace CatUI.Data
     /// </summary>
     public static class CatLogger
     {
-        public static void Log(string message, LogLevel logLevel = LogLevel.Info, bool showTimestamp = true)
+        public static void Log(object message, LogLevel logLevel = LogLevel.Info, bool showTimestamp = true)
         {
 #if DEBUG
             if (CatApplication.Instance.DebugLogLevel == LogLevel.None ||
@@ -31,7 +31,27 @@ namespace CatUI.Data
 #endif
         }
 
-        private static string FormatMessage(string message, LogLevel logLevel, bool showTimestamp = true)
+        public static void LogDebug(object message, bool showTimestamp = true)
+        {
+            Log(message, LogLevel.Debug, showTimestamp);
+        }
+
+        public static void LogInfo(object message, bool showTimestamp = true)
+        {
+            Log(message, LogLevel.Info, showTimestamp);
+        }
+
+        public static void LogWarning(object message, bool showTimestamp = true)
+        {
+            Log(message, LogLevel.Warning, showTimestamp);
+        }
+
+        public static void LogError(object message, bool showTimestamp = true)
+        {
+            Log(message, LogLevel.Error, showTimestamp);
+        }
+
+        private static string FormatMessage(object message, LogLevel logLevel, bool showTimestamp = true)
         {
             //this is done simply for performance reasons (i.e. not calling ToUpper every time)
             string logLevelString;
@@ -64,26 +84,6 @@ namespace CatUI.Data
             return showTimestamp
                 ? $"[{logLevelString} ({DateTime.Now:HH:mm:ss.fff})]: {message}"
                 : $"[{logLevelString}]: {message}";
-        }
-
-        public static void LogDebug(string message, bool showTimestamp = true)
-        {
-            Log(message, LogLevel.Debug, showTimestamp);
-        }
-
-        public static void LogInfo(string message, bool showTimestamp = true)
-        {
-            Log(message, LogLevel.Info, showTimestamp);
-        }
-
-        public static void LogWarning(string message, bool showTimestamp = true)
-        {
-            Log(message, LogLevel.Warning, showTimestamp);
-        }
-
-        public static void LogError(string message, bool showTimestamp = true)
-        {
-            Log(message, LogLevel.Error, showTimestamp);
         }
 
         /// <summary>

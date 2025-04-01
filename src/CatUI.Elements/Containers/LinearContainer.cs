@@ -18,7 +18,7 @@ namespace CatUI.Elements.Containers
             get => _arrangement;
             set
             {
-                _arrangement = value;
+                SetArrangement(value);
                 ArrangementProperty.Value = _arrangement;
             }
         }
@@ -28,12 +28,23 @@ namespace CatUI.Elements.Containers
         public ObservableProperty<LinearArrangement> ArrangementProperty { get; private set; } =
             new(new LinearArrangement());
 
+        private void SetArrangement(LinearArrangement? arrangement)
+        {
+            _arrangement = arrangement ?? new LinearArrangement();
+            MarkLayoutDirty();
+        }
+
         protected AlignmentType PreferredAlignment { get; set; } = AlignmentType.Start;
 
         /// <summary>
         /// Specifies the orientation of this LinearContainer. Can be vertical or horizontal.
         /// </summary>
         public abstract Orientation ContainerOrientation { get; }
+
+        public LinearContainer()
+        {
+            ArrangementProperty.ValueChangedEvent += SetArrangement;
+        }
 
         ~LinearContainer()
         {
@@ -235,9 +246,13 @@ namespace CatUI.Elements.Containers
                         _ => 0
                     };
 
-                    Size actualSize = child.RecomputeLayout(thisSize, thisMaxSize, Point2D.Zero);
+                    Size givenSize =
+                        ContainerOrientation == Orientation.Horizontal
+                            ? new Size(finalDim, thisSize.Height)
+                            : new Size(thisSize.Width, finalDim);
+                    Size actualSize = child.RecomputeLayout(givenSize, givenSize, Point2D.Zero);
 
-                    if (!isTainted)
+                    //if (!isTainted)
                     {
                         Size finalSize =
                             ContainerOrientation == Orientation.Horizontal
@@ -303,6 +318,7 @@ namespace CatUI.Elements.Containers
                         }
                     }
 
+                    //TODO: we might need to consider the maximum size as well, not just the actual size
                     if (ContainerOrientation == Orientation.Horizontal)
                     {
                         deviation += actualSize.Width - declaredWidth;
@@ -320,7 +336,7 @@ namespace CatUI.Elements.Containers
                     }
 
                     //set the position
-                    if (!isTainted)
+                    //if (!isTainted)
                     {
                         //works like an iterator
                         thisAbsolutePosition =
@@ -494,6 +510,7 @@ namespace CatUI.Elements.Containers
             }
 
             child.Bounds = new Rect(x + xOffset, y + yOffset, childFinalSize.Width, childFinalSize.Height);
+            UpdatePositionOfChildren(child, new Point2D(x + xOffset, y + yOffset));
 
             if (ContainerOrientation == Orientation.Horizontal)
             {
@@ -570,6 +587,19 @@ namespace CatUI.Elements.Containers
             }
 
             return new Point2D(x, y);
+        }
+
+        private static void UpdatePositionOfChildren(Element element, Point2D constOffset)
+        {
+            foreach (Element child in element.Children)
+            {
+                child.Bounds = new Rect(
+                    child.Bounds.X + constOffset.X,
+                    child.Bounds.Y + constOffset.Y,
+                    child.Bounds.Width,
+                    child.Bounds.Height);
+                UpdatePositionOfChildren(child, constOffset);
+            }
         }
 
 

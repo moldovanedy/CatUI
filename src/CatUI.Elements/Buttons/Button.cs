@@ -1,4 +1,5 @@
 using CatUI.Data;
+using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
@@ -40,13 +41,18 @@ namespace CatUI.Elements.Buttons
             get => _padding;
             set
             {
-                _padding = value;
+                SetPadding(value);
                 PaddingProperty.Value = value;
             }
         }
 
         private EdgeInset _padding = new();
         public ObservableProperty<EdgeInset> PaddingProperty { get; private set; } = new(new EdgeInset());
+
+        private void SetPadding(EdgeInset value)
+        {
+            _padding = value;
+        }
 
         /// <summary>
         /// Represents the spacing between <see cref="TextElement"/> and <see cref="IconElement"/>. This will be considered
@@ -57,35 +63,46 @@ namespace CatUI.Elements.Buttons
             get => _spacing;
             set
             {
-                _spacing = value;
+                SetSpacing(value);
                 SpacingProperty.Value = value;
-                InternalRowContainer.Arrangement.Spacing = value;
             }
         }
 
         private Dimension _spacing = new();
         public ObservableProperty<Dimension> SpacingProperty { get; private set; } = new(new Dimension());
 
+        private void SetSpacing(Dimension value)
+        {
+            _spacing = value;
+            InternalRowContainer.Arrangement.Spacing = value;
+        }
+
         /// <summary>
-        /// Represents the horizontal alignment of the content. A value other than <see cref="LinearArrangement.JustificationType.Start"/>,
+        /// Represents the horizontal arrangement of the content. A value other than <see cref="LinearArrangement.JustificationType.Start"/>,
         /// <see cref="LinearArrangement.JustificationType.Center"/> or <see cref="LinearArrangement.JustificationType.End"/>
         /// will make <see cref="Spacing"/> irrelevant. By default, this is <see cref="LinearArrangement.JustificationType.Center"/>.
         /// </summary>
-        public LinearArrangement.JustificationType HorizontalAlignment
+        public LinearArrangement.JustificationType HorizontalArrangement
         {
-            get => _horizontalAlignment;
+            get => _horizontalArrangement;
             set
             {
-                _horizontalAlignment = value;
-                HorizontalAlignmentProperty.Value = value;
-                InternalRowContainer.Arrangement.ContentJustification = value;
+                SetHorizontalArrangement(value);
+                HorizontalArrangementProperty.Value = value;
             }
         }
 
-        private LinearArrangement.JustificationType _horizontalAlignment = LinearArrangement.JustificationType.Center;
+        private LinearArrangement.JustificationType _horizontalArrangement = LinearArrangement.JustificationType.Center;
 
-        public ObservableProperty<LinearArrangement.JustificationType> HorizontalAlignmentProperty { get; private set; }
+        public ObservableProperty<LinearArrangement.JustificationType>
+            HorizontalArrangementProperty { get; private set; }
             = new(LinearArrangement.JustificationType.Center);
+
+        private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
+        {
+            _horizontalArrangement = value;
+            InternalRowContainer.Arrangement.ContentJustification = value;
+        }
 
         /// <summary>
         /// Represents the vertical alignment of the content. By default, this is <see cref="VerticalAlignmentType.Center"/>.
@@ -95,9 +112,8 @@ namespace CatUI.Elements.Buttons
             get => _verticalAlignment;
             set
             {
-                _verticalAlignment = value;
+                SetVerticalAlignment(value);
                 VerticalAlignmentProperty.Value = value;
-                InternalRowContainer.VerticalAlignment = value;
             }
         }
 
@@ -105,6 +121,12 @@ namespace CatUI.Elements.Buttons
 
         public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; private set; }
             = new(VerticalAlignmentType.Center);
+
+        private void SetVerticalAlignment(VerticalAlignmentType value)
+        {
+            _verticalAlignment = value;
+            InternalRowContainer.VerticalAlignment = value;
+        }
 
         /// <summary>
         /// Represents the text content of the button, but it's optional, as you can have this, an <see cref="IconElement"/>
@@ -188,7 +210,7 @@ namespace CatUI.Elements.Buttons
         /// but you have access to it just in case you need it.
         /// </summary>
         /// <remarks>
-        /// Modifying properties from here won't reflect in properties of Button like <see cref="HorizontalAlignment"/>,
+        /// Modifying properties from here won't reflect in properties of Button like <see cref="HorizontalArrangement"/>,
         /// that's why you should always modify everything that's possible from Button properties, not from this container
         /// directly.
         /// </remarks>
@@ -231,21 +253,33 @@ namespace CatUI.Elements.Buttons
             Children.Add(InternalPaddingElement);
 
             InternalPaddingElement.PaddingProperty.BindBidirectional(PaddingProperty);
+
+            PaddingProperty.ValueChangedEvent += SetPadding;
+            SpacingProperty.ValueChangedEvent += SetSpacing;
+            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
+            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
         }
 
         /// <summary>
         /// A helper constructor that will set the <see cref="TextElement"/> as a default <see cref="TextBlock"/> with
-        /// the given text and will give it a padding.
+        /// the given text, font size and text brush and will give it a padding.
         /// </summary>
         /// <param name="text">
         /// The text that a <see cref="TextBlock"/> will have when set as the value of <see cref="TextElement"/>.
         /// </param>
+        /// <param name="fontSize">The value of <see cref="Text.TextElement.FontSize"/>.</param>
+        /// <param name="textBrush">The value of <see cref="TextBlock.TextBrush"/>.</param>
         /// <param name="padding">The value of <see cref="Padding"/>.</param>
-        public Button(string text, EdgeInset? padding = null) :
+        public Button(
+            string text,
+            Dimension? fontSize = null,
+            ColorBrush? textBrush = null,
+            EdgeInset? padding = null) :
             this(
-                new TextBlock(text)
+                new TextBlock(text, TextAlignmentType.Center)
                 {
-                    TextAlignment = TextAlignmentType.Center,
+                    FontSize = fontSize ?? 12,
+                    TextBrush = textBrush ?? new ColorBrush(new Color(0)),
                     Layout =
                         new ElementLayout()
                             .SetMinMaxHeight(0, "100%")
@@ -281,7 +315,7 @@ namespace CatUI.Elements.Buttons
         {
             PaddingProperty = null!;
             SpacingProperty = null!;
-            HorizontalAlignmentProperty = null!;
+            HorizontalArrangementProperty = null!;
             VerticalAlignmentProperty = null!;
         }
 
@@ -291,7 +325,7 @@ namespace CatUI.Elements.Buttons
             {
                 Padding = Padding,
                 Spacing = Spacing,
-                HorizontalAlignment = HorizontalAlignment,
+                HorizontalArrangement = HorizontalArrangement,
                 VerticalAlignment = VerticalAlignment,
                 //BaseButton
                 CanUserCancelClick = CanUserCancelClick,

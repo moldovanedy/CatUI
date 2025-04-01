@@ -35,7 +35,7 @@ namespace CatUI.Elements.Containers
             get => (HorizontalAlignmentType)PreferredAlignment;
             set
             {
-                PreferredAlignment = (AlignmentType)value;
+                SetHorizontalAlignment(value);
                 HorizontalAlignmentProperty.Value = value;
             }
         }
@@ -43,7 +43,18 @@ namespace CatUI.Elements.Containers
         public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; private set; }
             = new(HorizontalAlignmentType.Left);
 
-        public override Orientation ContainerOrientation => Orientation.Vertical;
+        private void SetHorizontalAlignment(HorizontalAlignmentType value)
+        {
+            PreferredAlignment = (AlignmentType)value;
+            MarkLayoutDirty();
+        }
+
+        public sealed override Orientation ContainerOrientation => Orientation.Vertical;
+
+        public ColumnContainer()
+        {
+            HorizontalAlignmentProperty.ValueChangedEvent += SetHorizontalAlignment;
+        }
 
         ~ColumnContainer()
         {
