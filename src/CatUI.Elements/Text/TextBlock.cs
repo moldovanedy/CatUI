@@ -7,6 +7,7 @@ using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
+using CatUI.Data.Shapes;
 using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
 using SkiaSharp;
@@ -330,7 +331,8 @@ namespace CatUI.Elements.Text
                 //
                 Position = Position,
                 Background = Background.Duplicate(),
-                CornerRadius = CornerRadius,
+                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
+                ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()

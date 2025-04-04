@@ -3,6 +3,7 @@ using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
+using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Shapes
@@ -12,10 +13,10 @@ namespace CatUI.Elements.Shapes
     /// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
     /// on each size. The outline will also overlap with the filled area by half of the outline width on each side.
     /// </summary>
-    public class Ellipse : AbstractShapeElement
+    public class EllipseElement : AbstractShapeElement
     {
         /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<Ellipse>? Ref
+        public new ObjectRef<EllipseElement>? Ref
         {
             get => _ref;
             set
@@ -28,9 +29,9 @@ namespace CatUI.Elements.Shapes
             }
         }
 
-        private ObjectRef<Ellipse>? _ref;
+        private ObjectRef<EllipseElement>? _ref;
 
-        public Ellipse(IBrush? fillBrush = null, IBrush? outlineBrush = null)
+        public EllipseElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
         }
@@ -46,7 +47,7 @@ namespace CatUI.Elements.Shapes
         /// <param name="radiusY">The radius on the Y axis (vertical). This will represent half of the height.</param>
         /// <param name="fillBrush">Sets <see cref="AbstractShapeElement.FillBrush"/>.</param>
         /// <param name="outlineBrush">Sets <see cref="AbstractShapeElement.OutlineBrush"/>.</param>
-        public Ellipse(
+        public EllipseElement(
             Point2D centerPoint,
             float radiusX,
             float radiusY,
@@ -92,9 +93,9 @@ namespace CatUI.Elements.Shapes
                 OutlineParameters);
         }
 
-        public override Ellipse Duplicate()
+        public override EllipseElement Duplicate()
         {
-            return new Ellipse
+            return new EllipseElement
             {
                 FillBrush = FillBrush.Duplicate(),
                 OutlineBrush = OutlineBrush.Duplicate(),
@@ -102,7 +103,8 @@ namespace CatUI.Elements.Shapes
                 //
                 Position = Position,
                 Background = Background.Duplicate(),
-                CornerRadius = CornerRadius,
+                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
+                ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()

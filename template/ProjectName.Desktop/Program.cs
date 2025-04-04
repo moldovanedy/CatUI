@@ -45,7 +45,7 @@ namespace ProjectName.Desktop
             //early initialization of the app
             CatApplication
                 .NewBuilder()
-                //you should ALWAYS set the initializer to ensure you hava access to everything from CatApplication
+                //you should ALWAYS set the initializer to ensure you have access to everything from CatApplication
                 .SetInitializer(new DesktopPlatformInfo().AppInitializer)
                 .Build();
         }

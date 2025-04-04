@@ -925,8 +925,7 @@ namespace CatUI.Windowing.Desktop
                 Point2D pos = new(positionX, positionY);
                 bool pressed = (Document.PressedMouseButtons & MouseButtonType.Primary) != 0;
 
-                DocumentInvoke(
-                    "WndCallPointerMove",
+                Document.SimulatePointerMove(
                     new PointerMoveEventArgs(
                         pos,
                         pos,
@@ -947,14 +946,12 @@ namespace CatUI.Windowing.Desktop
 
                 if (entered)
                 {
-                    DocumentInvoke(
-                        "WndCallPointerEnter",
+                    Document.SimulatePointerEnter(
                         new PointerEnterEventArgs(pos, pos, pressed));
                 }
                 else
                 {
-                    DocumentInvoke(
-                        "WndCallPointerExit",
+                    Document.SimulatePointerExit(
                         new PointerExitEventArgs(pos, pos, pressed));
                 }
             };
@@ -967,8 +964,7 @@ namespace CatUI.Windowing.Desktop
                 GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
                 Point2D pos = new((float)x, (float)y);
 
-                DocumentInvoke(
-                    "WndCallMouseButton",
+                Document.SimulateMouseButton(
                     new MouseButtonEventArgs(
                         pos,
                         pos,
@@ -982,14 +978,12 @@ namespace CatUI.Windowing.Desktop
 
                 if (action == InputAction.Press)
                 {
-                    DocumentInvoke(
-                        "WndCallPointerDown",
+                    Document.SimulatePointerDown(
                         new PointerDownEventArgs(pos, pos));
                 }
                 else
                 {
-                    DocumentInvoke(
-                        "WndCallPointerUp",
+                    Document.SimulatePointerUp(
                         new PointerUpEventArgs(pos, pos));
                 }
             };
@@ -1003,8 +997,7 @@ namespace CatUI.Windowing.Desktop
                 GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
                 Point2D pos = new((float)x, (float)y);
 
-                DocumentInvoke(
-                    "WndCallMouseWheel",
+                Document.SimulateMouseWheel(
                     new MouseWheelEventArgs(
                         pos,
                         pos,

@@ -26,23 +26,23 @@ namespace BoxContainersExample
 
             window.Document.Root.Children.AddItems(
             [
-                new Rectangle
+                new RectangleElement
                 {
                     FillBrush = new ColorBrush(new Color(0x80_00_ff)),
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(50)
                 },
-                new Rectangle
+                new RectangleElement
                 {
                     Layout = new ElementLayout().SetFixedWidth("100%").SetMinMaxHeight(250, Dimension.Unset),
                     FillBrush = new ColorBrush(new Color(0x75_75_75)),
                     ElementContainerSizing = new ColumnContainerSizing(1f)
                 },
-                new Rectangle
+                new RectangleElement
                 {
                     FillBrush = new ColorBrush(new Color(0x40_00_80)),
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("15%")
                 }
-                // new Rectangle(
+                // new RectangleElement(
                 //     maxHeight: "400dp",
                 //     preferredHeight: "5%",
                 //     minHeight: "250dp",

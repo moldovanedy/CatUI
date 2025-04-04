@@ -2,6 +2,7 @@ using System;
 using CatUI.Data;
 using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
+using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Utils
@@ -112,7 +113,8 @@ namespace CatUI.Elements.Utils
                 //
                 Position = Position,
                 Background = Background.Duplicate(),
-                CornerRadius = CornerRadius,
+                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
+                ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()

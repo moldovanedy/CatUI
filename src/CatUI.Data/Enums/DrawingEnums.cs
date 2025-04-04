@@ -1,3 +1,4 @@
+using System;
 using SkiaSharp;
 
 namespace CatUI.Data.Enums
@@ -101,5 +102,38 @@ namespace CatUI.Data.Enums
         /// comes with the same disadvantages as that setting.
         /// </summary>
         Cover = 4
+    }
+
+    /// <summary>
+    /// Describes what will the element clip affect from the application. These are flags, where <see cref="Drawing"/>
+    /// and <see cref="HitTesting"/> can either be absent (or <see cref="None"/>, one of them to be set, or both of
+    /// them to be set (also see <see cref="All"/>)). It's generally recommended to set them both (or use <see cref="All"/>),
+    /// but in the end your use case might have you use only one of them or neither.
+    /// </summary>
+    [Flags]
+    public enum ClipApplicability
+    {
+        /// <summary>
+        /// The clip does not have any applicability (i.e. is useless).
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// The clip affects the drawing, so any element visual (including all descendants) can be affected by clipping.
+        /// If not set, the element visuals can overflow the element bounds. 
+        /// </summary>
+        Drawing = 1,
+
+        /// <summary>
+        /// The clip affects the hit testing (i.e. checking if the user pointer is inside/outside/touches the element).
+        /// For any shape except PathClipShape, the performance impact of checking this is negligible.
+        /// </summary>
+        HitTesting = 2,
+
+        /// <summary>
+        /// The clip affects both drawing and hit testing. It is shorthand for setting both <see cref="Drawing"/> and
+        /// <see cref="HitTesting"/>.
+        /// </summary>
+        All = 3
     }
 }

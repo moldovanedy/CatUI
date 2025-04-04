@@ -2,6 +2,7 @@ using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
+using CatUI.Data.Shapes;
 using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
 using SkiaSharp;
@@ -28,10 +29,10 @@ namespace CatUI.Elements.Shapes
     /// to draw when the images are small.
     /// </para>
     /// </remarks>
-    public class GeometricPath : AbstractShapeElement
+    public class GeometricPathElement : AbstractShapeElement
     {
         /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<GeometricPath>? Ref
+        public new ObjectRef<GeometricPathElement>? Ref
         {
             get => _ref;
             set
@@ -44,7 +45,7 @@ namespace CatUI.Elements.Shapes
             }
         }
 
-        private ObjectRef<GeometricPath>? _ref;
+        private ObjectRef<GeometricPathElement>? _ref;
 
         private SKPath _skiaPath = new();
         private SKPath _scaledCachedPath = new();
@@ -75,7 +76,8 @@ namespace CatUI.Elements.Shapes
 
         /// <summary>
         /// The path's string description in the Scalable Vector Graphics (SVG) format. The only relevant element from an
-        /// SVG object is its &lt;path&gt; "d" attribute; you can use that here. The default value is an empty string.
+        /// SVG object is its &lt;path&gt; "d" attribute; you can use that here. All coordinates are relative to the top-left
+        /// corner of the element bounds. The default value is an empty string.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -117,10 +119,9 @@ namespace CatUI.Elements.Shapes
         }
 
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
-        private Vector2 _lastScale = Vector2.One;
         private SKMatrix _lastTransformMatrix = SKMatrix.Identity;
 
-        public GeometricPath(string svgPath = "", IBrush? fillBrush = null, IBrush? outlineBrush = null)
+        public GeometricPathElement(string svgPath = "", IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
             SvgPath = svgPath;
@@ -129,7 +130,7 @@ namespace CatUI.Elements.Shapes
             SvgPathProperty.ValueChangedEvent += SetSvgPath;
         }
 
-        ~GeometricPath()
+        ~GeometricPathElement()
         {
             PathCache.RemovePath(_scaledCachedPath);
 
@@ -137,6 +138,10 @@ namespace CatUI.Elements.Shapes
             SvgPathProperty = null!;
         }
 
+        /// <summary>
+        /// Returns a clone of the internal SKPath object (unscaled even when <see cref="ShouldApplyScaling"/> is true).
+        /// </summary>
+        /// <returns>A clone of the internal SKPath object.</returns>
         public SKPath GetSkiaPathClone()
         {
             return new SKPath(_skiaPath);
@@ -177,7 +182,7 @@ namespace CatUI.Elements.Shapes
             base.DrawBackground();
 
             //TODO: investigate whether saving the canvas state, transforming the whole canvas, drawing and then
-            // restoring the canvas is a better choice when there are many paths instead of the inverse matrix technique
+            // restoring the canvas is a better choice when there are many paths instead of the inverse matrix technique;
             // also look for ways to minimize the transformations, as it might invalidate Skia's caches, leading to poor
             // performance; it's especially important for the case where scaling is not applied, as that's only a translation
             //
@@ -196,27 +201,21 @@ namespace CatUI.Elements.Shapes
 
                 _lastTransformMatrix = SKMatrix.CreateScaleTranslation(
                     scale.X, scale.Y, _lastTopLeftPoint.X, _lastTopLeftPoint.Y);
-                _scaledCachedPath.Transform(_lastTransformMatrix);
-
-                Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush);
-                Document?.Renderer.DrawPathOutline(_scaledCachedPath, OutlineBrush, OutlineParameters);
-
-                _lastScale = scale;
             }
             else
             {
                 _lastTopLeftPoint = new Vector2(Bounds.X - startPoint.X, Bounds.Y - startPoint.Y);
                 _lastTransformMatrix = SKMatrix.CreateTranslation(_lastTopLeftPoint.X, _lastTopLeftPoint.Y);
-                _scaledCachedPath.Transform(_lastTransformMatrix);
-
-                Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush);
-                Document?.Renderer.DrawPathOutline(_scaledCachedPath, OutlineBrush, OutlineParameters);
             }
+
+            _scaledCachedPath.Transform(_lastTransformMatrix);
+            Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush);
+            Document?.Renderer.DrawPathOutline(_scaledCachedPath, OutlineBrush, OutlineParameters);
         }
 
-        public override GeometricPath Duplicate()
+        public override GeometricPathElement Duplicate()
         {
-            return new GeometricPath
+            return new GeometricPathElement
             {
                 SvgPath = _svgPath,
                 ShouldApplyScaling = _shouldApplyScaling,
@@ -227,7 +226,8 @@ namespace CatUI.Elements.Shapes
                 //
                 Position = Position,
                 Background = Background.Duplicate(),
-                CornerRadius = CornerRadius,
+                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
+                ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()

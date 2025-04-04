@@ -54,7 +54,7 @@ namespace CatTest
                 {
                     Children =
                     [
-                        new Rectangle(new ColorBrush(new Color(0x00_ff_ff)))
+                        new RectangleElement(new ColorBrush(new Color(0x00_ff_ff)))
                         {
                             Position = "10 5",
                             Layout = new ElementLayout().SetFixedWidth("80%").SetFixedHeight("20%"),
@@ -73,13 +73,13 @@ namespace CatTest
                                 }
                             ]
                         },
-                        new Rectangle(new ColorBrush(new Color(0xff_ff_00)))
+                        new RectangleElement(new ColorBrush(new Color(0xff_ff_00)))
                         {
                             Position = new Dimension2(10, "60%"),
                             Layout = new ElementLayout().SetFixedWidth("80%").SetFixedHeight("20%"),
                             Children =
                             [
-                                new GeometricPath(
+                                new GeometricPathElement(
                                     "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
                                     new ColorBrush(new Color(0xff_98_00)),
                                     new ColorBrush(new Color(0x21_96_f3)))
@@ -94,7 +94,7 @@ namespace CatTest
                                         LineCapType.Round,
                                         miterLimit: 5)
                                 },
-                                new Rectangle(
+                                new RectangleElement(
                                     new ColorBrush(new Color(0x1d_ea_85)))
                                 {
                                     Position = "55% 10%",

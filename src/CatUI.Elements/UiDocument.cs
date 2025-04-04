@@ -193,6 +193,122 @@ namespace CatUI.Elements
             return Root == null ? null : _elementCache.GetValueOrDefault(id);
         }
 
+        #region Artificial events
+
+        /// <summary>
+        /// Simulates a pointer move inside the document. This will always fire <see cref="PointerMoveEvent"/> and will
+        /// propagate it through the elements (only eligible elements will react).
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulatePointerMove(PointerMoveEventArgs e)
+        {
+            PointerMoveEvent?.Invoke(this, e);
+
+            Root?.CheckInvokePointerEnter(new PointerEnterEventArgs(e.Position, e.AbsolutePosition, e.IsPressed));
+            Root?.CheckInvokePointerExit(new PointerExitEventArgs(e.Position, e.AbsolutePosition, e.IsPressed));
+            Root?.CheckInvokePointerMove(e);
+        }
+
+        /// <summary>
+        /// Simulates a pointer entering the document. This will always fire <see cref="PointerEnterEvent"/> and will
+        /// propagate it through the elements (only eligible elements will react).
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulatePointerEnter(PointerEnterEventArgs e)
+        {
+            PointerEnterEvent?.Invoke(this, e);
+            Root?.CheckInvokePointerEnter(e);
+        }
+
+        /// <summary>
+        /// Simulates a pointer exiting the document. This will always fire <see cref="PointerExitEvent"/> and will
+        /// propagate it through the elements (only eligible elements will react).
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulatePointerExit(PointerExitEventArgs e)
+        {
+            PointerExitEvent?.Invoke(this, e);
+            Root?.CheckInvokePointerExit(e);
+        }
+
+        /// <summary>
+        /// Simulates a pointer press inside the document. This will always fire <see cref="PointerDownEvent"/> and will
+        /// propagate it through the elements (only eligible elements will react).
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulatePointerDown(PointerDownEventArgs e)
+        {
+            PointerDownEvent?.Invoke(this, e);
+            Root?.CheckInvokePointerDown(e);
+        }
+
+        /// <summary>
+        /// Simulates a pointer release inside the document. This will always fire <see cref="PointerUpEvent"/> and will
+        /// propagate it through the elements (only eligible elements will react).
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulatePointerUp(PointerUpEventArgs e)
+        {
+            PointerUpEvent?.Invoke(this, e);
+            Root?.CheckInvokePointerUp(e);
+        }
+
+        /// <summary>
+        /// Simulates a mouse button down or up inside the document. This will always fire <see cref="MouseButtonEvent"/>
+        /// and will propagate it through the elements (only eligible elements will react).
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulateMouseButton(MouseButtonEventArgs e)
+        {
+            int bitmap = (int)PressedMouseButtons;
+            BinaryUtils.SetBit(ref bitmap, e.IsPressed, (int)e.ButtonType - 1);
+            PressedMouseButtons = (MouseButtonType)bitmap;
+
+            MouseButtonEvent?.Invoke(this, e);
+            Root?.CheckInvokeMouseButton(e);
+        }
+
+        /// <summary>
+        /// Simulates a mouse wheel interaction inside the document. This will always fire <see cref="MouseWheelEvent"/>
+        /// and will propagate it through the elements (only eligible elements will react).
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulateMouseWheel(MouseWheelEventArgs e)
+        {
+            MouseWheelEvent?.Invoke(this, e);
+            Root?.CheckInvokeMouseWheel(e);
+        }
+
+        #endregion
+
         internal void AddToIdCache(Element element)
         {
             if (element.Id == null)
@@ -232,83 +348,6 @@ namespace CatUI.Elements
         internal void WndSetContentScale(float scale)
         {
             ContentScale = scale;
-        }
-
-        /// <summary>
-        /// Called when the pointer moves. Do NOT modify its signature.
-        /// </summary>
-        /// <param name="e"></param>
-        internal void WndCallPointerMove(PointerMoveEventArgs e)
-        {
-            PointerMoveEvent?.Invoke(this, e);
-
-            Root?.CheckInvokePointerEnter(new PointerEnterEventArgs(e.Position, e.AbsolutePosition, e.IsPressed));
-            Root?.CheckInvokePointerExit(new PointerExitEventArgs(e.Position, e.AbsolutePosition, e.IsPressed));
-            Root?.CheckInvokePointerMove(e);
-        }
-
-        /// <summary>
-        /// Called when the pointer enters the window client area. Do NOT modify its signature.
-        /// </summary>
-        /// <param name="e"></param>
-        internal void WndCallPointerEnter(PointerEnterEventArgs e)
-        {
-            PointerEnterEvent?.Invoke(this, e);
-            Root?.CheckInvokePointerEnter(e);
-        }
-
-        /// <summary>
-        /// Called when the pointer exits the window client area. Do NOT modify its signature.
-        /// </summary>
-        /// <param name="e"></param>
-        internal void WndCallPointerExit(PointerExitEventArgs e)
-        {
-            PointerExitEvent?.Invoke(this, e);
-            Root?.CheckInvokePointerExit(e);
-        }
-
-        /// <summary>
-        /// Called when the pointer is down (pressed) inside the window client area. Do NOT modify its signature.
-        /// </summary>
-        /// <param name="e"></param>
-        internal void WndCallPointerDown(PointerDownEventArgs e)
-        {
-            PointerDownEvent?.Invoke(this, e);
-            Root?.CheckInvokePointerDown(e);
-        }
-
-        /// <summary>
-        /// Called when the pointer is up (released) inside the window client area. Do NOT modify its signature.
-        /// </summary>
-        /// <param name="e"></param>
-        internal void WndCallPointerUp(PointerUpEventArgs e)
-        {
-            PointerUpEvent?.Invoke(this, e);
-            Root?.CheckInvokePointerUp(e);
-        }
-
-        /// <summary>
-        /// Called when a mouse button is pressed or released inside the window client area. Do NOT modify its signature.
-        /// </summary>
-        /// <param name="e"></param>
-        internal void WndCallMouseButton(MouseButtonEventArgs e)
-        {
-            int bitmap = (int)PressedMouseButtons;
-            BinaryUtils.SetBit(ref bitmap, e.IsPressed, (int)e.ButtonType - 1);
-            PressedMouseButtons = (MouseButtonType)bitmap;
-
-            MouseButtonEvent?.Invoke(this, e);
-            Root?.CheckInvokeMouseButton(e);
-        }
-
-        /// <summary>
-        /// Called when the mouse scroll wheel is moved inside the window client area. Do NOT modify its signature.
-        /// </summary>
-        /// <param name="e"></param>
-        internal void WndCallMouseWheel(MouseWheelEventArgs e)
-        {
-            MouseWheelEvent?.Invoke(this, e);
-            Root?.CheckInvokeMouseWheel(e);
         }
 
         #endregion

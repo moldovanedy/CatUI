@@ -4,6 +4,7 @@ using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
+using CatUI.Data.Shapes;
 using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers;
 using CatUI.Elements.Media;
@@ -166,7 +167,7 @@ namespace CatUI.Elements.Buttons
         /// <summary>
         /// Represents content of the icon, but it's optional, as you can have this, an <see cref="TextElement"/> or both.
         /// Contrary to the name, this can be any kind of element, but it's generally used as an icon, like a
-        /// <see cref="GeometricPath"/> or <see cref="ImageView"/>.
+        /// <see cref="GeometricPathElement"/> or <see cref="ImageView"/>.
         /// </summary>
         public Element? IconElement
         {
@@ -332,7 +333,8 @@ namespace CatUI.Elements.Buttons
                 //
                 Position = Position,
                 Background = Background.Duplicate(),
-                CornerRadius = CornerRadius,
+                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
+                ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
