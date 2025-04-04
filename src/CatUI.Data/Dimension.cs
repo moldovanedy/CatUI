@@ -179,6 +179,27 @@ namespace CatUI.Data
         {
             return Value.Equals(other.Value) && MeasuringUnit == other.MeasuringUnit;
         }
+
+        public float CalculateDimension(
+            float pixelDimensionForPercent = 0,
+            float contentScale = 1,
+            Size? viewportSize = null)
+        {
+            switch (MeasuringUnit)
+            {
+                default:
+                case Unit.Dp:
+                    return Value * contentScale;
+                case Unit.Pixels:
+                    return Value;
+                case Unit.Percent:
+                    return Value * pixelDimensionForPercent / 100f;
+                case Unit.ViewportWidth:
+                    return Value * (viewportSize?.Width ?? 0) / 100f;
+                case Unit.ViewportHeight:
+                    return Value * (viewportSize?.Height ?? 0) / 100f;
+            }
+        }
     }
 
     /// <summary>

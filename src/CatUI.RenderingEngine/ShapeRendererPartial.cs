@@ -28,10 +28,10 @@ namespace CatUI.RenderingEngine
             SKPaint paint = fillBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(paint);
 
-            if (roundedCorners != null && roundedCorners.Value.HasNonTrivialValues)
+            if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
             {
                 var roundRect = new SKRoundRect();
-                SKPoint[] radii = SetupRectCorners((CornerInset)roundedCorners);
+                SKPoint[] radii = SetupRectCorners(roundedCorners);
                 roundRect.SetRectRadii(rect, radii);
                 Canvas?.DrawRoundRect(roundRect, paint);
             }
@@ -62,10 +62,10 @@ namespace CatUI.RenderingEngine
             SKPaint paint = outlineBrush.ToSkiaPaint();
             PaintManager.ModifyPaint(paint, PaintMode.Outline, outlineParams: outlineParams);
 
-            if (roundedCorners != null && roundedCorners.Value.HasNonTrivialValues)
+            if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
             {
                 var roundRect = new SKRoundRect();
-                SKPoint[] radii = SetupRectCorners((CornerInset)roundedCorners);
+                SKPoint[] radii = SetupRectCorners(roundedCorners);
                 roundRect.SetRectRadii(rect, radii);
 
                 Canvas?.DrawRoundRect(roundRect, paint);
@@ -132,13 +132,13 @@ namespace CatUI.RenderingEngine
 
             if (roundedCorners.TopLeftEllipse.IsUnset())
             {
-                if (roundedCorners.TopLeft.IsUnset())
+                if (roundedCorners.TopLeftRadius.IsUnset())
                 {
                     radii[0] = new SKPoint(0, 0);
                 }
                 else
                 {
-                    radii[0] = new SKPoint(roundedCorners.TopLeft.Value, roundedCorners.TopLeft.Value);
+                    radii[0] = new SKPoint(roundedCorners.TopLeftRadius.Value, roundedCorners.TopLeftRadius.Value);
                 }
             }
             else
@@ -151,13 +151,13 @@ namespace CatUI.RenderingEngine
 
             if (roundedCorners.TopRightEllipse.IsUnset())
             {
-                if (roundedCorners.TopRight.IsUnset())
+                if (roundedCorners.TopRightRadius.IsUnset())
                 {
                     radii[0] = new SKPoint(0, 0);
                 }
                 else
                 {
-                    radii[0] = new SKPoint(roundedCorners.TopRight.Value, roundedCorners.TopRight.Value);
+                    radii[0] = new SKPoint(roundedCorners.TopRightRadius.Value, roundedCorners.TopRightRadius.Value);
                 }
             }
             else
@@ -170,13 +170,14 @@ namespace CatUI.RenderingEngine
 
             if (roundedCorners.BottomRightEllipse.IsUnset())
             {
-                if (roundedCorners.BottomRight.IsUnset())
+                if (roundedCorners.BottomRightRadius.IsUnset())
                 {
                     radii[0] = new SKPoint(0, 0);
                 }
                 else
                 {
-                    radii[0] = new SKPoint(roundedCorners.BottomRight.Value, roundedCorners.BottomRight.Value);
+                    radii[0] = new SKPoint(roundedCorners.BottomRightRadius.Value,
+                        roundedCorners.BottomRightRadius.Value);
                 }
             }
             else
@@ -189,13 +190,14 @@ namespace CatUI.RenderingEngine
 
             if (roundedCorners.BottomLeftEllipse.IsUnset())
             {
-                if (roundedCorners.BottomLeft.IsUnset())
+                if (roundedCorners.BottomLeftRadius.IsUnset())
                 {
                     radii[0] = new SKPoint(0, 0);
                 }
                 else
                 {
-                    radii[0] = new SKPoint(roundedCorners.BottomLeft.Value, roundedCorners.BottomLeft.Value);
+                    radii[0] = new SKPoint(roundedCorners.BottomLeftRadius.Value,
+                        roundedCorners.BottomLeftRadius.Value);
                 }
             }
             else

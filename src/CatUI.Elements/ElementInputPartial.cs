@@ -1,4 +1,5 @@
 using CatUI.Data;
+using CatUI.Data.Enums;
 using CatUI.Data.Events.Input.Pointer;
 
 namespace CatUI.Elements
@@ -173,7 +174,19 @@ namespace CatUI.Elements
         internal virtual void CheckInvokePointerEnter(PointerEnterEventArgs e)
         {
             Rect bounds = Bounds;
-            if (!Rect.IsPointInside(ref bounds, e.Position))
+            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            {
+                if (Document == null)
+                {
+                    return;
+                }
+
+                if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
+                {
+                    return;
+                }
+            }
+            else if (!Rect.IsPointInside(ref bounds, e.Position))
             {
                 return;
             }
@@ -212,7 +225,19 @@ namespace CatUI.Elements
             }
 
             Rect bounds = Bounds;
-            if (Rect.IsPointInside(ref bounds, e.Position))
+            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            {
+                if (Document == null)
+                {
+                    return;
+                }
+
+                if (ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
+                {
+                    return;
+                }
+            }
+            else if (Rect.IsPointInside(ref bounds, e.Position))
             {
                 return;
             }
@@ -285,7 +310,19 @@ namespace CatUI.Elements
             }
 
             Rect bounds = Bounds;
-            if (!Rect.IsPointInside(ref bounds, e.Position))
+            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            {
+                if (Document == null)
+                {
+                    return;
+                }
+
+                if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
+                {
+                    return;
+                }
+            }
+            else if (!Rect.IsPointInside(ref bounds, e.Position))
             {
                 return;
             }
@@ -320,7 +357,19 @@ namespace CatUI.Elements
             }
 
             Rect bounds = Bounds;
-            if (!Rect.IsPointInside(ref bounds, e.Position))
+            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            {
+                if (Document == null)
+                {
+                    return;
+                }
+
+                if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
+                {
+                    return;
+                }
+            }
+            else if (!Rect.IsPointInside(ref bounds, e.Position))
             {
                 return;
             }
@@ -364,7 +413,19 @@ namespace CatUI.Elements
                     return;
                 }
 
-                if (!Rect.IsPointInside(ref bounds, e.Position))
+                if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+                {
+                    if (Document == null)
+                    {
+                        return;
+                    }
+
+                    if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
+                    {
+                        return;
+                    }
+                }
+                else if (!Rect.IsPointInside(ref bounds, e.Position))
                 {
                     return;
                 }
@@ -408,7 +469,19 @@ namespace CatUI.Elements
                     return;
                 }
 
-                if (!Rect.IsPointInside(ref bounds, e.Position))
+                if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+                {
+                    if (Document == null)
+                    {
+                        return;
+                    }
+
+                    if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
+                    {
+                        return;
+                    }
+                }
+                else if (!Rect.IsPointInside(ref bounds, e.Position))
                 {
                     return;
                 }
@@ -439,7 +512,19 @@ namespace CatUI.Elements
             }
 
             Rect bounds = Bounds;
-            if (!Rect.IsPointInside(ref bounds, e.Position))
+            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            {
+                if (Document == null)
+                {
+                    return;
+                }
+
+                if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
+                {
+                    return;
+                }
+            }
+            else if (!Rect.IsPointInside(ref bounds, e.Position))
             {
                 return;
             }

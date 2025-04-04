@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CatUI.Data.Containers;
 using CatUI.Data.Events.Navigation;
 using CatUI.Data.Navigator;
+using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Helpers.Navigation
@@ -169,7 +170,8 @@ namespace CatUI.Elements.Helpers.Navigation
                 //
                 Position = Position,
                 Background = Background.Duplicate(),
-                CornerRadius = CornerRadius,
+                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
+                ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()

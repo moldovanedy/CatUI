@@ -6,7 +6,7 @@ namespace CatUISample.Desktop
 {
     public static class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             var window = new DesktopWindow(title: "CatUI Sample", minWidth: 250, minHeight: 200);
             window.Document.Root = new RootElement();

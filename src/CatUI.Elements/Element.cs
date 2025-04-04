@@ -5,10 +5,10 @@ using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
-using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Exceptions;
+using CatUI.Data.Shapes;
 using CatUI.Elements.Containers;
 using CatUI.Utils;
 using Container = CatUI.Elements.Containers.Container;
@@ -152,25 +152,61 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// The radius of the corners of the element. Influences the <see cref="Background"/> drawing, as well as clipping.
-        /// The default value is a new <see cref="CornerInset"/> with no radius, so all corners have a radius of 0.
+        /// Sets the clipping path of the element. This is used for clipping the element's content and drawing (if
+        /// <see cref="ClipType"/> has at least set <see cref="ClipApplicability.Drawing"/>) and for hit testing
+        /// (i.e. check if the user pointer is inside the element or touching it), so consider if you really need to set it
+        /// because it can be computationally expensive if you set it to a <see cref="PathClipShape"/>.
+        /// Default value is null, so the hit testing will be just like a rectangle with values from <see cref="Bounds"/>
+        /// and no drawing clipping will happen.
         /// </summary>
-        public CornerInset CornerRadius
+        /// <remarks>
+        /// It can be computationally expensive to check if the pointer is inside because sometimes the check will
+        /// happen every frame for several tenths of seconds or entire seconds, but for any kind of shape other than
+        /// <see cref="PathClipShape"/>, the performance impact is very low to negligible. However, for maximum performance,
+        /// you should leave this as null and only set it when necessary.
+        /// </remarks>
+        public ClipShape? ClipPath
         {
-            get => _cornerRadius;
+            get => _clipPath;
             set
             {
-                SetCornerRadius(value);
-                CornerRadiusProperty.Value = value;
+                SetClipPath(value);
+                ClipPathProperty.Value = value;
             }
         }
 
-        private CornerInset _cornerRadius = new();
-        public ObservableProperty<CornerInset> CornerRadiusProperty { get; private set; } = new(new CornerInset());
+        private ClipShape? _clipPath;
+        public ObservableProperty<ClipShape> ClipPathProperty { get; private set; } = new(null);
 
-        private void SetCornerRadius(CornerInset value)
+        private void SetClipPath(ClipShape? value)
         {
-            _cornerRadius = value;
+            _clipPath = value;
+        }
+
+        /// <summary>
+        /// Represents how the <see cref="ClipPath"/> will be used. Even if <see cref="ClipApplicability.HitTesting"/>
+        /// is not set, the hit testing will still happen, just that it will happen on <see cref="Bounds"/> instead of
+        /// <see cref="ClipPath"/>. The default value is <see cref="ClipApplicability.All"/>.
+        /// </summary>
+        /// <remarks>If <see cref="ClipPath"/> is null, this property is ignored.</remarks>
+        public ClipApplicability ClipType
+        {
+            get => _clipType;
+            set
+            {
+                SetClipType(value);
+                ClipTypeProperty.Value = value;
+            }
+        }
+
+        private ClipApplicability _clipType = ClipApplicability.All;
+
+        public ObservableProperty<ClipApplicability> ClipTypeProperty { get; private set; } =
+            new(ClipApplicability.All);
+
+        private void SetClipType(ClipApplicability value)
+        {
+            _clipType = value;
         }
 
         /// <summary>
@@ -438,7 +474,8 @@ namespace CatUI.Elements
 
             PositionProperty.ValueChangedEvent += SetPosition;
             BackgroundProperty.ValueChangedEvent += SetBackground;
-            CornerRadiusProperty.ValueChangedEvent += SetCornerRadius;
+            ClipPathProperty.ValueChangedEvent += SetClipPath;
+            ClipTypeProperty.ValueChangedEvent += SetClipType;
             IdProperty.ValueChangedEvent += SetId;
             VisibleProperty.ValueChangedEvent += SetVisible;
             EnabledProperty.ValueChangedEvent += SetEnabled;
@@ -470,7 +507,8 @@ namespace CatUI.Elements
 
             PositionProperty = null!;
             BackgroundProperty = null!;
-            CornerRadiusProperty = null!;
+            ClipPathProperty = null!;
+            ClipTypeProperty = null!;
             IdProperty = null!;
             VisibleProperty = null!;
             EnabledProperty = null!;
@@ -650,7 +688,8 @@ namespace CatUI.Elements
             {
                 Position = _position,
                 Background = _background.Duplicate(),
-                CornerRadius = _cornerRadius,
+                ClipPath = (ClipShape?)_clipPath?.Duplicate(),
+                ClipType = _clipType,
                 Visible = _visible,
                 Enabled = _enabled,
                 ElementContainerSizing = (ContainerSizing?)_elementContainerSizing?.Duplicate()

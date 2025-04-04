@@ -3,6 +3,7 @@ using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
+using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Shapes
@@ -12,10 +13,10 @@ namespace CatUI.Elements.Shapes
     /// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
     /// on each size. The outline will also overlap with the filled area by half of the outline width on each side.
     /// </summary>
-    public class Rectangle : AbstractShapeElement
+    public class RectangleElement : AbstractShapeElement
     {
         /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<Rectangle>? Ref
+        public new ObjectRef<RectangleElement>? Ref
         {
             get => _ref;
             set
@@ -28,9 +29,9 @@ namespace CatUI.Elements.Shapes
             }
         }
 
-        private ObjectRef<Rectangle>? _ref;
+        private ObjectRef<RectangleElement>? _ref;
 
-        public Rectangle(IBrush? fillBrush = null, IBrush? outlineBrush = null)
+        public RectangleElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
         }
@@ -43,7 +44,7 @@ namespace CatUI.Elements.Shapes
         /// <param name="rectDescriptor">Serves as the basis upon which the element's position and size are set.</param>
         /// <param name="fillBrush">Sets <see cref="AbstractShapeElement.FillBrush"/>.</param>
         /// <param name="outlineBrush">Sets <see cref="AbstractShapeElement.OutlineBrush"/>.</param>
-        public Rectangle(
+        public RectangleElement(
             Rect rectDescriptor,
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null)
@@ -75,9 +76,9 @@ namespace CatUI.Elements.Shapes
             Document?.Renderer.DrawRectOutline(Bounds, OutlineBrush, OutlineParameters);
         }
 
-        public override Rectangle Duplicate()
+        public override RectangleElement Duplicate()
         {
-            return new Rectangle
+            return new RectangleElement
             {
                 FillBrush = FillBrush.Duplicate(),
                 OutlineBrush = OutlineBrush.Duplicate(),
@@ -85,7 +86,8 @@ namespace CatUI.Elements.Shapes
                 //
                 Position = Position,
                 Background = Background.Duplicate(),
-                CornerRadius = CornerRadius,
+                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
+                ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()

@@ -4,8 +4,8 @@ using CatUI.Data.Brushes;
 namespace CatUI.Elements.Shapes
 {
     /// <summary>
-    /// The base class for any shapes that can be drawn directly, like <see cref="Rectangle"/>, <see cref="Ellipse"/>
-    /// or <see cref="GeometricPath"/>.
+    /// The base class for any shapes that can be drawn directly, like <see cref="RectangleElement"/>, <see cref="EllipseElement"/>
+    /// or <see cref="GeometricPathElement"/>.
     /// </summary>
     public abstract class AbstractShapeElement : Element
     {

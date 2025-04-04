@@ -1,6 +1,5 @@
 ﻿using System;
 using CatUI.Data;
-using CatUI.Data.Enums;
 using SkiaSharp;
 
 namespace CatUI.RenderingEngine
@@ -142,24 +141,6 @@ namespace CatUI.RenderingEngine
         public void SkipCanvasPresentation()
         {
             IsCanvasDirty = false;
-        }
-
-        public float CalculateDimension(Dimension dimension, float dimensionForPercent = 0)
-        {
-            switch (dimension.MeasuringUnit)
-            {
-                default:
-                case Unit.Dp:
-                    return dimension.Value * _scale;
-                case Unit.Pixels:
-                    return dimension.Value;
-                case Unit.Percent:
-                    return dimension.Value * dimensionForPercent / 100f;
-                case Unit.ViewportWidth:
-                    return dimension.Value * (Canvas?.DeviceClipBounds.Size.Width ?? 0) / 100f;
-                case Unit.ViewportHeight:
-                    return dimension.Value * (Canvas?.DeviceClipBounds.Size.Height ?? 0) / 100f;
-            }
         }
     }
 }
