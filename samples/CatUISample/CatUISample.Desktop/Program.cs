@@ -8,6 +8,7 @@ namespace CatUISample.Desktop
     {
         private static void Main()
         {
+            InitialSetup.Init();
             var window = new DesktopWindow(title: "CatUI Sample", minWidth: 250, minHeight: 200);
             window.Document.Root = new RootElement();
             window.Open();

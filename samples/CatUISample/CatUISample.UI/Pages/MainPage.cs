@@ -2,6 +2,7 @@ using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
+using CatUI.Data.Theming;
 using CatUI.Elements.Containers;
 using CatUI.Elements.Text;
 
@@ -27,7 +28,7 @@ namespace CatUISample.UI.Pages
                             .SetMinMaxWidth(0, "100%", true)
                             .SetMinMaxHeight(32, 40),
                     FontSize = 32,
-                    TextBrush = new ColorBrush(new Color(0xff_ff_ff))
+                    TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                 }
             ];
         }

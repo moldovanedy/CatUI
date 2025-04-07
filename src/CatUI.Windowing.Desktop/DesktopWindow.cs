@@ -5,6 +5,7 @@ using CatUI.Data;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
 using CatUI.Windowing.Common;
+using CatUI.Windowing.Desktop.PlatformImplementations;
 using OpenTK;
 using OpenTK.Graphics.Egl;
 using OpenTK.Graphics.OpenGL;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using CatUI.Data;
-using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
@@ -11,6 +10,7 @@ using CatUI.Elements.Media;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 using CatUI.Windowing.Desktop;
+using Image = CatUI.Data.Assets.Image;
 
 namespace CatTest
 {
@@ -34,6 +34,7 @@ namespace CatTest
         {
             try
             {
+                Init();
                 AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
 
                 var image = AssetsManager.LoadFromAssembly<Image>("/Assets/search_128px.png");
@@ -125,6 +126,16 @@ namespace CatTest
             {
                 Console.WriteLine("ERROR: " + e);
             }
+        }
+
+        private static void Init()
+        {
+            //early initialization of the app
+            CatApplication
+                .NewBuilder()
+                //you should ALWAYS set the initializer to ensure you have access to everything from CatApplication
+                .SetInitializer(new DesktopPlatformInfo().AppInitializer)
+                .Build();
         }
     }
 }

@@ -3,6 +3,7 @@ using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Navigator;
+using CatUI.Data.Theming;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers;
 using CatUI.Elements.Helpers.Navigation;
@@ -17,7 +18,7 @@ namespace CatUISample.UI
         protected override void EnterDocument(object sender)
         {
             ObjectRef<Navigator> navigatorRef = new();
-            Document!.BackgroundColor = new Color(0x21_21_21);
+            Document!.BackgroundColor = CatTheme.Colors.Surface;
 
             Children =
             [
@@ -25,19 +26,19 @@ namespace CatUISample.UI
                 new ColumnContainer
                 {
                     Layout = new ElementLayout().SetFixedWidth(250).SetFixedHeight("100%"),
-                    Background = new ColorBrush(new Color(0x31_31_31)),
+                    Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
                     Children =
                     [
-                        new Button("Main page", 16, new ColorBrush(new Color(0xff_ff_ff)))
+                        new Button("Main page", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                         {
                             Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
-                            Background = new ColorBrush(new Color(0x61_61_61)),
+                            Background = new ColorBrush(CatTheme.Colors.Primary),
                             OnClick = (_, _) => navigatorRef.Value?.Navigate("/")
                         },
-                        new Button("Layout", 16, new ColorBrush(new Color(0xff_ff_ff)))
+                        new Button("Layout", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                         {
                             Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
-                            Background = new ColorBrush(new Color(0x61_61_61)),
+                            Background = new ColorBrush(CatTheme.Colors.Primary),
                             OnClick = (_, _) => navigatorRef.Value?.Navigate("/layout/rowContainers")
                         }
                     ]
