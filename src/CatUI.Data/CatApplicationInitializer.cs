@@ -1,4 +1,5 @@
 using System;
+using CatUI.Data.Theming;
 using CatUI.Platform.Essentials;
 
 namespace CatUI.Data
@@ -14,22 +15,46 @@ namespace CatUI.Data
     /// </remarks>
     public class CatApplicationInitializer
     {
-        public Action? PostInitializationAction { get; }
+        private bool _initializationGuard;
 
-        public DispatcherBase Dispatcher { get; }
+        internal Action? PostInitializationAction { get; }
+
+        internal DispatcherBase Dispatcher { get; }
+
+        internal PlatformUiOptionsBase PlatformUiOptions { get; }
 
         /// <summary>
         /// Creates a new <see cref="CatApplicationInitializer"/>.
         /// </summary>
         /// <param name="dispatcher">The dispatcher to use on this platform.</param>
+        /// <param name="platformUiOptions">The platform-controlled UI options implementation for this platform.</param>
         /// <param name="postInitializationAction">
         /// The action to perform after the initialization is done inside <see cref="CatApplication"/>, but before any
         /// UI code.
         /// </param>
-        public CatApplicationInitializer(DispatcherBase dispatcher, Action? postInitializationAction = null)
+        public CatApplicationInitializer(
+            DispatcherBase dispatcher,
+            PlatformUiOptionsBase platformUiOptions,
+            Action? postInitializationAction = null)
         {
             Dispatcher = dispatcher;
+            PlatformUiOptions = platformUiOptions;
             PostInitializationAction = postInitializationAction;
+        }
+
+        /// <summary>
+        /// Global initialization.
+        /// </summary>
+        internal void Initialize()
+        {
+            if (_initializationGuard)
+            {
+                return;
+            }
+
+            _initializationGuard = true;
+            PostInitializationAction?.Invoke();
+            CatTheme.Initialize();
         }
     }
 }

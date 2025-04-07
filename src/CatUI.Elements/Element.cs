@@ -97,7 +97,13 @@ namespace CatUI.Elements
             set
             {
                 _children.Clear();
-                _children.AddRange(value);
+
+                //this is because we set children to null on destruction, so it can cause trouble
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+                if (value != null)
+                {
+                    _children.AddRange(value);
+                }
             }
         }
 

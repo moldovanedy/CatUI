@@ -51,9 +51,14 @@ namespace CatUI.Data
             Log(message, LogLevel.Error, showTimestamp);
         }
 
+        public static void LogException(Exception exception, bool showTimestamp = true)
+        {
+            Log("Exception: " + exception, LogLevel.Error, showTimestamp);
+        }
+
         private static string FormatMessage(object message, LogLevel logLevel, bool showTimestamp = true)
         {
-            //this is done simply for performance reasons (i.e. not calling ToUpper every time)
+            //this is done simply for performance reasons (i.e. not calling ToUpper every time when getting it from enum)
             string logLevelString;
             switch (logLevel)
             {

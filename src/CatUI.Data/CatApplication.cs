@@ -61,25 +61,25 @@ namespace CatUI.Data
             AppInitializer?.Dispatcher ?? throw new NotImplementedException(
                 "Dispatcher is not available. Did you forgot to set the initializer?");
 
+        public PlatformUiOptionsBase PlatformUiOptions =>
+            AppInitializer?.PlatformUiOptions ?? throw new NotImplementedException(
+                "Platform UI options are not available. Did you forgot to set the initializer?");
+
         public CatApplicationInitializer? AppInitializer { get; private set; }
 
         private CatApplication()
         {
 #if DEBUG
-            if (DebugLogLevel > CatLogger.LogLevel.Debug)
+            if (DebugLogLevel <= CatLogger.LogLevel.Debug)
             {
-                return;
+                Debug.WriteLine(
+                    "Initializing CatApplication. This message will only appear in debug mode if DebugLogLevel" +
+                    " is LogLevel.Debug or lower. To configure debugging, use SetMinimumDebugLogLevel and " +
+                    "SetMinimumReleaseLogLevel.");
             }
-
-            Debug.WriteLine(
-                "Initializing CatApplication. This message will only appear in debug mode if DebugLogLevel" +
-                " is LogLevel.Debug or lower. To configure debugging, use SetMinimumDebugLogLevel and " +
-                "SetMinimumReleaseLogLevel.");
 #endif
 
             CatUIVersion = typeof(CatApplication).Assembly.GetName().Version;
-
-            AppInitializer?.PostInitializationAction?.Invoke();
         }
 
         /// <summary>
@@ -190,6 +190,8 @@ namespace CatUI.Data
                 Instance.DebugLogLevel = _debugLogLevel;
                 Instance.ReleaseLogLevel = _releaseLogLevel;
                 Instance.AppInitializer = _initializer;
+
+                Instance.AppInitializer?.Initialize();
                 return Instance;
             }
         }

@@ -12,7 +12,7 @@ namespace BoxContainersExample
     {
         private static void Main()
         {
-            CatApplication.NewBuilder().Build();
+            Init();
 
             var window = new DesktopWindow(
                 900,
@@ -53,6 +53,16 @@ namespace BoxContainersExample
 
             window.Open();
             window.Run();
+        }
+
+        public static void Init()
+        {
+            //early initialization of the app
+            CatApplication
+                .NewBuilder()
+                //you should ALWAYS set the initializer to ensure you have access to everything from CatApplication
+                .SetInitializer(new DesktopPlatformInfo().AppInitializer)
+                .Build();
         }
     }
 }
