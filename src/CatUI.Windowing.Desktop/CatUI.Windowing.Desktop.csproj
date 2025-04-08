@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net6.0;net6.0-windows</TargetFrameworks>
+        <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -31,13 +31,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTK.Graphics" Version="4.9.3"/>
-        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.3"/>
+        <PackageReference Include="OpenTK.Graphics" Version="4.9.3" />
+        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.3" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj"/>
-        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj"/>
+        <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj" />
+        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(CatUseAngle)' == 'true'">
