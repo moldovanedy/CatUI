@@ -48,6 +48,7 @@ namespace CatUI.Data.Theming.ClipShapes
         /// <summary>
         /// Returns a new rounded rectangle clip shape with a small rounding on corners. The returned value is a
         /// duplicate of the internal one, so modifying it won't affect the other usages of this property.
+        /// Default rounding is 4 dp.
         /// </summary>
         public RoundedRectangleClipShape SmallRounding
         {
@@ -73,6 +74,7 @@ namespace CatUI.Data.Theming.ClipShapes
         /// <summary>
         /// Returns a new rounded rectangle clip shape with a medium rounding on corners. The returned value is a
         /// duplicate of the internal one, so modifying it won't affect the other usages of this property.
+        /// Default rounding is 8 dp.
         /// </summary>
         public RoundedRectangleClipShape MediumRounding
         {
@@ -98,6 +100,7 @@ namespace CatUI.Data.Theming.ClipShapes
         /// <summary>
         /// Returns a new rounded rectangle clip shape with a large rounding on corners. The returned value is a
         /// duplicate of the internal one, so modifying it won't affect the other usages of this property.
+        /// Default rounding is 16 dp.
         /// </summary>
         public RoundedRectangleClipShape LargeRounding
         {
@@ -123,6 +126,7 @@ namespace CatUI.Data.Theming.ClipShapes
         /// <summary>
         /// Returns a new rounded rectangle clip shape with a very large rounding on corners. The returned value is a
         /// duplicate of the internal one, so modifying it won't affect the other usages of this property.
+        /// Default rounding is 28 dp.
         /// </summary>
         public RoundedRectangleClipShape XlRounding
         {

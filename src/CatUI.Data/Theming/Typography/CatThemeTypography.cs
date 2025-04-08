@@ -54,7 +54,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Display" token is generally used for the most important, often short text that immediately gets the user
-        /// attention.
+        /// attention. Default value: font size: 64, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle DisplayLarge
         {
@@ -79,7 +79,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Display" token is generally used for the most important, often short text that immediately gets the user
-        /// attention.
+        /// attention. Default value: font size: 51, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle DisplayMedium
         {
@@ -104,7 +104,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Display" token is generally used for the most important, often short text that immediately gets the user
-        /// attention.
+        /// attention. Default value: font size: 40, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle DisplaySmall
         {
@@ -133,6 +133,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Heading" token is generally used for titles and important text.
+        /// Default value: font size: 32, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle HeadingLarge
         {
@@ -157,6 +158,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Heading" token is generally used for titles and important text.
+        ///  Default value: font size: 28, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle HeadingMedium
         {
@@ -181,6 +183,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Heading" token is generally used for titles and important text.
+        ///  Default value: font size: 25, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle HeadingSmall
         {
@@ -208,7 +211,7 @@ namespace CatUI.Data.Theming.Typography
         #region Body
 
         /// <summary>
-        /// "Body" token is used for most application text.
+        /// "Body" token is used for most application text. Default value: font size: 20, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle BodyLarge
         {
@@ -232,7 +235,7 @@ namespace CatUI.Data.Theming.Typography
         }
 
         /// <summary>
-        /// "Body" token is used for most application text.
+        /// "Body" token is used for most application text. Default value: font size: 16, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle BodyMedium
         {
@@ -256,7 +259,7 @@ namespace CatUI.Data.Theming.Typography
         }
 
         /// <summary>
-        /// "Body" token is used for most application text.
+        /// "Body" token is used for most application text. Default value: font size: 14, font weight: 400, line height: 1.2.
         /// </summary>
         public ThemeTextStyle BodySmall
         {
@@ -285,6 +288,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Label" token is generally used for form-like UI elements (e.g. buttons, check boxes) and less important text.
+        /// Default value: font size: 14, font weight: 500, line height: 1.2.
         /// </summary>
         public ThemeTextStyle LabelLarge
         {
@@ -309,6 +313,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Label" token is generally used for form-like UI elements (e.g. buttons, check boxes) and less important text.
+        /// Default value: font size: 12, font weight: 500, line height: 1.2.
         /// </summary>
         public ThemeTextStyle LabelMedium
         {
@@ -333,6 +338,7 @@ namespace CatUI.Data.Theming.Typography
 
         /// <summary>
         /// "Label" token is generally used for form-like UI elements (e.g. buttons, check boxes) and less important text.
+        /// Default value: font size: 11, font weight: 500, line height: 1.2.
         /// </summary>
         public ThemeTextStyle LabelSmall
         {

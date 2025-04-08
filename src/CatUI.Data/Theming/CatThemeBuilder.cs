@@ -69,10 +69,10 @@ namespace CatUI.Data.Theming
             ThemeColor? surfaceDim = null,
             ThemeColor? surfaceBright = null,
             ThemeColor? surfaceContainerLowest = null,
-            ThemeColor? surfaceContainerHighest = null,
             ThemeColor? surfaceContainerLow = null,
-            ThemeColor? surfaceContainerHigh = null,
             ThemeColor? surfaceContainer = null,
+            ThemeColor? surfaceContainerHigh = null,
+            ThemeColor? surfaceContainerHighest = null,
             //
             ThemeColor? onSurface = null,
             ThemeColor? onSurfaceVariant = null,
@@ -368,34 +368,34 @@ namespace CatUI.Data.Theming
         }
 
         /// <summary>
-        /// Set the clip shapes for each token. All arguments are optional, and you can use C# named arguments
-        /// when setting only some of the tokens. Unset tokens will have the default value.
+        /// Set the clip shapes for each token. All arguments are optional, represent dp units, and you can use C#
+        /// named arguments when setting only some of the tokens. Unset tokens will have the default value.
         /// </summary>
         public static void SetClipShapes(
-            RoundedRectangleClipShape? smallRounding = null,
-            RoundedRectangleClipShape? mediumRounding = null,
-            RoundedRectangleClipShape? largeRounding = null,
-            RoundedRectangleClipShape? xlRounding = null)
+            float? smallRoundingSize = null,
+            float? mediumRoundingSize = null,
+            float? largeRoundingSize = null,
+            float? xlRoundingSize = null)
         {
             _shapes = new CatThemeClipShapes();
-            if (smallRounding != null)
+            if (smallRoundingSize != null)
             {
-                _shapes.SmallRounding = smallRounding;
+                _shapes.SmallRounding = new RoundedRectangleClipShape(smallRoundingSize.Value);
             }
 
-            if (mediumRounding != null)
+            if (mediumRoundingSize != null)
             {
-                _shapes.MediumRounding = mediumRounding;
+                _shapes.MediumRounding = new RoundedRectangleClipShape(mediumRoundingSize.Value);
             }
 
-            if (largeRounding != null)
+            if (largeRoundingSize != null)
             {
-                _shapes.LargeRounding = largeRounding;
+                _shapes.LargeRounding = new RoundedRectangleClipShape(largeRoundingSize.Value);
             }
 
-            if (xlRounding != null)
+            if (xlRoundingSize != null)
             {
-                _shapes.XlRounding = xlRounding;
+                _shapes.XlRounding = new RoundedRectangleClipShape(xlRoundingSize.Value);
             }
         }
 
