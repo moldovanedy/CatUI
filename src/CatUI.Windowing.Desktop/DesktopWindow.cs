@@ -46,12 +46,13 @@ namespace CatUI.Windowing.Desktop
                 {
                     if (GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11)
                     {
-                        return (nint)(nuint)GLFW.GetX11Window(GlfwWindow);
+                        return (nint)GLFW.GetX11Window(GlfwWindow);
                     }
 
                     return GLFW.GetWaylandWindow(GlfwWindow);
                 }
 
+                // ReSharper disable once ConvertIfStatementToReturnStatement
                 if (OperatingSystem.IsMacOS())
                 {
                     return GLFW.GetCocoaWindow(GlfwWindow);

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -31,13 +31,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SkiaSharp" Version="2.88.8"/>
-        <PackageReference Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8"/>
+        <PackageReference Include="SkiaSharp" Version="2.88.8" />
+        <PackageReference Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj"/>
-        <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj"/>
+        <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj" />
+        <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj" />
     </ItemGroup>
 
 </Project>
