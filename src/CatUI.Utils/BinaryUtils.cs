@@ -85,12 +85,12 @@ namespace CatUI.Utils
 
         public static byte[] ConvertBoolToBytes(bool variable)
         {
-            return new[] { (byte)(variable ? 1 : 0) };
+            return [(byte)(variable ? 1 : 0)];
         }
 
         public static byte[] ConvertCharToBytes(char variable)
         {
-            return new[] { (byte)variable };
+            return [(byte)variable];
         }
 
         public static byte[] ConvertStringToBytes(string variable)
@@ -400,21 +400,16 @@ namespace CatUI.Utils
         /// <returns>The minimum number of bytes required for storing the number or 0 if something went wrong.</returns>
         public static byte GetUintMinimumStorageData(uint data)
         {
-            if (data <= 0xff)
+            switch (data)
             {
-                return 1;
-            }
-            else if (data <= 0xff_ff)
-            {
-                return 2;
-            }
-            else if (data <= 0xff_ff_ff)
-            {
-                return 3;
-            }
-            else
-            {
-                return 4;
+                case <= 0xff:
+                    return 1;
+                case <= 0xff_ff:
+                    return 2;
+                case <= 0xff_ff_ff:
+                    return 3;
+                default:
+                    return 4;
             }
         }
 
@@ -428,21 +423,16 @@ namespace CatUI.Utils
         {
             data = Math.Abs(data);
 
-            if (data <= 0xff)
+            switch (data)
             {
-                return 1;
-            }
-            else if (data <= 0xff_ff)
-            {
-                return 2;
-            }
-            else if (data <= 0xff_ff_ff)
-            {
-                return 3;
-            }
-            else
-            {
-                return 4;
+                case <= 0xff:
+                    return 1;
+                case <= 0xff_ff:
+                    return 2;
+                case <= 0xff_ff_ff:
+                    return 3;
+                default:
+                    return 4;
             }
         }
 

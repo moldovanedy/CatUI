@@ -596,11 +596,17 @@ namespace CatUI.Elements
                 e.Item.InvokeExitDocument();
             }
 
-            e.Item.Children.Clear();
+            //WARNING: Order is important! We first remove the child's connections to its parent, THEN clear all its
+            //descendants and set finally set the document to null. Setting the document to null before clearing won't
+            //fire ExitDocumentEvent, while clearing children first, then removing connections to its parent will result
+            //in crashes because this element **already removed the child** from its children list, but the child still has
+            //the reference to the parent, which will cause IndexOutOfRangeException and unexpected behavior in general
             e.Item._parent = null;
-            e.Item._document = null;
             e.Item.IndexInParent = -1;
             e.Item.Bounds = new Rect();
+
+            e.Item.Children.Clear();
+            e.Item._document = null;
 
             if (_shouldRecalculateLayoutOnExit)
             {
@@ -802,9 +808,12 @@ namespace CatUI.Elements
             {
                 RecomputeLayout(Document.ViewportSize, Document.ViewportSize, Point2D.Zero);
             }
+            else
+            {
+                //notify parent
+                _parent?.ChildLayoutChangedEvent?.Invoke(this, new ChildLayoutChangedEventArgs(IndexInParent));
+            }
 
-            //notify parent
-            _parent?.ChildLayoutChangedEvent?.Invoke(this, new ChildLayoutChangedEventArgs(IndexInParent));
             Document?.RequestRedraw();
         }
 

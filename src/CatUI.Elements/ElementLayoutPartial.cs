@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using CatUI.Data;
 using CatUI.Data.ElementData;
 using CatUI.Data.Events.Document;
+using Size = CatUI.Data.Size;
 
 namespace CatUI.Elements
 {
@@ -26,30 +27,12 @@ namespace CatUI.Elements
 
         protected virtual void OnChildLayoutChanged(object? sender, ChildLayoutChangedEventArgs e)
         {
-            //TODO: this does not update the layout properly (at least in containers)... find out why and fix it
+            // Rect parentBounds = _parent?.Bounds ?? Bounds;
+            // Point2D parentAbsolutePosition = new(parentBounds.X, parentBounds.Y);
+            // Size parentSize = new(parentBounds.Width, parentBounds.Height);
+            //
 
-            Rect parentBounds = _parent?.Bounds ?? Bounds;
-            Point2D parentAbsolutePosition = new(parentBounds.X, parentBounds.Y);
-            Size parentSize = new(parentBounds.Width, parentBounds.Height);
-
-            Element currentElement = this;
-            List<int> childIndices = new();
-            while (currentElement._parent != null)
-            {
-                currentElement = currentElement._parent;
-                childIndices.Add(currentElement.IndexInParent);
-            }
-
-            //the root will always have its max size the same as its bounds 
-            Size parentMaxSize = new(currentElement.Bounds.Width, currentElement.Bounds.Height);
-            //from the direct child of root to this element's parent
-            for (int i = childIndices.Count - 2; i >= 0; i--)
-            {
-                Element next = currentElement._children[childIndices[i]];
-                parentMaxSize = next.GetMaxSizeUtil(parentMaxSize);
-                currentElement = next;
-            }
-
+            GetParentLayoutMetrics(out Size parentSize, out Size parentMaxSize, out Point2D parentAbsolutePosition);
             Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
             Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
             Size thisMaxSize = GetMaxSizeUtil(parentSize);
@@ -60,6 +43,42 @@ namespace CatUI.Elements
             }
 
             _children[e.ChildIndex].RecomputeLayout(thisSize, thisMaxSize, absolutePosition);
+        }
+
+        /// <summary>
+        /// Returns the parent's layout by calculating the metrics from the root element to this element's parent.
+        /// This is a pretty expensive call, so use with caution.
+        /// </summary>
+        /// <param name="parentSize">The parent's direct size.</param>
+        /// <param name="parentMaxSize">The parent's max size.</param>
+        /// <param name="parentAbsolutePosition">The parent's absolute position in the document.</param>
+        protected void GetParentLayoutMetrics(
+            out Size parentSize,
+            out Size parentMaxSize,
+            out Point2D parentAbsolutePosition)
+        {
+            Element currentElement = this;
+            List<int> childIndices = [];
+            while (currentElement._parent != null)
+            {
+                currentElement = currentElement._parent;
+                childIndices.Add(currentElement.IndexInParent);
+            }
+
+            //the root will always have its max size the same as its bounds 
+            parentMaxSize = new Size(currentElement.Bounds.Width, currentElement.Bounds.Height);
+            parentSize = parentMaxSize;
+            parentAbsolutePosition = new Point2D();
+            //from the direct child of root to this element's parent
+            for (int i = childIndices.Count - 2; i >= 0; i--)
+            {
+                Element next = currentElement._children[childIndices[i]];
+                parentMaxSize = next.GetMaxSizeUtil(parentMaxSize);
+                parentSize = next.GetDirectSizeUtil(parentSize, parentMaxSize);
+                parentAbsolutePosition = next.GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
+
+                currentElement = next;
+            }
         }
 
         /// <summary>

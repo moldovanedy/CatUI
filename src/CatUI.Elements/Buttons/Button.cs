@@ -249,7 +249,7 @@ namespace CatUI.Elements.Buttons
             InternalPaddingElement = new PaddingElement
             {
                 Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
-                Children = new ObservableList<Element> { InternalRowContainer }
+                Children = [InternalRowContainer]
             };
             Children.Add(InternalPaddingElement);
 
