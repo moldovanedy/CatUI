@@ -3,6 +3,7 @@ using CatUI.Data;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
+using CatUI.Data.Events.Document;
 
 namespace CatUI.Elements.Containers
 {
@@ -371,6 +372,27 @@ namespace CatUI.Elements.Containers
             Bounds = new Rect(initialAbsolutePosition.X, initialAbsolutePosition.Y, size.Width, size.Height);
 
             return thisSize;
+        }
+
+        protected override void OnChildLayoutChanged(object? sender, ChildLayoutChangedEventArgs e)
+        {
+            base.OnChildLayoutChanged(sender, e);
+
+            if (e.ChildIndex >= Children.Count)
+            {
+                return;
+            }
+
+            Element? parent = GetParent();
+            if (parent != null)
+            {
+                GetParentLayoutMetrics(out Size parentSize, out Size parentMaxSize, out Point2D parentAbsolutePosition);
+                RecomputeLayout(parentSize, parentMaxSize, parentAbsolutePosition);
+            }
+            else if (Document != null)
+            {
+                RecomputeLayout(Document.ViewportSize, Document.ViewportSize, new Point2D());
+            }
         }
 
         private Dimension GetChildMinDimension(
