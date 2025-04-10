@@ -277,7 +277,7 @@ namespace CatUI.Elements.Text
             }
 
             RecomputeChildrenUtil(thisSize, thisMaxSize, absolutePosition);
-            Bounds = new Rect(absolutePosition, thisSize);
+            Bounds = GetFinalBoundsUtil(absolutePosition, thisSize);
             return thisSize;
         }
 
@@ -335,7 +335,8 @@ namespace CatUI.Elements.Text
                 ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
+                Layout = Layout
             };
         }
 

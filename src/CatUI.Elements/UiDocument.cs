@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CatUI.Data;
+using CatUI.Data.ElementData;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.RenderingEngine;
@@ -109,7 +110,7 @@ namespace CatUI.Elements
                     return;
                 }
 
-                _root.Layout.SetFixedWidth("100%").SetFixedHeight("100%");
+                _root.Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
                 _root.Document = this;
                 _root.Bounds = new Rect(0, 0, ViewportSize.Width, ViewportSize.Height);
             }
@@ -168,7 +169,7 @@ namespace CatUI.Elements
         /// <summary>
         /// This will invoke draw for the root element and, consequently, to all eligible children (children that are
         /// visible and can be drawn). You should only call this from the windowing code, not from normal, UI code.
-        /// For UI code, see <see cref="RequestRedraw"/>.
+        /// For UI code, see <see cref="MarkDirty"/>.
         /// </summary>
         /// <remarks>
         /// Because of hardware acceleration, this is very efficient, as partial redraws are something really uncommon
@@ -183,7 +184,7 @@ namespace CatUI.Elements
         /// This will mark the document as "dirty", meaning elements should be redrawn on the next frame. Use this instead
         /// of <see cref="DrawAllElements"/> as much as possible.
         /// </summary>
-        public void RequestRedraw()
+        public void MarkDirty()
         {
             Renderer.SetCanvasDirty();
         }

@@ -408,7 +408,8 @@ namespace CatUI.Elements.Media
                 ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
+                Layout = Layout
             };
         }
     }

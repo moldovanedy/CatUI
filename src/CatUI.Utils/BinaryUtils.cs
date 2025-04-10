@@ -1,20 +1,24 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace CatUI.Utils
 {
     public static class BinaryUtils
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool GetBit(int value, int index)
         {
             return (value & (1 << index)) != 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool GetBit(long value, int index)
         {
             return (value & (1L << index)) != 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetBit(ref int value, bool bitValue, int index)
         {
             if (bitValue)
@@ -27,6 +31,7 @@ namespace CatUI.Utils
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetBit(ref long value, bool bitValue, int index)
         {
             if (bitValue)

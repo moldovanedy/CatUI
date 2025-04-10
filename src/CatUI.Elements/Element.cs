@@ -102,12 +102,22 @@ namespace CatUI.Elements
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (value != null)
                 {
-                    _children.AddRange(value);
+                    _shouldRecalculateLayout = false;
+                    foreach (Element child in value)
+                    {
+                        child._shouldRecalculateLayout = false;
+                        _children.Add(child);
+                        child._shouldRecalculateLayout = true;
+                    }
+
+                    _shouldRecalculateLayout = true;
+
+                    MarkLayoutDirty();
                 }
             }
         }
 
-        private readonly ObservableList<Element> _children = new();
+        private readonly ObservableList<Element> _children = [];
 
         /// <summary>
         /// Represents the top-left corner's position relative to the parent's top-left corner. When the element is
@@ -404,7 +414,11 @@ namespace CatUI.Elements
                     _document = value;
                     InvokeEnterDocument();
                     MakeChildrenEnterDocument(Children);
-                    MarkLayoutDirty();
+
+                    if (_shouldRecalculateLayout)
+                    {
+                        MarkLayoutDirty();
+                    }
                 }
                 //the element is in a document and the given document is another document or null
                 else if (_document != value)
@@ -558,7 +572,7 @@ namespace CatUI.Elements
         }
 
 
-        private bool _shouldRecalculateLayoutOnExit = true;
+        private bool _shouldRecalculateLayout = true;
 
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
@@ -571,6 +585,7 @@ namespace CatUI.Elements
             e.Item._parent = this;
             e.Item.IndexInParent = e.Index;
 
+
             if (Document != null)
             {
                 e.Item.Document = Document;
@@ -579,7 +594,10 @@ namespace CatUI.Elements
                     Document.AddToIdCache(e.Item);
                 }
 
-                MarkLayoutDirty();
+                if (_shouldRecalculateLayout)
+                {
+                    MarkLayoutDirty();
+                }
             }
         }
 
@@ -608,7 +626,7 @@ namespace CatUI.Elements
             e.Item.Children.Clear();
             e.Item._document = null;
 
-            if (_shouldRecalculateLayoutOnExit)
+            if (_shouldRecalculateLayout)
             {
                 MarkLayoutDirty();
             }
@@ -621,15 +639,16 @@ namespace CatUI.Elements
 
         private void OnChildrenListClearing(object? sender, EventArgs e)
         {
-            _shouldRecalculateLayoutOnExit = false;
+            _shouldRecalculateLayout = false;
 
             //will clear all children
-            while (Children.Count > 0)
+            while (_children.Count > 0)
             {
-                Children.RemoveAt(0);
+                _children[0]._shouldRecalculateLayout = false;
+                _children.RemoveAt(0);
             }
 
-            _shouldRecalculateLayoutOnExit = true;
+            _shouldRecalculateLayout = true;
             MarkLayoutDirty();
         }
 
@@ -667,11 +686,16 @@ namespace CatUI.Elements
 
         private void MakeChildrenEnterDocument(ObservableList<Element> children)
         {
+            _shouldRecalculateLayout = false;
+
             foreach (Element child in children)
             {
+                child._shouldRecalculateLayout = false;
                 child.Document = Document;
-                //MakeChildrenEnterDocument(child.Children);
+                child._shouldRecalculateLayout = true;
             }
+
+            _shouldRecalculateLayout = true;
         }
 
         #endregion //Internal event handlers
@@ -704,7 +728,8 @@ namespace CatUI.Elements
                 ClipType = _clipType,
                 Visible = _visible,
                 Enabled = _enabled,
-                ElementContainerSizing = (ContainerSizing?)_elementContainerSizing?.Duplicate()
+                ElementContainerSizing = (ContainerSizing?)_elementContainerSizing?.Duplicate(),
+                Layout = _layout
             };
         }
 
@@ -785,7 +810,7 @@ namespace CatUI.Elements
 
         public void RequestRedraw()
         {
-            Document?.RequestRedraw();
+            Document?.MarkDirty();
         }
 
         /// <summary>
@@ -814,7 +839,7 @@ namespace CatUI.Elements
                 _parent?.ChildLayoutChangedEvent?.Invoke(this, new ChildLayoutChangedEventArgs(IndexInParent));
             }
 
-            Document?.RequestRedraw();
+            Document?.MarkDirty();
         }
 
         #endregion //Public API

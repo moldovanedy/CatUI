@@ -10,7 +10,7 @@ namespace CatUI.Elements
 {
     public partial class Element
     {
-        public ElementLayout Layout
+        public ElementLayout? Layout
         {
             get => _layout;
             set
@@ -20,8 +20,8 @@ namespace CatUI.Elements
             }
         }
 
-        private ElementLayout _layout = new();
-        public ObservableProperty<ElementLayout> LayoutProperty { get; private set; } = new(new ElementLayout());
+        private ElementLayout? _layout;
+        public ObservableProperty<ElementLayout> LayoutProperty { get; private set; } = new();
 
         public event ChildLayoutChangedEventHandler? ChildLayoutChangedEvent;
 
@@ -43,6 +43,7 @@ namespace CatUI.Elements
             }
 
             _children[e.ChildIndex].RecomputeLayout(thisSize, thisMaxSize, absolutePosition);
+            Bounds = Rect.GetCommonBoundingRect(Bounds, _children[e.ChildIndex].Bounds);
         }
 
         /// <summary>
@@ -136,7 +137,12 @@ namespace CatUI.Elements
             }
 
             RecomputeChildrenUtil(thisSize, thisMaxSize, absolutePosition);
-            Bounds = new Rect(absolutePosition, thisSize);
+
+            //IMPORTANT: When we consider all the children's bounds, it's important to know that if the bounds are not
+            //the expected ones (from thisSize) because an element overflowed, we DON'T recalculate again, but leave
+            //all elements as-is. The consequence is that the elements that have layouts in percentages might not really
+            //be that exact percentage, so it's "not a bug, it's a feature" which should be stated clearly in the docs
+            Bounds = GetFinalBoundsUtil(absolutePosition, thisSize);
 
             return thisSize;
         }
@@ -154,26 +160,27 @@ namespace CatUI.Elements
         /// <returns>The element's preferred size, determined by <see cref="Layout"/>.</returns>
         protected Size GetDirectSizeUtil(Size parentPreferredSize, Size parentMaxSize)
         {
-            Dimension? abstractWidth = _layout.GetSuggestedWidth();
-            Dimension? abstractHeight = _layout.GetSuggestedHeight();
+            ElementLayout layout = _layout ?? new ElementLayout();
+            Dimension? abstractWidth = layout.GetSuggestedWidth();
+            Dimension? abstractHeight = layout.GetSuggestedHeight();
 
             float width;
-            Dimension minWidth = _layout.MinWidth ?? Dimension.Unset;
-            Dimension maxWidth = _layout.MaxWidth ?? Dimension.Unset;
+            Dimension minWidth = layout.MinWidth ?? Dimension.Unset;
+            Dimension maxWidth = layout.MaxWidth ?? Dimension.Unset;
             Dimension setWidth = abstractWidth ?? 0;
 
             Size maxAllowedSize = new(
                 parentMaxSize.Width - CalculateDimension(Position.X, parentPreferredSize.Width),
                 parentMaxSize.Height - CalculateDimension(Position.Y, parentPreferredSize.Height));
 
-            switch (_layout.WidthMode)
+            switch (layout.WidthMode)
             {
                 default:
                 case ElementLayout.LayoutMode.Fixed:
                     width = CalculateDimension(setWidth, parentPreferredSize.Width);
                     break;
                 case ElementLayout.LayoutMode.MinMax:
-                    if (_layout.PrefersMaxWidth)
+                    if (layout.PrefersMaxWidth)
                     {
                         //ensure max is not smaller than min
                         width = Math.Max(
@@ -217,23 +224,23 @@ namespace CatUI.Elements
                     }
 
                     width = Math.Clamp(
-                        CalculateDimension(_layout.PreferredWidth ?? 0, parentPreferredSize.Width), min, max);
+                        CalculateDimension(layout.PreferredWidth ?? 0, parentPreferredSize.Width), min, max);
                     break;
             }
 
             float height;
-            Dimension minHeight = _layout.MinHeight ?? Dimension.Unset;
-            Dimension maxHeight = _layout.MaxHeight ?? Dimension.Unset;
+            Dimension minHeight = layout.MinHeight ?? Dimension.Unset;
+            Dimension maxHeight = layout.MaxHeight ?? Dimension.Unset;
             Dimension setHeight = abstractHeight ?? 0;
 
-            switch (_layout.HeightMode)
+            switch (layout.HeightMode)
             {
                 default:
                 case ElementLayout.LayoutMode.Fixed:
                     height = CalculateDimension(setHeight, parentPreferredSize.Height);
                     break;
                 case ElementLayout.LayoutMode.MinMax:
-                    if (_layout.PrefersMaxHeight)
+                    if (layout.PrefersMaxHeight)
                     {
                         //ensure max is not smaller than min
                         height = Math.Max(
@@ -277,7 +284,7 @@ namespace CatUI.Elements
                     }
 
                     height = Math.Clamp(
-                        CalculateDimension(_layout.PreferredHeight ?? 0, parentPreferredSize.Height), min, max);
+                        CalculateDimension(layout.PreferredHeight ?? 0, parentPreferredSize.Height), min, max);
                     break;
             }
 
@@ -321,30 +328,31 @@ namespace CatUI.Elements
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected Size GetMaxSizeUtil(Size parentSize)
         {
+            ElementLayout layout = _layout ?? new ElementLayout();
             float maxWidth, maxHeight;
 
-            if (_layout.WidthMode == ElementLayout.LayoutMode.Fixed)
+            if (layout.WidthMode == ElementLayout.LayoutMode.Fixed)
             {
-                maxWidth = CalculateDimension(_layout.PreferredWidth ?? Dimension.Unset, parentSize.Width);
+                maxWidth = CalculateDimension(layout.PreferredWidth ?? Dimension.Unset, parentSize.Width);
             }
             else
             {
                 maxWidth =
-                    (_layout.MaxWidth ?? Dimension.Unset).IsUnset()
+                    (layout.MaxWidth ?? Dimension.Unset).IsUnset()
                         ? float.PositiveInfinity
-                        : CalculateDimension(_layout.MaxWidth!.Value, parentSize.Width);
+                        : CalculateDimension(layout.MaxWidth!.Value, parentSize.Width);
             }
 
-            if (_layout.HeightMode == ElementLayout.LayoutMode.Fixed)
+            if (layout.HeightMode == ElementLayout.LayoutMode.Fixed)
             {
-                maxHeight = CalculateDimension(_layout.PreferredHeight ?? Dimension.Unset, parentSize.Height);
+                maxHeight = CalculateDimension(layout.PreferredHeight ?? Dimension.Unset, parentSize.Height);
             }
             else
             {
                 maxHeight =
-                    (_layout.MaxHeight ?? Dimension.Unset).IsUnset()
+                    (layout.MaxHeight ?? Dimension.Unset).IsUnset()
                         ? float.MaxValue
-                        : CalculateDimension(_layout.MaxHeight!.Value, parentSize.Height);
+                        : CalculateDimension(layout.MaxHeight!.Value, parentSize.Height);
             }
 
             return new Size(maxWidth, maxHeight);
@@ -372,6 +380,42 @@ namespace CatUI.Elements
 
                 child.RecomputeLayout(currentPrefSize, currentMaxSize, currentAbsolutePosition);
             }
+        }
+
+        /// <summary>
+        /// Computes the final bounds by also considering every child's bounds (it's basically
+        /// <see cref="Rect.GetCommonBoundingRect(CatUI.Data.Rect[])"/> for these bounds and all children bounds).
+        /// Note that this might create bounds that are larger than the predicted size or position when children overflow
+        /// this element. In this case, all CatUI elements just accept the given bounds and will not recompute the
+        /// elements again. Read the documentation for layouts to get a better view of this feature.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The reason that we don't recalculate is that it will create infinite recalculations when some elements
+        /// use percentages as layout descriptors, especially the ones that overflow the element in the first place.
+        /// This behavior is respected by all built-in CatUI elements, but you are free to do whatever you want in your
+        /// custom elements.
+        /// </para>
+        /// <para>
+        /// Note that for elements with a large child count, this will take longer to compute (O(n), where n is the
+        /// child count), so ordered containers generally don't call this, as they have more efficient ways of
+        /// calculating this. If your custom element has the children ordered by their position, you should generally
+        /// find alternative ways of doing what this function does, so you can increase performance.
+        /// </para>
+        /// </remarks>
+        /// <param name="absolutePosition">The absolute position calculated for this element.</param>
+        /// <param name="thisSize">The expected size of this element after all calculations.</param>
+        /// <returns></returns>
+        protected Rect GetFinalBoundsUtil(Point2D absolutePosition, Size thisSize)
+        {
+            Rect finalBounds = new(absolutePosition, thisSize);
+            // ReSharper disable once LoopCanBeConvertedToQuery
+            foreach (Element child in Children)
+            {
+                finalBounds = Rect.GetCommonBoundingRect(finalBounds, child.Bounds);
+            }
+
+            return finalBounds;
         }
     }
 }

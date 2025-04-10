@@ -51,7 +51,10 @@ namespace CatUI.Elements.Shapes
             : base(fillBrush, outlineBrush)
         {
             Position = new Dimension2(rectDescriptor.X, rectDescriptor.Y);
-            Layout.SetFixedWidth(Math.Abs(rectDescriptor.Width)).SetFixedHeight(Math.Abs(rectDescriptor.Height));
+            Layout =
+                new ElementLayout()
+                    .SetFixedWidth(Math.Abs(rectDescriptor.Width))
+                    .SetFixedHeight(Math.Abs(rectDescriptor.Height));
         }
 
         protected override void DrawBackground()
@@ -90,7 +93,8 @@ namespace CatUI.Elements.Shapes
                 ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
+                Layout = Layout
             };
         }
     }

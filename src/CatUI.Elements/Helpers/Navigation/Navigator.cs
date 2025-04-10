@@ -174,7 +174,8 @@ namespace CatUI.Elements.Helpers.Navigation
                 ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
+                Layout = Layout
             };
         }
 
@@ -198,8 +199,22 @@ namespace CatUI.Elements.Helpers.Navigation
         /// If false, going back after navigation to another route won't consider this route and jump directly to the
         /// route that was active before this one.
         /// </param>
-        public void Navigate(string path, NavArgs? args = null, bool isStoredOnNavigationStack = true)
+        /// <param name="shouldTriggerOnSameRoute">
+        /// If true, the navigator will remove the elements, then add them again even if it's the same path as the
+        /// current one. By default, this is false, and you should generally leave it false to improve performance.
+        /// That's because when it's false, navigating to the same path as the current one won't do anything.
+        /// </param>
+        public void Navigate(
+            string path,
+            NavArgs? args = null,
+            bool isStoredOnNavigationStack = true,
+            bool shouldTriggerOnSameRoute = false)
         {
+            if (!shouldTriggerOnSameRoute && CurrentPath == path)
+            {
+                return;
+            }
+
             string oldPath = CurrentPath;
             CurrentPath = path;
 
@@ -258,13 +273,14 @@ namespace CatUI.Elements.Helpers.Navigation
         }
 
         /// <summary>
-        /// Recalls <see cref="Navigate"/> so any changes to the <see cref="Routes"/> are reflected on the current
-        /// route (navigating without calling this will still respect the new <see cref="Routes"/>). The child element
-        /// will be removed from the document, then added again, which can slow the application down, so use with caution.
+        /// Recalls <see cref="Navigate"/> with forced reload so any changes to the <see cref="Routes"/> are reflected
+        /// on the current route (navigating without calling this will still respect the new <see cref="Routes"/>).
+        /// The child element will be removed from the document, then added again, which can slow the application down,
+        /// so use with caution.
         /// </summary>
         public void Refresh()
         {
-            Navigate(CurrentPath);
+            Navigate(CurrentPath, shouldTriggerOnSameRoute: true);
         }
 
         #endregion
