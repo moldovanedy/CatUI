@@ -59,7 +59,7 @@ namespace CatUI.Elements.Shapes
             radiusY = Math.Abs(radiusY);
 
             Position = new Dimension2(centerPoint.X - radiusX, centerPoint.Y - radiusY);
-            Layout.SetFixedWidth(radiusX * 2f).SetFixedHeight(radiusY * 2f);
+            Layout = new ElementLayout().SetFixedWidth(radiusX * 2f).SetFixedHeight(radiusY * 2f);
         }
 
         protected override void DrawBackground()
@@ -107,7 +107,8 @@ namespace CatUI.Elements.Shapes
                 ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
+                Layout = Layout
             };
         }
     }

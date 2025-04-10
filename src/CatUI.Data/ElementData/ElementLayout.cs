@@ -1,5 +1,12 @@
+using CatUI.Utils;
+
 namespace CatUI.Data.ElementData
 {
+    /// <summary>
+    /// Represents the element's layout description. By default, both the width and the height use
+    /// <see cref="LayoutMode.MinMax"/>, trying to respect the minimum (0), while the maximum is unset (infinity) and is
+    /// only constrained by the parent's max size. 
+    /// </summary>
     public class ElementLayout
     {
         public Dimension? PreferredWidth { get; private set; }
@@ -14,13 +21,33 @@ namespace CatUI.Data.ElementData
         public LayoutMode WidthMode
         {
             get => (LayoutMode)(_layoutFlags & 0b11);
-            private set => _layoutFlags |= (byte)((byte)value & 0b11);
+            private set
+            {
+                bool lowBit = ((int)value & 0b1) != 0;
+                bool highBit = ((int)value & 0b10) != 0;
+                int flags = _layoutFlags;
+
+                BinaryUtils.SetBit(ref flags, lowBit, 0);
+                BinaryUtils.SetBit(ref flags, highBit, 1);
+
+                _layoutFlags = (byte)flags;
+            }
         }
 
         public LayoutMode HeightMode
         {
             get => (LayoutMode)((_layoutFlags & 0b11000) >> 3);
-            private set => _layoutFlags |= (byte)(((byte)value & 0b11) << 3);
+            private set
+            {
+                bool lowBit = ((int)value & 0b1) != 0;
+                bool highBit = ((int)value & 0b10) != 0;
+                int flags = _layoutFlags;
+
+                BinaryUtils.SetBit(ref flags, lowBit, 3);
+                BinaryUtils.SetBit(ref flags, highBit, 4);
+
+                _layoutFlags = (byte)flags;
+            }
         }
 
         /// <summary>
@@ -65,7 +92,14 @@ namespace CatUI.Data.ElementData
             }
         }
 
+        //default as MinMax for both Width and Height
         private byte _layoutFlags;
+
+        public ElementLayout()
+        {
+            WidthMode = LayoutMode.MinMax;
+            HeightMode = LayoutMode.MinMax;
+        }
 
         #region Modifiers
 
@@ -210,19 +244,15 @@ namespace CatUI.Data.ElementData
         /// <see cref="LayoutMode.MinMax"/>, otherwise no change will occur and false will be returned.
         /// </summary>
         /// <param name="prefersMaxWidth">The desired value for <see cref="PrefersMaxWidth"/>.</param>
-        /// <returns>
-        /// True if the operation succeeded (when <see cref="WidthMode"/> is <see cref="LayoutMode.MinMax"/>),
-        /// false otherwise.
-        /// </returns>
-        public bool SetPrefersMaxWidth(bool prefersMaxWidth)
+        /// <returns>This instance (to make an element hierarchy setup easier).</returns>
+        public ElementLayout SetPrefersMaxWidth(bool prefersMaxWidth)
         {
             if (WidthMode == LayoutMode.MinMax)
             {
                 PrefersMaxWidth = prefersMaxWidth;
-                return true;
             }
 
-            return false;
+            return this;
         }
 
         /// <summary>
@@ -230,19 +260,15 @@ namespace CatUI.Data.ElementData
         /// <see cref="LayoutMode.MinMax"/>, otherwise no change will occur and false will be returned.
         /// </summary>
         /// <param name="prefersMaxHeight">The desired value for <see cref="PrefersMaxHeight"/>.</param>
-        /// <returns>
-        /// True if the operation succeeded (when <see cref="HeightMode"/> is <see cref="LayoutMode.MinMax"/>),
-        /// false otherwise.
-        /// </returns>
-        public bool SetPrefersMaxHeight(bool prefersMaxHeight)
+        /// <returns>This instance (to make an element hierarchy setup easier).</returns>
+        public ElementLayout SetPrefersMaxHeight(bool prefersMaxHeight)
         {
             if (HeightMode == LayoutMode.MinMax)
             {
                 PrefersMaxHeight = prefersMaxHeight;
-                return true;
             }
 
-            return false;
+            return this;
         }
 
         #endregion //Modifiers

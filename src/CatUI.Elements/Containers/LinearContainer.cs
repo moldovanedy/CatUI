@@ -58,6 +58,7 @@ namespace CatUI.Elements.Containers
             Point2D parentAbsolutePosition,
             Size? parentEnforcedSize = null)
         {
+            ElementLayout layout = Layout ?? new ElementLayout();
             Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
             Point2D thisAbsolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
             Size thisMaxSize = GetMaxSizeUtil(parentSize);
@@ -66,7 +67,11 @@ namespace CatUI.Elements.Containers
             float allocatedMinDim = 0, totalGrowthFactors = 0;
             bool canRespectPositioning = true;
 
+            //this will be the children final dimension on the axis from ContainerOrientation
             float finalContainerDim = 0;
+            //this will be the children final dimension on the opposite axis as the one from ContainerOrientation
+            //this will be used at the final bounds calculations
+            float finalOppositeDim = 0;
             Point2D initialAbsolutePosition = thisAbsolutePosition;
 
             //for the space-... type of justification, it will be set after the content size is estimated
@@ -81,6 +86,7 @@ namespace CatUI.Elements.Containers
             //first pass: calculate the min and max sizes and estimate the final size of the content
             foreach (Element child in Children)
             {
+                ElementLayout childLayout = child.Layout ?? new ElementLayout();
                 if (!child.Enabled)
                 {
                     continue;
@@ -93,7 +99,7 @@ namespace CatUI.Elements.Containers
                     {
                         totalGrowthFactors += rowContainerSizing.GrowthFactor;
 
-                        float min = CalculateDimension(child.Layout.MinWidth ?? Dimension.Unset, thisMaxSize.Width);
+                        float min = CalculateDimension(childLayout.MinWidth ?? Dimension.Unset, thisMaxSize.Width);
                         minimumElementsDim += min;
                         //TODO: here it should somehow cache the element's last width, not always assume it's the min width
                         estimatedDim += min;
@@ -109,7 +115,7 @@ namespace CatUI.Elements.Containers
                     {
                         totalGrowthFactors += columnContainerSizing.GrowthFactor;
 
-                        float min = CalculateDimension(child.Layout.MinHeight ?? Dimension.Unset, thisMaxSize.Height);
+                        float min = CalculateDimension(childLayout.MinHeight ?? Dimension.Unset, thisMaxSize.Height);
                         minimumElementsDim += min;
                         //TODO: here it should somehow cache the element's last height, not always assume it's the min height
                         estimatedDim += min;
@@ -121,12 +127,12 @@ namespace CatUI.Elements.Containers
 
                 Dimension childPrefDimension =
                     (ContainerOrientation == Orientation.Horizontal
-                        ? child.Layout.GetSuggestedWidth()
-                        : child.Layout.GetSuggestedHeight()) ?? Dimension.Unset;
+                        ? childLayout.GetSuggestedWidth()
+                        : childLayout.GetSuggestedHeight()) ?? Dimension.Unset;
 
                 Dimension childMinDimension =
                     GetChildMinDimension(
-                        child.Layout,
+                        childLayout,
                         childPrefDimension,
                         out bool isConsideredGrowing,
                         out bool canContainerRespectPositioning);
@@ -166,11 +172,23 @@ namespace CatUI.Elements.Containers
 
             if (canRespectPositioning)
             {
+                float maxDim = ContainerOrientation == Orientation.Horizontal ? thisMaxSize.Width : thisMaxSize.Height;
+                bool isMinMax =
+                    ContainerOrientation == Orientation.Horizontal
+                        ? layout.WidthMode == ElementLayout.LayoutMode.MinMax
+                        : layout.HeightMode == ElementLayout.LayoutMode.MinMax;
+
                 //when it does NOT enter if, the whole content can fit and there's still space left, making it easy
                 //to respect the position of the content
-                if (containerDim < estimatedDim)
+                if (estimatedDim >= maxDim && containerDim < estimatedDim)
                 {
                     canRespectPositioning = false;
+                }
+                //when the container is min-max, the container dim is generally lower than the actual content size,
+                //so set it to the estimate
+                else if (isMinMax && estimatedDim > containerDim)
+                {
+                    containerDim = estimatedDim;
                 }
             }
             //if the content can't fit, but the estimate is smaller than the container dim, make it equal to the container
@@ -223,6 +241,7 @@ namespace CatUI.Elements.Containers
             //layout part)
             foreach (Element child in Children)
             {
+                ElementLayout childLayout = child.Layout ?? new ElementLayout();
                 if (!child.Enabled)
                 {
                     continue;
@@ -238,12 +257,12 @@ namespace CatUI.Elements.Containers
                             child.ElementContainerSizing is RowContainerSizing rowContainerSizing =>
                             Math.Max(
                                 rowContainerSizing.GrowthFactor * growthSectionDim,
-                                CalculateDimension(child.Layout.MinWidth ?? Dimension.Unset, thisSize.Width)),
+                                CalculateDimension(childLayout.MinWidth ?? Dimension.Unset, thisSize.Width)),
                         Orientation.Vertical when
                             child.ElementContainerSizing is ColumnContainerSizing columnContainerSizing =>
                             Math.Max(
                                 columnContainerSizing.GrowthFactor * growthSectionDim,
-                                CalculateDimension(child.Layout.MinHeight ?? Dimension.Unset, thisSize.Height)),
+                                CalculateDimension(childLayout.MinHeight ?? Dimension.Unset, thisSize.Height)),
                         _ => 0
                     };
 
@@ -289,14 +308,20 @@ namespace CatUI.Elements.Containers
                             ContainerOrientation == Orientation.Horizontal
                                 ? finalSize.Width
                                 : finalSize.Height;
+                        finalOppositeDim =
+                            Math.Max(
+                                finalOppositeDim,
+                                ContainerOrientation == Orientation.Horizontal
+                                    ? finalSize.Height
+                                    : finalSize.Width);
                     }
                 }
                 else
                 {
                     float declaredWidth =
-                        CalculateDimension(child.Layout.GetSuggestedWidth() ?? Dimension.Unset, thisSize.Width);
+                        CalculateDimension(childLayout.GetSuggestedWidth() ?? Dimension.Unset, thisSize.Width);
                     float declaredHeight =
-                        CalculateDimension(child.Layout.GetSuggestedHeight() ?? Dimension.Unset, thisSize.Height);
+                        CalculateDimension(childLayout.GetSuggestedHeight() ?? Dimension.Unset, thisSize.Height);
                     Size actualSize;
 
                     if (canRespectPositioning || !needsForcedShrinking)
@@ -305,13 +330,22 @@ namespace CatUI.Elements.Containers
                     }
                     else
                     {
+                        bool isEnforced =
+                            childLayout.WidthMode == ElementLayout.LayoutMode.Fixed &&
+                            childLayout.HeightMode == ElementLayout.LayoutMode.Fixed;
                         Size enforcedSize = new(declaredWidth, declaredHeight);
-                        actualSize = child.RecomputeLayout(thisSize, thisSize, Point2D.Zero, enforcedSize);
+
+                        actualSize = child.RecomputeLayout(
+                            thisSize,
+                            thisSize,
+                            Point2D.Zero,
+                            isEnforced ? enforcedSize : null!);
 
                         //if the element didn't obey the enforced size, give a warning and consider the given size, even if
                         //this might break the UI
-                        if (Math.Abs(actualSize.Width - declaredWidth) > 0.01 ||
-                            Math.Abs(actualSize.Height - declaredHeight) > 0.01)
+                        if (isEnforced &&
+                            (Math.Abs(actualSize.Width - declaredWidth) > 0.01 ||
+                             Math.Abs(actualSize.Height - declaredHeight) > 0.01))
                         {
                             CatLogger.LogWarning(
                                 "An element didn't obey the enforced size. Make sure you take the parentEnforcedSize into" +
@@ -351,6 +385,12 @@ namespace CatUI.Elements.Containers
                             ContainerOrientation == Orientation.Horizontal
                                 ? actualSize.Width
                                 : actualSize.Height;
+                        finalOppositeDim =
+                            Math.Max(
+                                finalOppositeDim,
+                                ContainerOrientation == Orientation.Horizontal
+                                    ? actualSize.Height
+                                    : actualSize.Width);
                     }
                 }
             }
@@ -364,14 +404,44 @@ namespace CatUI.Elements.Containers
                 //TODO
             }
 
+            //if the layout mode for is not fixed, respect the min between the layout max and the actual computed size
+            //(finalContainerDim), otherwise respect the layout fixed size
+            bool respectsComputedFinalDim =
+                ContainerOrientation == Orientation.Horizontal
+                    ? layout.WidthMode != ElementLayout.LayoutMode.Fixed && !layout.PrefersMaxWidth
+                    : layout.HeightMode != ElementLayout.LayoutMode.Fixed && !layout.PrefersMaxHeight;
+
+            float finalMaxLayoutDim =
+                ContainerOrientation == Orientation.Horizontal
+                    ? thisMaxSize.Width
+                    : thisMaxSize.Height;
+            finalContainerDim =
+                respectsComputedFinalDim
+                    ? Math.Min(finalContainerDim, finalMaxLayoutDim)
+                    //if fixed, max will be the same as the preferred size
+                    : finalMaxLayoutDim;
+
+            bool respectsComputedOppositeDim =
+                ContainerOrientation == Orientation.Horizontal
+                    ? layout.HeightMode != ElementLayout.LayoutMode.Fixed && !layout.PrefersMaxHeight
+                    : layout.WidthMode != ElementLayout.LayoutMode.Fixed && !layout.PrefersMaxWidth;
+
+            float oppositeMaxLayoutDim =
+                ContainerOrientation == Orientation.Horizontal
+                    ? thisMaxSize.Height
+                    : thisMaxSize.Width;
+            finalOppositeDim =
+                respectsComputedOppositeDim
+                    ? Math.Min(finalOppositeDim, oppositeMaxLayoutDim)
+                    : oppositeMaxLayoutDim;
+
             Size size =
                 ContainerOrientation == Orientation.Horizontal
-                    ? new Size(finalContainerDim, thisSize.Height)
-                    : new Size(thisSize.Width, finalContainerDim);
+                    ? new Size(finalContainerDim, finalOppositeDim)
+                    : new Size(finalOppositeDim, finalContainerDim);
 
             Bounds = new Rect(initialAbsolutePosition.X, initialAbsolutePosition.Y, size.Width, size.Height);
-
-            return thisSize;
+            return size;
         }
 
         protected override void OnChildLayoutChanged(object? sender, ChildLayoutChangedEventArgs e)

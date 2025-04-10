@@ -101,7 +101,7 @@ namespace CatUI.Elements.Utils
             Point2D thisAbsolutePosition = new(x, y);
             RecomputeChildrenUtil(thisSize, thisSize, thisAbsolutePosition);
 
-            Bounds = new Rect(x, y, thisSize.Width, thisSize.Height);
+            Bounds = GetFinalBoundsUtil(thisAbsolutePosition, thisSize);
             return thisSize;
         }
 
@@ -117,7 +117,8 @@ namespace CatUI.Elements.Utils
                 ClipType = ClipType,
                 Visible = Visible,
                 Enabled = Enabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate()
+                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
+                Layout = Layout
             };
         }
     }

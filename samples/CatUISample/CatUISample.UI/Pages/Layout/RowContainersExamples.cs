@@ -13,7 +13,7 @@ namespace CatUISample.UI.Pages.Layout
     {
         public RowContainersExamples()
         {
-            Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(100);
+            Layout = new ElementLayout().SetFixedWidth("100%");
             Arrangement = LinearArrangement.SpacedBy(20);
         }
 
@@ -25,17 +25,18 @@ namespace CatUISample.UI.Pages.Layout
             [
                 new TextBlock("RowContainer examples", TextAlignmentType.Center)
                 {
-                    Layout =
-                        new ElementLayout()
-                            .SetMinMaxWidth(0, "100%", true)
-                            .SetMinMaxHeight(32, 40),
+                    Layout = new ElementLayout().SetMinMaxWidth(0, "100%", true),
                     FontSize = 32,
                     TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                 },
 
                 GetRowContainerExample(LinearArrangement.JustificationType.Start),
                 GetRowContainerExample(LinearArrangement.JustificationType.Center),
-                GetRowContainerExample(LinearArrangement.JustificationType.End)
+                GetRowContainerExample(LinearArrangement.JustificationType.End),
+
+                GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceAround),
+                GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceBetween),
+                GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceEvenly)
             ];
         }
 
@@ -43,26 +44,19 @@ namespace CatUISample.UI.Pages.Layout
         {
             return new ColumnContainer
             {
-                Layout =
-                    new ElementLayout()
-                        .SetFixedWidth("100%")
-                        //TODO: temporary, the internal layout calculations should be fixed
-                        .SetMinMaxHeight(76, "100%", false),
+                Layout = new ElementLayout().SetFixedWidth("100%"),
                 Arrangement = LinearArrangement.SpacedBy(10),
                 Children =
                 [
                     new TextBlock($"Alignment: {justification}")
                     {
-                        Layout =
-                            new ElementLayout()
-                                .SetMinMaxWidth(0, "100%", true)
-                                .SetMinMaxHeight(16, 22),
-                        FontSize = 16,
-                        TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
+                        FontSize = 16, TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                     },
                     new RowContainer
                     {
-                        Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(50),
+                        //TODO: this is not added to the cache, as it should've thrown DuplicateIdException
+                        Id = "Row",
+                        Layout = new ElementLayout().SetFixedWidth("100%"),
                         Arrangement = new LinearArrangement(justification, 0),
                         Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
                         Children =
@@ -86,6 +80,46 @@ namespace CatUISample.UI.Pages.Layout
                             {
                                 Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
                                 FillBrush = new ColorBrush(CatTheme.Colors.Tertiary)
+                            }
+                        ]
+                    }
+                ]
+            };
+        }
+
+        private static ColumnContainer GetSpacingRowContainerExample(LinearArrangement.JustificationType justification)
+        {
+            return new ColumnContainer
+            {
+                Layout = new ElementLayout().SetFixedWidth("100%"),
+                Arrangement = LinearArrangement.SpacedBy(10),
+                Children =
+                [
+                    new TextBlock($"Alignment: {justification}")
+                    {
+                        FontSize = 16, TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
+                    },
+                    new RowContainer
+                    {
+                        Layout = new ElementLayout().SetFixedWidth("100%"),
+                        Arrangement = new LinearArrangement(justification, 0),
+                        Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
+                        Children =
+                        [
+                            new RectangleElement
+                            {
+                                Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
+                                FillBrush = new ColorBrush(CatTheme.Colors.Primary)
+                            },
+                            new RectangleElement
+                            {
+                                Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
+                                FillBrush = new ColorBrush(CatTheme.Colors.Primary)
+                            },
+                            new RectangleElement
+                            {
+                                Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
+                                FillBrush = new ColorBrush(CatTheme.Colors.Primary)
                             }
                         ]
                     }
