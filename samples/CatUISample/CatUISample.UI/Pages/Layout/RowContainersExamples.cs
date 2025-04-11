@@ -1,3 +1,4 @@
+using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
@@ -11,6 +12,8 @@ namespace CatUISample.UI.Pages.Layout
 {
     public class RowContainersExamples : ColumnContainer
     {
+        private readonly ObservableProperty<Dimension> _textSize = new(32);
+
         public RowContainersExamples()
         {
             Layout = new ElementLayout().SetFixedWidth("100%");
@@ -26,8 +29,12 @@ namespace CatUISample.UI.Pages.Layout
                 new TextBlock("RowContainer examples", TextAlignmentType.Center)
                 {
                     Layout = new ElementLayout().SetMinMaxWidth(0, "100%", true),
-                    FontSize = 32,
-                    TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
+                    TextBrush = new ColorBrush(CatTheme.Colors.OnSurface),
+                    InitializationFunction = e =>
+                    {
+                        var el = (TextBlock)e;
+                        el.FontSizeProperty.BindBidirectional(_textSize);
+                    }
                 },
 
                 GetRowContainerExample(LinearArrangement.JustificationType.Start),
@@ -38,6 +45,8 @@ namespace CatUISample.UI.Pages.Layout
                 GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceBetween),
                 GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceEvenly)
             ];
+
+            _textSize.Value = 24;
         }
 
         private static ColumnContainer GetRowContainerExample(LinearArrangement.JustificationType justification)

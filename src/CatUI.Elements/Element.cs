@@ -473,6 +473,9 @@ namespace CatUI.Elements
         /// </summary>
         public event LoadEventHandler? LoadEvent;
 
+        // protected Action<Element>? Init;
+        // protected virtual void OnInitGenerated() { }
+
 
         public Element()
         {
@@ -505,6 +508,9 @@ namespace CatUI.Elements
             Children.ItemRemovedEvent += OnChildRemoved;
             Children.ItemMovedEvent += OnChildMoved;
             Children.ListClearingEvent += OnChildrenListClearing;
+
+            // OnInitGenerated();
+            // Init?.Invoke(this);
         }
 
         ~Element()

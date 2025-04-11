@@ -19,7 +19,7 @@ namespace CatUI.Elements.Text
     /// lines support and is expandable. It is pretty efficient for both small and large amounts of text, so it can
     /// be used to display entire paragraphs of text.
     /// </summary>
-    public class TextBlock : TextElement, IWordWrappable
+    public partial class TextBlock : TextElement, IWordWrappable
     {
         /// <inheritdoc cref="Element.Ref"/>
         public new ObjectRef<TextBlock>? Ref
