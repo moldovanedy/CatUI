@@ -5,7 +5,7 @@ using CatUI.Data.Enums;
 using CatUI.Data.Shapes;
 using CatUI.Utils;
 
-namespace CatUI.Elements.Containers
+namespace CatUI.Elements.Containers.Linear
 {
     public class ColumnContainer : LinearContainer
     {

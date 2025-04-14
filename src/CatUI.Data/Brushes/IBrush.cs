@@ -1,8 +1,9 @@
-﻿using SkiaSharp;
+﻿using System.ComponentModel;
+using SkiaSharp;
 
 namespace CatUI.Data.Brushes
 {
-    public interface IBrush
+    public interface IBrush : INotifyPropertyChanged
     {
         public SKPaint ToSkiaPaint();
 

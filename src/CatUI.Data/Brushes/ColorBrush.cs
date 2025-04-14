@@ -5,7 +5,7 @@ using SkiaSharp;
 
 namespace CatUI.Data.Brushes
 {
-    public class ColorBrush : IBrush, INotifyPropertyChanged
+    public class ColorBrush : IBrush
     {
         public bool IsSkippable => Color.A == 0;
 

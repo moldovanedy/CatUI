@@ -6,7 +6,7 @@ using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Shapes;
 using CatUI.Elements.Behaviors;
-using CatUI.Elements.Containers;
+using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Media;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;

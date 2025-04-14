@@ -1,0 +1,287 @@
+using CatUI.Data;
+using CatUI.Data.Enums;
+using CatUI.Data.Events.Input.Pointer;
+
+namespace CatUI.Elements.Containers.Linear
+{
+    public abstract partial class LinearContainer
+    {
+        private int _lastCheckedElementIndex;
+
+        protected internal override void InvokeDraw()
+        {
+            //check if the element is inside the viewport
+            if ((ClipType & ClipApplicability.Drawing) != 0)
+            {
+                Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
+
+                if (Bounds.X >= viewportSize.Width)
+                {
+                    return;
+                }
+
+                if (Bounds.EndX <= 0)
+                {
+                    return;
+                }
+
+                if (Bounds.Y >= viewportSize.Height)
+                {
+                    return;
+                }
+
+                if (Bounds.EndY <= 0)
+                {
+                    return;
+                }
+            }
+
+            FireDrawEvent();
+            if (!Visible || Children.Count == 0)
+            {
+                return;
+            }
+
+            //TODO: start this at the first visible element, not at the first element
+            float lastPositionOnAxis =
+                ContainerOrientation == Orientation.Horizontal
+                    ? Children[0].Bounds.X
+                    : Children[0].Bounds.Y;
+            float posLimit =
+                (ContainerOrientation == Orientation.Horizontal
+                    ? Document?.ViewportSize.Width
+                    : Document?.ViewportSize.Height) ?? 0;
+
+            int i = 0;
+            while (i < Children.Count && lastPositionOnAxis <= posLimit)
+            {
+                Children[i].InvokeDraw();
+                lastPositionOnAxis =
+                    ContainerOrientation == Orientation.Horizontal
+                        ? Children[i].Bounds.X
+                        : Children[i].Bounds.Y;
+                i++;
+            }
+        }
+
+        protected internal override void CheckInvokePointerEnter(PointerEnterEventArgs e)
+        {
+            if (!IsPointerInside(e))
+            {
+                return;
+            }
+
+            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+            Children[_lastCheckedElementIndex].CheckInvokePointerEnter(e);
+
+            if (WasPointerInside)
+            {
+                return;
+            }
+
+            WasPointerInside = true;
+            var elementArgs = new PointerEnterEventArgs(
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
+                e.AbsolutePosition,
+                e.IsPressed);
+            FirePointerEnter(elementArgs);
+        }
+
+        protected internal override void CheckInvokePointerExit(PointerExitEventArgs e)
+        {
+            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+            Children[_lastCheckedElementIndex].CheckInvokePointerExit(e);
+
+            //also check in adjacent elements because we need it for input cancelling events
+            if (_lastCheckedElementIndex < Children.Count - 1)
+            {
+                Children[_lastCheckedElementIndex + 1].CheckInvokePointerExit(e);
+            }
+
+            if (_lastCheckedElementIndex > 0)
+            {
+                Children[_lastCheckedElementIndex - 1].CheckInvokePointerExit(e);
+            }
+
+            if (Document == null || IsPointerInside(e) || !WasPointerInside)
+            {
+                return;
+            }
+
+            WasPointerInside = false;
+            var elementArgs = new PointerExitEventArgs(
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
+                e.AbsolutePosition,
+                e.IsPressed);
+            FirePointerExit(elementArgs);
+
+            FirePointerExitCancelEvents(e);
+        }
+
+        protected internal override void CheckInvokePointerMove(PointerMoveEventArgs e)
+        {
+            if (!WasPointerInside || !IsPointerInside(e))
+            {
+                return;
+            }
+
+            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+            Children[_lastCheckedElementIndex].CheckInvokePointerMove(e);
+
+            var elementArgs = new PointerMoveEventArgs(
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
+                e.AbsolutePosition,
+                e.DeltaX,
+                e.DeltaY,
+                e.IsPressed);
+            FirePointerMove(elementArgs);
+        }
+
+        protected internal override void CheckInvokePointerDown(PointerDownEventArgs e)
+        {
+            if (!WasPointerInside || !IsPointerInside(e))
+            {
+                return;
+            }
+
+            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+            Children[_lastCheckedElementIndex].CheckInvokePointerDown(e);
+
+            var elementArgs = new PointerDownEventArgs(
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
+                e.AbsolutePosition);
+            FirePointerDown(elementArgs);
+        }
+
+        protected internal override void CheckInvokePointerUp(PointerUpEventArgs e)
+        {
+            //TODO: cancelling does not work on the opposite axis of the container
+            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+            Children[_lastCheckedElementIndex].CheckInvokePointerUp(e);
+
+            Rect bounds = Bounds;
+            if (CanBypassPointerChecks)
+            {
+                CanBypassPointerChecks = false;
+            }
+            else
+            {
+                if (!WasPointerInside || !IsPointerInside(e))
+                {
+                    return;
+                }
+            }
+
+            var elementArgs = new PointerUpEventArgs(
+                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                e.AbsolutePosition,
+                e.WasCancelled);
+            FirePointerUp(elementArgs);
+        }
+
+        protected internal override void CheckInvokeMouseButton(MouseButtonEventArgs e)
+        {
+            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+            Children[_lastCheckedElementIndex].CheckInvokeMouseButton(e);
+
+            Rect bounds = Bounds;
+            if (CanBypassPointerChecks)
+            {
+                CanBypassPointerChecks = false;
+            }
+            else
+            {
+                if (!WasPointerInside || !IsPointerInside(e))
+                {
+                    return;
+                }
+            }
+
+            var elementArgs = new MouseButtonEventArgs(
+                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                e.AbsolutePosition,
+                e.ButtonType,
+                e.IsPressed,
+                e.WasCancelled);
+            FireMouseButton(elementArgs);
+        }
+
+        protected internal override void CheckInvokeMouseWheel(MouseWheelEventArgs e)
+        {
+            if (!WasPointerInside || !IsPointerInside(e))
+            {
+                return;
+            }
+
+            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+            Children[_lastCheckedElementIndex].CheckInvokeMouseWheel(e);
+
+            var elementArgs = new MouseWheelEventArgs(
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
+                e.AbsolutePosition,
+                e.DeltaX,
+                e.DeltaY,
+                e.IsPressed);
+            FireMouseWheel(elementArgs);
+        }
+
+
+        private int GetEligibleElementIndex(Point2D pointToCheck)
+        {
+            if (_lastCheckedElementIndex >= Children.Count)
+            {
+                _lastCheckedElementIndex = Children.Count / 2;
+            }
+
+            //we first check the last element, as it is possible to fire to the same one, eliminating search
+            int idx = _lastCheckedElementIndex;
+            int left = 0;
+            int right = Children.Count - 1;
+            Rect bounds = Children[idx].Bounds;
+
+            //binary search
+            while (left < right && !ShouldStop(ref bounds, pointToCheck, out bool pointIsAfterBounds))
+            {
+                //if we're here, there are at least 2 children, so it's impossible to get out of the array bounds 
+                if (pointIsAfterBounds)
+                {
+                    left = idx + 1;
+                }
+                else
+                {
+                    right = idx - 1;
+                }
+
+                idx = (left + right) / 2;
+                bounds = Children[idx].Bounds;
+            }
+
+            return idx;
+        }
+
+        private bool ShouldStop(ref Rect bounds, Point2D pointToCheck, out bool pointIsAfterBounds)
+        {
+            bool stop;
+            pointIsAfterBounds = false;
+
+            if (ContainerOrientation == Orientation.Horizontal)
+            {
+                stop = bounds.X <= pointToCheck.X && bounds.X + bounds.Width >= pointToCheck.X;
+                if (!stop)
+                {
+                    pointIsAfterBounds = bounds.X + bounds.Width < pointToCheck.X;
+                }
+            }
+            else
+            {
+                stop = bounds.Y <= pointToCheck.Y && bounds.Y + bounds.Height >= pointToCheck.Y;
+                if (!stop)
+                {
+                    pointIsAfterBounds = bounds.Y + bounds.Height < pointToCheck.Y;
+                }
+            }
+
+            return stop;
+        }
+    }
+}

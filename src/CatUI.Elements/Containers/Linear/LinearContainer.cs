@@ -5,9 +5,9 @@ using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 
-namespace CatUI.Elements.Containers
+namespace CatUI.Elements.Containers.Linear
 {
-    public abstract class LinearContainer : Container
+    public abstract partial class LinearContainer : Container
     {
         /// <summary>
         /// Specifies the arrangement of the children of this container. It only refers to the axis of orientation
@@ -305,9 +305,10 @@ namespace CatUI.Elements.Containers
                                 thisAbsolutePosition,
                                 actualSpacing);
                         finalContainerDim +=
-                            ContainerOrientation == Orientation.Horizontal
+                            actualSpacing +
+                            (ContainerOrientation == Orientation.Horizontal
                                 ? finalSize.Width
-                                : finalSize.Height;
+                                : finalSize.Height);
                         finalOppositeDim =
                             Math.Max(
                                 finalOppositeDim,
@@ -382,9 +383,10 @@ namespace CatUI.Elements.Containers
                                 thisAbsolutePosition,
                                 actualSpacing);
                         finalContainerDim +=
-                            ContainerOrientation == Orientation.Horizontal
+                            actualSpacing +
+                            (ContainerOrientation == Orientation.Horizontal
                                 ? actualSize.Width
-                                : actualSize.Height;
+                                : actualSize.Height);
                         finalOppositeDim =
                             Math.Max(
                                 finalOppositeDim,
