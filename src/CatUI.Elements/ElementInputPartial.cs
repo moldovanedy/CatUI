@@ -144,8 +144,29 @@ namespace CatUI.Elements
 
         private MouseWheelEventHandler? _onMouseWheel;
 
-        private bool _isPointerInside;
-        private bool _canBypassPointerChecks;
+        /// <summary>
+        /// If true, will bypass the checks on pointer exiting so it can fire events needed when an event is cancelled.
+        /// You should generally only use this inside overrides of <see cref="CheckInvokePointerUp"/> and
+        /// <see cref="CheckInvokeMouseButton"/>. When overriding any of the CheckInvoke* methods, please look closely
+        /// at the initial implementation in ElementInputPartial.cs, as you are completely responsible for doing proper
+        /// checks and setting this variable to the correct value each time.
+        /// </summary>
+        /// <remarks>
+        /// This is generally only set by <see cref="FirePointerExitCancelEvents"/> (called on <see cref="CheckInvokePointerExit"/>)
+        /// and overrides of <see cref="CheckInvokePointerUp"/> and <see cref="CheckInvokeMouseButton"/> must set this to
+        /// false if it's true, otherwise (when it's false) it should perform the regular checks. 
+        /// </remarks>
+        /// <example>
+        /// See the implementation of <see cref="CheckInvokePointerUp"/> inside the ElementInputPartial.cs for an example.
+        /// </example>
+        protected bool CanBypassPointerChecks { get; set; }
+
+        /// <summary>
+        /// If true, it means that the pointer was inside the element bounds on the last check. When overriding any of the
+        /// CheckInvoke* methods, please look closely at the initial implementation in ElementInputPartial.cs, as you
+        /// are completely responsible for doing proper checks and setting this variable to the correct value each time.
+        /// </summary>
+        protected bool WasPointerInside { get; set; }
 
 
         #region Public API
@@ -171,41 +192,35 @@ namespace CatUI.Elements
         /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
         /// relative to the top-left corner) and whether the pointer is pressed or not.
         /// </param>
-        internal virtual void CheckInvokePointerEnter(PointerEnterEventArgs e)
+        protected internal virtual void CheckInvokePointerEnter(PointerEnterEventArgs e)
         {
-            Rect bounds = Bounds;
-            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
-            {
-                if (Document == null)
-                {
-                    return;
-                }
-
-                if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
-                {
-                    return;
-                }
-            }
-            else if (!Rect.IsPointInside(ref bounds, e.Position))
+            if (!IsPointerInside(e))
             {
                 return;
             }
 
-            foreach (Element child in Children)
+            int i = Children.Count - 1;
+            while (i >= 0)
             {
-                child.CheckInvokePointerEnter(e);
+                Children[i].CheckInvokePointerEnter(e);
+                i--;
             }
 
-            if (_isPointerInside)
+            if (WasPointerInside)
             {
                 return;
             }
 
-            _isPointerInside = true;
+            WasPointerInside = true;
             var elementArgs = new PointerEnterEventArgs(
-                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
                 e.IsPressed);
+            FirePointerEnter(elementArgs);
+        }
+
+        protected void FirePointerEnter(PointerEnterEventArgs elementArgs)
+        {
             PointerEnterEvent?.Invoke(this, elementArgs);
         }
 
@@ -217,43 +232,37 @@ namespace CatUI.Elements
         /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
         /// relative to the top-left corner) and whether the pointer is pressed or not.
         /// </param>
-        internal virtual void CheckInvokePointerExit(PointerExitEventArgs e)
+        protected internal virtual void CheckInvokePointerExit(PointerExitEventArgs e)
         {
-            foreach (Element child in Children)
+            int i = Children.Count - 1;
+            while (i >= 0)
             {
-                child.CheckInvokePointerExit(e);
+                Children[i].CheckInvokePointerExit(e);
+                i--;
             }
 
-            Rect bounds = Bounds;
-            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
-            {
-                if (Document == null)
-                {
-                    return;
-                }
-
-                if (ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
-                {
-                    return;
-                }
-            }
-            else if (Rect.IsPointInside(ref bounds, e.Position))
+            if (Document == null || IsPointerInside(e) || !WasPointerInside)
             {
                 return;
             }
 
-            if (!_isPointerInside)
-            {
-                return;
-            }
-
-            _isPointerInside = false;
+            WasPointerInside = false;
             var elementArgs = new PointerExitEventArgs(
-                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
                 e.IsPressed);
-            PointerExitEvent?.Invoke(this, elementArgs);
+            FirePointerExit(elementArgs);
 
+            FirePointerExitCancelEvents(e);
+        }
+
+        protected void FirePointerExit(PointerExitEventArgs elementArgs)
+        {
+            PointerExitEvent?.Invoke(this, elementArgs);
+        }
+
+        protected void FirePointerExitCancelEvents(PointerExitEventArgs e)
+        {
             //TODO: this is firing the pointer up events in between the pointer exit events... we probably need to fix that
             //
 
@@ -263,33 +272,33 @@ namespace CatUI.Elements
             //if there are other elements higher up the tree affected, this pointer exit invocation will solve those as well
             if (e.IsPressed)
             {
-                _canBypassPointerChecks = true;
+                CanBypassPointerChecks = true;
                 CheckInvokePointerUp(new PointerUpEventArgs(e.Position, e.AbsolutePosition, true));
-                _canBypassPointerChecks = false;
+                CanBypassPointerChecks = false;
             }
 
             //8 is MouseButtonType count
-            for (int i = 0; i < 8; i++)
+            for (int btn = 0; btn < 8; btn++)
             {
-                if (((int)(Document?.PressedMouseButtons ?? 0) & (1 << i)) == 0)
+                if (((int)(Document?.PressedMouseButtons ?? 0) & (1 << btn)) == 0)
                 {
                     continue;
                 }
 
                 try
                 {
-                    _canBypassPointerChecks = true;
+                    CanBypassPointerChecks = true;
                     CheckInvokeMouseButton(
                         new MouseButtonEventArgs(
                             e.Position,
                             e.AbsolutePosition,
-                            (MouseButtonType)(1 << i),
+                            (MouseButtonType)(1 << btn),
                             e.IsPressed,
                             true));
                 }
                 finally
                 {
-                    _canBypassPointerChecks = false;
+                    CanBypassPointerChecks = false;
                 }
             }
         }
@@ -302,42 +311,31 @@ namespace CatUI.Elements
         /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
         /// relative to the top-left corner) and whether the pointer is pressed or not.
         /// </param>
-        internal virtual void CheckInvokePointerMove(PointerMoveEventArgs e)
+        protected internal virtual void CheckInvokePointerMove(PointerMoveEventArgs e)
         {
-            if (!_isPointerInside)
+            if (!WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
 
-            Rect bounds = Bounds;
-            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            int i = Children.Count - 1;
+            while (i >= 0)
             {
-                if (Document == null)
-                {
-                    return;
-                }
-
-                if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
-                {
-                    return;
-                }
-            }
-            else if (!Rect.IsPointInside(ref bounds, e.Position))
-            {
-                return;
-            }
-
-            foreach (Element child in Children)
-            {
-                child.CheckInvokePointerMove(e);
+                Children[i].CheckInvokePointerMove(e);
+                i--;
             }
 
             var elementArgs = new PointerMoveEventArgs(
-                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
                 e.DeltaX,
                 e.DeltaY,
                 e.IsPressed);
+            FirePointerMove(elementArgs);
+        }
+
+        protected void FirePointerMove(PointerMoveEventArgs elementArgs)
+        {
             PointerMoveEvent?.Invoke(this, elementArgs);
         }
 
@@ -349,39 +347,28 @@ namespace CatUI.Elements
         /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
         /// relative to the top-left corner).
         /// </param>
-        internal virtual void CheckInvokePointerDown(PointerDownEventArgs e)
+        protected internal virtual void CheckInvokePointerDown(PointerDownEventArgs e)
         {
-            if (!_isPointerInside)
+            if (!WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
 
-            Rect bounds = Bounds;
-            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            int i = Children.Count - 1;
+            while (i >= 0)
             {
-                if (Document == null)
-                {
-                    return;
-                }
-
-                if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
-                {
-                    return;
-                }
-            }
-            else if (!Rect.IsPointInside(ref bounds, e.Position))
-            {
-                return;
-            }
-
-            foreach (Element child in Children)
-            {
-                child.CheckInvokePointerDown(e);
+                Children[i].CheckInvokePointerDown(e);
+                i--;
             }
 
             var elementArgs = new PointerDownEventArgs(
-                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition);
+            FirePointerDown(elementArgs);
+        }
+
+        protected void FirePointerDown(PointerDownEventArgs elementArgs)
+        {
             PointerDownEvent?.Invoke(this, elementArgs);
         }
 
@@ -394,38 +381,23 @@ namespace CatUI.Elements
         /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
         /// relative to the top-left corner).
         /// </param>
-        internal virtual void CheckInvokePointerUp(PointerUpEventArgs e)
+        protected internal virtual void CheckInvokePointerUp(PointerUpEventArgs e)
         {
-            foreach (Element child in Children)
+            int i = Children.Count - 1;
+            while (i >= 0)
             {
-                child.CheckInvokePointerUp(e);
+                Children[i].CheckInvokePointerUp(e);
+                i--;
             }
 
             Rect bounds = Bounds;
-            if (_canBypassPointerChecks)
+            if (CanBypassPointerChecks)
             {
-                _canBypassPointerChecks = false;
+                CanBypassPointerChecks = false;
             }
             else
             {
-                if (!_isPointerInside)
-                {
-                    return;
-                }
-
-                if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
-                {
-                    if (Document == null)
-                    {
-                        return;
-                    }
-
-                    if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
-                    {
-                        return;
-                    }
-                }
-                else if (!Rect.IsPointInside(ref bounds, e.Position))
+                if (!WasPointerInside || !IsPointerInside(e))
                 {
                     return;
                 }
@@ -435,6 +407,11 @@ namespace CatUI.Elements
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
                 e.WasCancelled);
+            FirePointerUp(elementArgs);
+        }
+
+        protected void FirePointerUp(PointerUpEventArgs elementArgs)
+        {
             PointerUpEvent?.Invoke(this, elementArgs);
         }
 
@@ -447,41 +424,23 @@ namespace CatUI.Elements
         /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
         /// relative to the top-left corner).
         /// </param>
-        internal virtual void CheckInvokeMouseButton(MouseButtonEventArgs e)
+        protected internal virtual void CheckInvokeMouseButton(MouseButtonEventArgs e)
         {
-            //TODO: check if on desktop we can invoke pointer down and pointer up from here, saving some performance
-            // if it's worth it
-
-            foreach (Element child in Children)
+            int i = Children.Count - 1;
+            while (i >= 0)
             {
-                child.CheckInvokeMouseButton(e);
+                Children[i].CheckInvokeMouseButton(e);
+                i--;
             }
 
             Rect bounds = Bounds;
-            if (_canBypassPointerChecks)
+            if (CanBypassPointerChecks)
             {
-                _canBypassPointerChecks = false;
+                CanBypassPointerChecks = false;
             }
             else
             {
-                if (!_isPointerInside)
-                {
-                    return;
-                }
-
-                if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
-                {
-                    if (Document == null)
-                    {
-                        return;
-                    }
-
-                    if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
-                    {
-                        return;
-                    }
-                }
-                else if (!Rect.IsPointInside(ref bounds, e.Position))
+                if (!WasPointerInside || !IsPointerInside(e))
                 {
                     return;
                 }
@@ -493,6 +452,11 @@ namespace CatUI.Elements
                 e.ButtonType,
                 e.IsPressed,
                 e.WasCancelled);
+            FireMouseButton(elementArgs);
+        }
+
+        protected void FireMouseButton(MouseButtonEventArgs elementArgs)
+        {
             MouseButtonEvent?.Invoke(this, elementArgs);
         }
 
@@ -504,43 +468,55 @@ namespace CatUI.Elements
         /// The arguments that MUST contain the absolute position of the pointer (in window coordinates,
         /// relative to the top-left corner).
         /// </param>
-        internal virtual void CheckInvokeMouseWheel(MouseWheelEventArgs e)
+        protected internal virtual void CheckInvokeMouseWheel(MouseWheelEventArgs e)
         {
-            if (!_isPointerInside)
+            if (!WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
 
-            Rect bounds = Bounds;
-            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            int i = Children.Count - 1;
+            while (i >= 0)
             {
-                if (Document == null)
-                {
-                    return;
-                }
-
-                if (!ClipPath.IsPointInside(e.Position, bounds, Document.ContentScale, Document.ViewportSize))
-                {
-                    return;
-                }
-            }
-            else if (!Rect.IsPointInside(ref bounds, e.Position))
-            {
-                return;
-            }
-
-            foreach (Element child in Children)
-            {
-                child.CheckInvokeMouseWheel(e);
+                Children[i].CheckInvokeMouseWheel(e);
+                i--;
             }
 
             var elementArgs = new MouseWheelEventArgs(
-                new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
+                new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
                 e.DeltaX,
                 e.DeltaY,
                 e.IsPressed);
+            FireMouseWheel(elementArgs);
+        }
+
+        protected void FireMouseWheel(MouseWheelEventArgs elementArgs)
+        {
             MouseWheelEvent?.Invoke(this, elementArgs);
+        }
+
+
+        /// <summary>
+        /// Checks if the pointer is inside the element or not using either the <see cref="ClipPath"/> or the
+        /// <see cref="Bounds"/>, depending on whether <see cref="ClipType"/> flags has <see cref="ClipApplicability.HitTesting"/>
+        /// enabled or not and the <see cref="ClipPath"/> is not null. Only the absolute position is used.
+        /// </summary>
+        /// <param name="e">The pointer data that contains the pointer position.</param>
+        /// <returns>
+        /// True if the given pointer data indicates that the pointer is inside the element's bounds, false otherwise.
+        /// </returns>
+        protected bool IsPointerInside(AbstractPointerEventArgs e)
+        {
+            Rect bounds = Bounds;
+            if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
+            {
+                return
+                    Document != null &&
+                    ClipPath.IsPointInside(e.AbsolutePosition, bounds, Document.ContentScale, Document.ViewportSize);
+            }
+
+            return Rect.IsPointInside(ref bounds, e.AbsolutePosition);
         }
     }
 }

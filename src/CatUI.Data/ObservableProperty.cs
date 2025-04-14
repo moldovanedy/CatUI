@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace CatUI.Data
 {
@@ -9,7 +9,7 @@ namespace CatUI.Data
     /// On destruction, this object will automatically remove all the listeners of <see cref="ValueChangedEvent"/>.
     /// </summary>
     /// <typeparam name="T">The type of the contained object.</typeparam>
-    public class ObservableProperty<T> : CatObject where T : notnull
+    public class ObservableProperty<T> where T : notnull
     {
         /// <summary>
         /// Represents the actual value of the property. Setting this to a different value than the previous one will notify all
@@ -25,7 +25,18 @@ namespace CatUI.Data
                     return;
                 }
 
+                if (_value is INotifyPropertyChanged oldReactiveObject)
+                {
+                    oldReactiveObject.PropertyChanged -= OnPropertyChanged;
+                }
+
                 _value = value;
+
+                if (value is INotifyPropertyChanged newReactiveObject)
+                {
+                    newReactiveObject.PropertyChanged += OnPropertyChanged;
+                }
+
                 ValueChangedEvent?.Invoke(value);
             }
         }
@@ -42,16 +53,6 @@ namespace CatUI.Data
         ~ObservableProperty()
         {
             ValueChangedEvent = null;
-        }
-
-        /// <summary>
-        /// Not implemented because cannot guarantee that T is CatObject, therefore the duplication method for T is unknown.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public override CatObject Duplicate()
-        {
-            throw new NotImplementedException("Duplicating ObservableProperty is not supported.");
         }
 
         /// <summary>
@@ -127,6 +128,11 @@ namespace CatUI.Data
         private void OnChangeCall(T? newValue)
         {
             Value = newValue;
+        }
+
+        private void OnPropertyChanged(object? sender, PropertyChangedEventArgs? e)
+        {
+            ValueChangedEvent?.Invoke(_value);
         }
     }
 

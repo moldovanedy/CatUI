@@ -197,8 +197,10 @@ namespace CatUI.Elements
         #region Artificial events
 
         /// <summary>
-        /// Simulates a pointer move inside the document. This will always fire <see cref="PointerMoveEvent"/> and will
-        /// propagate it through the elements (only eligible elements will react).
+        /// Simulates a pointer move inside the document. This will always fire <see cref="PointerMoveEvent"/> on the
+        /// document and will propagate it through the elements (where only eligible elements will react).
+        /// Both <see cref="AbstractPointerEventArgs.Position"/> and <see cref="AbstractPointerEventArgs.AbsolutePosition"/>
+        /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
@@ -215,8 +217,10 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Simulates a pointer entering the document. This will always fire <see cref="PointerEnterEvent"/> and will
-        /// propagate it through the elements (only eligible elements will react).
+        /// Simulates a pointer entering the document. This will always fire <see cref="PointerEnterEvent"/> on the
+        /// document and will propagate it through the elements (where only eligible elements will react).
+        /// Both <see cref="AbstractPointerEventArgs.Position"/> and <see cref="AbstractPointerEventArgs.AbsolutePosition"/>
+        /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
@@ -230,8 +234,10 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Simulates a pointer exiting the document. This will always fire <see cref="PointerExitEvent"/> and will
-        /// propagate it through the elements (only eligible elements will react).
+        /// Simulates a pointer exiting the document. This will always fire <see cref="PointerExitEvent"/> on the
+        /// document and will propagate it through the elements (where only eligible elements will react).
+        /// Both <see cref="AbstractPointerEventArgs.Position"/> and <see cref="AbstractPointerEventArgs.AbsolutePosition"/>
+        /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
@@ -245,8 +251,10 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Simulates a pointer press inside the document. This will always fire <see cref="PointerDownEvent"/> and will
-        /// propagate it through the elements (only eligible elements will react).
+        /// Simulates a pointer press inside the document. This will always fire <see cref="PointerDownEvent"/> on the
+        /// document and will propagate it through the elements (where only eligible elements will react).
+        /// Both <see cref="AbstractPointerEventArgs.Position"/> and <see cref="AbstractPointerEventArgs.AbsolutePosition"/>
+        /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
@@ -260,8 +268,10 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Simulates a pointer release inside the document. This will always fire <see cref="PointerUpEvent"/> and will
-        /// propagate it through the elements (only eligible elements will react).
+        /// Simulates a pointer release inside the document. This will always fire <see cref="PointerUpEvent"/> on the
+        /// document and will propagate it through the elements (where only eligible elements will react).
+        /// Both <see cref="AbstractPointerEventArgs.Position"/> and <see cref="AbstractPointerEventArgs.AbsolutePosition"/>
+        /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
@@ -276,7 +286,9 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Simulates a mouse button down or up inside the document. This will always fire <see cref="MouseButtonEvent"/>
-        /// and will propagate it through the elements (only eligible elements will react).
+        /// on the document and will propagate it through the elements (where only eligible elements will react).
+        /// Both <see cref="AbstractPointerEventArgs.Position"/> and <see cref="AbstractPointerEventArgs.AbsolutePosition"/>
+        /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
@@ -295,7 +307,9 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Simulates a mouse wheel interaction inside the document. This will always fire <see cref="MouseWheelEvent"/>
-        /// and will propagate it through the elements (only eligible elements will react).
+        /// on the document and will propagate it through the elements (where only eligible elements will react).
+        /// Both <see cref="AbstractPointerEventArgs.Position"/> and <see cref="AbstractPointerEventArgs.AbsolutePosition"/>
+        /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to

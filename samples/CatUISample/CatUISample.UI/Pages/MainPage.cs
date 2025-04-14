@@ -2,7 +2,7 @@ using CatUI.Data.Brushes;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Theming;
-using CatUI.Elements.Containers;
+using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Text;
 
 namespace CatUISample.UI.Pages

@@ -3,7 +3,7 @@ using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Theming;
-using CatUI.Elements.Containers;
+using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 
@@ -54,8 +54,6 @@ namespace CatUISample.UI.Pages.Layout
                     },
                     new RowContainer
                     {
-                        //TODO: this is not added to the cache, as it should've thrown DuplicateIdException
-                        Id = "Row",
                         Layout = new ElementLayout().SetFixedWidth("100%"),
                         Arrangement = new LinearArrangement(justification, 0),
                         Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),

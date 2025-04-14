@@ -9,7 +9,7 @@ using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
 using CatUI.Data.Exceptions;
 using CatUI.Data.Shapes;
-using CatUI.Elements.Containers;
+using CatUI.Elements.Containers.Linear;
 using CatUI.Utils;
 using Container = CatUI.Elements.Containers.Container;
 
@@ -204,7 +204,9 @@ namespace CatUI.Elements
         /// is not set, the hit testing will still happen, just that it will happen on <see cref="Bounds"/> instead of
         /// <see cref="ClipPath"/>. The default value is <see cref="ClipApplicability.All"/>.
         /// </summary>
-        /// <remarks>If <see cref="ClipPath"/> is null, this property is ignored.</remarks>
+        /// <remarks>
+        /// If <see cref="ClipPath"/> is null, this property is ignored (but hit testing will still apply as specified).
+        /// </remarks>
         public ClipApplicability ClipType
         {
             get => _clipType;
@@ -412,6 +414,8 @@ namespace CatUI.Elements
                 if (_document == null && value != null)
                 {
                     _document = value;
+                    _document?.AddToIdCache(this);
+
                     InvokeEnterDocument();
                     MakeChildrenEnterDocument(Children);
 
@@ -589,10 +593,6 @@ namespace CatUI.Elements
             if (Document != null)
             {
                 e.Item.Document = Document;
-                if (e.Item._id != null)
-                {
-                    Document.AddToIdCache(e.Item);
-                }
 
                 if (_shouldRecalculateLayout)
                 {
@@ -654,9 +654,41 @@ namespace CatUI.Elements
 
         #region Internal invoke
 
-        internal void InvokeDraw()
+        /// <summary>
+        /// Invokes <see cref="DrawEvent"/> where applicable (to this element and all its children). You shouldn't call
+        /// this, but you can override it to optimize the draw calls (for example, in LinearContainer this is overriden
+        /// so that only a small part of the children are drawn because they are sorted, so it's already known what
+        /// children are in the viewport).
+        /// </summary>
+        protected internal virtual void InvokeDraw()
         {
-            DrawEvent?.Invoke(this);
+            //check if the element is inside the viewport
+            if ((ClipType & ClipApplicability.Drawing) != 0)
+            {
+                Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
+
+                if (Bounds.X >= viewportSize.Width)
+                {
+                    return;
+                }
+
+                if (Bounds.EndX <= 0)
+                {
+                    return;
+                }
+
+                if (Bounds.Y >= viewportSize.Height)
+                {
+                    return;
+                }
+
+                if (Bounds.EndY <= 0)
+                {
+                    return;
+                }
+            }
+
+            FireDrawEvent();
             DrawChildren();
         }
 
@@ -678,6 +710,14 @@ namespace CatUI.Elements
             }
 
             LoadEvent?.Invoke(this);
+        }
+
+        /// <summary>
+        /// Fires <see cref="DrawEvent"/>. You should only call this inside overrides of <see cref="InvokeDraw"/>.
+        /// </summary>
+        protected void FireDrawEvent()
+        {
+            DrawEvent?.Invoke(this);
         }
 
         #endregion //Internal invoke

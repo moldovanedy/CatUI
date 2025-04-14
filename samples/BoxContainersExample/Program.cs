@@ -2,7 +2,7 @@
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
-using CatUI.Elements.Containers;
+using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Shapes;
 using CatUI.Windowing.Desktop;
 
