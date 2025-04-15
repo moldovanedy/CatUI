@@ -7,6 +7,7 @@ using CatUI.Data.Theming;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Helpers.Navigation;
+using CatUI.Elements.Utils;
 using CatUI.Utils;
 using CatUISample.UI.Pages;
 using CatUISample.UI.Pages.Layout;
@@ -35,6 +36,7 @@ namespace CatUISample.UI
                             Background = new ColorBrush(CatTheme.Colors.Primary),
                             OnClick = (_, _) => navigatorRef.Value?.Navigate("/")
                         },
+                        new HorizontalDivider(1, new ColorBrush(Color.Default)),
                         new Button("Layout", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                         {
                             Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),

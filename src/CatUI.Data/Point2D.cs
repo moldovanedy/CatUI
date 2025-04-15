@@ -1,4 +1,5 @@
 ﻿using System;
+using SkiaSharp;
 
 namespace CatUI.Data
 {
@@ -48,6 +49,16 @@ namespace CatUI.Data
             }
 
             throw new FormatException($"Couldn't parse the \"{literal}\" Point2D literal");
+        }
+
+        public static implicit operator SKPoint(Point2D point)
+        {
+            return new SKPoint(point.X, point.Y);
+        }
+
+        public static implicit operator Point2D(SKPoint skPoint)
+        {
+            return new Point2D(skPoint.X, skPoint.Y);
         }
 
         public override string ToString()

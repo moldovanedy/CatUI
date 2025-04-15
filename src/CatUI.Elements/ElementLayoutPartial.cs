@@ -15,13 +15,19 @@ namespace CatUI.Elements
             get => _layout;
             set
             {
-                _layout = value;
+                SetLayout(value);
                 LayoutProperty.Value = value;
             }
         }
 
         private ElementLayout? _layout;
         public ObservableProperty<ElementLayout> LayoutProperty { get; private set; } = new();
+
+        private void SetLayout(ElementLayout? value)
+        {
+            _layout = value;
+            MarkLayoutDirty();
+        }
 
         public event ChildLayoutChangedEventHandler? ChildLayoutChangedEvent;
 

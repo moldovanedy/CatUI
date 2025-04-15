@@ -695,12 +695,5 @@ namespace CatUI.Elements.Containers.Linear
                 UpdatePositionOfChildren(child, constOffset);
             }
         }
-
-
-        public enum Orientation
-        {
-            Horizontal = 0,
-            Vertical = 1
-        }
     }
 }

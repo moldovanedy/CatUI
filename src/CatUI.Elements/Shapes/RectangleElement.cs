@@ -59,12 +59,7 @@ namespace CatUI.Elements.Shapes
 
         protected override void DrawBackground()
         {
-            if (!Visible)
-            {
-                return;
-            }
-
-            if (FillBrush.IsSkippable)
+            if (!Visible || FillBrush.IsSkippable)
             {
                 return;
             }
