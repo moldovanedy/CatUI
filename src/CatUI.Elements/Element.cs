@@ -505,6 +505,8 @@ namespace CatUI.Elements
             EnabledProperty.ValueChangedEvent += SetEnabled;
             ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
 
+            LayoutProperty.ValueChangedEvent += SetLayout;
+
             Children.ItemInsertedEvent += OnChildInserted;
             Children.ItemRemovedEvent += OnChildRemoved;
             Children.ItemMovedEvent += OnChildMoved;
@@ -850,7 +852,7 @@ namespace CatUI.Elements
 
         public void RequestRedraw()
         {
-            Document?.MarkDirty();
+            Document?.MarkVisualDirty();
         }
 
         /// <summary>
@@ -879,7 +881,7 @@ namespace CatUI.Elements
                 _parent?.ChildLayoutChangedEvent?.Invoke(this, new ChildLayoutChangedEventArgs(IndexInParent));
             }
 
-            Document?.MarkDirty();
+            Document?.MarkVisualDirty();
         }
 
         #endregion //Public API

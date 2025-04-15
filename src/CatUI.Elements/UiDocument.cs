@@ -169,7 +169,7 @@ namespace CatUI.Elements
         /// <summary>
         /// This will invoke draw for the root element and, consequently, to all eligible children (children that are
         /// visible and can be drawn). You should only call this from the windowing code, not from normal, UI code.
-        /// For UI code, see <see cref="MarkDirty"/>.
+        /// For UI code, see <see cref="MarkVisualDirty"/>.
         /// </summary>
         /// <remarks>
         /// Because of hardware acceleration, this is very efficient, as partial redraws are something really uncommon
@@ -184,7 +184,7 @@ namespace CatUI.Elements
         /// This will mark the document as "dirty", meaning elements should be redrawn on the next frame. Use this instead
         /// of <see cref="DrawAllElements"/> as much as possible.
         /// </summary>
-        public void MarkDirty()
+        public void MarkVisualDirty()
         {
             Renderer.SetCanvasDirty();
         }

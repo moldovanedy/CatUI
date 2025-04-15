@@ -125,6 +125,22 @@ namespace CatUI.RenderingEngine
             Canvas?.DrawPath(skiaPath, outlinePaint);
         }
 
+        public void DrawLine(Point2D start, Point2D end, IBrush brush, OutlineParams? outlineParams = null)
+        {
+            if (brush.IsSkippable)
+            {
+                return;
+            }
+
+            SKPaint outlinePaint = brush.ToSkiaPaint();
+            PaintManager.ModifyPaint(
+                outlinePaint,
+                PaintMode.Outline,
+                outlineParams: outlineParams);
+
+            Canvas?.DrawLine(start, end, outlinePaint);
+        }
+
 
         private static SKPoint[] SetupRectCorners(CornerInset roundedCorners)
         {

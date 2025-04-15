@@ -69,6 +69,9 @@ namespace CatUI.Elements.Shapes
                 return;
             }
 
+            //also draw the background
+            base.DrawBackground();
+
             if (FillBrush.IsSkippable)
             {
                 return;

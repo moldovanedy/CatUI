@@ -29,4 +29,13 @@
         Center = 1,
         End = 2
     }
+
+    /// <summary>
+    /// The orientation of an element.
+    /// </summary>
+    public enum Orientation
+    {
+        Horizontal = 0,
+        Vertical = 1
+    }
 }
