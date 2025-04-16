@@ -168,6 +168,7 @@ namespace CatUI.Elements.Helpers.Navigation
                 CurrentPath = CurrentPath,
                 CurrentRoute = CurrentRoute?.Duplicate(),
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),

@@ -7,6 +7,7 @@ using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Document;
+using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.Data.Shapes;
 using CatUI.Elements.Containers.Linear;
@@ -17,6 +18,10 @@ namespace CatUI.Elements
 {
     public partial class Element
     {
+        public const string? STATE_NORMAL = null;
+        public const string? STATE_HOVER = "hover";
+        public const string? STATE_PRESSED = "pressed";
+
         public DrawEventHandler? OnDraw
         {
             get => _onDraw;
@@ -120,6 +125,37 @@ namespace CatUI.Elements
         private readonly ObservableList<Element> _children = [];
 
         /// <summary>
+        /// Represents the current state the element is in (normal, hover, pressed, disabled, error etc.). There are no
+        /// limits on how much states an element can transition to, but it can only be in one state at a time.
+        /// Null means the normal state (this is the default value).
+        /// </summary>
+        /// <remarks>
+        /// There are some states that are reserved by CatUI elements directly (usually accessible by a static STATE_*
+        /// constant on the given element, such as STATE_NORMAL or STATE_HOVER), but you can also create custom states.
+        /// </remarks>
+        public string? State
+        {
+            get => _state;
+            set
+            {
+                if (value != _state)
+                {
+                    SetState(value);
+                    StateProperty.Value = value;
+                }
+            }
+        }
+
+        private string? _state;
+        public ObservableProperty<string> StateProperty { get; private set; } = new(null);
+
+        private void SetState(string? value)
+        {
+            //actual changes will be triggered by El.Style
+            _state = value;
+        }
+
+        /// <summary>
         /// Represents the top-left corner's position relative to the parent's top-left corner. When the element is
         /// inside a container, this value generally won't get considered. Default is (0, 0). 
         /// </summary>
@@ -165,6 +201,7 @@ namespace CatUI.Elements
         private void SetBackground(IBrush? value)
         {
             _background = value ?? new ColorBrush(Color.Default);
+            Document?.MarkVisualDirty();
         }
 
         /// <summary>
@@ -494,8 +531,14 @@ namespace CatUI.Elements
             MouseButtonEvent += MouseButton;
             MouseWheelEvent += MouseWheel;
 
+            PointerEnterEvent += InternalOnPointerEnter;
+            PointerExitEvent += InternalOnPointerExit;
+            PointerDownEvent += InternalOnPointerDown;
+            PointerUpEvent += InternalOnPointerUp;
+
             ChildLayoutChangedEvent += OnChildLayoutChanged;
 
+            StateProperty.ValueChangedEvent += SetState;
             PositionProperty.ValueChangedEvent += SetPosition;
             BackgroundProperty.ValueChangedEvent += SetBackground;
             ClipPathProperty.ValueChangedEvent += SetClipPath;
@@ -531,6 +574,7 @@ namespace CatUI.Elements
 
             ChildLayoutChangedEvent = null;
 
+            StateProperty = null!;
             PositionProperty = null!;
             BackgroundProperty = null!;
             ClipPathProperty = null!;
@@ -740,6 +784,27 @@ namespace CatUI.Elements
             _shouldRecalculateLayout = true;
         }
 
+        private void InternalOnPointerEnter(object sender, PointerEnterEventArgs e)
+        {
+            State = STATE_HOVER;
+        }
+
+        private void InternalOnPointerExit(object sender, PointerExitEventArgs e)
+        {
+            State = STATE_NORMAL;
+        }
+
+        private void InternalOnPointerDown(object sender, PointerDownEventArgs e)
+        {
+            State = STATE_PRESSED;
+        }
+
+        private void InternalOnPointerUp(object sender, PointerUpEventArgs e)
+        {
+            Rect bounds = Bounds;
+            State = Rect.IsPointInside(ref bounds, e.AbsolutePosition) ? STATE_HOVER : STATE_NORMAL;
+        }
+
         #endregion //Internal event handlers
 
         #region Public API
@@ -764,6 +829,7 @@ namespace CatUI.Elements
         {
             return new Element
             {
+                State = _state,
                 Position = _position,
                 Background = _background.Duplicate(),
                 ClipPath = (ClipShape?)_clipPath?.Duplicate(),
@@ -797,6 +863,16 @@ namespace CatUI.Elements
         public Element? GetParent()
         {
             return _parent;
+        }
+
+        /// <summary>
+        /// This will unbind all the functions bound to <see cref="StateProperty"/>, notably
+        /// <see cref="El.Style{T}(CatUI.Elements.Element,CatUI.Data.ObservableProperty{T},El.PropertyStyleLambda{T})"/>.
+        /// </summary>
+        public void UnbindStyles()
+        {
+            StateProperty = null!;
+            StateProperty = new ObservableProperty<string>(null);
         }
 
         /// <summary>

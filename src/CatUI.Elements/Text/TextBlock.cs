@@ -322,13 +322,14 @@ namespace CatUI.Elements.Text
                 TextBrush = _textBrush.Duplicate(),
                 OutlineTextBrush = _outlineTextBrush.Duplicate(),
                 LineHeight = _lineHeight,
-                //
+                //TextElement
                 Text = Text,
                 FontSize = FontSize,
                 OverflowMode = OverflowMode,
                 TextAlignment = TextAlignment,
                 OverflowString = OverflowString,
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),

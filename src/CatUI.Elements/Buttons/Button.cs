@@ -331,6 +331,7 @@ namespace CatUI.Elements.Buttons
                 //BaseButton
                 CanUserCancelClick = CanUserCancelClick,
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),
