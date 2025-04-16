@@ -104,6 +104,7 @@ namespace CatUI.Elements.Shapes
                 OutlineBrush = OutlineBrush.Duplicate(),
                 OutlineParameters = OutlineParameters,
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),

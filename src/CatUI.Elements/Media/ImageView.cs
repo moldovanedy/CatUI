@@ -402,6 +402,7 @@ namespace CatUI.Elements.Media
                 ImageFit = _imageFit,
                 ResizeQuality = _resizeQuality,
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),

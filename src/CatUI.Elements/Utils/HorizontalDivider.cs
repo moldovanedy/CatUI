@@ -155,6 +155,7 @@ namespace CatUI.Elements.Utils
                 LineBrush = LineBrush,
                 LineCap = LineCap,
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),

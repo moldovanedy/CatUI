@@ -26,6 +26,7 @@ namespace CatUISample.UI
                 //sidebar
                 new ColumnContainer
                 {
+                    Id = "Sidebar",
                     Layout = new ElementLayout().SetFixedWidth(250).SetFixedHeight("100%"),
                     Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
                     Children =
@@ -35,6 +36,21 @@ namespace CatUISample.UI
                             Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
                             Background = new ColorBrush(CatTheme.Colors.Primary),
                             OnClick = (_, _) => navigatorRef.Value?.Navigate("/")
+                            // InitializationFunction = e =>
+                            //     El.Style(
+                            //         e,
+                            //         (state, el) =>
+                            //         {
+                            //             switch (state)
+                            //             {
+                            //                 default:
+                            //                     el.Background = new ColorBrush(CatTheme.Colors.Primary);
+                            //                     break;
+                            //                 case "hover":
+                            //                     el.Background = new ColorBrush(CatTheme.Colors.Tertiary);
+                            //                     break;
+                            //             }
+                            //         })
                         },
                         new HorizontalDivider(1, new ColorBrush(Color.Default)),
                         new Button("Layout", 16, new ColorBrush(CatTheme.Colors.OnPrimary))

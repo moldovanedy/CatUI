@@ -44,6 +44,7 @@ namespace CatUI.Elements.Utils
         {
             return new Spacer
             {
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),

@@ -7,6 +7,7 @@ namespace CatUI.Elements.Containers.Linear
     public abstract partial class LinearContainer
     {
         private int _lastCheckedElementIndex;
+        private Point2D _lastPointerPosition = Point2D.Zero;
 
         protected internal override void InvokeDraw()
         {
@@ -92,15 +93,54 @@ namespace CatUI.Elements.Containers.Linear
             _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
             Children[_lastCheckedElementIndex].CheckInvokePointerExit(e);
 
-            //also check in adjacent elements because we need it for input cancelling events
-            if (_lastCheckedElementIndex < Children.Count - 1)
+            //also check in adjacent elements because we need it for input cancelling and especially for firing
+            //PointerExit correctly
+
+            //the distance that the pointer travelled plus 50% to ensure we don't miss elements
+            float requiredDelta = (ContainerOrientation == Orientation.Horizontal
+                ? e.AbsolutePosition.X - _lastPointerPosition.X
+                : e.AbsolutePosition.Y - _lastPointerPosition.Y) * 1.5f;
+            _lastPointerPosition = e.AbsolutePosition;
+
+            float currentDelta = 0;
+            int currentIndex = _lastCheckedElementIndex + 1;
+            float lastRelevantPosition =
+                ContainerOrientation == Orientation.Horizontal
+                    ? Children[_lastCheckedElementIndex].Bounds.X
+                    : Children[_lastCheckedElementIndex].Bounds.Y;
+
+            while (currentDelta < requiredDelta && currentIndex < Children.Count)
             {
-                Children[_lastCheckedElementIndex + 1].CheckInvokePointerExit(e);
+                Element child = Children[currentIndex];
+                child.CheckInvokePointerExit(e);
+
+                float thisRelevantPosition =
+                    ContainerOrientation == Orientation.Horizontal ? child.Bounds.X : child.Bounds.Y;
+                currentDelta += thisRelevantPosition - lastRelevantPosition;
+                lastRelevantPosition = thisRelevantPosition;
+
+                currentIndex++;
             }
 
-            if (_lastCheckedElementIndex > 0)
+            requiredDelta = -requiredDelta;
+            currentDelta = 0;
+            currentIndex = _lastCheckedElementIndex - 1;
+            lastRelevantPosition =
+                ContainerOrientation == Orientation.Horizontal
+                    ? Children[_lastCheckedElementIndex].Bounds.X
+                    : Children[_lastCheckedElementIndex].Bounds.Y;
+
+            while (currentDelta > requiredDelta && currentIndex >= 0)
             {
-                Children[_lastCheckedElementIndex - 1].CheckInvokePointerExit(e);
+                Element child = Children[currentIndex];
+                child.CheckInvokePointerExit(e);
+
+                float thisRelevantPosition =
+                    ContainerOrientation == Orientation.Horizontal ? child.Bounds.X : child.Bounds.Y;
+                currentDelta += thisRelevantPosition - lastRelevantPosition;
+                lastRelevantPosition = thisRelevantPosition;
+
+                currentIndex--;
             }
 
             if (Document == null || IsPointerInside(e) || !WasPointerInside)

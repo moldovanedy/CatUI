@@ -69,6 +69,7 @@ namespace CatUI.Elements.Containers.Linear
                 Arrangement = Arrangement,
                 VerticalAlignment = VerticalAlignment,
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),

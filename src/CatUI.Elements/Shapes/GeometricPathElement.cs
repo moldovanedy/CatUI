@@ -219,11 +219,12 @@ namespace CatUI.Elements.Shapes
             {
                 SvgPath = _svgPath,
                 ShouldApplyScaling = _shouldApplyScaling,
-                //
+                //AbstractShapeElement
                 FillBrush = FillBrush.Duplicate(),
                 OutlineBrush = OutlineBrush.Duplicate(),
                 OutlineParameters = OutlineParameters,
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),
