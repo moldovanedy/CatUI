@@ -9,9 +9,9 @@ using CatUI.Elements.Text;
 
 namespace CatUISample.UI.Pages.Layout
 {
-    public class RowContainersExamples : ColumnContainer
+    public class RowContainerExamples : ColumnContainer
     {
-        public RowContainersExamples()
+        public RowContainerExamples()
         {
             Layout = new ElementLayout().SetFixedWidth("100%");
             Arrangement = LinearArrangement.SpacedBy(20);

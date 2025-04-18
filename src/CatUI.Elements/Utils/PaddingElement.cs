@@ -13,8 +13,15 @@ namespace CatUI.Elements.Utils
     /// refers to padding, it can also be used as margin.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The padding cannot be larger than the half of the width for left and right and larger than height for top and bottom.
     /// Negative values are allowed, but will cause the element to exceed its parent's size. Use with caution.
+    /// </para>
+    /// <para>
+    /// If the content is larger than this element, it will try to expand (if the maximum size allows it to) so that
+    /// the padding values are still respected. If it cannot expand, then the padding values for top and left might
+    /// not be correct as they can't be respected.
+    /// </para>
     /// </remarks>
     public class PaddingElement : Element
     {
@@ -77,31 +84,73 @@ namespace CatUI.Elements.Utils
             Point2D parentAbsolutePosition,
             Size? parentEnforcedSize = null)
         {
-            float x =
-                parentAbsolutePosition.X +
-                Math.Min(parentSize.Width / 2f, CalculateDimension(_padding.Left, parentSize.Width));
-            float y =
-                parentAbsolutePosition.Y +
-                Math.Min(parentSize.Height / 2f, CalculateDimension(_padding.Top, parentSize.Height));
+            float pLeft = CalculateDimension(_padding.Left, parentSize.Width);
+            float pTop = CalculateDimension(_padding.Top, parentSize.Height);
+            float pRight = CalculateDimension(_padding.Right, parentSize.Width);
+            float pBottom = CalculateDimension(_padding.Bottom, parentSize.Height);
+
+            float x = parentAbsolutePosition.X + Math.Min(parentSize.Width / 2f, pLeft);
+            float y = parentAbsolutePosition.Y + Math.Min(parentSize.Height / 2f, pTop);
 
             Size thisSize;
             if (parentEnforcedSize == null)
             {
-                float width = parentSize.Width -
-                              Math.Min(parentSize.Width / 2f, CalculateDimension(_padding.Right, parentSize.Width));
-                float height = parentSize.Height -
-                               Math.Min(parentSize.Height / 2f, CalculateDimension(_padding.Bottom, parentSize.Height));
-                thisSize = new Size(width, height);
+                float width = parentSize.Width - pLeft - Math.Min(parentSize.Width / 2f, pRight);
+                float height = parentSize.Height - pTop - Math.Min(parentSize.Height / 2f, pBottom);
+                thisSize = new Size(Math.Max(0, width), Math.Max(0, height));
             }
             else
             {
-                thisSize = parentEnforcedSize.Value;
+                thisSize = new Size(
+                    Math.Max(0, parentEnforcedSize.Value.Width - pLeft - pRight),
+                    Math.Max(0, parentEnforcedSize.Value.Height - pTop - pBottom));
             }
 
             Point2D thisAbsolutePosition = new(x, y);
             RecomputeChildrenUtil(thisSize, thisSize, thisAbsolutePosition);
 
-            Bounds = GetFinalBoundsUtil(thisAbsolutePosition, thisSize);
+            Rect contentBounds = GetFinalBoundsUtil(thisAbsolutePosition, thisSize);
+            Point2D offset = Point2D.Zero;
+
+            //after all children are computed, see if the given size and the actual size match;
+            //if not and there is enough space to grow, recalculate the content position, then update the position
+            //of each child directly using UpdatePositionOfChildren
+            if (contentBounds.Width > thisSize.Width)
+            {
+                float actualPaddingOnLeft = Math.Min(parentSize.Width / 2f, pLeft);
+                //float actualPaddingOnRight = Math.Min(parentSize.Width / 2f, pRight);
+
+                float maxStretchAllowed = parentMaxSize.Width - thisSize.Width;
+                if (pLeft + pRight <= maxStretchAllowed)
+                {
+                    x += pLeft - actualPaddingOnLeft;
+                    offset = new Point2D(x, 0);
+                }
+            }
+
+            if (contentBounds.Height > thisSize.Height)
+            {
+                float actualPaddingOnTop = Math.Min(parentSize.Height / 2f, pTop);
+                //float actualPaddingOnBottom = Math.Min(parentSize.Height / 2f, pBottom);
+
+                float maxStretchAllowed = parentMaxSize.Height - thisSize.Height;
+                if (pTop + pBottom <= maxStretchAllowed)
+                {
+                    y += pTop - actualPaddingOnTop;
+                    offset = new Point2D(offset.X, y);
+                }
+            }
+
+            if (offset.X != 0 || offset.Y != 0)
+            {
+                UpdatePositionOfChildren(this, offset);
+            }
+
+            Bounds = new Rect(
+                contentBounds.X - x,
+                contentBounds.Y - y,
+                contentBounds.Width + (x - parentAbsolutePosition.X) + pRight,
+                contentBounds.Height + (y - parentAbsolutePosition.Y) + pBottom);
             return thisSize;
         }
 
@@ -120,6 +169,19 @@ namespace CatUI.Elements.Utils
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+        }
+
+        private static void UpdatePositionOfChildren(Element element, Point2D constOffset)
+        {
+            foreach (Element child in element.Children)
+            {
+                child.Bounds = new Rect(
+                    child.Bounds.X + constOffset.X,
+                    child.Bounds.Y + constOffset.Y,
+                    child.Bounds.Width,
+                    child.Bounds.Height);
+                UpdatePositionOfChildren(child, constOffset);
+            }
         }
     }
 }

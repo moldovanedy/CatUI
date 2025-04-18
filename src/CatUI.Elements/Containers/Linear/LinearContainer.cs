@@ -12,7 +12,7 @@ namespace CatUI.Elements.Containers.Linear
         /// <summary>
         /// Specifies the arrangement of the children of this container. It only refers to the axis of orientation
         /// (i.e. <see cref="ContainerOrientation"/>, meaning horizontal for <see cref="RowContainer"/>, vertical
-        /// for <see cref="ColumnContainer"/>); for the other axis, see ....
+        /// for <see cref="ColumnContainer"/>); for the other axis, see ...
         /// </summary>
         public LinearArrangement Arrangement
         {
@@ -59,9 +59,39 @@ namespace CatUI.Elements.Containers.Linear
             Size? parentEnforcedSize = null)
         {
             ElementLayout layout = Layout ?? new ElementLayout();
-            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
             Point2D thisAbsolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
-            Size thisMaxSize = GetMaxSizeUtil(parentSize);
+            Size thisSize, thisMaxSize;
+
+            if (parentEnforcedSize == null)
+            {
+                thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+                thisMaxSize = GetMaxSizeUtil(parentSize);
+
+                //if the container is inside another container, and it has container sizing, set the size as the
+                //parentSize because both parentSize and parentMaxSize will be exactly the size this element needs
+                //to be (at least on the axis of orientation)
+                if (ElementContainerSizing is RowContainerSizing)
+                {
+                    thisSize = new Size(parentSize.Width, thisSize.Height);
+                    thisMaxSize = thisSize;
+                }
+                else if (ElementContainerSizing is ColumnContainerSizing)
+                {
+                    thisSize = new Size(thisSize.Width, parentSize.Height);
+                    thisMaxSize = thisSize;
+                }
+            }
+            else
+            {
+                thisSize = parentEnforcedSize.Value;
+                thisMaxSize = parentEnforcedSize.Value;
+            }
+
+            if (Children.Count == 0)
+            {
+                Bounds = new Rect(thisAbsolutePosition, thisSize);
+                return thisSize;
+            }
 
             float estimatedDim = 0, minimumElementsDim = 0;
             float allocatedMinDim = 0, totalGrowthFactors = 0;
@@ -624,7 +654,7 @@ namespace CatUI.Elements.Containers.Linear
             float contentDimension,
             float constSpacing)
         {
-            //if only one child and one of the space-... type of justification, it behaves as center
+            //if only one child and one of the space-... types of justification, it behaves as Center
             if (
                 Children.Count <= 1 &&
                 (Arrangement.ContentJustification == LinearArrangement.JustificationType.SpaceAround ||

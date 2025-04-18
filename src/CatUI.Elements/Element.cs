@@ -11,6 +11,7 @@ using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.Data.Shapes;
 using CatUI.Elements.Containers.Linear;
+using CatUI.RenderingEngine;
 using CatUI.Utils;
 using Container = CatUI.Elements.Containers.Container;
 
@@ -125,8 +126,8 @@ namespace CatUI.Elements
         private readonly ObservableList<Element> _children = [];
 
         /// <summary>
-        /// Represents the current state the element is in (normal, hover, pressed, disabled, error etc.). There are no
-        /// limits on how much states an element can transition to, but it can only be in one state at a time.
+        /// Represents the current state the element is in (normal, hover, pressed, disabled, error, etc.). There are no
+        /// limits on how many states an element can transition to, but it can only be in one state at a time.
         /// Null means the normal state (this is the default value).
         /// </summary>
         /// <remarks>
@@ -427,8 +428,7 @@ namespace CatUI.Elements
         private Action<Element>? _initializationFunction;
 
         /// <summary>
-        /// Represents the absolute coordinates of this element relative to the viewport. When the element is not
-        /// inside the document, these bounds are not reliable (generally being outdated).
+        /// Represents the absolute coordinates of this element relative to the viewport.
         /// </summary>
         public Rect Bounds { get; set; } = new();
 
@@ -461,7 +461,7 @@ namespace CatUI.Elements
                         MarkLayoutDirty();
                     }
                 }
-                //the element is in a document and the given document is another document or null
+                //the element is in a document, and the given document is another document or null
                 else if (_document != value)
                 {
                     GetParent()?.Children.Remove(this);
@@ -608,19 +608,6 @@ namespace CatUI.Elements
 
         #endregion //Visual
 
-        private void DrawChildren()
-        {
-            if (!_visible)
-            {
-                return;
-            }
-
-            foreach (Element child in Children)
-            {
-                child.InvokeDraw();
-            }
-        }
-
 
         private bool _shouldRecalculateLayout = true;
 
@@ -702,40 +689,114 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Invokes <see cref="DrawEvent"/> where applicable (to this element and all its children). You shouldn't call
-        /// this, but you can override it to optimize the draw calls (for example, in LinearContainer this is overriden
+        /// this, but you can override it to optimize the draw calls. For example, in LinearContainer this is overriden
         /// so that only a small part of the children are drawn because they are sorted, so it's already known what
-        /// children are in the viewport).
+        /// children are in the viewport. Generally, elements outside of document won't receive this draw event.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// When overriding, beware that you should generally return early if <see cref="IsInsideViewport"/> returns
+        /// false, but you also need to set the clip region on the renderer (i.e. <see cref="Renderer.SetClipRect"/> or
+        /// <see cref="Renderer.SetClipPath"/>) as either the element bounds or as <see cref="ClipPath"/>, but only if
+        /// <see cref="ClipType"/> has <see cref="ClipApplicability.Drawing"/> set!
+        /// </para>
+        /// <para>
+        /// Utility functions that can be useful: <see cref="IsInsideViewport"/>, <see cref="DrawingSetClip"/> and
+        /// <see cref="DrawChildren"/>. For actual event invocation, see <see cref="FireDrawEvent"/>.
+        /// </para>
+        /// </remarks>
         protected internal virtual void InvokeDraw()
         {
             //check if the element is inside the viewport
-            if ((ClipType & ClipApplicability.Drawing) != 0)
+            if (!IsInsideViewport() || Document == null)
             {
-                Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
-
-                if (Bounds.X >= viewportSize.Width)
-                {
-                    return;
-                }
-
-                if (Bounds.EndX <= 0)
-                {
-                    return;
-                }
-
-                if (Bounds.Y >= viewportSize.Height)
-                {
-                    return;
-                }
-
-                if (Bounds.EndY <= 0)
-                {
-                    return;
-                }
+                return;
             }
 
+            int? restoreCount = DrawingSetClip();
             FireDrawEvent();
             DrawChildren();
+
+            if ((ClipType & ClipApplicability.Drawing) != 0 && restoreCount != null)
+            {
+                Document.Renderer.RestoreCanvasState(restoreCount.Value);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the element is inside the viewport (according to <see cref="Bounds"/>) and can be drawn, false
+        /// otherwise.
+        /// </summary>
+        /// <returns>True if the element is inside the viewport, false otherwise.</returns>
+        protected bool IsInsideViewport()
+        {
+            Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
+
+            if (Bounds.X >= viewportSize.Width)
+            {
+                return false;
+            }
+
+            if (Bounds.EndX <= 0)
+            {
+                return false;
+            }
+
+            if (Bounds.Y >= viewportSize.Height)
+            {
+                return false;
+            }
+
+            if (Bounds.EndY <= 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Calls <see cref="InvokeDraw"/> on all <see cref="Children"/>. You should only call this inside overrides of
+        /// <see cref="InvokeDraw"/>.
+        /// </summary>
+        protected void DrawChildren()
+        {
+            if (!_visible)
+            {
+                return;
+            }
+
+            foreach (Element child in Children)
+            {
+                child.InvokeDraw();
+            }
+        }
+
+        /// <summary>
+        /// Saves the canvas state and sets the clip region, returning the restore count, which will be passed to
+        /// <see cref="Renderer.RestoreCanvasState(int)"/> when the element is done drawing itself and all its children.
+        /// If the returned value is null, it means that the element doesn't have to be clipped (<see cref="Document"/>
+        /// is null or <see cref="ClipType"/> doesn't have <see cref="ClipApplicability.Drawing"/> set).
+        /// Always call <see cref="Renderer.RestoreCanvasState(int)"/> when the element is done drawing.
+        /// </summary>
+        /// <returns>
+        /// The restore count of <see cref="Renderer.SaveCanvasState"/> or null if no clipping should be applied.
+        /// </returns>
+        protected int? DrawingSetClip()
+        {
+            if (Document == null)
+            {
+                return null;
+            }
+
+            int? restoreCount = null;
+            if ((ClipType & ClipApplicability.Drawing) != 0)
+            {
+                restoreCount = Document.Renderer.SaveCanvasState();
+                Document.Renderer.SetClipRect(Bounds);
+            }
+
+            return restoreCount;
         }
 
         internal void InvokeEnterDocument()
@@ -823,7 +884,7 @@ namespace CatUI.Elements
         /// cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like <see cref="Image"/>).
         /// </summary>
         /// <returns>
-        /// A new deep clone of the object that is not attached to the document, but has the properties of the original.
+        /// A new deep clone of the object that is not attached to the document but has the properties of the original.
         /// </returns>
         public virtual Element Duplicate()
         {
@@ -852,7 +913,7 @@ namespace CatUI.Elements
         /// </summary>
         /// <remarks>
         /// If you disable this check, and you insert duplicate children, the whole element hierarchy might get corrupted,
-        /// and you will get undefined behaviour.
+        /// and you will get undefined behavior.
         /// </remarks>
         /// <param name="shouldEnable">If true, enables the check; if false, disables it.</param>
         public void ToggleDuplicateChildrenCheck(bool shouldEnable)
@@ -882,7 +943,7 @@ namespace CatUI.Elements
         /// </summary>
         /// <param name="dimension">The dimension to get the pixel value from.</param>
         /// <param name="pixelDimensionForPercent">
-        /// Only applicable when dimension is in percentage, represents the dimension at 100%,
+        /// Only applicably when dimension is in percentage, represents the dimension at 100%,
         /// usually set as the parent's width or height.
         /// </param>
         /// <remarks>

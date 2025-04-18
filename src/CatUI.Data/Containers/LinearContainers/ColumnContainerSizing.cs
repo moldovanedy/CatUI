@@ -59,7 +59,7 @@ namespace CatUI.Data.Containers.LinearContainers
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ColumnContainerSizing(
-            float growthFactor = 0,
+            float growthFactor = 1f,
             HorizontalAlignmentType horizontalAlignment = HorizontalAlignmentType.Left)
         {
             GrowthFactor = growthFactor;

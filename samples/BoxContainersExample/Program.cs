@@ -14,7 +14,7 @@ namespace BoxContainersExample
         {
             Init();
 
-            var window = new DesktopWindow(
+            DesktopWindow window = new DesktopWindow(
                 900,
                 600,
                 "BoxContainers example",
@@ -35,20 +35,13 @@ namespace BoxContainersExample
                 {
                     Layout = new ElementLayout().SetFixedWidth("100%").SetMinMaxHeight(250, Dimension.Unset),
                     FillBrush = new ColorBrush(new Color(0x75_75_75)),
-                    ElementContainerSizing = new ColumnContainerSizing(1f)
+                    ElementContainerSizing = new ColumnContainerSizing()
                 },
                 new RectangleElement
                 {
                     FillBrush = new ColorBrush(new Color(0x40_00_80)),
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("15%")
                 }
-                // new RectangleElement(
-                //     maxHeight: "400dp",
-                //     preferredHeight: "5%",
-                //     minHeight: "250dp",
-                //     fillBrush: new ColorBrush(new Color(0x75_75_75)),
-                //     elementContainerSizing: new ColumnContainerSizing(vGrowthFactor: 3)
-                // ),
             ]);
 
             window.Open();

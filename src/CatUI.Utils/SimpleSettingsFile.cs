@@ -509,7 +509,7 @@ namespace CatUI.Utils
                 }
             }
 
-            foreach (SectionNode? subSection in section.GetSubSections())
+            foreach (SectionNode subSection in section.GetSubSections())
             {
                 await WriteSectionAsync(stream, subSection);
             }
@@ -751,7 +751,7 @@ namespace CatUI.Utils
             /// <returns>The new section if the addition succeeded, null otherwise.</returns>
             public SectionNode? AddEmptySection(string name, SectionNode? parent = null)
             {
-                var newSection = new SectionNode() { Name = name };
+                var newSection = new SectionNode { Name = name };
                 if (parent == null)
                 {
                     return AddSection(newSection) ? newSection : null;
