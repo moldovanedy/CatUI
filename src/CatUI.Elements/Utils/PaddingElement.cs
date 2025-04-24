@@ -82,7 +82,8 @@ namespace CatUI.Elements.Utils
             Size parentSize,
             Size parentMaxSize,
             Point2D parentAbsolutePosition,
-            Size? parentEnforcedSize = null)
+            float? parentEnforcedWidth = null,
+            float? parentEnforcedHeight = null)
         {
             float pLeft = CalculateDimension(_padding.Left, parentSize.Width);
             float pTop = CalculateDimension(_padding.Top, parentSize.Height);
@@ -92,19 +93,16 @@ namespace CatUI.Elements.Utils
             float x = parentAbsolutePosition.X + Math.Min(parentSize.Width / 2f, pLeft);
             float y = parentAbsolutePosition.Y + Math.Min(parentSize.Height / 2f, pTop);
 
-            Size thisSize;
-            if (parentEnforcedSize == null)
-            {
-                float width = parentSize.Width - pLeft - Math.Min(parentSize.Width / 2f, pRight);
-                float height = parentSize.Height - pTop - Math.Min(parentSize.Height / 2f, pBottom);
-                thisSize = new Size(Math.Max(0, width), Math.Max(0, height));
-            }
-            else
-            {
-                thisSize = new Size(
-                    Math.Max(0, parentEnforcedSize.Value.Width - pLeft - pRight),
-                    Math.Max(0, parentEnforcedSize.Value.Height - pTop - pBottom));
-            }
+            float width =
+                parentEnforcedWidth != null
+                    ? parentEnforcedWidth.Value - pLeft - pRight
+                    : parentSize.Width - pLeft - Math.Min(parentSize.Width / 2f, pRight);
+            float height =
+                parentEnforcedHeight != null
+                    ? parentEnforcedHeight.Value - pTop - pBottom
+                    : parentSize.Height - pTop - Math.Min(parentSize.Height / 2f, pBottom);
+
+            Size thisSize = new(Math.Max(0, width), Math.Max(0, height));
 
             Point2D thisAbsolutePosition = new(x, y);
             RecomputeChildrenUtil(thisSize, thisSize, thisAbsolutePosition);
@@ -123,8 +121,9 @@ namespace CatUI.Elements.Utils
                 float maxStretchAllowed = parentMaxSize.Width - thisSize.Width;
                 if (pLeft + pRight <= maxStretchAllowed)
                 {
-                    x += pLeft - actualPaddingOnLeft;
-                    offset = new Point2D(x, 0);
+                    float diff = pLeft - actualPaddingOnLeft;
+                    x += diff;
+                    offset = new Point2D(diff, 0);
                 }
             }
 
@@ -136,8 +135,9 @@ namespace CatUI.Elements.Utils
                 float maxStretchAllowed = parentMaxSize.Height - thisSize.Height;
                 if (pTop + pBottom <= maxStretchAllowed)
                 {
-                    y += pTop - actualPaddingOnTop;
-                    offset = new Point2D(offset.X, y);
+                    float diff = pTop - actualPaddingOnTop;
+                    y += diff;
+                    offset = new Point2D(offset.X, diff);
                 }
             }
 
@@ -147,8 +147,8 @@ namespace CatUI.Elements.Utils
             }
 
             Bounds = new Rect(
-                contentBounds.X - x,
-                contentBounds.Y - y,
+                parentAbsolutePosition.X,
+                parentAbsolutePosition.Y,
                 contentBounds.Width + (x - parentAbsolutePosition.X) + pRight,
                 contentBounds.Height + (y - parentAbsolutePosition.Y) + pBottom);
             return thisSize;

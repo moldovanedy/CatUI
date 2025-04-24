@@ -1,4 +1,6 @@
-﻿using CatUI.Data;
+﻿using System;
+using System.Collections.Generic;
+using CatUI.Data;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Navigator;

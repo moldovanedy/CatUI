@@ -58,7 +58,7 @@ namespace CatUI.Data.Events.Input.Pointer
 
         /// <summary>
         /// Represents the mouse middle scroll wheel, if the mouse supports it. This does NOT refer to actual scrolling
-        /// behavior, but rather at the literal wheel click.
+        /// behavior but rather to the literal wheel click.
         /// </summary>
         Middle = 4,
 

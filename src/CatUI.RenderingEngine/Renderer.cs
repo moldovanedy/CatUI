@@ -25,17 +25,6 @@ namespace CatUI.RenderingEngine
         private int _framebufferBinding;
         private int _stencilBits;
         private int _samples;
-        private float _scale = 1;
-
-        public void SetContentScale(float scale)
-        {
-            _scale = scale;
-        }
-
-        public float GetContentScale()
-        {
-            return _scale;
-        }
 
         public void SetFramebufferData(int fbBinding, int stencilBits, int samples)
         {

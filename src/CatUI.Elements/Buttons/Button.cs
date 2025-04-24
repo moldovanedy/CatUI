@@ -313,7 +313,7 @@ namespace CatUI.Elements.Buttons
 
         /// <summary>
         /// A helper constructor that will set the <see cref="IconElement"/> as a given <see cref="AbstractShapeElement"/>
-        /// and will give it a padding.
+        /// and will give it padding.
         /// </summary>
         /// <param name="shapeElement">
         /// A shape element that will be set as the value of <see cref="IconElement"/>.

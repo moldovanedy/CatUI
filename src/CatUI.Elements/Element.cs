@@ -108,17 +108,19 @@ namespace CatUI.Elements
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (value != null)
                 {
-                    _shouldRecalculateLayout = false;
-                    foreach (Element child in value)
+                    try
                     {
-                        child._shouldRecalculateLayout = false;
-                        _children.Add(child);
-                        child._shouldRecalculateLayout = true;
+                        EnterLayoutFreezeRecursively();
+                        foreach (Element child in value)
+                        {
+                            _children.Add(child);
+                        }
                     }
-
-                    _shouldRecalculateLayout = true;
-
-                    MarkLayoutDirty();
+                    finally
+                    {
+                        ExitLayoutFreezeRecursively();
+                        MarkLayoutDirty();
+                    }
                 }
             }
         }
@@ -432,6 +434,9 @@ namespace CatUI.Elements
         /// </summary>
         public Rect Bounds { get; set; } = new();
 
+        /// <summary>
+        /// Represents the index in the parent's children list. If the element is not in the document, this will be -1.
+        /// </summary>
         public int IndexInParent { get; private set; } = -1;
 
         /// <summary>
@@ -454,12 +459,8 @@ namespace CatUI.Elements
                     _document?.AddToIdCache(this);
 
                     InvokeEnterDocument();
+                    //will also call MarkLayoutDirty
                     MakeChildrenEnterDocument(Children);
-
-                    if (_shouldRecalculateLayout)
-                    {
-                        MarkLayoutDirty();
-                    }
                 }
                 //the element is in a document, and the given document is another document or null
                 else if (_document != value)
@@ -484,6 +485,27 @@ namespace CatUI.Elements
         public bool IsChildOfContainer { get; private set; }
 
         public bool IsInsideDocument => Document != null;
+
+        /// <summary>
+        /// You can set this to true using <see cref="EnterLayoutFreeze"/> or <see cref="EnterLayoutFreezeRecursively"/>
+        /// when you set multiple properties of an element at once, so that the layout will not be recalculated every
+        /// time (you should call <see cref="MarkLayoutDirty"/> after setting this to false again). This is generally
+        /// not needed but can be useful for performance reasons. The default value is false.
+        /// </summary>
+        /// <remarks>
+        /// <para>This only affects <see cref="MarkLayoutDirty"/>, not <see cref="RecomputeLayout"/>.</para>
+        /// <para>
+        /// It should work like a mutex: enter the layout freeze when entering the section where you set multiple
+        /// properties or modify the same property multiple times, especially if this creates a lot of recalculations
+        /// for children, then exit the layout freeze when you're done. You should exit the layout freeze in a "finally"
+        /// block so you can be sure that it won't remain false, breaking the UI.
+        /// </para>
+        /// </remarks>
+        /// <seealso cref="EnterLayoutFreezeRecursively"/>
+        /// <seealso cref="ExitLayoutFreezeRecursively"/>
+        /// <seealso cref="EnterLayoutFreeze"/>
+        /// <seealso cref="ExitLayoutFreeze"/>
+        public bool IsLayoutFrozen { get; private set; }
 
         /// <summary>
         /// If true, any child addition will be checked first to ensure there are no duplicates. See
@@ -608,9 +630,6 @@ namespace CatUI.Elements
 
         #endregion //Visual
 
-
-        private bool _shouldRecalculateLayout = true;
-
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
             if (IsCheckingForDuplicateChildren && Children.Count(el => el == e.Item) > 1)
@@ -626,11 +645,7 @@ namespace CatUI.Elements
             if (Document != null)
             {
                 e.Item.Document = Document;
-
-                if (_shouldRecalculateLayout)
-                {
-                    MarkLayoutDirty();
-                }
+                MarkLayoutDirty();
             }
         }
 
@@ -658,11 +673,7 @@ namespace CatUI.Elements
 
             e.Item.Children.Clear();
             e.Item._document = null;
-
-            if (_shouldRecalculateLayout)
-            {
-                MarkLayoutDirty();
-            }
+            MarkLayoutDirty();
         }
 
         private static void OnChildMoved(object? sender, ObservableListMoveEventArgs<Element> e)
@@ -672,24 +683,28 @@ namespace CatUI.Elements
 
         private void OnChildrenListClearing(object? sender, EventArgs e)
         {
-            _shouldRecalculateLayout = false;
-
-            //will clear all children
-            while (_children.Count > 0)
+            try
             {
-                _children[0]._shouldRecalculateLayout = false;
-                _children.RemoveAt(0);
-            }
+                EnterLayoutFreezeRecursively();
 
-            _shouldRecalculateLayout = true;
-            MarkLayoutDirty();
+                //will clear all children
+                while (_children.Count > 0)
+                {
+                    _children.RemoveAt(0);
+                }
+            }
+            finally
+            {
+                ExitLayoutFreezeRecursively();
+                MarkLayoutDirty();
+            }
         }
 
         #region Internal invoke
 
         /// <summary>
         /// Invokes <see cref="DrawEvent"/> where applicable (to this element and all its children). You shouldn't call
-        /// this, but you can override it to optimize the draw calls. For example, in LinearContainer this is overriden
+        /// this, but you can override it to optimize the draw calls. For example, in LinearContainerBase this is overriden
         /// so that only a small part of the children are drawn because they are sorted, so it's already known what
         /// children are in the viewport. Generally, elements outside of document won't receive this draw event.
         /// </summary>
@@ -833,16 +848,19 @@ namespace CatUI.Elements
 
         private void MakeChildrenEnterDocument(ObservableList<Element> children)
         {
-            _shouldRecalculateLayout = false;
-
-            foreach (Element child in children)
+            try
             {
-                child._shouldRecalculateLayout = false;
-                child.Document = Document;
-                child._shouldRecalculateLayout = true;
+                EnterLayoutFreezeRecursively();
+                foreach (Element child in children)
+                {
+                    child.Document = Document;
+                }
             }
-
-            _shouldRecalculateLayout = true;
+            finally
+            {
+                ExitLayoutFreezeRecursively();
+                MarkLayoutDirty();
+            }
         }
 
         private void InternalOnPointerEnter(object sender, PointerEnterEventArgs e)
@@ -1003,7 +1021,7 @@ namespace CatUI.Elements
         /// </remarks>
         public void MarkLayoutDirty()
         {
-            if (!Enabled || !IsInsideDocument)
+            if (!Enabled || !IsInsideDocument || IsLayoutFrozen)
             {
                 return;
             }
@@ -1019,6 +1037,59 @@ namespace CatUI.Elements
             }
 
             Document?.MarkVisualDirty();
+        }
+
+
+        /// <summary>
+        /// Will make the element unable to recompute its layout until you call <see cref="ExitLayoutFreeze"/>. This is
+        /// only used when setting a lot of properties at once, and you want to make sure that the layout is not
+        /// recalculated after each one. To set it for all children as well <see cref="EnterLayoutFreezeRecursively"/>.
+        /// </summary>
+        /// <remarks>Remember to call <see cref="ExitLayoutFreeze"/>, preferably in a "finally" block!</remarks>
+        /// <seealso cref="IsLayoutFrozen"/>
+        public void EnterLayoutFreeze()
+        {
+            IsLayoutFrozen = true;
+        }
+
+        /// <summary>
+        /// The opposite of <see cref="EnterLayoutFreeze"/>. Always call this after a <see cref="EnterLayoutFreeze"/>
+        /// call when you're exiting the "critical section".
+        /// </summary>
+        /// <seealso cref="IsLayoutFrozen"/>
+        public void ExitLayoutFreeze()
+        {
+            IsLayoutFrozen = false;
+        }
+
+        /// <summary>
+        /// Will make the element and all its descendants unable to recompute its layout until you call
+        /// <see cref="ExitLayoutFreezeRecursively"/>. This is only used when setting a lot of properties at once or
+        /// the ones that affect all children recursively. 
+        /// </summary>
+        /// <remarks>Remember to call <see cref="ExitLayoutFreezeRecursively"/>, preferably in a "finally" block!</remarks>
+        /// <seealso cref="IsLayoutFrozen"/>
+        public void EnterLayoutFreezeRecursively()
+        {
+            IsLayoutFrozen = true;
+            foreach (Element child in Children)
+            {
+                child.EnterLayoutFreezeRecursively();
+            }
+        }
+
+        /// <summary>
+        /// The opposite of <see cref="EnterLayoutFreezeRecursively"/>. Always call this after a
+        /// <see cref="EnterLayoutFreezeRecursively"/> call when you're exiting the "critical section".
+        /// </summary>
+        /// <seealso cref="IsLayoutFrozen"/>
+        public void ExitLayoutFreezeRecursively()
+        {
+            IsLayoutFrozen = false;
+            foreach (Element child in Children)
+            {
+                child.ExitLayoutFreezeRecursively();
+            }
         }
 
         #endregion //Public API

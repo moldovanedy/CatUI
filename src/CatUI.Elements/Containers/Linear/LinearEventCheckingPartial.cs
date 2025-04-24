@@ -4,7 +4,7 @@ using CatUI.Data.Events.Input.Pointer;
 
 namespace CatUI.Elements.Containers.Linear
 {
-    public abstract partial class LinearContainer
+    public abstract partial class LinearContainerBase
     {
         private int _lastCheckedElementIndex;
         private Point2D _lastPointerPosition = Point2D.Zero;
@@ -70,7 +70,7 @@ namespace CatUI.Elements.Containers.Linear
             }
 
             WasPointerInside = true;
-            PointerEnterEventArgs elementArgs = new PointerEnterEventArgs(
+            var elementArgs = new PointerEnterEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
                 e.IsPressed);
@@ -144,7 +144,7 @@ namespace CatUI.Elements.Containers.Linear
             }
 
             WasPointerInside = false;
-            PointerExitEventArgs elementArgs = new PointerExitEventArgs(
+            var elementArgs = new PointerExitEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
                 e.IsPressed);
@@ -166,7 +166,7 @@ namespace CatUI.Elements.Containers.Linear
                 Children[_lastCheckedElementIndex].CheckInvokePointerMove(e);
             }
 
-            PointerMoveEventArgs elementArgs = new PointerMoveEventArgs(
+            var elementArgs = new PointerMoveEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
                 e.DeltaX,
@@ -188,7 +188,7 @@ namespace CatUI.Elements.Containers.Linear
                 Children[_lastCheckedElementIndex].CheckInvokePointerDown(e);
             }
 
-            PointerDownEventArgs elementArgs = new PointerDownEventArgs(
+            var elementArgs = new PointerDownEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition);
             FirePointerDown(elementArgs);
@@ -216,7 +216,7 @@ namespace CatUI.Elements.Containers.Linear
                 }
             }
 
-            PointerUpEventArgs elementArgs = new PointerUpEventArgs(
+            var elementArgs = new PointerUpEventArgs(
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
                 e.WasCancelled);
@@ -244,7 +244,7 @@ namespace CatUI.Elements.Containers.Linear
                 }
             }
 
-            MouseButtonEventArgs elementArgs = new MouseButtonEventArgs(
+            var elementArgs = new MouseButtonEventArgs(
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
                 e.ButtonType,
@@ -266,7 +266,7 @@ namespace CatUI.Elements.Containers.Linear
                 Children[_lastCheckedElementIndex].CheckInvokeMouseWheel(e);
             }
 
-            MouseWheelEventArgs elementArgs = new MouseWheelEventArgs(
+            var elementArgs = new MouseWheelEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
                 e.DeltaX,

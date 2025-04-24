@@ -251,20 +251,23 @@ namespace CatUI.Elements.Text
             Size parentSize,
             Size parentMaxSize,
             Point2D parentAbsolutePosition,
-            Size? parentEnforcedSize = null)
+            float? parentEnforcedWidth = null,
+            float? parentEnforcedHeight = null)
         {
-            Size thisSize, thisMaxSize;
             Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
+            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+            Size thisMaxSize = GetMaxSizeUtil(parentSize);
 
-            if (parentEnforcedSize == null)
+            if (parentEnforcedWidth != null)
             {
-                thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
-                thisMaxSize = GetMaxSizeUtil(parentSize);
+                thisSize = new Size(parentEnforcedWidth.Value, thisSize.Height);
+                thisMaxSize = new Size(parentEnforcedWidth.Value, thisMaxSize.Height);
             }
-            else
+
+            if (parentEnforcedHeight != null)
             {
-                thisSize = parentEnforcedSize.Value;
-                thisMaxSize = parentEnforcedSize.Value;
+                thisSize = new Size(thisSize.Width, parentEnforcedHeight.Value);
+                thisMaxSize = new Size(thisMaxSize.Width, parentEnforcedHeight.Value);
             }
 
             //temp

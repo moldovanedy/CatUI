@@ -7,7 +7,7 @@ using CatUI.Utils;
 
 namespace CatUI.Elements.Containers.Linear
 {
-    public class ColumnContainer : LinearContainer
+    public class ColumnContainer : LinearContainerBase
     {
         /// <inheritdoc cref="Element.Ref"/>
         public new ObjectRef<ColumnContainer>? Ref

@@ -15,7 +15,7 @@ namespace CatUISample.UI.Pages.Layout
     {
         public ScrollContainerExamples()
         {
-            Layout = new ElementLayout().SetFixedWidth("100%");
+            Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
             Arrangement = LinearArrangement.SpacedBy(20);
         }
 
@@ -33,7 +33,11 @@ namespace CatUISample.UI.Pages.Layout
                 },
                 new ScrollContainer
                 {
-                    Layout = new ElementLayout().SetFixedWidth(300).SetFixedHeight(400),
+                    Layout =
+                        new ElementLayout()
+                            .SetFixedWidth(300)
+                            .SetMinMaxAndPreferredHeight("30%", 150, 600),
+                    IsHorizontalScrollEnabled = false,
                     Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
                     Content = new PaddingElement(new EdgeInset(0, 10))
                     {

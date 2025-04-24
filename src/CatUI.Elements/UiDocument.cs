@@ -118,6 +118,10 @@ namespace CatUI.Elements
 
         private Element? _root;
 
+        /// <summary>
+        /// The viewport size in pixels. If you change this, the document will be resized and all elements will be
+        /// redrawn.
+        /// </summary>
         public Size ViewportSize
         {
             get => _viewportSize;
@@ -131,7 +135,7 @@ namespace CatUI.Elements
 
         private Size _viewportSize = new();
 
-        public Renderer Renderer { get; private set; } = new();
+        public Renderer Renderer { get; } = new();
 
         public Color BackgroundColor
         {
@@ -150,8 +154,9 @@ namespace CatUI.Elements
             get => _contentScale;
             private set
             {
+                Size originalSize = new(ViewportSize.Width / _contentScale, ViewportSize.Height / _contentScale);
                 _contentScale = value;
-                Renderer.SetContentScale(value);
+                ViewportSize = new Size(originalSize.Width * value, originalSize.Height * value);
             }
         }
 
@@ -161,8 +166,10 @@ namespace CatUI.Elements
 
         public UiDocument(Size initialViewportSize = default, float initialContentScale = 1f)
         {
-            ViewportSize = initialViewportSize;
             ContentScale = initialContentScale;
+            ViewportSize = new Size(
+                initialViewportSize.Width * initialContentScale,
+                initialViewportSize.Height * initialContentScale);
             Renderer.SetBgColor(_background);
         }
 
