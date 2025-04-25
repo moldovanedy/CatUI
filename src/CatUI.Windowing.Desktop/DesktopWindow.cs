@@ -83,6 +83,7 @@ namespace CatUI.Windowing.Desktop
 #endif
 
         private GLFWCallbacks.WindowSizeCallback? _resizeCallback;
+        private GLFWCallbacks.WindowContentScaleCallback? _contentScaleCallback;
         private GLFWCallbacks.WindowIconifyCallback? _iconifyCallback;
         private GLFWCallbacks.WindowMaximizeCallback? _maximizeCallback;
         private GLFWCallbacks.WindowRefreshCallback? _refreshCallback;
@@ -536,7 +537,7 @@ namespace CatUI.Windowing.Desktop
             if (!GLFW.Init())
             {
                 OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode errorCode = GLFW.GetError(out string description);
-                throw new Exception($"Internal GLFW error ({errorCode}): {description}");
+                throw new InternalPlatformException($"Internal GLFW error ({errorCode}): {description}");
             }
 
             //TODO: this is wrong, as this callback is per application, not per window; fix this
@@ -554,7 +555,13 @@ namespace CatUI.Windowing.Desktop
             GLFW.WindowHint(WindowHintBool.Floating, (_flags & WindowFlags.AlwaysOnTop) != 0);
             GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (_flags & WindowFlags.TransparentFramebuffer) != 0);
 
-            Document = new UiDocument(new Size(_width, _height));
+            float contentScale = 1f;
+            if ((_flags & WindowFlags.DpiAware) != 0)
+            {
+                GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out contentScale, out float _);
+            }
+
+            Document = new UiDocument(new Size(_width, _height), contentScale);
         }
 
         ~DesktopWindow()
@@ -573,7 +580,7 @@ namespace CatUI.Windowing.Desktop
 
         /// <summary>
         /// Runs through the whole application lifetime. When this function returns,
-        /// the window is destroyed and any subsequent calls or properties setting on this window object will fail.
+        /// the window is destroyed, and any later calls or properties setting on this window object will fail.
         /// This will block the main thread when waiting for the next frame.
         /// </summary>
         /// <remarks>
@@ -714,7 +721,7 @@ namespace CatUI.Windowing.Desktop
 
         /// <summary>
         /// Closes the window, but if <see cref="OnCloseRequested"/> is overriden, it will be called, so the window might
-        /// not actually close directly.
+        /// not close directly.
         /// </summary>
         public void Close()
         {
@@ -887,6 +894,12 @@ namespace CatUI.Windowing.Desktop
             ResizedEvent += OnResize;
             GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
 
+            _contentScaleCallback = (_, xScale, _) =>
+            {
+                DocumentInvoke("WndSetContentScale", xScale);
+            };
+            GLFW.SetWindowContentScaleCallback(GlfwWindow, _contentScaleCallback);
+
             _iconifyCallback = (_, hasMinimizedNow) =>
             {
                 OnMinimizeOrRestore(hasMinimizedNow);
@@ -994,7 +1007,7 @@ namespace CatUI.Windowing.Desktop
             _mouseScrollCallback = (_, deltaX, deltaY) =>
             {
                 //TODO: both mouse and touchpad generate only -1 and 1 (at least on Linux), so we need to somehow
-                // detect if it's a mouse or touchpad and scale the mouse accordingly
+                // detect if it's a mouse or touchpad and scale the mouse accordingly or use platform-specific APIs
 
                 GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
                 Point2D pos = new((float)x, (float)y);
@@ -1003,8 +1016,8 @@ namespace CatUI.Windowing.Desktop
                     new MouseWheelEventArgs(
                         pos,
                         pos,
-                        (float)(deltaX == 0 ? deltaX : -deltaX),
-                        (float)(deltaY == 0 ? deltaY : -deltaY),
+                        (float)(deltaX == 0 ? deltaX : -deltaX) * 10,
+                        (float)(deltaY == 0 ? deltaY : -deltaY) * 10,
                         (Document.PressedMouseButtons & MouseButtonType.Middle) != 0));
             };
             GLFW.SetScrollCallback(GlfwWindow, _mouseScrollCallback);
@@ -1015,6 +1028,9 @@ namespace CatUI.Windowing.Desktop
             ResizedEvent = null;
             _resizeCallback = null;
             GLFW.SetWindowSizeCallback(GlfwWindow, null);
+
+            _contentScaleCallback = null;
+            GLFW.SetWindowContentScaleCallback(GlfwWindow, null);
 
             _iconifyCallback = null;
             GLFW.SetWindowIconifyCallback(GlfwWindow, null);

@@ -38,8 +38,8 @@ namespace CatUI.Elements
         public event PointerExitEventHandler? PointerExitEvent;
 
         /// <summary>
-        /// Fired when the pointer is down (pressed) inside the window's client area (events outside of it are protected by the
-        /// platform). On mobile, every finger is a pointer, so this event will be fired for each finger. On desktop,
+        /// Fired when the pointer is down (pressed) inside the window's client area (the platform protects events outside it).
+        /// On mobile, every finger is a pointer, so this event will be fired for each finger. On desktop,
         /// only the primary mouse button click is considered for this kind of event. See remarks for more details.
         /// </summary>
         /// <remarks>
@@ -49,8 +49,8 @@ namespace CatUI.Elements
         public event PointerDownEventHandler? PointerDownEvent;
 
         /// <summary>
-        /// Fired when the pointer is up (released) inside the window's client area (events outside of it are protected by the
-        /// platform). On mobile, every finger is a pointer, so this event will be fired for each finger. On desktop,
+        /// Fired when the pointer is up (released) inside the window's client area (the platform protects events outside it).
+        /// On mobile, every finger is a pointer, so this event will be fired for each finger. On desktop,
         /// only the primary mouse button click is considered for this kind of event. See remarks for more details.
         /// </summary>
         /// <remarks>
@@ -118,6 +118,10 @@ namespace CatUI.Elements
 
         private Element? _root;
 
+        /// <summary>
+        /// The viewport size in pixels. If you change this, the document will be resized and all elements will be
+        /// redrawn.
+        /// </summary>
         public Size ViewportSize
         {
             get => _viewportSize;
@@ -131,7 +135,7 @@ namespace CatUI.Elements
 
         private Size _viewportSize = new();
 
-        public Renderer Renderer { get; private set; } = new();
+        public Renderer Renderer { get; } = new();
 
         public Color BackgroundColor
         {
@@ -150,8 +154,9 @@ namespace CatUI.Elements
             get => _contentScale;
             private set
             {
+                Size originalSize = new(ViewportSize.Width / _contentScale, ViewportSize.Height / _contentScale);
                 _contentScale = value;
-                Renderer.SetContentScale(value);
+                ViewportSize = new Size(originalSize.Width * value, originalSize.Height * value);
             }
         }
 
@@ -161,8 +166,10 @@ namespace CatUI.Elements
 
         public UiDocument(Size initialViewportSize = default, float initialContentScale = 1f)
         {
-            ViewportSize = initialViewportSize;
             ContentScale = initialContentScale;
+            ViewportSize = new Size(
+                initialViewportSize.Width * initialContentScale,
+                initialViewportSize.Height * initialContentScale);
             Renderer.SetBgColor(_background);
         }
 
@@ -172,16 +179,19 @@ namespace CatUI.Elements
         /// For UI code, see <see cref="MarkVisualDirty"/>.
         /// </summary>
         /// <remarks>
-        /// Because of hardware acceleration, this is very efficient, as partial redraws are something really uncommon
-        /// when drawing using GPU, so don't worry about potential performance issues when completely redrawing all the elements.
+        /// Because of hardware acceleration, this is very efficient, as partial redraws are really uncommon
+        /// when drawing using GPU, so don't worry about potential performance issues when completely redrawing all
+        /// the elements.
         /// </remarks>
         public void DrawAllElements()
         {
+            Renderer.SaveCanvasState();
             Root?.InvokeDraw();
+            Renderer.RestoreCanvasState(-1);
         }
 
         /// <summary>
-        /// This will mark the document as "dirty", meaning elements should be redrawn on the next frame. Use this instead
+        /// This will mark the document as "dirty", meaning elements should be redrawn in the next frame. Use this instead
         /// of <see cref="DrawAllElements"/> as much as possible.
         /// </summary>
         public void MarkVisualDirty()

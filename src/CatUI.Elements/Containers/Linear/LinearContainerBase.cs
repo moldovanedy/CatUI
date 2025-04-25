@@ -7,12 +7,12 @@ using CatUI.Data.Events.Document;
 
 namespace CatUI.Elements.Containers.Linear
 {
-    public abstract partial class LinearContainer : Container
+    public abstract partial class LinearContainerBase : Container
     {
         /// <summary>
         /// Specifies the arrangement of the children of this container. It only refers to the axis of orientation
         /// (i.e. <see cref="ContainerOrientation"/>, meaning horizontal for <see cref="RowContainer"/>, vertical
-        /// for <see cref="ColumnContainer"/>); for the other axis, see ....
+        /// for <see cref="ColumnContainer"/>); for the other axis, see ...
         /// </summary>
         public LinearArrangement Arrangement
         {
@@ -38,16 +38,16 @@ namespace CatUI.Elements.Containers.Linear
         protected AlignmentType PreferredAlignment { get; set; } = AlignmentType.Start;
 
         /// <summary>
-        /// Specifies the orientation of this LinearContainer. Can be vertical or horizontal.
+        /// Specifies the orientation of this LinearContainerBase. Can be vertical or horizontal.
         /// </summary>
         public abstract Orientation ContainerOrientation { get; }
 
-        public LinearContainer()
+        public LinearContainerBase()
         {
             ArrangementProperty.ValueChangedEvent += SetArrangement;
         }
 
-        ~LinearContainer()
+        ~LinearContainerBase()
         {
             ArrangementProperty = null!;
         }
@@ -56,12 +56,32 @@ namespace CatUI.Elements.Containers.Linear
             Size parentSize,
             Size parentMaxSize,
             Point2D parentAbsolutePosition,
-            Size? parentEnforcedSize = null)
+            float? parentEnforcedWidth = null,
+            float? parentEnforcedHeight = null)
         {
             ElementLayout layout = Layout ?? new ElementLayout();
-            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
             Point2D thisAbsolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
+
+            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
             Size thisMaxSize = GetMaxSizeUtil(parentSize);
+
+            if (parentEnforcedWidth != null)
+            {
+                thisSize = new Size(parentEnforcedWidth.Value, thisSize.Height);
+                thisMaxSize = new Size(parentEnforcedWidth.Value, thisMaxSize.Height);
+            }
+
+            if (parentEnforcedHeight != null)
+            {
+                thisSize = new Size(thisSize.Width, parentEnforcedHeight.Value);
+                thisMaxSize = new Size(thisMaxSize.Width, parentEnforcedHeight.Value);
+            }
+
+            if (Children.Count == 0)
+            {
+                Bounds = new Rect(thisAbsolutePosition, thisSize);
+                return thisSize;
+            }
 
             float estimatedDim = 0, minimumElementsDim = 0;
             float allocatedMinDim = 0, totalGrowthFactors = 0;
@@ -266,11 +286,12 @@ namespace CatUI.Elements.Containers.Linear
                         _ => 0
                     };
 
-                    Size givenSize =
-                        ContainerOrientation == Orientation.Horizontal
-                            ? new Size(finalDim, thisSize.Height)
-                            : new Size(thisSize.Width, finalDim);
-                    Size actualSize = child.RecomputeLayout(givenSize, givenSize, Point2D.Zero);
+                    Size actualSize = child.RecomputeLayout(
+                        thisSize,
+                        thisMaxSize,
+                        Point2D.Zero,
+                        ContainerOrientation == Orientation.Horizontal ? finalDim : null,
+                        ContainerOrientation == Orientation.Vertical ? finalDim : null);
 
                     //if (!isTainted)
                     {
@@ -340,7 +361,8 @@ namespace CatUI.Elements.Containers.Linear
                             thisSize,
                             thisSize,
                             Point2D.Zero,
-                            isEnforced ? enforcedSize : null!);
+                            isEnforced ? enforcedSize.Width : null,
+                            isEnforced ? enforcedSize.Height : null);
 
                         //if the element didn't obey the enforced size, give a warning and consider the given size, even if
                         //this might break the UI
@@ -442,12 +464,29 @@ namespace CatUI.Elements.Containers.Linear
                     ? new Size(finalContainerDim, finalOppositeDim)
                     : new Size(finalOppositeDim, finalContainerDim);
 
+            Rect previousBounds = Bounds;
             Bounds = new Rect(initialAbsolutePosition.X, initialAbsolutePosition.Y, size.Width, size.Height);
+
+            if (Math.Abs(previousBounds.X - Bounds.X) > 0.01 ||
+                Math.Abs(previousBounds.Y - Bounds.Y) > 0.01 ||
+                Math.Abs(previousBounds.Width - Bounds.Width) > 0.01 ||
+                Math.Abs(previousBounds.Height - Bounds.Height) > 0.01)
+            {
+                //this causes StackOverflowException
+                //MarkLayoutDirty();
+            }
+
             return size;
         }
 
         protected override void OnChildLayoutChanged(object? sender, ChildLayoutChangedEventArgs e)
         {
+            if (IsChildOfContainer)
+            {
+                MarkLayoutDirty();
+                return;
+            }
+
             base.OnChildLayoutChanged(sender, e);
 
             if (e.ChildIndex >= Children.Count)
@@ -624,7 +663,7 @@ namespace CatUI.Elements.Containers.Linear
             float contentDimension,
             float constSpacing)
         {
-            //if only one child and one of the space-... type of justification, it behaves as center
+            //if only one child and one of the space-... types of justification, it behaves as Center
             if (
                 Children.Count <= 1 &&
                 (Arrangement.ContentJustification == LinearArrangement.JustificationType.SpaceAround ||

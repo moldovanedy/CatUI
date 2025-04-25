@@ -217,6 +217,11 @@ namespace CatUI.Elements
                 e.AbsolutePosition,
                 e.IsPressed);
             FirePointerEnter(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected void FirePointerEnter(PointerEnterEventArgs elementArgs)
@@ -252,6 +257,11 @@ namespace CatUI.Elements
                 e.AbsolutePosition,
                 e.IsPressed);
             FirePointerExit(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
 
             FirePointerExitCancelEvents(e);
         }
@@ -332,6 +342,11 @@ namespace CatUI.Elements
                 e.DeltaY,
                 e.IsPressed);
             FirePointerMove(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected void FirePointerMove(PointerMoveEventArgs elementArgs)
@@ -365,6 +380,11 @@ namespace CatUI.Elements
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition);
             FirePointerDown(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected void FirePointerDown(PointerDownEventArgs elementArgs)
@@ -408,6 +428,11 @@ namespace CatUI.Elements
                 e.AbsolutePosition,
                 e.WasCancelled);
             FirePointerUp(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected void FirePointerUp(PointerUpEventArgs elementArgs)
@@ -453,6 +478,11 @@ namespace CatUI.Elements
                 e.IsPressed,
                 e.WasCancelled);
             FireMouseButton(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected void FireMouseButton(MouseButtonEventArgs elementArgs)
@@ -489,6 +519,11 @@ namespace CatUI.Elements
                 e.DeltaY,
                 e.IsPressed);
             FireMouseWheel(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected void FireMouseWheel(MouseWheelEventArgs elementArgs)

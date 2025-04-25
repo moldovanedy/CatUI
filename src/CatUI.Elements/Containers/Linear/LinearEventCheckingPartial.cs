@@ -4,38 +4,19 @@ using CatUI.Data.Events.Input.Pointer;
 
 namespace CatUI.Elements.Containers.Linear
 {
-    public abstract partial class LinearContainer
+    public abstract partial class LinearContainerBase
     {
         private int _lastCheckedElementIndex;
         private Point2D _lastPointerPosition = Point2D.Zero;
 
         protected internal override void InvokeDraw()
         {
-            //check if the element is inside the viewport
-            if ((ClipType & ClipApplicability.Drawing) != 0)
+            if (!IsInsideViewport() || Document == null)
             {
-                Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
-
-                if (Bounds.X >= viewportSize.Width)
-                {
-                    return;
-                }
-
-                if (Bounds.EndX <= 0)
-                {
-                    return;
-                }
-
-                if (Bounds.Y >= viewportSize.Height)
-                {
-                    return;
-                }
-
-                if (Bounds.EndY <= 0)
-                {
-                    return;
-                }
+                return;
             }
+
+            int? restoreCount = DrawingSetClip();
 
             FireDrawEvent();
             if (!Visible || Children.Count == 0)
@@ -49,9 +30,9 @@ namespace CatUI.Elements.Containers.Linear
                     ? Children[0].Bounds.X
                     : Children[0].Bounds.Y;
             float posLimit =
-                (ContainerOrientation == Orientation.Horizontal
-                    ? Document?.ViewportSize.Width
-                    : Document?.ViewportSize.Height) ?? 0;
+                ContainerOrientation == Orientation.Horizontal
+                    ? Document.ViewportSize.Width
+                    : Document.ViewportSize.Height;
 
             int i = 0;
             while (i < Children.Count && lastPositionOnAxis <= posLimit)
@@ -63,6 +44,11 @@ namespace CatUI.Elements.Containers.Linear
                         : Children[i].Bounds.Y;
                 i++;
             }
+
+            if ((ClipType & ClipApplicability.Drawing) != 0 && restoreCount != null)
+            {
+                Document.Renderer.RestoreCanvasState(restoreCount.Value);
+            }
         }
 
         protected internal override void CheckInvokePointerEnter(PointerEnterEventArgs e)
@@ -72,8 +58,11 @@ namespace CatUI.Elements.Containers.Linear
                 return;
             }
 
-            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
-            Children[_lastCheckedElementIndex].CheckInvokePointerEnter(e);
+            if (Children.Count > 0)
+            {
+                _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+                Children[_lastCheckedElementIndex].CheckInvokePointerEnter(e);
+            }
 
             if (WasPointerInside)
             {
@@ -86,10 +75,20 @@ namespace CatUI.Elements.Containers.Linear
                 e.AbsolutePosition,
                 e.IsPressed);
             FirePointerEnter(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokePointerExit(PointerExitEventArgs e)
         {
+            if (Children.Count == 0)
+            {
+                goto NoChildCheck;
+            }
+
             _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
             Children[_lastCheckedElementIndex].CheckInvokePointerExit(e);
 
@@ -143,6 +142,7 @@ namespace CatUI.Elements.Containers.Linear
                 currentIndex--;
             }
 
+        NoChildCheck:
             if (Document == null || IsPointerInside(e) || !WasPointerInside)
             {
                 return;
@@ -155,6 +155,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.IsPressed);
             FirePointerExit(elementArgs);
 
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
+
             FirePointerExitCancelEvents(e);
         }
 
@@ -165,8 +170,11 @@ namespace CatUI.Elements.Containers.Linear
                 return;
             }
 
-            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
-            Children[_lastCheckedElementIndex].CheckInvokePointerMove(e);
+            if (Children.Count > 0)
+            {
+                _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+                Children[_lastCheckedElementIndex].CheckInvokePointerMove(e);
+            }
 
             var elementArgs = new PointerMoveEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
@@ -175,6 +183,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.DeltaY,
                 e.IsPressed);
             FirePointerMove(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokePointerDown(PointerDownEventArgs e)
@@ -184,20 +197,31 @@ namespace CatUI.Elements.Containers.Linear
                 return;
             }
 
-            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
-            Children[_lastCheckedElementIndex].CheckInvokePointerDown(e);
+            if (Children.Count > 0)
+            {
+                _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+                Children[_lastCheckedElementIndex].CheckInvokePointerDown(e);
+            }
 
             var elementArgs = new PointerDownEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition);
             FirePointerDown(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokePointerUp(PointerUpEventArgs e)
         {
-            //TODO: cancelling does not work on the opposite axis of the container
-            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
-            Children[_lastCheckedElementIndex].CheckInvokePointerUp(e);
+            if (Children.Count > 0)
+            {
+                //TODO: cancelling does not work on the opposite axis of the container
+                _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+                Children[_lastCheckedElementIndex].CheckInvokePointerUp(e);
+            }
 
             Rect bounds = Bounds;
             if (CanBypassPointerChecks)
@@ -217,12 +241,20 @@ namespace CatUI.Elements.Containers.Linear
                 e.AbsolutePosition,
                 e.WasCancelled);
             FirePointerUp(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokeMouseButton(MouseButtonEventArgs e)
         {
-            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
-            Children[_lastCheckedElementIndex].CheckInvokeMouseButton(e);
+            if (Children.Count > 0)
+            {
+                _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+                Children[_lastCheckedElementIndex].CheckInvokeMouseButton(e);
+            }
 
             Rect bounds = Bounds;
             if (CanBypassPointerChecks)
@@ -244,6 +276,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.IsPressed,
                 e.WasCancelled);
             FireMouseButton(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokeMouseWheel(MouseWheelEventArgs e)
@@ -253,8 +290,11 @@ namespace CatUI.Elements.Containers.Linear
                 return;
             }
 
-            _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
-            Children[_lastCheckedElementIndex].CheckInvokeMouseWheel(e);
+            if (Children.Count > 0)
+            {
+                _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
+                Children[_lastCheckedElementIndex].CheckInvokeMouseWheel(e);
+            }
 
             var elementArgs = new MouseWheelEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
@@ -263,11 +303,21 @@ namespace CatUI.Elements.Containers.Linear
                 e.DeltaY,
                 e.IsPressed);
             FireMouseWheel(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
 
         private int GetEligibleElementIndex(Point2D pointToCheck)
         {
+            if (Children.Count == 0)
+            {
+                return -1;
+            }
+
             if (_lastCheckedElementIndex >= Children.Count)
             {
                 _lastCheckedElementIndex = Children.Count / 2;

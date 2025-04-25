@@ -11,6 +11,7 @@ using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.Data.Shapes;
 using CatUI.Elements.Containers.Linear;
+using CatUI.RenderingEngine;
 using CatUI.Utils;
 using Container = CatUI.Elements.Containers.Container;
 
@@ -107,17 +108,19 @@ namespace CatUI.Elements
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (value != null)
                 {
-                    _shouldRecalculateLayout = false;
-                    foreach (Element child in value)
+                    try
                     {
-                        child._shouldRecalculateLayout = false;
-                        _children.Add(child);
-                        child._shouldRecalculateLayout = true;
+                        EnterLayoutFreezeRecursively();
+                        foreach (Element child in value)
+                        {
+                            _children.Add(child);
+                        }
                     }
-
-                    _shouldRecalculateLayout = true;
-
-                    MarkLayoutDirty();
+                    finally
+                    {
+                        ExitLayoutFreezeRecursively();
+                        MarkLayoutDirty();
+                    }
                 }
             }
         }
@@ -125,8 +128,8 @@ namespace CatUI.Elements
         private readonly ObservableList<Element> _children = [];
 
         /// <summary>
-        /// Represents the current state the element is in (normal, hover, pressed, disabled, error etc.). There are no
-        /// limits on how much states an element can transition to, but it can only be in one state at a time.
+        /// Represents the current state the element is in (normal, hover, pressed, disabled, error, etc.). There are no
+        /// limits on how many states an element can transition to, but it can only be in one state at a time.
         /// Null means the normal state (this is the default value).
         /// </summary>
         /// <remarks>
@@ -427,11 +430,13 @@ namespace CatUI.Elements
         private Action<Element>? _initializationFunction;
 
         /// <summary>
-        /// Represents the absolute coordinates of this element relative to the viewport. When the element is not
-        /// inside the document, these bounds are not reliable (generally being outdated).
+        /// Represents the absolute coordinates of this element relative to the viewport.
         /// </summary>
         public Rect Bounds { get; set; } = new();
 
+        /// <summary>
+        /// Represents the index in the parent's children list. If the element is not in the document, this will be -1.
+        /// </summary>
         public int IndexInParent { get; private set; } = -1;
 
         /// <summary>
@@ -454,14 +459,10 @@ namespace CatUI.Elements
                     _document?.AddToIdCache(this);
 
                     InvokeEnterDocument();
+                    //will also call MarkLayoutDirty
                     MakeChildrenEnterDocument(Children);
-
-                    if (_shouldRecalculateLayout)
-                    {
-                        MarkLayoutDirty();
-                    }
                 }
-                //the element is in a document and the given document is another document or null
+                //the element is in a document, and the given document is another document or null
                 else if (_document != value)
                 {
                     GetParent()?.Children.Remove(this);
@@ -484,6 +485,27 @@ namespace CatUI.Elements
         public bool IsChildOfContainer { get; private set; }
 
         public bool IsInsideDocument => Document != null;
+
+        /// <summary>
+        /// You can set this to true using <see cref="EnterLayoutFreeze"/> or <see cref="EnterLayoutFreezeRecursively"/>
+        /// when you set multiple properties of an element at once, so that the layout will not be recalculated every
+        /// time (you should call <see cref="MarkLayoutDirty"/> after setting this to false again). This is generally
+        /// not needed but can be useful for performance reasons. The default value is false.
+        /// </summary>
+        /// <remarks>
+        /// <para>This only affects <see cref="MarkLayoutDirty"/>, not <see cref="RecomputeLayout"/>.</para>
+        /// <para>
+        /// It should work like a mutex: enter the layout freeze when entering the section where you set multiple
+        /// properties or modify the same property multiple times, especially if this creates a lot of recalculations
+        /// for children, then exit the layout freeze when you're done. You should exit the layout freeze in a "finally"
+        /// block so you can be sure that it won't remain false, breaking the UI.
+        /// </para>
+        /// </remarks>
+        /// <seealso cref="EnterLayoutFreezeRecursively"/>
+        /// <seealso cref="ExitLayoutFreezeRecursively"/>
+        /// <seealso cref="EnterLayoutFreeze"/>
+        /// <seealso cref="ExitLayoutFreeze"/>
+        public bool IsLayoutFrozen { get; private set; }
 
         /// <summary>
         /// If true, any child addition will be checked first to ensure there are no duplicates. See
@@ -608,22 +630,6 @@ namespace CatUI.Elements
 
         #endregion //Visual
 
-        private void DrawChildren()
-        {
-            if (!_visible)
-            {
-                return;
-            }
-
-            foreach (Element child in Children)
-            {
-                child.InvokeDraw();
-            }
-        }
-
-
-        private bool _shouldRecalculateLayout = true;
-
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
             if (IsCheckingForDuplicateChildren && Children.Count(el => el == e.Item) > 1)
@@ -639,11 +645,7 @@ namespace CatUI.Elements
             if (Document != null)
             {
                 e.Item.Document = Document;
-
-                if (_shouldRecalculateLayout)
-                {
-                    MarkLayoutDirty();
-                }
+                MarkLayoutDirty();
             }
         }
 
@@ -671,11 +673,7 @@ namespace CatUI.Elements
 
             e.Item.Children.Clear();
             e.Item._document = null;
-
-            if (_shouldRecalculateLayout)
-            {
-                MarkLayoutDirty();
-            }
+            MarkLayoutDirty();
         }
 
         private static void OnChildMoved(object? sender, ObservableListMoveEventArgs<Element> e)
@@ -685,57 +683,135 @@ namespace CatUI.Elements
 
         private void OnChildrenListClearing(object? sender, EventArgs e)
         {
-            _shouldRecalculateLayout = false;
-
-            //will clear all children
-            while (_children.Count > 0)
+            try
             {
-                _children[0]._shouldRecalculateLayout = false;
-                _children.RemoveAt(0);
-            }
+                EnterLayoutFreezeRecursively();
 
-            _shouldRecalculateLayout = true;
-            MarkLayoutDirty();
+                //will clear all children
+                while (_children.Count > 0)
+                {
+                    _children.RemoveAt(0);
+                }
+            }
+            finally
+            {
+                ExitLayoutFreezeRecursively();
+                MarkLayoutDirty();
+            }
         }
 
         #region Internal invoke
 
         /// <summary>
         /// Invokes <see cref="DrawEvent"/> where applicable (to this element and all its children). You shouldn't call
-        /// this, but you can override it to optimize the draw calls (for example, in LinearContainer this is overriden
+        /// this, but you can override it to optimize the draw calls. For example, in LinearContainerBase this is overriden
         /// so that only a small part of the children are drawn because they are sorted, so it's already known what
-        /// children are in the viewport).
+        /// children are in the viewport. Generally, elements outside of document won't receive this draw event.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// When overriding, beware that you should generally return early if <see cref="IsInsideViewport"/> returns
+        /// false, but you also need to set the clip region on the renderer (i.e. <see cref="Renderer.SetClipRect"/> or
+        /// <see cref="Renderer.SetClipPath"/>) as either the element bounds or as <see cref="ClipPath"/>, but only if
+        /// <see cref="ClipType"/> has <see cref="ClipApplicability.Drawing"/> set!
+        /// </para>
+        /// <para>
+        /// Utility functions that can be useful: <see cref="IsInsideViewport"/>, <see cref="DrawingSetClip"/> and
+        /// <see cref="DrawChildren"/>. For actual event invocation, see <see cref="FireDrawEvent"/>.
+        /// </para>
+        /// </remarks>
         protected internal virtual void InvokeDraw()
         {
             //check if the element is inside the viewport
-            if ((ClipType & ClipApplicability.Drawing) != 0)
+            if (!IsInsideViewport() || Document == null)
             {
-                Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
-
-                if (Bounds.X >= viewportSize.Width)
-                {
-                    return;
-                }
-
-                if (Bounds.EndX <= 0)
-                {
-                    return;
-                }
-
-                if (Bounds.Y >= viewportSize.Height)
-                {
-                    return;
-                }
-
-                if (Bounds.EndY <= 0)
-                {
-                    return;
-                }
+                return;
             }
 
+            int? restoreCount = DrawingSetClip();
             FireDrawEvent();
             DrawChildren();
+
+            if ((ClipType & ClipApplicability.Drawing) != 0 && restoreCount != null)
+            {
+                Document.Renderer.RestoreCanvasState(restoreCount.Value);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the element is inside the viewport (according to <see cref="Bounds"/>) and can be drawn, false
+        /// otherwise.
+        /// </summary>
+        /// <returns>True if the element is inside the viewport, false otherwise.</returns>
+        protected bool IsInsideViewport()
+        {
+            Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
+
+            if (Bounds.X >= viewportSize.Width)
+            {
+                return false;
+            }
+
+            if (Bounds.EndX <= 0)
+            {
+                return false;
+            }
+
+            if (Bounds.Y >= viewportSize.Height)
+            {
+                return false;
+            }
+
+            if (Bounds.EndY <= 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Calls <see cref="InvokeDraw"/> on all <see cref="Children"/>. You should only call this inside overrides of
+        /// <see cref="InvokeDraw"/>.
+        /// </summary>
+        protected void DrawChildren()
+        {
+            if (!_visible)
+            {
+                return;
+            }
+
+            foreach (Element child in Children)
+            {
+                child.InvokeDraw();
+            }
+        }
+
+        /// <summary>
+        /// Saves the canvas state and sets the clip region, returning the restore count, which will be passed to
+        /// <see cref="Renderer.RestoreCanvasState(int)"/> when the element is done drawing itself and all its children.
+        /// If the returned value is null, it means that the element doesn't have to be clipped (<see cref="Document"/>
+        /// is null or <see cref="ClipType"/> doesn't have <see cref="ClipApplicability.Drawing"/> set).
+        /// Always call <see cref="Renderer.RestoreCanvasState(int)"/> when the element is done drawing.
+        /// </summary>
+        /// <returns>
+        /// The restore count of <see cref="Renderer.SaveCanvasState"/> or null if no clipping should be applied.
+        /// </returns>
+        protected int? DrawingSetClip()
+        {
+            if (Document == null)
+            {
+                return null;
+            }
+
+            int? restoreCount = null;
+            if ((ClipType & ClipApplicability.Drawing) != 0)
+            {
+                restoreCount = Document.Renderer.SaveCanvasState();
+                Document.Renderer.SetClipRect(Bounds);
+            }
+
+            return restoreCount;
         }
 
         internal void InvokeEnterDocument()
@@ -772,16 +848,19 @@ namespace CatUI.Elements
 
         private void MakeChildrenEnterDocument(ObservableList<Element> children)
         {
-            _shouldRecalculateLayout = false;
-
-            foreach (Element child in children)
+            try
             {
-                child._shouldRecalculateLayout = false;
-                child.Document = Document;
-                child._shouldRecalculateLayout = true;
+                EnterLayoutFreezeRecursively();
+                foreach (Element child in children)
+                {
+                    child.Document = Document;
+                }
             }
-
-            _shouldRecalculateLayout = true;
+            finally
+            {
+                ExitLayoutFreezeRecursively();
+                MarkLayoutDirty();
+            }
         }
 
         private void InternalOnPointerEnter(object sender, PointerEnterEventArgs e)
@@ -823,7 +902,7 @@ namespace CatUI.Elements
         /// cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like <see cref="Image"/>).
         /// </summary>
         /// <returns>
-        /// A new deep clone of the object that is not attached to the document, but has the properties of the original.
+        /// A new deep clone of the object that is not attached to the document but has the properties of the original.
         /// </returns>
         public virtual Element Duplicate()
         {
@@ -852,7 +931,7 @@ namespace CatUI.Elements
         /// </summary>
         /// <remarks>
         /// If you disable this check, and you insert duplicate children, the whole element hierarchy might get corrupted,
-        /// and you will get undefined behaviour.
+        /// and you will get undefined behavior.
         /// </remarks>
         /// <param name="shouldEnable">If true, enables the check; if false, disables it.</param>
         public void ToggleDuplicateChildrenCheck(bool shouldEnable)
@@ -882,7 +961,7 @@ namespace CatUI.Elements
         /// </summary>
         /// <param name="dimension">The dimension to get the pixel value from.</param>
         /// <param name="pixelDimensionForPercent">
-        /// Only applicable when dimension is in percentage, represents the dimension at 100%,
+        /// Only applicably when dimension is in percentage, represents the dimension at 100%,
         /// usually set as the parent's width or height.
         /// </param>
         /// <remarks>
@@ -942,7 +1021,7 @@ namespace CatUI.Elements
         /// </remarks>
         public void MarkLayoutDirty()
         {
-            if (!Enabled || !IsInsideDocument)
+            if (!Enabled || !IsInsideDocument || IsLayoutFrozen)
             {
                 return;
             }
@@ -958,6 +1037,59 @@ namespace CatUI.Elements
             }
 
             Document?.MarkVisualDirty();
+        }
+
+
+        /// <summary>
+        /// Will make the element unable to recompute its layout until you call <see cref="ExitLayoutFreeze"/>. This is
+        /// only used when setting a lot of properties at once, and you want to make sure that the layout is not
+        /// recalculated after each one. To set it for all children as well <see cref="EnterLayoutFreezeRecursively"/>.
+        /// </summary>
+        /// <remarks>Remember to call <see cref="ExitLayoutFreeze"/>, preferably in a "finally" block!</remarks>
+        /// <seealso cref="IsLayoutFrozen"/>
+        public void EnterLayoutFreeze()
+        {
+            IsLayoutFrozen = true;
+        }
+
+        /// <summary>
+        /// The opposite of <see cref="EnterLayoutFreeze"/>. Always call this after a <see cref="EnterLayoutFreeze"/>
+        /// call when you're exiting the "critical section".
+        /// </summary>
+        /// <seealso cref="IsLayoutFrozen"/>
+        public void ExitLayoutFreeze()
+        {
+            IsLayoutFrozen = false;
+        }
+
+        /// <summary>
+        /// Will make the element and all its descendants unable to recompute its layout until you call
+        /// <see cref="ExitLayoutFreezeRecursively"/>. This is only used when setting a lot of properties at once or
+        /// the ones that affect all children recursively. 
+        /// </summary>
+        /// <remarks>Remember to call <see cref="ExitLayoutFreezeRecursively"/>, preferably in a "finally" block!</remarks>
+        /// <seealso cref="IsLayoutFrozen"/>
+        public void EnterLayoutFreezeRecursively()
+        {
+            IsLayoutFrozen = true;
+            foreach (Element child in Children)
+            {
+                child.EnterLayoutFreezeRecursively();
+            }
+        }
+
+        /// <summary>
+        /// The opposite of <see cref="EnterLayoutFreezeRecursively"/>. Always call this after a
+        /// <see cref="EnterLayoutFreezeRecursively"/> call when you're exiting the "critical section".
+        /// </summary>
+        /// <seealso cref="IsLayoutFrozen"/>
+        public void ExitLayoutFreezeRecursively()
+        {
+            IsLayoutFrozen = false;
+            foreach (Element child in Children)
+            {
+                child.ExitLayoutFreezeRecursively();
+            }
         }
 
         #endregion //Public API

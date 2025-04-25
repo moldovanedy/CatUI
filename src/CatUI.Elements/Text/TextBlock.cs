@@ -108,7 +108,7 @@ namespace CatUI.Elements.Text
         }
 
         /// <summary>
-        /// Represents the brush that is used to draw the text. The default value is a solid black color.
+        /// Represents the brush used to draw the text. The default value is a solid black color.
         /// </summary>
         public IBrush TextBrush
         {
@@ -130,7 +130,7 @@ namespace CatUI.Elements.Text
         }
 
         /// <summary>
-        /// Represents the brush that is used to create the text outline. The default value is a completely transparent
+        /// Represents the brush used to create the text outline. The default value is a completely transparent
         /// color, so it won't get drawn.
         /// </summary>
         public IBrush OutlineTextBrush
@@ -156,7 +156,7 @@ namespace CatUI.Elements.Text
 
         /// <summary>
         /// A dimensionless value that represents the spacing between the rows. A value of 1 will not leave any space
-        /// (note that space might be visible depending on the text and the used font), otherwise it's this value - 1
+        /// (note that space might be visible depending on the text and the used font); otherwise it's this value - 1
         /// multiplied with <see cref="TextElement.FontSize"/>. The default value is 1.2.
         /// </summary>
         /// <remarks>Negative values are not allowed and will be clamped to 0.</remarks>
@@ -199,14 +199,14 @@ namespace CatUI.Elements.Text
         private readonly List<RowInformation> _drawableRows = new();
 
         /// <summary>
-        /// The width of the most wide row currently drawn, (<see cref="_drawableRows"/>, not <see cref="_userRows"/>).
+        /// The width of the widest row currently drawn, (<see cref="_drawableRows"/>, not <see cref="_userRows"/>).
         /// Only relevant when <see cref="WordWrap"/> is true.
         /// </summary>
         private float _maxRowWidth;
 
         /// <summary>
-        /// Represents the total height of the visible text (the number of rows * (font size + some line height calculation)).
-        /// Does NOT include the line height spacing after the last visible row.
+        /// Represents the total height of the visible text (the number of rows * (font size plus some line height
+        /// calculation)). Does NOT include the line height spacing after the last visible row.
         /// </summary>
         private float _visibleTextTotalHeight;
 
@@ -251,20 +251,23 @@ namespace CatUI.Elements.Text
             Size parentSize,
             Size parentMaxSize,
             Point2D parentAbsolutePosition,
-            Size? parentEnforcedSize = null)
+            float? parentEnforcedWidth = null,
+            float? parentEnforcedHeight = null)
         {
-            Size thisSize, thisMaxSize;
             Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
+            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+            Size thisMaxSize = GetMaxSizeUtil(parentSize);
 
-            if (parentEnforcedSize == null)
+            if (parentEnforcedWidth != null)
             {
-                thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
-                thisMaxSize = GetMaxSizeUtil(parentSize);
+                thisSize = new Size(parentEnforcedWidth.Value, thisSize.Height);
+                thisMaxSize = new Size(parentEnforcedWidth.Value, thisMaxSize.Height);
             }
-            else
+
+            if (parentEnforcedHeight != null)
             {
-                thisSize = parentEnforcedSize.Value;
-                thisMaxSize = parentEnforcedSize.Value;
+                thisSize = new Size(thisSize.Width, parentEnforcedHeight.Value);
+                thisMaxSize = new Size(thisMaxSize.Width, parentEnforcedHeight.Value);
             }
 
             //temp
@@ -310,6 +313,27 @@ namespace CatUI.Elements.Text
                 rowPosition = new Point2D(rowPosition.X, rowPosition.Y + rowSize);
                 rowsDrawn++;
             }
+        }
+
+        protected internal override void InvokeDraw()
+        {
+            //check if the element is inside the viewport
+            if (!IsInsideViewport() || Document == null)
+            {
+                return;
+            }
+
+            //TODO: find out why text doesn't play nice with clipping; until then, don't clip
+            //
+
+            //int? restoreCount = DrawingSetClip();
+            FireDrawEvent();
+            DrawChildren();
+
+            // if ((ClipType & ClipApplicability.Drawing) != 0 && restoreCount != null)
+            // {
+            //     Document.Renderer.RestoreCanvasState(restoreCount.Value);
+            // }
         }
 
         public override TextBlock Duplicate()
@@ -450,7 +474,7 @@ namespace CatUI.Elements.Text
                         }
 
                         float currentRowWidth = painter.MeasureText(thisRow.Span);
-                        _drawableRows.Add(new RowInformation()
+                        _drawableRows.Add(new RowInformation
                         {
                             Text = row.Text,
                             PossibleBreakPoints = new List<int>(),
@@ -534,7 +558,7 @@ namespace CatUI.Elements.Text
                             {
                                 nextPortion = row.Text.AsMemory(0, row.PossibleBreakPoints[0] + 1);
                             }
-                            //until the second to last break point
+                            //until the second-to-last break point
                             else if (breakPointIndex + 1 < row.PossibleBreakPoints.Count)
                             {
                                 int startIndex = row.PossibleBreakPoints[breakPointIndex] + 1;
@@ -702,7 +726,7 @@ namespace CatUI.Elements.Text
                 //if there are breaks, set the maximum between the preferred width and the actual max row width;
                 //if no breaks, set the preferred width
                 usedBreakPoints ? Math.Max(preferredSize.Width, _maxRowWidth) : preferredSize.Width,
-                //the height minus last row (because it is added even when there are no more characters left)
+                //the height minus the last row (because it is added even when there are no more characters left)
                 currentHeight - ((rowHeight / 2f) + (fontSize / 2f)));
 
             //edge case: the label doesn't have the height necessary for not even a single row
@@ -740,8 +764,8 @@ namespace CatUI.Elements.Text
                         _drawableRows[^1].Text
                                          .AsSpan(_drawableRows[^1].Text.Length - 3)
                                          .ToArray().Reverse().ToArray());
-                    //calculate the number of characters needed to remove in order to add the overflow string and add 1
-                    //to ensure we don't exceed the element finalSize, but don't remove more than 3 characters
+                    //calculate the number of characters needed to remove to add the overflow string and add 1
+                    //to ensure we don't exceed the element finalSize but don't remove more than 3 characters
                     charsToRemove = (int)Math.Min(painter.BreakText(lastChars, overflowStringWidth) + 1, 3);
                     removeWidth = painter.MeasureText(lastChars.AsSpan(0, charsToRemove));
                 }

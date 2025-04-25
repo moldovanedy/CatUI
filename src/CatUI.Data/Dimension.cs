@@ -200,6 +200,17 @@ namespace CatUI.Data
                     return Value * (viewportSize?.Height ?? 0) / 100f;
             }
         }
+
+        /// <summary>
+        /// Given a pixel value and the content scale (from Document.ContentScale), returns the corresponding dp value.
+        /// </summary>
+        /// <param name="px">The pixel value to convert.</param>
+        /// <param name="contentScale">The document content scale.</param>
+        /// <returns>The equivalent value in dp.</returns>
+        public static float PxToDp(float px, float contentScale)
+        {
+            return px / contentScale;
+        }
     }
 
     /// <summary>

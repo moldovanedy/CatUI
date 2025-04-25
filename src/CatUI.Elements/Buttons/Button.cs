@@ -17,8 +17,14 @@ namespace CatUI.Elements.Buttons
 {
     /// <summary>
     /// A UI button that is specialized in having a text, an icon, or both. For a button that has any kind of
-    /// content, see <see cref="BaseButton"/>.
+    /// content, see <see cref="BaseButton"/>. Do NOT set the <see cref="Element.Children"/> directly or interfere in any
+    /// way with the first child, as it is used internally. Modifying it without using <see cref="TextElement"/> and
+    /// <see cref="IconElement"/> might result in crashes or unexpected behavior in general.
     /// </summary>
+    /// <remarks>
+    /// <see cref="Element.Children"/> is controlled internally. You should never set or modify any children directly,
+    /// but use convenience properties and methods instead. Direct children modification might cause crashes.
+    /// </remarks>
     public class Button : BaseButton, IPaddingAware
     {
         /// <inheritdoc cref="Element.Ref"/>
@@ -134,6 +140,11 @@ namespace CatUI.Elements.Buttons
         /// or both. Contrary to the name, this can be any kind of element, but it's much more common for it to be a
         /// <see cref="TextBlock"/>.
         /// </summary>
+        /// <remarks>
+        /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
+        /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
+        /// <see cref="InternalRowContainer"/>.
+        /// </remarks>
         public Element? TextElement
         {
             get => _textElement;
@@ -169,6 +180,11 @@ namespace CatUI.Elements.Buttons
         /// Contrary to the name, this can be any kind of element, but it's generally used as an icon, like a
         /// <see cref="GeometricPathElement"/> or <see cref="ImageView"/>.
         /// </summary>
+        /// <remarks>
+        /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
+        /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
+        /// <see cref="InternalRowContainer"/>.
+        /// </remarks>
         public Element? IconElement
         {
             get => _iconElement;
@@ -297,7 +313,7 @@ namespace CatUI.Elements.Buttons
 
         /// <summary>
         /// A helper constructor that will set the <see cref="IconElement"/> as a given <see cref="AbstractShapeElement"/>
-        /// and will give it a padding.
+        /// and will give it padding.
         /// </summary>
         /// <param name="shapeElement">
         /// A shape element that will be set as the value of <see cref="IconElement"/>.
@@ -320,7 +336,7 @@ namespace CatUI.Elements.Buttons
             VerticalAlignmentProperty = null!;
         }
 
-        public override Element Duplicate()
+        public override Button Duplicate()
         {
             return new Button(_textElement, _iconElement)
             {

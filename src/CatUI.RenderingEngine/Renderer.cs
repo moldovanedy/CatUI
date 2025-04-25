@@ -1,5 +1,6 @@
 ﻿using System;
 using CatUI.Data;
+using CatUI.Data.Shapes;
 using SkiaSharp;
 
 namespace CatUI.RenderingEngine
@@ -24,17 +25,6 @@ namespace CatUI.RenderingEngine
         private int _framebufferBinding;
         private int _stencilBits;
         private int _samples;
-        private float _scale = 1;
-
-        public void SetContentScale(float scale)
-        {
-            _scale = scale;
-        }
-
-        public float GetContentScale()
-        {
-            return _scale;
-        }
 
         public void SetFramebufferData(int fbBinding, int stencilBits, int samples)
         {
@@ -68,7 +58,7 @@ namespace CatUI.RenderingEngine
                 if (Context == null)
                 {
                     throw new NullReferenceException(
-                        "Graphics context is null This is probably an internal graphics error.");
+                        "Graphics context is null. This is probably an internal graphics error.");
                 }
             }
 
@@ -85,12 +75,12 @@ namespace CatUI.RenderingEngine
 
                 _glInfo = new GRGlFramebufferInfo((uint)_framebufferBinding, COLOR_TYPE.ToGlSizedFormat());
 
-                // destroy the old surface
+                //destroy the old surface
                 Surface?.Dispose();
                 Surface = null;
                 Canvas = null;
 
-                // re-create the render target
+                //re-create the render target
                 _renderTarget?.Dispose();
                 _renderTarget = new GRBackendRenderTarget((int)_newSize.Width, (int)_newSize.Height, _samples,
                     _stencilBits, _glInfo);
@@ -142,5 +132,78 @@ namespace CatUI.RenderingEngine
         {
             IsCanvasDirty = false;
         }
+
+        #region Layered drawing
+
+        /// <summary>
+        /// Analog to <see cref="SKCanvas.Save"/>. Pushes the current canvas state on a stack.
+        /// </summary>
+        /// <returns>The value that should be given to <see cref="RestoreCanvasState(int)"/> to return to this state.</returns>
+        /// <exception cref="NullReferenceException">If <see cref="Canvas"/> is null.</exception>
+        public int SaveCanvasState()
+        {
+            if (Canvas == null)
+            {
+                throw new NullReferenceException("Canvas was null.");
+            }
+
+            return Canvas.Save();
+        }
+
+        /// <summary>
+        /// Analog to <see cref="SKCanvas.RestoreToCount"/>. Restores the canvas state to the given state on the stack.
+        /// Use <see cref="RestoreCanvasState()"/> to only go back one state.
+        /// </summary>
+        /// <param name="initialState">The state to return to. It's the value returned by <see cref="SaveCanvasState"/>.</param>
+        /// <exception cref="NullReferenceException">If <see cref="Canvas"/> is null.</exception>
+        public void RestoreCanvasState(int initialState)
+        {
+            if (Canvas == null)
+            {
+                throw new NullReferenceException("Canvas was null.");
+            }
+
+            Canvas.RestoreToCount(initialState);
+        }
+
+        /// <summary>
+        /// Analog to <see cref="SKCanvas.Restore"/>. Restores the previous canvas state (the one before the call to
+        /// <see cref="SaveCanvasState"/>).
+        /// </summary>
+        /// <exception cref="NullReferenceException">If <see cref="Canvas"/> is null.</exception>
+        public void RestoreCanvasState()
+        {
+            if (Canvas == null)
+            {
+                throw new NullReferenceException("Canvas was null.");
+            }
+
+            Canvas.Restore();
+        }
+
+        #endregion
+
+        #region Clipping
+
+        /// <summary>
+        /// Sets the clip region as the given rect. The coordinates are absolute pixel coordinates.
+        /// </summary>
+        /// <param name="clipRect"></param>
+        public void SetClipRect(Rect clipRect)
+        {
+            Canvas?.ClipRect(clipRect, SKClipOperation.Intersect, true);
+        }
+
+        /// <summary>
+        /// Sets the clip region as the given path. It is generally much slower than <see cref="SetClipRect"/>.
+        /// The coordinates are absolute pixel coordinates.
+        /// </summary>
+        /// <param name="clipPath"></param>
+        public void SetClipPath(PathClipShape clipPath)
+        {
+            Canvas?.ClipPath(clipPath.SkiaPath, SKClipOperation.Intersect, true);
+        }
+
+        #endregion
     }
 }

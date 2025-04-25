@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Brushes;
@@ -81,7 +82,7 @@ namespace CatUI.Elements.Shapes
         /// </summary>
         /// <remarks>
         /// <para>
-        /// While you can create the description manually, SVGs are generally created with a vector-based editing software
+        /// While you can create the description manually, SVGs are generally created with vector-based editing software
         /// like Inkscape. Remember you can only use the data from the "d" attribute of the &lt;path&gt; element.
         /// For full-fledged SVG support, consult other packages that create SkiaSharp objects from SVG objects.
         /// </para>
@@ -132,7 +133,8 @@ namespace CatUI.Elements.Shapes
 
         ~GeometricPathElement()
         {
-            PathCache.RemovePath(_scaledCachedPath);
+            //this causes crashes
+            //PathCache.RemovePath(_scaledCachedPath);
 
             ShouldApplyScalingProperty = null!;
             SvgPathProperty = null!;
@@ -187,30 +189,71 @@ namespace CatUI.Elements.Shapes
             // performance; it's especially important for the case where scaling is not applied, as that's only a translation
             //
             _scaledCachedPath.Transform(_lastTransformMatrix.Invert());
-            var startPoint = new Vector2(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
+            //Vector2 startPoint = new(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
 
             if (ShouldApplyScaling)
             {
-                var scale = new Vector2(
+                Vector2 scale = new(
                     Bounds.Width / _skiaPath.TightBounds.Width,
                     Bounds.Height / _skiaPath.TightBounds.Height);
 
-                _lastTopLeftPoint = new Vector2(
-                    Bounds.X - (startPoint.X * scale.X),
-                    Bounds.Y - (startPoint.Y * scale.Y));
+                // _lastTopLeftPoint = new Vector2(
+                //     Bounds.X - (startPoint.X * scale.X),
+                //     Bounds.Y - (startPoint.Y * scale.Y));
+                _lastTopLeftPoint = new Vector2(Bounds.X, Bounds.Y);
 
                 _lastTransformMatrix = SKMatrix.CreateScaleTranslation(
                     scale.X, scale.Y, _lastTopLeftPoint.X, _lastTopLeftPoint.Y);
             }
             else
             {
-                _lastTopLeftPoint = new Vector2(Bounds.X - startPoint.X, Bounds.Y - startPoint.Y);
+                //_lastTopLeftPoint = new Vector2(Bounds.X - startPoint.X, Bounds.Y - startPoint.Y);
+                _lastTopLeftPoint = new Vector2(Bounds.X, Bounds.Y);
                 _lastTransformMatrix = SKMatrix.CreateTranslation(_lastTopLeftPoint.X, _lastTopLeftPoint.Y);
             }
 
             _scaledCachedPath.Transform(_lastTransformMatrix);
             Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush);
             Document?.Renderer.DrawPathOutline(_scaledCachedPath, OutlineBrush, OutlineParameters);
+        }
+
+        public override Size RecomputeLayout(
+            Size parentSize,
+            Size parentMaxSize,
+            Point2D parentAbsolutePosition,
+            float? parentEnforcedWidth = null,
+            float? parentEnforcedHeight = null)
+        {
+            Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
+            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+            Size thisMaxSize = GetMaxSizeUtil(parentSize);
+
+            //when scaling is applied, ignore the path bounds
+            float width =
+                parentEnforcedWidth ??
+                Math.Max(
+                    thisSize.Width,
+                    ShouldApplyScaling ? float.NegativeInfinity : _scaledCachedPath.TightBounds.Width);
+            float height =
+                parentEnforcedHeight ??
+                Math.Max(
+                    thisSize.Height,
+                    ShouldApplyScaling ? float.NegativeInfinity : _scaledCachedPath.TightBounds.Height);
+
+            float maxWidth = parentEnforcedWidth ?? Math.Max(thisMaxSize.Width, width);
+            float maxHeight = parentEnforcedHeight ?? Math.Max(thisMaxSize.Height, height);
+
+            thisSize = new Size(width, height);
+            thisMaxSize = new Size(maxWidth, maxHeight);
+            RecomputeChildrenUtil(thisSize, thisMaxSize, absolutePosition);
+
+            //IMPORTANT: When we consider all the children's bounds, it's important to know that if the bounds are not
+            //the expected ones (from thisSize) because an element overflowed, we DON'T recalculate again, but leave
+            //all elements as-is. The consequence is that the elements that have layouts in percentages might not really
+            //be that exact percentage, so it's "not a bug, it's a feature" which should be stated clearly in the docs
+            Bounds = GetFinalBoundsUtil(absolutePosition, thisSize);
+
+            return thisSize;
         }
 
         public override GeometricPathElement Duplicate()

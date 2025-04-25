@@ -33,12 +33,14 @@ namespace CatUI.Elements
 
         protected virtual void OnChildLayoutChanged(object? sender, ChildLayoutChangedEventArgs e)
         {
-            // Rect parentBounds = _parent?.Bounds ?? Bounds;
-            // Point2D parentAbsolutePosition = new(parentBounds.X, parentBounds.Y);
-            // Size parentSize = new(parentBounds.Width, parentBounds.Height);
-            //
+            if (IsChildOfContainer)
+            {
+                MarkLayoutDirty();
+                return;
+            }
 
             GetParentLayoutMetrics(out Size parentSize, out Size parentMaxSize, out Point2D parentAbsolutePosition);
+
             Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
             Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
             Size thisMaxSize = GetMaxSizeUtil(parentSize);
@@ -49,12 +51,21 @@ namespace CatUI.Elements
             }
 
             _children[e.ChildIndex].RecomputeLayout(thisSize, thisMaxSize, absolutePosition);
+            Rect previousBounds = Bounds;
             Bounds = Rect.GetCommonBoundingRect(Bounds, _children[e.ChildIndex].Bounds);
+
+            if (Math.Abs(previousBounds.X - Bounds.X) > 0.01 ||
+                Math.Abs(previousBounds.Y - Bounds.Y) > 0.01 ||
+                Math.Abs(previousBounds.Width - Bounds.Width) > 0.01 ||
+                Math.Abs(previousBounds.Height - Bounds.Height) > 0.01)
+            {
+                MarkLayoutDirty();
+            }
         }
 
         /// <summary>
         /// Returns the parent's layout by calculating the metrics from the root element to this element's parent.
-        /// This is a pretty expensive call, so use with caution.
+        /// Only the max size is actually calculated, other metrics are taken from the parent bounds directly.
         /// </summary>
         /// <param name="parentSize">The parent's direct size.</param>
         /// <param name="parentMaxSize">The parent's max size.</param>
@@ -64,6 +75,10 @@ namespace CatUI.Elements
             out Size parentMaxSize,
             out Point2D parentAbsolutePosition)
         {
+            Rect parentBounds = _parent?.Bounds ?? Bounds;
+            parentAbsolutePosition = new Point2D(parentBounds.X, parentBounds.Y);
+            parentSize = new Size(parentBounds.Width, parentBounds.Height);
+
             Element currentElement = this;
             List<int> childIndices = [];
             while (currentElement._parent != null)
@@ -74,16 +89,11 @@ namespace CatUI.Elements
 
             //the root will always have its max size the same as its bounds 
             parentMaxSize = new Size(currentElement.Bounds.Width, currentElement.Bounds.Height);
-            parentSize = parentMaxSize;
-            parentAbsolutePosition = new Point2D();
             //from the direct child of root to this element's parent
             for (int i = childIndices.Count - 2; i >= 0; i--)
             {
                 Element next = currentElement._children[childIndices[i]];
                 parentMaxSize = next.GetMaxSizeUtil(parentMaxSize);
-                parentSize = next.GetDirectSizeUtil(parentSize, parentMaxSize);
-                parentAbsolutePosition = next.GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
-
                 currentElement = next;
             }
         }
@@ -113,9 +123,15 @@ namespace CatUI.Elements
         /// absolute position. Warning! Inside containers, this value is generally (0, 0) because the container is
         /// responsible for placing the children.
         /// </param>
-        /// <param name="parentEnforcedSize">
+        /// <param name="parentEnforcedWidth">
         /// An optional parameter that is generally given inside containers. It represents the parent's forced
-        /// size for this element. You MUST respect this and not give your own value, as the container is free to
+        /// width for this element. You MUST respect this and not give your own value, as the container is free to
+        /// assume that the given value was set or even set it manually, in which case not obeying will create a broken
+        /// UI.
+        /// </param>
+        /// <param name="parentEnforcedHeight">
+        /// An optional parameter that is generally given inside containers. It represents the parent's forced
+        /// width for this element. You MUST respect this and not give your own value, as the container is free to
         /// assume that the given value was set or even set it manually, in which case not obeying will create a broken
         /// UI.
         /// </param>
@@ -126,20 +142,23 @@ namespace CatUI.Elements
             Size parentSize,
             Size parentMaxSize,
             Point2D parentAbsolutePosition,
-            Size? parentEnforcedSize = null)
+            float? parentEnforcedWidth = null,
+            float? parentEnforcedHeight = null)
         {
             Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
-            Size thisSize, thisMaxSize;
+            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+            Size thisMaxSize = GetMaxSizeUtil(parentSize);
 
-            if (parentEnforcedSize == null)
+            if (parentEnforcedWidth != null)
             {
-                thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
-                thisMaxSize = GetMaxSizeUtil(parentSize);
+                thisSize = new Size(parentEnforcedWidth.Value, thisSize.Height);
+                thisMaxSize = new Size(parentEnforcedWidth.Value, thisMaxSize.Height);
             }
-            else
+
+            if (parentEnforcedHeight != null)
             {
-                thisSize = parentEnforcedSize.Value;
-                thisMaxSize = parentEnforcedSize.Value;
+                thisSize = new Size(thisSize.Width, parentEnforcedHeight.Value);
+                thisMaxSize = new Size(thisMaxSize.Width, parentEnforcedHeight.Value);
             }
 
             RecomputeChildrenUtil(thisSize, thisMaxSize, absolutePosition);

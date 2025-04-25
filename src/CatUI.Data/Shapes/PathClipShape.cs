@@ -37,15 +37,16 @@ namespace CatUI.Data.Shapes
                 _svgPath = value;
                 if (!string.IsNullOrEmpty(_svgPath))
                 {
-                    _skiaPath = SKPath.ParseSvgPathData(_svgPath);
-                    _scaledCachedPath = new SKPath(_skiaPath);
+                    SkiaPath = SKPath.ParseSvgPathData(_svgPath);
+                    _scaledCachedPath = new SKPath(SkiaPath);
                 }
             }
         }
 
         private string _svgPath = "";
 
-        private SKPath _skiaPath = new();
+        public SKPath SkiaPath { get; private set; } = new();
+
         private SKPath _scaledCachedPath = new();
 
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
@@ -53,13 +54,13 @@ namespace CatUI.Data.Shapes
 
         public void SetNewSkiaPath(SKPath path)
         {
-            if (path == _skiaPath)
+            if (path == SkiaPath)
             {
                 return;
             }
 
-            _skiaPath = path;
-            _scaledCachedPath = new SKPath(_skiaPath);
+            SkiaPath = path;
+            _scaledCachedPath = new SKPath(SkiaPath);
         }
 
         public override bool IsPointInside(Point2D point, Rect bounds, float contentScale, Size viewportSize)
@@ -72,13 +73,13 @@ namespace CatUI.Data.Shapes
             }
 
             _scaledCachedPath.Transform(_lastTransformMatrix.Invert());
-            var startPoint = new Vector2(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
+            var startPoint = new Vector2(SkiaPath.TightBounds.Left, SkiaPath.TightBounds.Top);
 
             if (ShouldApplyScaling)
             {
                 var scale = new Vector2(
-                    bounds.Width / _skiaPath.TightBounds.Width,
-                    bounds.Height / _skiaPath.TightBounds.Height);
+                    bounds.Width / SkiaPath.TightBounds.Width,
+                    bounds.Height / SkiaPath.TightBounds.Height);
 
                 _lastTopLeftPoint = new Vector2(
                     bounds.X - (startPoint.X * scale.X),
