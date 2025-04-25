@@ -75,6 +75,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.AbsolutePosition,
                 e.IsPressed);
             FirePointerEnter(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokePointerExit(PointerExitEventArgs e)
@@ -150,6 +155,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.IsPressed);
             FirePointerExit(elementArgs);
 
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
+
             FirePointerExitCancelEvents(e);
         }
 
@@ -173,6 +183,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.DeltaY,
                 e.IsPressed);
             FirePointerMove(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokePointerDown(PointerDownEventArgs e)
@@ -192,6 +207,11 @@ namespace CatUI.Elements.Containers.Linear
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition);
             FirePointerDown(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokePointerUp(PointerUpEventArgs e)
@@ -221,6 +241,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.AbsolutePosition,
                 e.WasCancelled);
             FirePointerUp(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokeMouseButton(MouseButtonEventArgs e)
@@ -251,6 +276,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.IsPressed,
                 e.WasCancelled);
             FireMouseButton(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
         protected internal override void CheckInvokeMouseWheel(MouseWheelEventArgs e)
@@ -273,6 +303,11 @@ namespace CatUI.Elements.Containers.Linear
                 e.DeltaY,
                 e.IsPressed);
             FireMouseWheel(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
         }
 
 

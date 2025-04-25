@@ -12,7 +12,7 @@ namespace CatUI.Elements.Containers.Scroll
 {
     public class VerticalScrollBar : ScrollBarBase
     {
-        public Element UpButtonElement
+        public Button UpButtonElement
         {
             get => MinusButtonElement;
             set => MinusButtonElement = value;
@@ -31,7 +31,7 @@ namespace CatUI.Elements.Containers.Scroll
                 Background = new ColorBrush(new Color(0x42_A5_F5))
             };
 
-        public Element DownButtonElement
+        public Button DownButtonElement
         {
             get => PlusButtonElement;
             set => PlusButtonElement = value;

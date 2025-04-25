@@ -84,13 +84,20 @@ namespace CatUI.Elements.Containers.Scroll
                         : Math.Clamp(value.Y, 0, allowedEndPoint.Y);
             Point2D newValue = new(x, y);
 
-            RepositionScrollBars(true);
+            if (!_isSettingFromScrollBars)
+            {
+                RepositionScrollBars(true);
+            }
+
             _scrollPosition = newValue;
             InternalContentWrapper.Position = new Dimension2(-newValue.X, -newValue.Y);
         }
 
+        private bool _isSettingFromScrollBars;
+
         /// <summary>
-        /// If true, the content can scroll horizontally. True by default.
+        /// If true, the content can scroll horizontally. When false, the horizontal scroll bar will be hidden if
+        /// <see cref="HorizontalScrollBarVisibility"/> is <see cref="ScrollBarVisibility.Auto"/>. True by default.
         /// </summary>
         /// <remarks>
         /// This refers to the actual element capacity to scroll (i.e. if this is not enabled, even scrolling by
@@ -113,10 +120,13 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetIsHorizontalScrollEnabled(bool value)
         {
             _isHorizontalScrollEnabled = value;
+            ReconsiderScrollBarsVisibility();
         }
 
+
         /// <summary>
-        /// If true, the content can scroll vertically. True by default.
+        /// If true, the content can scroll vertically. When false, the vertical scroll bar will be hidden if
+        /// <see cref="VerticalScrollBarVisibility"/> is <see cref="ScrollBarVisibility.Auto"/>. True by default.
         /// </summary>
         /// <remarks>
         /// This refers to the actual element capacity to scroll (i.e. if this is not enabled, even scrolling by
@@ -139,7 +149,81 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetIsVerticalScrollEnabled(bool value)
         {
             _isVerticalScrollEnabled = value;
+            ReconsiderScrollBarsVisibility();
         }
+
+
+        /// <summary>
+        /// The same as <see cref="ScrollBarBase.RepositionBehavior"/>, but for both scroll bars. You either use this
+        /// property or use the ones from each scroll bar directly, but don't use both. This only sets the given value
+        /// to both scroll bars. The default value is <see cref="RepositionBehaviorType.GoToPosition"/>.
+        /// </summary>
+        public RepositionBehaviorType ScrollBarsRepositionBehavior
+        {
+            get => _scrollBarsRepositionBehavior;
+            set
+            {
+                SetScrollBarsRepositionBehavior(value);
+                ScrollBarsRepositionBehaviorProperty.Value = value;
+            }
+        }
+
+        private RepositionBehaviorType _scrollBarsRepositionBehavior = RepositionBehaviorType.GoToPosition;
+
+        public ObservableProperty<RepositionBehaviorType> ScrollBarsRepositionBehaviorProperty { get; private set; }
+            = new(RepositionBehaviorType.GoToPosition);
+
+        private void SetScrollBarsRepositionBehavior(RepositionBehaviorType value)
+        {
+            _scrollBarsRepositionBehavior = value;
+            InternalHorizontalScrollBar.RepositionBehavior = value;
+            InternalVerticalScrollBar.RepositionBehavior = value;
+        }
+
+
+        public ScrollBarVisibility HorizontalScrollBarVisibility
+        {
+            get => _horizontalScrollBarVisibility;
+            set
+            {
+                SetHorizontalScrollBarVisibility(value);
+                HorizontalScrollBarVisibilityProperty.Value = value;
+            }
+        }
+
+        private ScrollBarVisibility _horizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+
+        public ObservableProperty<ScrollBarVisibility> HorizontalScrollBarVisibilityProperty { get; private set; }
+            = new(ScrollBarVisibility.Auto);
+
+        private void SetHorizontalScrollBarVisibility(ScrollBarVisibility value)
+        {
+            _horizontalScrollBarVisibility = value;
+            ReconsiderScrollBarsVisibility();
+        }
+
+
+        public ScrollBarVisibility VerticalScrollBarVisibility
+        {
+            get => _verticalScrollBarVisibility;
+            set
+            {
+                SetVerticalScrollBarVisibility(value);
+                VerticalScrollBarVisibilityProperty.Value = value;
+            }
+        }
+
+        private ScrollBarVisibility _verticalScrollBarVisibility = ScrollBarVisibility.Auto;
+
+        public ObservableProperty<ScrollBarVisibility> VerticalScrollBarVisibilityProperty { get; private set; }
+            = new(ScrollBarVisibility.Auto);
+
+        private void SetVerticalScrollBarVisibility(ScrollBarVisibility value)
+        {
+            _verticalScrollBarVisibility = value;
+            ReconsiderScrollBarsVisibility();
+        }
+
 
         /// <summary>
         /// This indicates whether the user can scroll the content or not using input. It is sometimes useful to disable
@@ -168,6 +252,7 @@ namespace CatUI.Elements.Containers.Scroll
             _isUserScrollable = value;
         }
 
+
         /// <summary>
         /// Determines the behavior of scrolling past limits on both axes. It's a value tuple (i.e. (hor, vert)) where
         /// the first value specifies the scrolling past limits behavior on the horizontal axis and the second value
@@ -193,6 +278,7 @@ namespace CatUI.Elements.Containers.Scroll
         {
             _scrollPastLimits = value;
         }
+
 
         /// <summary>
         /// The actual container content. This is usually a <see cref="Container"/> like <see cref="ColumnContainer"/>,
@@ -330,6 +416,19 @@ namespace CatUI.Elements.Containers.Scroll
             InternalVisibleContentWrapper = internalVisibleContentWrapperRef.Value!;
             InternalVisibleContentWrapper.Ref = null;
 
+            InternalHorizontalScrollBar.ScrollValueChangedEvent += (_, value) =>
+            {
+                _isSettingFromScrollBars = true;
+                ScrollPosition = new Point2D(value, ScrollPosition.Y);
+                _isSettingFromScrollBars = false;
+            };
+            InternalVerticalScrollBar.ScrollValueChangedEvent += (_, value) =>
+            {
+                _isSettingFromScrollBars = true;
+                ScrollPosition = new Point2D(ScrollPosition.X, value);
+                _isSettingFromScrollBars = false;
+            };
+
             Children.Add(InternalRowContainer);
             IsHorizontalScrollEnabled = isHorizontalScrollEnabled;
             IsVerticalScrollEnabled = isVerticalScrollEnabled;
@@ -337,6 +436,9 @@ namespace CatUI.Elements.Containers.Scroll
             ScrollPositionProperty.ValueChangedEvent += SetScrollPosition;
             IsHorizontalScrollEnabledProperty.ValueChangedEvent += SetIsHorizontalScrollEnabled;
             IsVerticalScrollEnabledProperty.ValueChangedEvent += SetIsVerticalScrollEnabled;
+            ScrollBarsRepositionBehaviorProperty.ValueChangedEvent += SetScrollBarsRepositionBehavior;
+            HorizontalScrollBarVisibilityProperty.ValueChangedEvent += SetHorizontalScrollBarVisibility;
+            VerticalScrollBarVisibilityProperty.ValueChangedEvent += SetVerticalScrollBarVisibility;
             IsUserScrollableProperty.ValueChangedEvent += SetIsUserScrollable;
             ScrollPastLimitsProperty.ValueChangedEvent += SetScrollPastLimits;
         }
@@ -346,6 +448,9 @@ namespace CatUI.Elements.Containers.Scroll
             ScrollPositionProperty = null!;
             IsHorizontalScrollEnabledProperty = null!;
             IsVerticalScrollEnabledProperty = null!;
+            ScrollBarsRepositionBehaviorProperty = null!;
+            HorizontalScrollBarVisibilityProperty = null!;
+            VerticalScrollBarVisibilityProperty = null!;
             IsUserScrollableProperty = null!;
             ScrollPastLimitsProperty = null!;
         }
@@ -395,6 +500,7 @@ namespace CatUI.Elements.Containers.Scroll
                 parentEnforcedWidth,
                 parentEnforcedHeight);
             RepositionScrollBars(true, true);
+            ReconsiderScrollBarsVisibility();
             return result;
         }
 
@@ -416,6 +522,41 @@ namespace CatUI.Elements.Containers.Scroll
         }
 
         #endregion
+
+        private void ReconsiderScrollBarsVisibility()
+        {
+            switch (HorizontalScrollBarVisibility)
+            {
+                case ScrollBarVisibility.Hidden:
+                    InternalHorizontalScrollBar.Enabled = false;
+                    break;
+                case ScrollBarVisibility.Visible:
+                    InternalHorizontalScrollBar.Enabled = true;
+                    break;
+                default:
+                case ScrollBarVisibility.Auto:
+                    InternalHorizontalScrollBar.Enabled =
+                        IsHorizontalScrollEnabled &&
+                        InternalContentWrapper.Bounds.Width > InternalVisibleContentWrapper.Bounds.Width;
+                    break;
+            }
+
+            switch (VerticalScrollBarVisibility)
+            {
+                case ScrollBarVisibility.Hidden:
+                    InternalVerticalScrollBar.Enabled = false;
+                    break;
+                case ScrollBarVisibility.Visible:
+                    InternalVerticalScrollBar.Enabled = true;
+                    break;
+                default:
+                case ScrollBarVisibility.Auto:
+                    InternalVerticalScrollBar.Enabled =
+                        IsVerticalScrollEnabled &&
+                        InternalContentWrapper.Bounds.Height > InternalVisibleContentWrapper.Bounds.Height;
+                    break;
+            }
+        }
 
         private void RepositionScrollBars(bool isPositionChanged = false, bool isDimensionChanged = false)
         {
@@ -448,6 +589,9 @@ namespace CatUI.Elements.Containers.Scroll
                 ScrollPosition = ScrollPosition,
                 IsHorizontalScrollEnabled = IsHorizontalScrollEnabled,
                 IsVerticalScrollEnabled = IsVerticalScrollEnabled,
+                ScrollBarsRepositionBehavior = ScrollBarsRepositionBehavior,
+                HorizontalScrollBarVisibility = HorizontalScrollBarVisibility,
+                VerticalScrollBarVisibility = VerticalScrollBarVisibility,
                 IsUserScrollable = IsUserScrollable,
                 ScrollPastLimits = ScrollPastLimits,
                 Content = Content?.Duplicate(),
@@ -463,5 +607,27 @@ namespace CatUI.Elements.Containers.Scroll
                 Layout = Layout
             };
         }
+    }
+
+    /// <summary>
+    /// Describes the visibility of the scroll bars. This does not affect the scrolling capabilities.
+    /// </summary>
+    public enum ScrollBarVisibility
+    {
+        /// <summary>
+        /// The scroll bar will be visible only when the content is larger than the container and can't be fully
+        /// displayed. Otherwise, it will be hidden.
+        /// </summary>
+        Auto = 0,
+
+        /// <summary>
+        /// The scroll bar will always be hidden.
+        /// </summary>
+        Hidden = 1,
+
+        /// <summary>
+        /// The scroll bar will always be visible.
+        /// </summary>
+        Visible = 2
     }
 }

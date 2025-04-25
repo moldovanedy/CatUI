@@ -4,6 +4,8 @@ using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
+using CatUI.Data.Events.Input.Gestures;
+using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Shapes;
@@ -11,6 +13,10 @@ using CatUI.Utils;
 
 namespace CatUI.Elements.Containers.Scroll
 {
+    /// <summary>
+    /// This is the base for scroll bars. Use <see cref="HorizontalScrollBar"/> and <see cref="VerticalScrollBar"/>
+    /// in the element hierarchy.
+    /// </summary>
     public abstract class ScrollBarBase : Element
     {
         #region Properties
@@ -41,7 +47,7 @@ namespace CatUI.Elements.Containers.Scroll
         }
 
         /// <summary>
-        /// Represents the behavior of sudden scrolls when the user clicks on the scroll bar free area instead of the
+        /// Represents the behavior of sudden scrolls when the user clicks on the scroll bar track instead of the
         /// thumb. The default value is <see cref="RepositionBehaviorType.GoToPosition"/>.
         /// </summary>
         public RepositionBehaviorType RepositionBehavior
@@ -113,7 +119,7 @@ namespace CatUI.Elements.Containers.Scroll
             {
                 _currentValue = Math.Clamp(value, 0, Math.Max(0, ContentDimension - VisibleContentDimension));
                 RecalculateThumbSizeAndPosition();
-                ValueChangedEvent?.Invoke(this, _currentValue);
+                ScrollValueChangedEvent?.Invoke(this, _currentValue);
             }
         }
 
@@ -122,13 +128,17 @@ namespace CatUI.Elements.Containers.Scroll
         /// <summary>
         /// Fired when <see cref="CurrentValue"/> changes, either by your code or by the user. 
         /// </summary>
-        public event ScrollBarValueChangedEventHandler? ValueChangedEvent;
+        public event ScrollBarValueChangedEventHandler? ScrollValueChangedEvent;
 
         #endregion
 
 
         #region Internal elements
 
+        /// <summary>
+        /// This holds the scroll bar buttons and the scroll track area (<see cref="InternalScrollTrackElement"/>). Don't
+        /// add or remove elements in any way, instead use the <see cref="InternalContent"/> list.
+        /// </summary>
         public LinearContainerBase InternalContainer
         {
             get => _internalContainer;
@@ -155,7 +165,7 @@ namespace CatUI.Elements.Containers.Scroll
 
         private LinearContainerBase _internalContainer = new ColumnContainer();
 
-        protected Element MinusButtonElement
+        protected Button MinusButtonElement
         {
             get => _minusButtonElement!;
             set
@@ -172,9 +182,9 @@ namespace CatUI.Elements.Containers.Scroll
             }
         }
 
-        private Element? _minusButtonElement;
+        private Button? _minusButtonElement;
 
-        protected Element PlusButtonElement
+        protected Button PlusButtonElement
         {
             get => _plusButton!;
             set
@@ -191,20 +201,20 @@ namespace CatUI.Elements.Containers.Scroll
             }
         }
 
-        private Element? _plusButton;
+        private Button? _plusButton;
 
         /// <summary>
         /// Represents the place where the scroll thumb is free to move. This usually occupies the entire width or height
         /// of the <see cref="InternalContainer"/> (uses container sizing with a growth factor of 1). This always has a
-        /// child <see cref="ThumbElement"/> that should never be removed, but you can add other children to this one.
+        /// child <see cref="InternalThumbElement"/> that should never be removed, but you can add other children to this one.
         /// </summary>
-        public Element ScrollTrackElement
+        public Element InternalScrollTrackElement
         {
-            get => _scrollTrackElement!;
+            get => _internalScrollTrackElement!;
             set
             {
-                int idx = _scrollTrackElement?.IndexInParent ?? -1;
-                _scrollTrackElement = value;
+                int idx = _internalScrollTrackElement?.IndexInParent ?? -1;
+                _internalScrollTrackElement = value;
 
                 //InternalContent will be null in constructor
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -215,30 +225,31 @@ namespace CatUI.Elements.Containers.Scroll
             }
         }
 
-        private Element? _scrollTrackElement;
+        private Element? _internalScrollTrackElement;
 
         /// <summary>
         /// The element that is dragged for the scroll and indicates the scroll position. You can set this to any element.
         /// Never set <see cref="Element.Position"/> or <see cref="Element.Layout"/> of this element, as this is
         /// controlled internally and will update on scroll.
         /// </summary>
-        public Element ThumbElement
+        public Element InternalThumbElement
         {
-            get => _thumbElement;
+            get => _internalThumbElement;
             set
             {
-                int idx = _thumbElement.IndexInParent;
-                _thumbElement = value;
-                ScrollTrackElement.Children[idx] = value;
+                int idx = _internalThumbElement.IndexInParent;
+                _internalThumbElement = value;
+                InternalScrollTrackElement.Children[idx] = value;
             }
         }
 
-        private Element _thumbElement = new RectangleElement { FillBrush = new ColorBrush(new Color(0x64_B5_F6)) };
+        private Element _internalThumbElement =
+            new RectangleElement { FillBrush = new ColorBrush(new Color(0x64_B5_F6)) };
 
         /// <summary>
         /// Contains the minus/plus buttons (if present) and the scroller track. You can add elements to this
         /// but never remove the original ones. If you want modifications to the elements, use properties like
-        /// <see cref="ScrollTrackElement"/> instead of directly modifying from here.
+        /// <see cref="InternalScrollTrackElement"/> instead of directly modifying from here.
         /// </summary>
         public ObservableList<Element> InternalContent { get; private set; }
 
@@ -252,17 +263,17 @@ namespace CatUI.Elements.Containers.Scroll
             MinusButtonElement = minusButtonElement;
             PlusButtonElement = plusButtonElement;
 
-            ThumbElement.Layout = new ElementLayout();
+            InternalThumbElement.Layout = new ElementLayout();
             if (scrollOrientation == Orientation.Horizontal)
             {
-                ThumbElement.Layout!.SetFixedWidth("50%").SetFixedHeight("100%");
+                InternalThumbElement.Layout!.SetFixedWidth("50%").SetFixedHeight("100%");
             }
             else
             {
-                ThumbElement.Layout!.SetFixedWidth("100%").SetFixedHeight("50%");
+                InternalThumbElement.Layout!.SetFixedWidth("100%").SetFixedHeight("50%");
             }
 
-            ScrollTrackElement = new Element
+            InternalScrollTrackElement = new Element
             {
                 Layout = scrollOrientation == Orientation.Horizontal
                     ? new ElementLayout().SetFixedHeight("100%").SetMinMaxWidth(0, "100%", true)
@@ -270,15 +281,22 @@ namespace CatUI.Elements.Containers.Scroll
                 ElementContainerSizing = scrollOrientation == Orientation.Horizontal
                     ? new RowContainerSizing()
                     : new ColumnContainerSizing(),
-                Children = [ThumbElement]
+                Children = [InternalThumbElement]
             };
 
             InternalContent =
             [
                 minusButtonElement,
-                ScrollTrackElement,
+                InternalScrollTrackElement,
                 plusButtonElement
             ];
+
+            InternalThumbElement.PointerUpEvent += (_, e) => e.StopPropagation();
+            InternalScrollTrackElement.PointerUpEvent += OnScrollTrackPointerUp;
+            InternalScrollTrackElement.PointerDownEvent += OnScrollTrackPointerDown;
+            InternalScrollTrackElement.PointerMoveEvent += OnScrollTrackPointerMove;
+            MinusButtonElement.ClickEvent += OnButtonMinusClick;
+            PlusButtonElement.ClickEvent += OnButtonPlusClick;
 
             ShouldDisplayButtonsProperty.ValueChangedEvent += SetShouldDisplayButtons;
             RepositionBehaviorProperty.ValueChangedEvent += SetRepositionBehavior;
@@ -295,16 +313,16 @@ namespace CatUI.Elements.Containers.Scroll
         private void RecalculateThumbSizeAndPosition()
         {
             //this should generally never happen
-            if (ThumbElement.Layout == null)
+            if (InternalThumbElement.Layout == null)
             {
-                ThumbElement.Layout = new ElementLayout();
+                InternalThumbElement.Layout = new ElementLayout();
                 if (_scrollOrientation == Orientation.Horizontal)
                 {
-                    ThumbElement.Layout.SetFixedHeight("100%");
+                    InternalThumbElement.Layout.SetFixedHeight("100%");
                 }
                 else
                 {
-                    ThumbElement.Layout.SetFixedWidth("100%");
+                    InternalThumbElement.Layout.SetFixedWidth("100%");
                 }
             }
 
@@ -312,25 +330,25 @@ namespace CatUI.Elements.Containers.Scroll
             {
                 if (_scrollOrientation == Orientation.Horizontal)
                 {
-                    ThumbElement.Layout.SetFixedWidth("100%");
+                    InternalThumbElement.Layout.SetFixedWidth("100%");
                 }
                 else
                 {
-                    ThumbElement.Layout.SetFixedHeight("100%");
+                    InternalThumbElement.Layout.SetFixedHeight("100%");
                 }
 
-                ThumbElement.Position = new Dimension2(0, 0);
+                InternalThumbElement.Position = new Dimension2(0, 0);
                 return;
             }
 
             float percentage = VisibleContentDimension / ContentDimension * 100;
             if (_scrollOrientation == Orientation.Horizontal)
             {
-                ThumbElement.Layout.SetFixedWidth(new Dimension(percentage, Unit.Percent));
+                InternalThumbElement.Layout.SetFixedWidth(new Dimension(percentage, Unit.Percent));
             }
             else
             {
-                ThumbElement.Layout.SetFixedHeight(new Dimension(percentage, Unit.Percent));
+                InternalThumbElement.Layout.SetFixedHeight(new Dimension(percentage, Unit.Percent));
             }
 
             float x = 0, y = 0;
@@ -343,8 +361,112 @@ namespace CatUI.Elements.Containers.Scroll
                 y = CurrentValue / ContentDimension * 100;
             }
 
-            ThumbElement.Position = new Dimension2(new Dimension(x, Unit.Percent), new Dimension(y, Unit.Percent));
+            InternalThumbElement.Position =
+                new Dimension2(new Dimension(x, Unit.Percent), new Dimension(y, Unit.Percent));
         }
+
+        #region Event handlers
+
+        private bool _isDownOnTrack;
+
+        private void OnScrollTrackPointerDown(object sender, PointerDownEventArgs e)
+        {
+            _isDownOnTrack = true;
+
+            if (RepositionBehavior == RepositionBehaviorType.GoToPosition)
+            {
+                SetValueFromScrollTrack(_scrollOrientation == Orientation.Horizontal ? e.Position.X : e.Position.Y);
+            }
+        }
+
+        private void OnScrollTrackPointerUp(object sender, PointerUpEventArgs e)
+        {
+            _isDownOnTrack = false;
+
+            if (e.WasCancelled || RepositionBehavior != RepositionBehaviorType.ScrollPage)
+            {
+                return;
+            }
+
+            float clickPosition = _scrollOrientation == Orientation.Horizontal ? e.Position.X : e.Position.Y;
+            float thumbPosition =
+                _scrollOrientation == Orientation.Horizontal
+                    ? InternalThumbElement.Bounds.X - InternalScrollTrackElement.Bounds.X
+                    : InternalThumbElement.Bounds.Y - InternalScrollTrackElement.Bounds.Y;
+
+            CurrentValue =
+                clickPosition < thumbPosition
+                    ? Math.Max(0, CurrentValue - VisibleContentDimension)
+                    : Math.Min(ContentDimension, CurrentValue + VisibleContentDimension);
+        }
+
+        private void OnScrollTrackPointerMove(object sender, PointerMoveEventArgs e)
+        {
+            if (!_isDownOnTrack)
+            {
+                return;
+            }
+
+            if (RepositionBehavior == RepositionBehaviorType.GoToPosition)
+            {
+                SetValueFromScrollTrack(_scrollOrientation == Orientation.Horizontal ? e.Position.X : e.Position.Y);
+            }
+        }
+
+        private void SetValueFromScrollTrack(float clickPosition)
+        {
+            float thumbSize, thumbPosition, trackSize;
+            if (_scrollOrientation == Orientation.Horizontal)
+            {
+                thumbSize = InternalThumbElement.Bounds.Width;
+                thumbPosition = InternalThumbElement.Bounds.X - InternalScrollTrackElement.Bounds.X;
+
+                trackSize = InternalScrollTrackElement.Bounds.Width;
+            }
+            else
+            {
+                thumbSize = InternalThumbElement.Bounds.Height;
+                thumbPosition = InternalThumbElement.Bounds.Y - InternalScrollTrackElement.Bounds.Y;
+
+                trackSize = InternalScrollTrackElement.Bounds.Height;
+            }
+
+            if (trackSize < 0.1)
+            {
+                return;
+            }
+
+            float destinationPercentage;
+            //before the thumb, meaning scrolling minus (left/top)
+            if (clickPosition < thumbPosition)
+            {
+                destinationPercentage = Math.Max(0, clickPosition - (thumbSize / 2f)) / trackSize;
+            }
+            //after the thumb, meaning scrolling plus (right/bottom)
+            else
+            {
+                destinationPercentage = Math.Min(trackSize, clickPosition - (thumbSize / 2f)) / trackSize;
+            }
+
+            CurrentValue = ContentDimension * destinationPercentage;
+        }
+
+        private void OnButtonPlusClick(object sender, ClickEventArgs e)
+        {
+            //TODO: 10 is hardcoded because it's always generated like that on GLFW; this needs to be platform-dependent
+            //when the scrolling will become more coupled with the platform (i.e. not relying on GLFW)
+            CurrentValue =
+                Math.Min(ContentDimension, CurrentValue + Dimension.PxToDp(10, Document?.ContentScale ?? 1f));
+        }
+
+        private void OnButtonMinusClick(object sender, ClickEventArgs e)
+        {
+            //TODO: 10 is hardcoded because it's always generated like that on GLFW; this needs to be platform-dependent
+            //when the scrolling will become more coupled with the platform (i.e. not relying on GLFW)
+            CurrentValue = Math.Max(0, CurrentValue - Dimension.PxToDp(10, Document?.ContentScale ?? 1f));
+        }
+
+        #endregion
 
         private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
         {
@@ -371,7 +493,7 @@ namespace CatUI.Elements.Containers.Scroll
     public delegate void ScrollBarValueChangedEventHandler(object sender, float value);
 
     /// <summary>
-    /// Represents the behavior of sudden scrolls when the user clicks on the scroll bar free area instead of the thumb.
+    /// Represents the behavior of sudden scrolls when the user clicks on the scroll bar track instead of the thumb.
     /// </summary>
     public enum RepositionBehaviorType
     {

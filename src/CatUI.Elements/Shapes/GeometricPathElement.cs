@@ -189,24 +189,26 @@ namespace CatUI.Elements.Shapes
             // performance; it's especially important for the case where scaling is not applied, as that's only a translation
             //
             _scaledCachedPath.Transform(_lastTransformMatrix.Invert());
-            Vector2 startPoint = new Vector2(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
+            //Vector2 startPoint = new(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
 
             if (ShouldApplyScaling)
             {
-                Vector2 scale = new Vector2(
+                Vector2 scale = new(
                     Bounds.Width / _skiaPath.TightBounds.Width,
                     Bounds.Height / _skiaPath.TightBounds.Height);
 
-                _lastTopLeftPoint = new Vector2(
-                    Bounds.X - (startPoint.X * scale.X),
-                    Bounds.Y - (startPoint.Y * scale.Y));
+                // _lastTopLeftPoint = new Vector2(
+                //     Bounds.X - (startPoint.X * scale.X),
+                //     Bounds.Y - (startPoint.Y * scale.Y));
+                _lastTopLeftPoint = new Vector2(Bounds.X, Bounds.Y);
 
                 _lastTransformMatrix = SKMatrix.CreateScaleTranslation(
                     scale.X, scale.Y, _lastTopLeftPoint.X, _lastTopLeftPoint.Y);
             }
             else
             {
-                _lastTopLeftPoint = new Vector2(Bounds.X - startPoint.X, Bounds.Y - startPoint.Y);
+                //_lastTopLeftPoint = new Vector2(Bounds.X - startPoint.X, Bounds.Y - startPoint.Y);
+                _lastTopLeftPoint = new Vector2(Bounds.X, Bounds.Y);
                 _lastTransformMatrix = SKMatrix.CreateTranslation(_lastTopLeftPoint.X, _lastTopLeftPoint.Y);
             }
 
@@ -226,8 +228,18 @@ namespace CatUI.Elements.Shapes
             Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
             Size thisMaxSize = GetMaxSizeUtil(parentSize);
 
-            float width = parentEnforcedWidth ?? Math.Max(thisSize.Width, _scaledCachedPath.TightBounds.Width);
-            float height = parentEnforcedHeight ?? Math.Max(thisSize.Height, _scaledCachedPath.TightBounds.Height);
+            //when scaling is applied, ignore the path bounds
+            float width =
+                parentEnforcedWidth ??
+                Math.Max(
+                    thisSize.Width,
+                    ShouldApplyScaling ? float.NegativeInfinity : _scaledCachedPath.TightBounds.Width);
+            float height =
+                parentEnforcedHeight ??
+                Math.Max(
+                    thisSize.Height,
+                    ShouldApplyScaling ? float.NegativeInfinity : _scaledCachedPath.TightBounds.Height);
+
             float maxWidth = parentEnforcedWidth ?? Math.Max(thisMaxSize.Width, width);
             float maxHeight = parentEnforcedHeight ?? Math.Max(thisMaxSize.Height, height);
 
