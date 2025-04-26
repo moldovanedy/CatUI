@@ -258,7 +258,7 @@ namespace CatUI.Elements.Shapes
 
         public override GeometricPathElement Duplicate()
         {
-            return new GeometricPathElement
+            GeometricPathElement el = new()
             {
                 SvgPath = _svgPath,
                 ShouldApplyScaling = _shouldApplyScaling,
@@ -277,6 +277,15 @@ namespace CatUI.Elements.Shapes
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
     }
 }

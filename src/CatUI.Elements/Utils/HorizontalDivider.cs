@@ -143,7 +143,7 @@ namespace CatUI.Elements.Utils
 
         public override HorizontalDivider Duplicate()
         {
-            return new HorizontalDivider
+            HorizontalDivider el = new()
             {
                 TopSpacing = TopSpacing,
                 BottomSpacing = BottomSpacing,
@@ -165,6 +165,15 @@ namespace CatUI.Elements.Utils
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
     }
 }

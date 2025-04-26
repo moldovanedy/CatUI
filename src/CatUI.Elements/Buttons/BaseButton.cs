@@ -81,7 +81,7 @@ namespace CatUI.Elements.Buttons
 
         public override Element Duplicate()
         {
-            return new BaseButton
+            BaseButton el = new()
             {
                 CanUserCancelClick = CanUserCancelClick,
                 //
@@ -95,6 +95,15 @@ namespace CatUI.Elements.Buttons
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
 
         private void PrivatePointerDown(object sender, PointerDownEventArgs e)

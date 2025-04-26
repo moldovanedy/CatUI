@@ -64,7 +64,7 @@ namespace CatUI.Elements.Containers.Linear
 
         public override ColumnContainer Duplicate()
         {
-            return new ColumnContainer
+            ColumnContainer el = new()
             {
                 Arrangement = Arrangement,
                 HorizontalAlignment = HorizontalAlignment,
@@ -79,6 +79,15 @@ namespace CatUI.Elements.Containers.Linear
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
     }
 }

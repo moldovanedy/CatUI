@@ -584,7 +584,7 @@ namespace CatUI.Elements.Containers.Scroll
         /// <remarks>Will also duplicate the <see cref="Content"/> if one is given.</remarks>
         public override ScrollContainer Duplicate()
         {
-            return new ScrollContainer
+            ScrollContainer el = new()
             {
                 ScrollPosition = ScrollPosition,
                 IsHorizontalScrollEnabled = IsHorizontalScrollEnabled,
@@ -606,6 +606,15 @@ namespace CatUI.Elements.Containers.Scroll
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
     }
 

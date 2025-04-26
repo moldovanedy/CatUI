@@ -162,7 +162,7 @@ namespace CatUI.Elements.Helpers.Navigation
         /// </remarks>
         public override Element Duplicate()
         {
-            return new Navigator
+            Navigator el = new()
             {
                 Routes = new Dictionary<string, Func<NavArgs?, NavRoute>>(Routes),
                 CurrentPath = CurrentPath,
@@ -178,6 +178,15 @@ namespace CatUI.Elements.Helpers.Navigation
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
 
         #region Public API
