@@ -131,14 +131,14 @@ namespace CatUI.Elements.Shapes
             SvgPathProperty.ValueChangedEvent += SetSvgPath;
         }
 
-        ~GeometricPathElement()
-        {
-            //this causes crashes
-            //PathCache.RemovePath(_scaledCachedPath);
+        //~GeometricPathElement()
+        //{
+        //    //this causes crashes
+        //    //PathCache.RemovePath(_scaledCachedPath);
 
-            ShouldApplyScalingProperty = null!;
-            SvgPathProperty = null!;
-        }
+        //    ShouldApplyScalingProperty = null!;
+        //    SvgPathProperty = null!;
+        //}
 
         /// <summary>
         /// Returns a clone of the internal SKPath object (unscaled even when <see cref="ShouldApplyScaling"/> is true).
@@ -278,13 +278,7 @@ namespace CatUI.Elements.Shapes
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
     }

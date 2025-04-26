@@ -73,10 +73,10 @@ namespace CatUI.Elements.Utils
             PaddingProperty.ValueChangedEvent += SetPadding;
         }
 
-        ~PaddingElement()
-        {
-            PaddingProperty = null!;
-        }
+        //~PaddingElement()
+        //{
+        //    PaddingProperty = null!;
+        //}
 
         public override Size RecomputeLayout(
             Size parentSize,
@@ -171,13 +171,7 @@ namespace CatUI.Elements.Utils
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
 

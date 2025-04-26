@@ -42,7 +42,7 @@ namespace CatUI.Elements.Utils
 
         public override Spacer Duplicate()
         {
-            return new Spacer
+            Spacer el = new()
             {
                 State = State,
                 Position = Position,
@@ -54,6 +54,9 @@ namespace CatUI.Elements.Utils
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            DuplicateChildrenUtil(el);
+            return el;
         }
     }
 }

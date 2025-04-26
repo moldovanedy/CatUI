@@ -115,13 +115,7 @@ namespace CatUI.Elements.Shapes
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
     }

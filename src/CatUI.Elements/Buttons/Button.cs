@@ -329,13 +329,13 @@ namespace CatUI.Elements.Buttons
             }
         }
 
-        ~Button()
-        {
-            PaddingProperty = null!;
-            SpacingProperty = null!;
-            HorizontalArrangementProperty = null!;
-            VerticalAlignmentProperty = null!;
-        }
+        //~Button()
+        //{
+        //    PaddingProperty = null!;
+        //    SpacingProperty = null!;
+        //    HorizontalArrangementProperty = null!;
+        //    VerticalAlignmentProperty = null!;
+        //}
 
         public override Button Duplicate()
         {
@@ -359,13 +359,7 @@ namespace CatUI.Elements.Buttons
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
     }

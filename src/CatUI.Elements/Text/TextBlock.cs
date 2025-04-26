@@ -225,17 +225,17 @@ namespace CatUI.Elements.Text
             InitPropertiesEvents();
         }
 
-        ~TextBlock()
-        {
-            TextProperty.ValueChangedEvent -= OnTextChanged;
+        //~TextBlock()
+        //{
+        //    TextProperty.ValueChangedEvent -= OnTextChanged;
 
-            WordWrapProperty = null!;
-            BreakModeProperty = null!;
-            HyphenCharacterProperty = null!;
-            TextBrushProperty = null!;
-            OutlineTextBrushProperty = null!;
-            LineHeightProperty = null!;
-        }
+        //    WordWrapProperty = null!;
+        //    BreakModeProperty = null!;
+        //    HyphenCharacterProperty = null!;
+        //    TextBrushProperty = null!;
+        //    OutlineTextBrushProperty = null!;
+        //    LineHeightProperty = null!;
+        //}
 
         private void InitPropertiesEvents()
         {
@@ -364,13 +364,7 @@ namespace CatUI.Elements.Text
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
 

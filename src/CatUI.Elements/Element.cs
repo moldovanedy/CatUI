@@ -578,40 +578,40 @@ namespace CatUI.Elements
             Children.ListClearingEvent += OnChildrenListClearing;
         }
 
-        ~Element()
-        {
-            DrawEvent = null;
-            EnterDocumentEvent = null;
-            ExitDocumentEvent = null;
-            LoadEvent = null;
+        //~Element()
+        //{
+        //    DrawEvent = null;
+        //    EnterDocumentEvent = null;
+        //    ExitDocumentEvent = null;
+        //    LoadEvent = null;
 
-            //see ElementInputPartial
-            PointerEnterEvent = null;
-            PointerExitEvent = null;
-            PointerMoveEvent = null;
-            PointerDownEvent = null;
-            PointerUpEvent = null;
-            MouseButtonEvent = null;
-            MouseWheelEvent = null;
+        //    //see ElementInputPartial
+        //    PointerEnterEvent = null;
+        //    PointerExitEvent = null;
+        //    PointerMoveEvent = null;
+        //    PointerDownEvent = null;
+        //    PointerUpEvent = null;
+        //    MouseButtonEvent = null;
+        //    MouseWheelEvent = null;
 
-            ChildLayoutChangedEvent = null;
+        //    ChildLayoutChangedEvent = null;
 
-            StateProperty = null!;
-            PositionProperty = null!;
-            BackgroundProperty = null!;
-            ClipPathProperty = null!;
-            ClipTypeProperty = null!;
-            IdProperty = null!;
-            VisibleProperty = null!;
-            EnabledProperty = null!;
-            ElementContainerSizingProperty = null!;
+        //    StateProperty = null!;
+        //    PositionProperty = null!;
+        //    BackgroundProperty = null!;
+        //    ClipPathProperty = null!;
+        //    ClipTypeProperty = null!;
+        //    IdProperty = null!;
+        //    VisibleProperty = null!;
+        //    EnabledProperty = null!;
+        //    ElementContainerSizingProperty = null!;
 
-            LayoutProperty = null!;
+        //    LayoutProperty = null!;
 
-            //remove from the document, along with all children
-            Document = null;
-            Children = null!;
-        }
+        //    //remove from the document, along with all children
+        //    Document = null;
+        //    Children = null!;
+        //}
 
         #region Visual
 
@@ -919,14 +919,23 @@ namespace CatUI.Elements
                 Layout = _layout
             };
 
+            DuplicateChildrenUtil(el);
+            return el;
+        }
+
+        /// <summary>
+        /// Utility to use in overrides of <see cref="Duplicate"/>; it will duplicate all children (and descendants)
+        /// and add them to the given element.
+        /// </summary>
+        /// <param name="el">The element to add the children to.</param>
+        protected void DuplicateChildrenUtil(Element el)
+        {
             el.ToggleDuplicateChildrenCheck(false);
             foreach (Element child in Children)
             {
                 el.Children.Add(child.Duplicate());
             }
             el.ToggleDuplicateChildrenCheck(true);
-
-            return el;
         }
 
         /// <summary>

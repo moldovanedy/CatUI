@@ -102,11 +102,11 @@ namespace CatUI.Elements.Shapes
             OutlineParametersProperty.ValueChangedEvent += SetOutlineParameters;
         }
 
-        ~AbstractShapeElement()
-        {
-            FillBrushProperty = null!;
-            OutlineBrushProperty = null!;
-            OutlineParametersProperty = null!;
-        }
+        //~AbstractShapeElement()
+        //{
+        //    FillBrushProperty = null!;
+        //    OutlineBrushProperty = null!;
+        //    OutlineParametersProperty = null!;
+        //}
     }
 }

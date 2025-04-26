@@ -302,13 +302,13 @@ namespace CatUI.Elements.Containers.Scroll
             RepositionBehaviorProperty.ValueChangedEvent += SetRepositionBehavior;
         }
 
-        ~ScrollBarBase()
-        {
-            InternalContent = null!;
+        //~ScrollBarBase()
+        //{
+        //    InternalContent = null!;
 
-            ShouldDisplayButtonsProperty = null!;
-            RepositionBehaviorProperty = null!;
-        }
+        //    ShouldDisplayButtonsProperty = null!;
+        //    RepositionBehaviorProperty = null!;
+        //}
 
         private void RecalculateThumbSizeAndPosition()
         {
