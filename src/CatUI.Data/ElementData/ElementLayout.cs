@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using CatUI.Utils;
 
 namespace CatUI.Data.ElementData
@@ -7,6 +9,11 @@ namespace CatUI.Data.ElementData
     /// <see cref="LayoutMode.MinMax"/>, trying to respect the minimum (0), while the maximum is unset (infinity) and is
     /// only constrained by the parent's max size. 
     /// </summary>
+    /// <remarks>
+    /// Although it implements <see cref="INotifyPropertyChanged"/>, it won't actually fire <see cref="PropertyChanged"/>
+    /// for each property, rather it will fire when using one of the Set* methods (e.g. <see cref="SetFixedHeight"/>,
+    /// <see cref="SetMinMaxAndPreferredHeight"/>, <see cref="SetMinMaxWidth"/>).
+    /// </remarks>
     public class ElementLayout
     {
         public Dimension? PreferredWidth { get; private set; }
@@ -95,6 +102,13 @@ namespace CatUI.Data.ElementData
         //default as MinMax for both Width and Height
         private byte _layoutFlags;
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public ElementLayout()
         {
             WidthMode = LayoutMode.MinMax;
@@ -121,6 +135,7 @@ namespace CatUI.Data.ElementData
             MinWidth = null;
             MaxWidth = null;
             PrefersMaxWidth = false;
+            NotifyPropertyChanged();
             return this;
         }
 
@@ -142,6 +157,7 @@ namespace CatUI.Data.ElementData
             MinHeight = null;
             MaxHeight = null;
             PrefersMaxHeight = false;
+            NotifyPropertyChanged();
             return this;
         }
 
@@ -168,6 +184,7 @@ namespace CatUI.Data.ElementData
             }
 
             PreferredWidth = null;
+            NotifyPropertyChanged();
             return this;
         }
 
@@ -194,6 +211,7 @@ namespace CatUI.Data.ElementData
             }
 
             PreferredHeight = null;
+            NotifyPropertyChanged();
             return this;
         }
 
@@ -215,6 +233,7 @@ namespace CatUI.Data.ElementData
             MaxWidth = maxWidth;
 
             PrefersMaxWidth = false;
+            NotifyPropertyChanged();
             return this;
         }
 
@@ -236,6 +255,7 @@ namespace CatUI.Data.ElementData
             MaxHeight = maxHeight;
 
             PrefersMaxHeight = false;
+            NotifyPropertyChanged();
             return this;
         }
 
@@ -252,6 +272,7 @@ namespace CatUI.Data.ElementData
                 PrefersMaxWidth = prefersMaxWidth;
             }
 
+            NotifyPropertyChanged();
             return this;
         }
 
@@ -268,6 +289,7 @@ namespace CatUI.Data.ElementData
                 PrefersMaxHeight = prefersMaxHeight;
             }
 
+            NotifyPropertyChanged();
             return this;
         }
 

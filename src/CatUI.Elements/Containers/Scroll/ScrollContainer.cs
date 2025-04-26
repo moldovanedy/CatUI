@@ -82,15 +82,15 @@ namespace CatUI.Elements.Containers.Scroll
                     : ScrollPastLimits.Item2
                         ? value.Y
                         : Math.Clamp(value.Y, 0, allowedEndPoint.Y);
+
             Point2D newValue = new(x, y);
+            _scrollPosition = newValue;
+            InternalContentWrapper.Position = new Dimension2(-newValue.X, -newValue.Y);
 
             if (!_isSettingFromScrollBars)
             {
                 RepositionScrollBars(true);
             }
-
-            _scrollPosition = newValue;
-            InternalContentWrapper.Position = new Dimension2(-newValue.X, -newValue.Y);
         }
 
         private bool _isSettingFromScrollBars;
@@ -472,6 +472,13 @@ namespace CatUI.Elements.Containers.Scroll
             float? parentEnforcedWidth = null,
             float? parentEnforcedHeight = null)
         {
+            Size result = base.RecomputeLayout(
+                parentSize,
+                parentMaxSize,
+                parentAbsolutePosition,
+                parentEnforcedWidth,
+                parentEnforcedHeight);
+
             Size totalContentSize = new(
                 Dimension.PxToDp(InternalContentWrapper.Bounds.Width, Document?.ContentScale ?? 1f),
                 Dimension.PxToDp(InternalContentWrapper.Bounds.Height, Document?.ContentScale ?? 1f));
@@ -480,7 +487,8 @@ namespace CatUI.Elements.Containers.Scroll
                 Dimension.PxToDp(InternalVisibleContentWrapper.Bounds.Height, Document?.ContentScale ?? 1f));
 
             //if the scroll position makes the content overshoot its bounds, we get an undesired effect; this prevents
-            //that by setting the scroll position at the maximum value that doesn't make the content overshoot its bounds
+            //that by setting the scroll position at the maximum value that doesn't make the content overshoot its bounds;
+            //however, this also creates weird glitches, sometimes affecting other elements as well
             if (!ScrollPastLimits.Item1 && ScrollPosition.X + visibleContentSize.Width > totalContentSize.Width)
             {
                 ScrollPosition = new Point2D(totalContentSize.Width - visibleContentSize.Width, ScrollPosition.Y);
@@ -491,14 +499,6 @@ namespace CatUI.Elements.Containers.Scroll
                 ScrollPosition = new Point2D(ScrollPosition.X, totalContentSize.Height - visibleContentSize.Height);
             }
 
-            //TODO: this should be before the calculations above, but for some reason it completely breaks the layout;
-            //this needs to be fixed
-            Size result = base.RecomputeLayout(
-                parentSize,
-                parentMaxSize,
-                parentAbsolutePosition,
-                parentEnforcedWidth,
-                parentEnforcedHeight);
             RepositionScrollBars(true, true);
             ReconsiderScrollBarsVisibility();
             return result;
