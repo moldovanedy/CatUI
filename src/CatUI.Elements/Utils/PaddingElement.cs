@@ -156,10 +156,11 @@ namespace CatUI.Elements.Utils
 
         public override PaddingElement Duplicate()
         {
-            return new PaddingElement
+            PaddingElement el = new()
             {
                 Padding = _padding,
                 //
+                State = State,
                 Position = Position,
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),
@@ -169,6 +170,15 @@ namespace CatUI.Elements.Utils
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
 
         private static void UpdatePositionOfChildren(Element element, Point2D constOffset)

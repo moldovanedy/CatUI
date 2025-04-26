@@ -338,7 +338,7 @@ namespace CatUI.Elements.Text
 
         public override TextBlock Duplicate()
         {
-            return new TextBlock
+            TextBlock el = new()
             {
                 WordWrap = _wordWrap,
                 BreakMode = _breakMode,
@@ -363,6 +363,15 @@ namespace CatUI.Elements.Text
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
 
         private void OnTextChanged(string? newText)
@@ -384,7 +393,7 @@ namespace CatUI.Elements.Text
             //the first row
             int columnIndex = 0;
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < newText.Length; i++)
             {
                 //check for newline
@@ -514,7 +523,8 @@ namespace CatUI.Elements.Text
 
                             _drawableRows.Add(new RowInformation
                             {
-                                Text = row.Text.Substring(startIndex, charCount), Width = currentRowWidth
+                                Text = row.Text.Substring(startIndex, charCount),
+                                Width = currentRowWidth
                             });
                             currentHeight += rowHeight;
 
@@ -704,7 +714,8 @@ namespace CatUI.Elements.Text
                                 string text = sb.ToString();
                                 _drawableRows.Add(new RowInformation
                                 {
-                                    Text = text, Width = painter.MeasureText(text)
+                                    Text = text,
+                                    Width = painter.MeasureText(text)
                                 });
 
                                 currentHeight += rowHeight;
@@ -720,7 +731,7 @@ namespace CatUI.Elements.Text
                 }
             }
 
-            //TODO: check how to set the final size when word wrap is false
+        //TODO: check how to set the final size when word wrap is false
         End:
             Size finalSize = new(
                 //if there are breaks, set the maximum between the preferred width and the actual max row width;

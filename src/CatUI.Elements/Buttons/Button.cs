@@ -102,7 +102,8 @@ namespace CatUI.Elements.Buttons
         private LinearArrangement.JustificationType _horizontalArrangement = LinearArrangement.JustificationType.Center;
 
         public ObservableProperty<LinearArrangement.JustificationType>
-            HorizontalArrangementProperty { get; private set; }
+            HorizontalArrangementProperty
+        { get; private set; }
             = new(LinearArrangement.JustificationType.Center);
 
         private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
@@ -338,7 +339,7 @@ namespace CatUI.Elements.Buttons
 
         public override Button Duplicate()
         {
-            return new Button(_textElement, _iconElement)
+            Button el = new(_textElement, _iconElement)
             {
                 Padding = Padding,
                 Spacing = Spacing,
@@ -357,6 +358,15 @@ namespace CatUI.Elements.Buttons
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
     }
 }

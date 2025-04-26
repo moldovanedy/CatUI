@@ -906,7 +906,7 @@ namespace CatUI.Elements
         /// </returns>
         public virtual Element Duplicate()
         {
-            return new Element
+            Element el = new()
             {
                 State = _state,
                 Position = _position,
@@ -918,6 +918,15 @@ namespace CatUI.Elements
                 ElementContainerSizing = (ContainerSizing?)_elementContainerSizing?.Duplicate(),
                 Layout = _layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
 
         /// <summary>

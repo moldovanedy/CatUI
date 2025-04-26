@@ -98,7 +98,7 @@ namespace CatUI.Elements.Shapes
 
         public override EllipseElement Duplicate()
         {
-            return new EllipseElement
+            EllipseElement el = new()
             {
                 FillBrush = FillBrush.Duplicate(),
                 OutlineBrush = OutlineBrush.Duplicate(),
@@ -114,6 +114,15 @@ namespace CatUI.Elements.Shapes
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
     }
 }

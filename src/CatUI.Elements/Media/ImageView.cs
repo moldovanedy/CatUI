@@ -393,7 +393,7 @@ namespace CatUI.Elements.Media
 
         public override ImageView Duplicate()
         {
-            return new ImageView
+            ImageView el = new()
             {
                 Source = _source,
                 HorizontalAlignment = _horizontalAlignment,
@@ -412,6 +412,15 @@ namespace CatUI.Elements.Media
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
     }
 }

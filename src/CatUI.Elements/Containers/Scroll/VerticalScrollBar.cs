@@ -62,7 +62,7 @@ namespace CatUI.Elements.Containers.Scroll
         /// <inheritdoc cref="Element.Duplicate"/>
         public override VerticalScrollBar Duplicate()
         {
-            return new VerticalScrollBar
+            VerticalScrollBar el = new()
             {
                 ShouldDisplayButtons = ShouldDisplayButtons,
                 RepositionBehavior = RepositionBehavior,
@@ -77,6 +77,15 @@ namespace CatUI.Elements.Containers.Scroll
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };
+
+            el.ToggleDuplicateChildrenCheck(false);
+            foreach (Element child in Children)
+            {
+                el.Children.Add(child.Duplicate());
+            }
+            el.ToggleDuplicateChildrenCheck(true);
+
+            return el;
         }
     }
 }
