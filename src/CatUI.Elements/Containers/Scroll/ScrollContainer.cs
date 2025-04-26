@@ -443,17 +443,17 @@ namespace CatUI.Elements.Containers.Scroll
             ScrollPastLimitsProperty.ValueChangedEvent += SetScrollPastLimits;
         }
 
-        ~ScrollContainer()
-        {
-            ScrollPositionProperty = null!;
-            IsHorizontalScrollEnabledProperty = null!;
-            IsVerticalScrollEnabledProperty = null!;
-            ScrollBarsRepositionBehaviorProperty = null!;
-            HorizontalScrollBarVisibilityProperty = null!;
-            VerticalScrollBarVisibilityProperty = null!;
-            IsUserScrollableProperty = null!;
-            ScrollPastLimitsProperty = null!;
-        }
+        //~ScrollContainer()
+        //{
+        //    ScrollPositionProperty = null!;
+        //    IsHorizontalScrollEnabledProperty = null!;
+        //    IsVerticalScrollEnabledProperty = null!;
+        //    ScrollBarsRepositionBehaviorProperty = null!;
+        //    HorizontalScrollBarVisibilityProperty = null!;
+        //    VerticalScrollBarVisibilityProperty = null!;
+        //    IsUserScrollableProperty = null!;
+        //    ScrollPastLimitsProperty = null!;
+        //}
 
         protected override void MouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -607,13 +607,7 @@ namespace CatUI.Elements.Containers.Scroll
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
     }

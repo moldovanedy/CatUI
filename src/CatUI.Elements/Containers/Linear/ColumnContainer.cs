@@ -57,10 +57,10 @@ namespace CatUI.Elements.Containers.Linear
             HorizontalAlignmentProperty.ValueChangedEvent += SetHorizontalAlignment;
         }
 
-        ~ColumnContainer()
-        {
-            HorizontalAlignmentProperty = null!;
-        }
+        //~ColumnContainer()
+        //{
+        //    HorizontalAlignmentProperty = null!;
+        //}
 
         public override ColumnContainer Duplicate()
         {
@@ -80,13 +80,7 @@ namespace CatUI.Elements.Containers.Linear
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
     }

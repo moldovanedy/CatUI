@@ -139,14 +139,14 @@ namespace CatUI.Elements.Text
             InitPropertiesEvents();
         }
 
-        ~TextElement()
-        {
-            TextProperty = null!;
-            FontSizeProperty = null!;
-            OverflowModeProperty = null!;
-            TextAlignmentProperty = null!;
-            OverflowStringProperty = null!;
-        }
+        //~TextElement()
+        //{
+        //    TextProperty = null!;
+        //    FontSizeProperty = null!;
+        //    OverflowModeProperty = null!;
+        //    TextAlignmentProperty = null!;
+        //    OverflowStringProperty = null!;
+        //}
 
         private void InitPropertiesEvents()
         {

@@ -68,14 +68,14 @@ namespace CatUI.Elements.Buttons
             PointerUpEvent += PrivatePointerUp;
         }
 
-        ~BaseButton()
-        {
-            ClickEvent = null;
-            CanUserCancelClickProperty = null!;
+        //~BaseButton()
+        //{
+        //    ClickEvent = null;
+        //    CanUserCancelClickProperty = null!;
 
-            PointerDownEvent -= PrivatePointerDown;
-            PointerUpEvent -= PrivatePointerUp;
-        }
+        //    PointerDownEvent -= PrivatePointerDown;
+        //    PointerUpEvent -= PrivatePointerUp;
+        //}
 
         public virtual void Click(object sender, ClickEventArgs e) { }
 
@@ -96,13 +96,7 @@ namespace CatUI.Elements.Buttons
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
 

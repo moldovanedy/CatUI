@@ -196,15 +196,15 @@ namespace CatUI.Elements.Media
             ResizeQualityProperty.ValueChangedEvent += SetResizeQuality;
         }
 
-        ~ImageView()
-        {
-            SourceProperty = null!;
-            HorizontalAlignmentProperty = null!;
-            VerticalAlignmentProperty = null!;
-            ShouldKeepAspectRatioProperty = null!;
-            ImageFitProperty = null!;
-            ResizeQualityProperty = null!;
-        }
+        //~ImageView()
+        //{
+        //    SourceProperty = null!;
+        //    HorizontalAlignmentProperty = null!;
+        //    VerticalAlignmentProperty = null!;
+        //    ShouldKeepAspectRatioProperty = null!;
+        //    ImageFitProperty = null!;
+        //    ResizeQualityProperty = null!;
+        //}
 
         protected override void Draw(object sender)
         {
@@ -413,13 +413,7 @@ namespace CatUI.Elements.Media
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
     }

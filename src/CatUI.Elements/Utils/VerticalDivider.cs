@@ -133,13 +133,13 @@ namespace CatUI.Elements.Utils
             }
         }
 
-        ~VerticalDivider()
-        {
-            LeftSpacingProperty = null!;
-            RightSpacingProperty = null!;
-            TopLinePaddingProperty = null!;
-            BottomLinePaddingProperty = null!;
-        }
+        //~VerticalDivider()
+        //{
+        //    LeftSpacingProperty = null!;
+        //    RightSpacingProperty = null!;
+        //    TopLinePaddingProperty = null!;
+        //    BottomLinePaddingProperty = null!;
+        //}
 
         public override VerticalDivider Duplicate()
         {
@@ -166,13 +166,7 @@ namespace CatUI.Elements.Utils
                 Layout = Layout
             };
 
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-            el.ToggleDuplicateChildrenCheck(true);
-
+            DuplicateChildrenUtil(el);
             return el;
         }
     }

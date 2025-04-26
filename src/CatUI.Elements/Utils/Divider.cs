@@ -144,12 +144,12 @@ namespace CatUI.Elements.Utils
             }
         }
 
-        ~Divider()
-        {
-            LineThicknessProperty = null!;
-            LineBrushProperty = null!;
-            LineCapProperty = null!;
-        }
+        //~Divider()
+        //{
+        //    LineThicknessProperty = null!;
+        //    LineBrushProperty = null!;
+        //    LineCapProperty = null!;
+        //}
 
         protected override void DrawBackground()
         {
