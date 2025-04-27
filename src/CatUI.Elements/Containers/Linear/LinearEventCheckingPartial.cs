@@ -70,6 +70,12 @@ namespace CatUI.Elements.Containers.Linear
             }
 
             WasPointerInside = true;
+
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new PointerEnterEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
@@ -149,6 +155,12 @@ namespace CatUI.Elements.Containers.Linear
             }
 
             WasPointerInside = false;
+
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new PointerExitEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
@@ -176,6 +188,11 @@ namespace CatUI.Elements.Containers.Linear
                 Children[_lastCheckedElementIndex].CheckInvokePointerMove(e);
             }
 
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new PointerMoveEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
@@ -201,6 +218,11 @@ namespace CatUI.Elements.Containers.Linear
             {
                 _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
                 Children[_lastCheckedElementIndex].CheckInvokePointerDown(e);
+            }
+
+            if (e.IsPropagationStopped)
+            {
+                return;
             }
 
             var elementArgs = new PointerDownEventArgs(
@@ -236,6 +258,11 @@ namespace CatUI.Elements.Containers.Linear
                 }
             }
 
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new PointerUpEventArgs(
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
@@ -269,6 +296,11 @@ namespace CatUI.Elements.Containers.Linear
                 }
             }
 
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new MouseButtonEventArgs(
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
@@ -294,6 +326,11 @@ namespace CatUI.Elements.Containers.Linear
             {
                 _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
                 Children[_lastCheckedElementIndex].CheckInvokeMouseWheel(e);
+            }
+
+            if (e.IsPropagationStopped)
+            {
+                return;
             }
 
             var elementArgs = new MouseWheelEventArgs(

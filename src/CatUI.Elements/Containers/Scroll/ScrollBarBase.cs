@@ -291,7 +291,6 @@ namespace CatUI.Elements.Containers.Scroll
                 plusButtonElement
             ];
 
-            InternalThumbElement.PointerUpEvent += (_, e) => e.StopPropagation();
             InternalScrollTrackElement.PointerUpEvent += OnScrollTrackPointerUp;
             InternalScrollTrackElement.PointerDownEvent += OnScrollTrackPointerDown;
             InternalScrollTrackElement.PointerMoveEvent += OnScrollTrackPointerMove;

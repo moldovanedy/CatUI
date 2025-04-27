@@ -212,6 +212,12 @@ namespace CatUI.Elements
             }
 
             WasPointerInside = true;
+
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new PointerEnterEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
@@ -252,6 +258,12 @@ namespace CatUI.Elements
             }
 
             WasPointerInside = false;
+
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new PointerExitEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
@@ -278,7 +290,7 @@ namespace CatUI.Elements
 
             //we also need to check if we need to fire pointer up or mouse buttons up events (generally if the user
             //drags the cursor or finger outside the element while pressed)
-            //it's ok to only call these functions here instead of the root because at most this element is affected,
+            //it's OK to only call these functions here instead of the root because at most this element is affected,
             //if there are other elements higher up the tree affected, this pointer exit invocation will solve those as well
             if (e.IsPressed)
             {
@@ -335,6 +347,11 @@ namespace CatUI.Elements
                 i--;
             }
 
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new PointerMoveEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
@@ -374,6 +391,11 @@ namespace CatUI.Elements
             {
                 Children[i].CheckInvokePointerDown(e);
                 i--;
+            }
+
+            if (e.IsPropagationStopped)
+            {
+                return;
             }
 
             var elementArgs = new PointerDownEventArgs(
@@ -421,6 +443,11 @@ namespace CatUI.Elements
                 {
                     return;
                 }
+            }
+
+            if (e.IsPropagationStopped)
+            {
+                return;
             }
 
             var elementArgs = new PointerUpEventArgs(
@@ -471,6 +498,11 @@ namespace CatUI.Elements
                 }
             }
 
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
             var elementArgs = new MouseButtonEventArgs(
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
@@ -510,6 +542,11 @@ namespace CatUI.Elements
             {
                 Children[i].CheckInvokeMouseWheel(e);
                 i--;
+            }
+
+            if (e.IsPropagationStopped)
+            {
+                return;
             }
 
             var elementArgs = new MouseWheelEventArgs(
