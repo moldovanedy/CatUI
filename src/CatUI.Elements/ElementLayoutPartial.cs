@@ -21,7 +21,7 @@ namespace CatUI.Elements
         }
 
         private ElementLayout? _layout;
-        public ObservableProperty<ElementLayout> LayoutProperty { get; private set; } = new();
+        public ObservableProperty<ElementLayout> LayoutProperty { get; } = new();
 
         private void SetLayout(ElementLayout? value)
         {

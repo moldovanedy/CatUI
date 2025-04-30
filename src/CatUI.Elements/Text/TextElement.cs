@@ -21,7 +21,7 @@ namespace CatUI.Elements.Text
         }
 
         private string _text = string.Empty;
-        public ObservableProperty<string> TextProperty { get; private set; } = new(string.Empty);
+        public ObservableProperty<string> TextProperty { get; } = new(string.Empty);
 
         private void SetText(string? value)
         {
@@ -43,7 +43,7 @@ namespace CatUI.Elements.Text
         }
 
         private Dimension _fontSize = new(16);
-        public ObservableProperty<Dimension> FontSizeProperty { get; private set; } = new(new Dimension(16));
+        public ObservableProperty<Dimension> FontSizeProperty { get; } = new(new Dimension(16));
 
         private void SetFontSize(Dimension value)
         {
@@ -68,7 +68,7 @@ namespace CatUI.Elements.Text
 
         private TextOverflowMode _overflowMode = TextOverflowMode.Ellipsis;
 
-        public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; private set; } =
+        public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; } =
             new(TextOverflowMode.Ellipsis);
 
         private void SetOverflowMode(TextOverflowMode value)
@@ -95,7 +95,7 @@ namespace CatUI.Elements.Text
 
         private TextAlignmentType _textAlignment = TextAlignmentType.Left;
 
-        public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; private set; }
+        public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; }
             = new(TextAlignmentType.Left);
 
         private void SetTextAlignment(TextAlignmentType value)
@@ -119,7 +119,7 @@ namespace CatUI.Elements.Text
         }
 
         private string _overflowString = "\u2026";
-        public ObservableProperty<string> OverflowStringProperty { get; private set; } = new("\u2026");
+        public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
 
         private void SetOverflowString(string? value)
         {

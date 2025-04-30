@@ -41,7 +41,7 @@ namespace CatUI.Elements.Containers.Linear
             }
         }
 
-        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; private set; }
+        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
             = new(VerticalAlignmentType.Top);
 
         private void SetVerticalAlignment(VerticalAlignmentType value)

@@ -9,6 +9,10 @@ namespace CatUI.Data
     /// On destruction, this object will automatically remove all the listeners of <see cref="ValueChangedEvent"/>.
     /// </summary>
     /// <typeparam name="T">The type of the contained object.</typeparam>
+    /// <remarks>
+    /// When the object T implements INotifyPropertyChanged, it will also trigger changes whenever the object invokes
+    /// the property changed event.
+    /// </remarks>
     public class ObservableProperty<T> where T : notnull
     {
         /// <summary>

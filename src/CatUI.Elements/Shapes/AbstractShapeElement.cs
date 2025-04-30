@@ -25,7 +25,7 @@ namespace CatUI.Elements.Shapes
         }
 
         private IBrush _fillBrush = new ColorBrush(Color.Default);
-        public ObservableProperty<IBrush> FillBrushProperty { get; private set; } = new(new ColorBrush(Color.Default));
+        public ObservableProperty<IBrush> FillBrushProperty { get; } = new(new ColorBrush(Color.Default));
 
         private void SetFillBrush(IBrush? brush)
         {
@@ -50,7 +50,7 @@ namespace CatUI.Elements.Shapes
 
         private IBrush _outlineBrush = new ColorBrush(Color.Default);
 
-        public ObservableProperty<IBrush> OutlineBrushProperty { get; private set; } =
+        public ObservableProperty<IBrush> OutlineBrushProperty { get; } =
             new(new ColorBrush(Color.Default));
 
         private void SetOutlineBrush(IBrush? brush)
@@ -76,7 +76,7 @@ namespace CatUI.Elements.Shapes
 
         private OutlineParams _outlineParameters = new();
 
-        public ObservableProperty<OutlineParams> OutlineParametersProperty { get; private set; } =
+        public ObservableProperty<OutlineParams> OutlineParametersProperty { get; } =
             new(new OutlineParams());
 
         private void SetOutlineParameters(OutlineParams outlineParameters)

@@ -67,7 +67,7 @@ namespace CatUI.Elements.Shapes
 
         private bool _shouldApplyScaling;
 
-        public ObservableProperty<bool> ShouldApplyScalingProperty { get; private set; } = new(false);
+        public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new(false);
 
         private void SetShouldApplyScaling(bool value)
         {
@@ -104,7 +104,7 @@ namespace CatUI.Elements.Shapes
         }
 
         private string _svgPath = "";
-        public ObservableProperty<string> SvgPathProperty { get; private set; } = new("");
+        public ObservableProperty<string> SvgPathProperty { get; } = new("");
 
         private void SetSvgPath(string? value)
         {

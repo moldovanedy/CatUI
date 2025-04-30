@@ -45,7 +45,7 @@ namespace CatUI.Elements.Utils
             }
         }
 
-        public ObservableProperty<float> TopSpacingProperty { get; private set; } = new(0);
+        public ObservableProperty<float> TopSpacingProperty { get; } = new(0);
 
         private void SetTopSpacing(float value)
         {
@@ -67,7 +67,7 @@ namespace CatUI.Elements.Utils
             }
         }
 
-        public ObservableProperty<float> BottomSpacingProperty { get; private set; } = new(0);
+        public ObservableProperty<float> BottomSpacingProperty { get; } = new(0);
 
         private void SetBottomSpacing(float value)
         {
@@ -89,7 +89,7 @@ namespace CatUI.Elements.Utils
             }
         }
 
-        public ObservableProperty<Dimension> LeftLinePaddingProperty { get; private set; } = new(0);
+        public ObservableProperty<Dimension> LeftLinePaddingProperty { get; } = new(0);
 
         private void SetLeftLinePadding(Dimension value)
         {
@@ -111,7 +111,7 @@ namespace CatUI.Elements.Utils
             }
         }
 
-        public ObservableProperty<Dimension> RightLinePaddingProperty { get; private set; } = new(0);
+        public ObservableProperty<Dimension> RightLinePaddingProperty { get; } = new(0);
 
         private void SetRightLinePadding(Dimension value)
         {

@@ -1,3 +1,4 @@
+using System;
 using CatUI.Data;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Input.Pointer;
@@ -102,7 +103,7 @@ namespace CatUI.Elements.Containers.Linear
             //PointerExit correctly
 
             //the distance that the pointer travelled plus 50% to ensure we don't miss elements
-            float requiredDelta = (ContainerOrientation == Orientation.Horizontal
+            float requiredDelta = Math.Abs(ContainerOrientation == Orientation.Horizontal
                 ? e.AbsolutePosition.X - _lastPointerPosition.X
                 : e.AbsolutePosition.Y - _lastPointerPosition.Y) * 1.5f;
             _lastPointerPosition = e.AbsolutePosition;
@@ -110,9 +111,7 @@ namespace CatUI.Elements.Containers.Linear
             float currentDelta = 0;
             int currentIndex = _lastCheckedElementIndex + 1;
             float lastRelevantPosition =
-                ContainerOrientation == Orientation.Horizontal
-                    ? Children[_lastCheckedElementIndex].Bounds.X
-                    : Children[_lastCheckedElementIndex].Bounds.Y;
+                ContainerOrientation == Orientation.Horizontal ? e.AbsolutePosition.X : e.AbsolutePosition.Y;
 
             while (currentDelta < requiredDelta && currentIndex < Children.Count)
             {
@@ -131,9 +130,7 @@ namespace CatUI.Elements.Containers.Linear
             currentDelta = 0;
             currentIndex = _lastCheckedElementIndex - 1;
             lastRelevantPosition =
-                ContainerOrientation == Orientation.Horizontal
-                    ? Children[_lastCheckedElementIndex].Bounds.X
-                    : Children[_lastCheckedElementIndex].Bounds.Y;
+                ContainerOrientation == Orientation.Horizontal ? e.AbsolutePosition.X : e.AbsolutePosition.Y;
 
             while (currentDelta > requiredDelta && currentIndex >= 0)
             {

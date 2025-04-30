@@ -39,7 +39,7 @@ namespace CatUI.Elements.Utils
 
         private float _lineThickness = 2;
 
-        public ObservableProperty<float> LineThicknessProperty { get; private set; } = new(2);
+        public ObservableProperty<float> LineThicknessProperty { get; } = new(2);
 
         private void SetLineThickness(float value)
         {
@@ -62,7 +62,7 @@ namespace CatUI.Elements.Utils
 
         private IBrush _lineBrush = new ColorBrush(new Color(0));
 
-        public ObservableProperty<IBrush> LineBrushProperty { get; private set; } = new(new ColorBrush(new Color(0)));
+        public ObservableProperty<IBrush> LineBrushProperty { get; } = new(new ColorBrush(new Color(0)));
 
         private void SetLineBrush(IBrush? value)
         {
@@ -85,7 +85,7 @@ namespace CatUI.Elements.Utils
 
         private LineCapType _lineCap = LineCapType.Butt;
 
-        public ObservableProperty<LineCapType> LineCapProperty { get; private set; } = new(LineCapType.Butt);
+        public ObservableProperty<LineCapType> LineCapProperty { get; } = new(LineCapType.Butt);
 
         private void SetLineCap(LineCapType value)
         {

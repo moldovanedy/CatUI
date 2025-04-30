@@ -54,7 +54,7 @@ namespace CatUI.Elements.Buttons
         }
 
         private EdgeInset _padding = new();
-        public ObservableProperty<EdgeInset> PaddingProperty { get; private set; } = new(new EdgeInset());
+        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
 
         private void SetPadding(EdgeInset value)
         {
@@ -76,7 +76,7 @@ namespace CatUI.Elements.Buttons
         }
 
         private Dimension _spacing = new();
-        public ObservableProperty<Dimension> SpacingProperty { get; private set; } = new(new Dimension());
+        public ObservableProperty<Dimension> SpacingProperty { get; } = new(new Dimension());
 
         private void SetSpacing(Dimension value)
         {
@@ -103,7 +103,9 @@ namespace CatUI.Elements.Buttons
 
         public ObservableProperty<LinearArrangement.JustificationType>
             HorizontalArrangementProperty
-        { get; private set; }
+        {
+            get;
+        }
             = new(LinearArrangement.JustificationType.Center);
 
         private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
@@ -127,7 +129,7 @@ namespace CatUI.Elements.Buttons
 
         private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Center;
 
-        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; private set; }
+        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
             = new(VerticalAlignmentType.Center);
 
         private void SetVerticalAlignment(VerticalAlignmentType value)
