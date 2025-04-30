@@ -39,7 +39,7 @@
         <ProjectReference Include="..\CatUI.Elements\CatUI.Elements.csproj" />
         <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj" />
         <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj" />
-        <ProjectReference Include="..\CatUI.Windowing.Desktop\CatUI.Windowing.Desktop.csproj" />
+        <ProjectReference Include="..\Windowing\CatUI.Windowing.Desktop\CatUI.Windowing.Desktop.csproj" />
     </ItemGroup>
 
 </Project>

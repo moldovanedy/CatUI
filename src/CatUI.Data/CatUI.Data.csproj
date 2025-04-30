@@ -33,7 +33,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
+        <ProjectReference Include="..\Platform\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
         <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj" />
     </ItemGroup>
 

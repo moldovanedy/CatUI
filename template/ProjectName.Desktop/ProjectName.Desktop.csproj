@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\CatUI.Windowing.Desktop\CatUI.Windowing.Desktop.csproj" />
+        <ProjectReference Include="..\..\src\Windowing\CatUI.Windowing.Desktop\CatUI.Windowing.Desktop.csproj" />
         <ProjectReference Include="..\..\src\CatUI\CatUI.csproj" />
 
         <ProjectReference Condition="'$(usesLib)' == 'True'" Include="..\ProjectName.UI\ProjectName.UI.csproj" />
