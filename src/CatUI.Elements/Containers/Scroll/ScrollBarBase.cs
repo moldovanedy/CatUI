@@ -37,7 +37,7 @@ namespace CatUI.Elements.Containers.Scroll
         }
 
         private bool _shouldDisplayButtons = true;
-        public ObservableProperty<bool> ShouldDisplayButtonsProperty { get; private set; } = new(true);
+        public ObservableProperty<bool> ShouldDisplayButtonsProperty { get; } = new(true);
 
         private void SetShouldDisplayButtons(bool value)
         {
@@ -62,7 +62,7 @@ namespace CatUI.Elements.Containers.Scroll
 
         private RepositionBehaviorType _repositionBehavior = RepositionBehaviorType.GoToPosition;
 
-        public ObservableProperty<RepositionBehaviorType> RepositionBehaviorProperty { get; private set; }
+        public ObservableProperty<RepositionBehaviorType> RepositionBehaviorProperty { get; }
             = new(RepositionBehaviorType.GoToPosition);
 
         private void SetRepositionBehavior(RepositionBehaviorType value)
@@ -251,7 +251,7 @@ namespace CatUI.Elements.Containers.Scroll
         /// but never remove the original ones. If you want modifications to the elements, use properties like
         /// <see cref="InternalScrollTrackElement"/> instead of directly modifying from here.
         /// </summary>
-        public ObservableList<Element> InternalContent { get; private set; }
+        public ObservableList<Element> InternalContent { get; }
 
         #endregion
 

@@ -10,6 +10,7 @@ using CatUI.Elements.Helpers.Navigation;
 using CatUI.Utils;
 using CatUISample.UI.Pages;
 using CatUISample.UI.Pages.Layout;
+using CatUISample.UI.Theming;
 
 namespace CatUISample.UI
 {
@@ -20,6 +21,7 @@ namespace CatUISample.UI
             ObjectRef<Navigator> navigatorRef = new();
             Document!.BackgroundColor = CatTheme.Colors.Surface;
 
+            ThemeOverride = RootTheme.GetTheme();
             Children =
             [
                 new Sidebar(navigatorRef),

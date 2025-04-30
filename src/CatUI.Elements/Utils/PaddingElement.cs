@@ -55,7 +55,7 @@ namespace CatUI.Elements.Utils
         }
 
         private EdgeInset _padding = new();
-        public ObservableProperty<EdgeInset> PaddingProperty { get; private set; } = new(new EdgeInset());
+        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
 
         private void SetPadding(EdgeInset value)
         {

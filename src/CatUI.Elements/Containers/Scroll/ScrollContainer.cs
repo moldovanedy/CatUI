@@ -58,7 +58,7 @@ namespace CatUI.Elements.Containers.Scroll
         }
 
         private Point2D _scrollPosition = Point2D.Zero;
-        public ObservableProperty<Point2D> ScrollPositionProperty { get; private set; } = new(Point2D.Zero);
+        public ObservableProperty<Point2D> ScrollPositionProperty { get; } = new(Point2D.Zero);
 
         private void SetScrollPosition(Point2D value)
         {
@@ -115,7 +115,7 @@ namespace CatUI.Elements.Containers.Scroll
         }
 
         private bool _isHorizontalScrollEnabled = true;
-        public ObservableProperty<bool> IsHorizontalScrollEnabledProperty { get; private set; } = new(true);
+        public ObservableProperty<bool> IsHorizontalScrollEnabledProperty { get; } = new(true);
 
         private void SetIsHorizontalScrollEnabled(bool value)
         {
@@ -144,7 +144,7 @@ namespace CatUI.Elements.Containers.Scroll
         }
 
         private bool _isVerticalScrollEnabled = true;
-        public ObservableProperty<bool> IsVerticalScrollEnabledProperty { get; private set; } = new(true);
+        public ObservableProperty<bool> IsVerticalScrollEnabledProperty { get; } = new(true);
 
         private void SetIsVerticalScrollEnabled(bool value)
         {
@@ -170,7 +170,7 @@ namespace CatUI.Elements.Containers.Scroll
 
         private RepositionBehaviorType _scrollBarsRepositionBehavior = RepositionBehaviorType.GoToPosition;
 
-        public ObservableProperty<RepositionBehaviorType> ScrollBarsRepositionBehaviorProperty { get; private set; }
+        public ObservableProperty<RepositionBehaviorType> ScrollBarsRepositionBehaviorProperty { get; }
             = new(RepositionBehaviorType.GoToPosition);
 
         private void SetScrollBarsRepositionBehavior(RepositionBehaviorType value)
@@ -193,7 +193,7 @@ namespace CatUI.Elements.Containers.Scroll
 
         private ScrollBarVisibility _horizontalScrollBarVisibility = ScrollBarVisibility.Auto;
 
-        public ObservableProperty<ScrollBarVisibility> HorizontalScrollBarVisibilityProperty { get; private set; }
+        public ObservableProperty<ScrollBarVisibility> HorizontalScrollBarVisibilityProperty { get; }
             = new(ScrollBarVisibility.Auto);
 
         private void SetHorizontalScrollBarVisibility(ScrollBarVisibility value)
@@ -215,7 +215,7 @@ namespace CatUI.Elements.Containers.Scroll
 
         private ScrollBarVisibility _verticalScrollBarVisibility = ScrollBarVisibility.Auto;
 
-        public ObservableProperty<ScrollBarVisibility> VerticalScrollBarVisibilityProperty { get; private set; }
+        public ObservableProperty<ScrollBarVisibility> VerticalScrollBarVisibilityProperty { get; }
             = new(ScrollBarVisibility.Auto);
 
         private void SetVerticalScrollBarVisibility(ScrollBarVisibility value)
@@ -245,7 +245,7 @@ namespace CatUI.Elements.Containers.Scroll
         }
 
         private bool _isUserScrollable = true;
-        public ObservableProperty<bool> IsUserScrollableProperty { get; private set; } = new(true);
+        public ObservableProperty<bool> IsUserScrollableProperty { get; } = new(true);
 
         private void SetIsUserScrollable(bool value)
         {
@@ -271,7 +271,7 @@ namespace CatUI.Elements.Containers.Scroll
 
         private ValueTuple<bool, bool> _scrollPastLimits = (false, false);
 
-        public ObservableProperty<ValueTuple<bool, bool>> ScrollPastLimitsProperty { get; private set; }
+        public ObservableProperty<ValueTuple<bool, bool>> ScrollPastLimitsProperty { get; }
             = new((false, false));
 
         private void SetScrollPastLimits(ValueTuple<bool, bool> value)

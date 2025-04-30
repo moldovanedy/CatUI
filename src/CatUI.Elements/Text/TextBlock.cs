@@ -50,7 +50,7 @@ namespace CatUI.Elements.Text
         }
 
         private bool _wordWrap;
-        public ObservableProperty<bool> WordWrapProperty { get; private set; } = new(false);
+        public ObservableProperty<bool> WordWrapProperty { get; } = new(false);
 
         private void SetWordWrap(bool value)
         {
@@ -74,7 +74,7 @@ namespace CatUI.Elements.Text
 
         private TextBreakMode _breakMode = TextBreakMode.SoftBreak;
 
-        public ObservableProperty<TextBreakMode> BreakModeProperty { get; private set; } = new(TextBreakMode.SoftBreak);
+        public ObservableProperty<TextBreakMode> BreakModeProperty { get; } = new(TextBreakMode.SoftBreak);
 
         private void SetBreakMode(TextBreakMode value)
         {
@@ -99,7 +99,7 @@ namespace CatUI.Elements.Text
         }
 
         private char _hyphenCharacter = '-';
-        public ObservableProperty<char> HyphenCharacterProperty { get; private set; } = new('-');
+        public ObservableProperty<char> HyphenCharacterProperty { get; } = new('-');
 
         private void SetHyphenCharacter(char value)
         {
@@ -121,7 +121,7 @@ namespace CatUI.Elements.Text
         }
 
         private IBrush _textBrush = new ColorBrush(new Color(0));
-        public ObservableProperty<IBrush> TextBrushProperty { get; private set; } = new(new ColorBrush(new Color(0)));
+        public ObservableProperty<IBrush> TextBrushProperty { get; } = new(new ColorBrush(new Color(0)));
 
         private void SetTextBrush(IBrush? value)
         {
@@ -145,7 +145,7 @@ namespace CatUI.Elements.Text
 
         private IBrush _outlineTextBrush = new ColorBrush(Color.Default);
 
-        public ObservableProperty<IBrush> OutlineTextBrushProperty { get; private set; } =
+        public ObservableProperty<IBrush> OutlineTextBrushProperty { get; } =
             new(new ColorBrush(Color.Default));
 
         private void SetOutlineTextBrush(IBrush? value)
@@ -176,7 +176,7 @@ namespace CatUI.Elements.Text
         }
 
         private float _lineHeight = 1.2f;
-        public ObservableProperty<float> LineHeightProperty { get; private set; } = new(1.2f);
+        public ObservableProperty<float> LineHeightProperty { get; } = new(1.2f);
 
         private void SetLineHeight(float value)
         {
@@ -387,7 +387,7 @@ namespace CatUI.Elements.Text
             //the first row
             int columnIndex = 0;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             for (int i = 0; i < newText.Length; i++)
             {
                 //check for newline
@@ -517,8 +517,7 @@ namespace CatUI.Elements.Text
 
                             _drawableRows.Add(new RowInformation
                             {
-                                Text = row.Text.Substring(startIndex, charCount),
-                                Width = currentRowWidth
+                                Text = row.Text.Substring(startIndex, charCount), Width = currentRowWidth
                             });
                             currentHeight += rowHeight;
 
@@ -708,8 +707,7 @@ namespace CatUI.Elements.Text
                                 string text = sb.ToString();
                                 _drawableRows.Add(new RowInformation
                                 {
-                                    Text = text,
-                                    Width = painter.MeasureText(text)
+                                    Text = text, Width = painter.MeasureText(text)
                                 });
 
                                 currentHeight += rowHeight;
@@ -725,7 +723,7 @@ namespace CatUI.Elements.Text
                 }
             }
 
-        //TODO: check how to set the final size when word wrap is false
+            //TODO: check how to set the final size when word wrap is false
         End:
             Size finalSize = new(
                 //if there are breaks, set the maximum between the preferred width and the actual max row width;

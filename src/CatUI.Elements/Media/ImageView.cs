@@ -43,7 +43,7 @@ namespace CatUI.Elements.Media
         }
 
         private Image? _source;
-        public ObservableProperty<Image> SourceProperty { get; private set; } = new();
+        public ObservableProperty<Image> SourceProperty { get; } = new();
 
         private void SetSource(Image? value)
         {
@@ -67,7 +67,7 @@ namespace CatUI.Elements.Media
 
         private HorizontalAlignmentType _horizontalAlignment = HorizontalAlignmentType.Left;
 
-        public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; private set; }
+        public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; }
             = new(HorizontalAlignmentType.Left);
 
         private void SetHorizontalAlignment(HorizontalAlignmentType value)
@@ -92,7 +92,7 @@ namespace CatUI.Elements.Media
 
         private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Top;
 
-        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; private set; }
+        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
             = new(VerticalAlignmentType.Top);
 
         private void SetVerticalAlignment(VerticalAlignmentType value)
@@ -118,7 +118,7 @@ namespace CatUI.Elements.Media
         }
 
         private bool _shouldKeepAspectRatio = true;
-        public ObservableProperty<bool> ShouldKeepAspectRatioProperty { get; private set; } = new(true);
+        public ObservableProperty<bool> ShouldKeepAspectRatioProperty { get; } = new(true);
 
         private void SetShouldKeepAspectRatio(bool value)
         {
@@ -141,7 +141,7 @@ namespace CatUI.Elements.Media
         }
 
         private ImageFitType _imageFit = ImageFitType.CanShrink;
-        public ObservableProperty<ImageFitType> ImageFitProperty { get; private set; } = new(ImageFitType.CanShrink);
+        public ObservableProperty<ImageFitType> ImageFitProperty { get; } = new(ImageFitType.CanShrink);
 
         private void SetImageFit(ImageFitType value)
         {
@@ -165,7 +165,7 @@ namespace CatUI.Elements.Media
         }
 
         private ImageResizeQuality _resizeQuality = ImageResizeQuality.Medium;
-        public ObservableProperty<ImageResizeQuality> ResizeQualityProperty { get; private set; } = new();
+        public ObservableProperty<ImageResizeQuality> ResizeQualityProperty { get; } = new();
 
         private void SetResizeQuality(ImageResizeQuality value)
         {

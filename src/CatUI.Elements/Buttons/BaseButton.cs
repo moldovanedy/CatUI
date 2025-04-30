@@ -37,7 +37,7 @@ namespace CatUI.Elements.Buttons
         }
 
         private bool _canUserCancelClick = true;
-        public ObservableProperty<bool> CanUserCancelClickProperty { get; private set; } = new(true);
+        public ObservableProperty<bool> CanUserCancelClickProperty { get; } = new(true);
 
         private void SetCanUserCancelClick(bool value)
         {

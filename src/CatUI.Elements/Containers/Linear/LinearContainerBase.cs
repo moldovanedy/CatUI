@@ -26,7 +26,7 @@ namespace CatUI.Elements.Containers.Linear
 
         private LinearArrangement _arrangement = new();
 
-        public ObservableProperty<LinearArrangement> ArrangementProperty { get; private set; } =
+        public ObservableProperty<LinearArrangement> ArrangementProperty { get; } =
             new(new LinearArrangement());
 
         private void SetArrangement(LinearArrangement? arrangement)

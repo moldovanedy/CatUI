@@ -38,11 +38,23 @@ namespace CatUISample.UI
                     new Button(entry.Item1, 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                     {
                         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
-                        Background = new ColorBrush(CatTheme.Colors.Primary),
+                        StyleClass = "MenuButtons",
                         OnClick = (_, _) => _navigatorRef.Value?.Navigate(entry.Item2)
                     });
                 Children.Add(new HorizontalDivider(1, new ColorBrush(Color.Default)));
             }
+
+            Children.Add(
+                new Button("AA", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
+                {
+                    Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
+                    StyleClass = "MenuButtons",
+                    InitializationFunction = el =>
+                    {
+                        el.PointerEnterEvent += (_, _) => CatLogger.LogDebug("ENTER");
+                        el.PointerExitEvent += (_, _) => CatLogger.LogDebug("EXIT");
+                    }
+                });
         }
     }
 }

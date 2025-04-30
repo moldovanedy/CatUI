@@ -154,8 +154,9 @@ namespace CatUI.Elements
 
         private void SetState(string? value)
         {
-            //actual changes will be triggered by El.Style
+            //El.Style will trigger actual changes
             _state = value;
+            ApplyThemeStateChanges();
         }
 
         /// <summary>
@@ -176,7 +177,7 @@ namespace CatUI.Elements
         }
 
         private Dimension2 _position = new(0, 0);
-        public ObservableProperty<Dimension2> PositionProperty { get; private set; } = new(new Dimension2(0, 0));
+        public ObservableProperty<Dimension2> PositionProperty { get; } = new(new Dimension2(0, 0));
 
         private void SetPosition(Dimension2 value)
         {
@@ -199,7 +200,7 @@ namespace CatUI.Elements
         }
 
         private IBrush _background = new ColorBrush(Color.Default);
-        public ObservableProperty<IBrush> BackgroundProperty { get; private set; } = new(new ColorBrush(Color.Default));
+        public ObservableProperty<IBrush> BackgroundProperty { get; } = new(new ColorBrush(Color.Default));
 
         private void SetBackground(IBrush? value)
         {
@@ -232,7 +233,7 @@ namespace CatUI.Elements
         }
 
         private ClipShape? _clipPath;
-        public ObservableProperty<ClipShape> ClipPathProperty { get; private set; } = new(null);
+        public ObservableProperty<ClipShape> ClipPathProperty { get; } = new(null);
 
         private void SetClipPath(ClipShape? value)
         {
@@ -259,7 +260,7 @@ namespace CatUI.Elements
 
         private ClipApplicability _clipType = ClipApplicability.All;
 
-        public ObservableProperty<ClipApplicability> ClipTypeProperty { get; private set; } =
+        public ObservableProperty<ClipApplicability> ClipTypeProperty { get; } =
             new(ClipApplicability.All);
 
         private void SetClipType(ClipApplicability value)
@@ -289,7 +290,7 @@ namespace CatUI.Elements
         }
 
         private string? _id;
-        public ObservableProperty<string> IdProperty { get; private set; } = new(null);
+        public ObservableProperty<string> IdProperty { get; } = new(null);
 
         private void SetId(string? value)
         {
@@ -326,7 +327,7 @@ namespace CatUI.Elements
         }
 
         private bool _visible = true;
-        public ObservableProperty<bool> VisibleProperty { get; private set; } = new(true);
+        public ObservableProperty<bool> VisibleProperty { get; } = new(true);
 
         private void SetVisible(bool value)
         {
@@ -359,7 +360,7 @@ namespace CatUI.Elements
         }
 
         private bool _enabled = true;
-        public ObservableProperty<bool> EnabledProperty { get; private set; } = new(true);
+        public ObservableProperty<bool> EnabledProperty { get; } = new(true);
 
         private void SetEnabled(bool value)
         {
@@ -396,7 +397,7 @@ namespace CatUI.Elements
         }
 
         private ContainerSizing? _elementContainerSizing;
-        public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; private set; } = new();
+        public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
 
         private void SetElementContainerSizing(ContainerSizing? value)
         {
@@ -443,9 +444,22 @@ namespace CatUI.Elements
         /// Gets or sets the document of this element and all its children. Will also add the element to the document.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// If the element already belongs to a document, this will remove the element, along with all its children,
         /// then add this element along with its previous children to the specified document. It WILL invoke the
         /// document enter/exit events.
+        /// </para>
+        /// <para>
+        /// Order of operations when the element is added to a document:
+        /// <list type="bullet">
+        /// <item>Remove the element from its previous document (if any)</item>
+        /// <item>Add the element to the ID cache (if it has an ID).</item>
+        /// <item>Apply the theme to this element (both on element type and on style class).</item>
+        /// <item>Invoke <see cref="EnterDocumentEvent"/></item>
+        /// <item>Repeat these steps for each child recursively (so it uses preorder).</item>
+        /// <item>Call <see cref="MarkLayoutDirty"/>.</item>
+        /// </list>
+        /// </para>
         /// </remarks>
         public UiDocument? Document
         {
@@ -457,6 +471,10 @@ namespace CatUI.Elements
                 {
                     _document = value;
                     _document?.AddToIdCache(this);
+
+                    //apply the theme to this element
+                    ApplyElementTypeTheme(null, false);
+                    ApplyClassTheme(StyleClass, false);
 
                     InvokeEnterDocument();
                     //will also call MarkLayoutDirty
@@ -571,6 +589,8 @@ namespace CatUI.Elements
             ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
 
             LayoutProperty.ValueChangedEvent += SetLayout;
+
+            ThemeOverrideProperty.ValueChangedEvent += SetThemeOverride;
 
             Children.ItemInsertedEvent += OnChildInserted;
             Children.ItemRemovedEvent += OnChildRemoved;
@@ -935,6 +955,7 @@ namespace CatUI.Elements
             {
                 el.Children.Add(child.Duplicate());
             }
+
             el.ToggleDuplicateChildrenCheck(true);
         }
 

@@ -41,7 +41,7 @@ namespace CatUI.Elements.Containers.Linear
             }
         }
 
-        public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; private set; }
+        public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; }
             = new(HorizontalAlignmentType.Left);
 
         private void SetHorizontalAlignment(HorizontalAlignmentType value)
