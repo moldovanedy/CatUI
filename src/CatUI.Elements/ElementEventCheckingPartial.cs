@@ -148,7 +148,7 @@ namespace CatUI.Elements
         /// If true, will bypass the checks on pointer exiting so it can fire events needed when an event is cancelled.
         /// You should generally only use this inside overrides of <see cref="CheckInvokePointerUp"/> and
         /// <see cref="CheckInvokeMouseButton"/>. When overriding any of the CheckInvoke* methods, please look closely
-        /// at the initial implementation in ElementInputPartial.cs, as you are completely responsible for doing proper
+        /// at the initial implementation in ElementEventCheckingPartial.cs, as you are completely responsible for doing proper
         /// checks and setting this variable to the correct value each time.
         /// </summary>
         /// <remarks>
@@ -157,13 +157,13 @@ namespace CatUI.Elements
         /// false if it's true, otherwise (when it's false) it should perform the regular checks. 
         /// </remarks>
         /// <example>
-        /// See the implementation of <see cref="CheckInvokePointerUp"/> inside the ElementInputPartial.cs for an example.
+        /// See the implementation of <see cref="CheckInvokePointerUp"/> inside the ElementEventCheckingPartial.cs for an example.
         /// </example>
         protected bool CanBypassPointerChecks { get; set; }
 
         /// <summary>
         /// If true, it means that the pointer was inside the element bounds on the last check. When overriding any of the
-        /// CheckInvoke* methods, please look closely at the initial implementation in ElementInputPartial.cs, as you
+        /// CheckInvoke* methods, please look closely at the initial implementation in ElementEventCheckingPartial.cs, as you
         /// are completely responsible for doing proper checks and setting this variable to the correct value each time.
         /// </summary>
         protected bool WasPointerInside { get; set; }

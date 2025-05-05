@@ -135,7 +135,7 @@ namespace CatUI.Elements
 
         private Size _viewportSize = new();
 
-        public Renderer Renderer { get; } = new();
+        public Renderer Renderer { get; }
 
         public Color BackgroundColor
         {
@@ -149,10 +149,14 @@ namespace CatUI.Elements
 
         private Color _background = new(0xff_ff_ff);
 
+        /// <summary>
+        /// The factor used to convert between pixels and dp. Any change will trigger a <see cref="ViewportSize"/>
+        /// change, which will in turn resize the document and perform layout recalculation on all elements.
+        /// </summary>
         public float ContentScale
         {
             get => _contentScale;
-            private set
+            set
             {
                 Size originalSize = new(ViewportSize.Width / _contentScale, ViewportSize.Height / _contentScale);
                 _contentScale = value;
@@ -164,8 +168,18 @@ namespace CatUI.Elements
 
         private readonly Dictionary<string, Element> _elementCache = new();
 
-        public UiDocument(Size initialViewportSize = default, float initialContentScale = 1f)
+        /// <summary>
+        /// Creates a new document.
+        /// </summary>
+        /// <param name="isManagedByPlatform">
+        /// True if the rendering is displayed using SkiaSharp.Views, false otherwise (for example by setting up an
+        /// OpenGL context for SkiaSharp to detect and use).
+        /// </param>
+        /// <param name="initialViewportSize"></param>
+        /// <param name="initialContentScale"></param>
+        public UiDocument(bool isManagedByPlatform, Size initialViewportSize = default, float initialContentScale = 1f)
         {
+            Renderer = new Renderer(isManagedByPlatform);
             ContentScale = initialContentScale;
             ViewportSize = new Size(
                 initialViewportSize.Width * initialContentScale,
@@ -213,8 +227,14 @@ namespace CatUI.Elements
         /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// For all events, the pointer coordinates are always in pixel coordinates instead of dp, unless otherwise
+        /// noted. Keep this in mind when using it with other values in dp.
+        /// </para>
+        /// <para>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
         /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </para>
         /// </remarks>
         /// <param name="e">The event arguments.</param>
         public void SimulatePointerMove(PointerMoveEventArgs e)
@@ -233,8 +253,14 @@ namespace CatUI.Elements
         /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// For all events, the pointer coordinates are always in pixel coordinates instead of dp, unless otherwise
+        /// noted. Keep this in mind when using it with other values in dp.
+        /// </para>
+        /// <para>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
         /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </para>
         /// </remarks>
         /// <param name="e">The event arguments.</param>
         public void SimulatePointerEnter(PointerEnterEventArgs e)
@@ -250,8 +276,14 @@ namespace CatUI.Elements
         /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// For all events, the pointer coordinates are always in pixel coordinates instead of dp, unless otherwise
+        /// noted. Keep this in mind when using it with other values in dp.
+        /// </para>
+        /// <para>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
         /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </para>
         /// </remarks>
         /// <param name="e">The event arguments.</param>
         public void SimulatePointerExit(PointerExitEventArgs e)
@@ -267,8 +299,14 @@ namespace CatUI.Elements
         /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// For all events, the pointer coordinates are always in pixel coordinates instead of dp, unless otherwise
+        /// noted. Keep this in mind when using it with other values in dp.
+        /// </para>
+        /// <para>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
         /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </para>
         /// </remarks>
         /// <param name="e">The event arguments.</param>
         public void SimulatePointerDown(PointerDownEventArgs e)
@@ -284,8 +322,14 @@ namespace CatUI.Elements
         /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// For all events, the pointer coordinates are always in pixel coordinates instead of dp, unless otherwise
+        /// noted. Keep this in mind when using it with other values in dp.
+        /// </para>
+        /// <para>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
         /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </para>
         /// </remarks>
         /// <param name="e">The event arguments.</param>
         public void SimulatePointerUp(PointerUpEventArgs e)
@@ -301,8 +345,14 @@ namespace CatUI.Elements
         /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// For all events, the pointer coordinates are always in pixel coordinates instead of dp, unless otherwise
+        /// noted. Keep this in mind when using it with other values in dp.
+        /// </para>
+        /// <para>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
         /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </para>
         /// </remarks>
         /// <param name="e">The event arguments.</param>
         public void SimulateMouseButton(MouseButtonEventArgs e)
@@ -322,8 +372,14 @@ namespace CatUI.Elements
         /// MUST refer to the absolute position here.
         /// </summary>
         /// <remarks>
+        /// <para>
+        /// For all events, the pointer coordinates are always in pixel coordinates instead of dp, unless otherwise
+        /// noted. Keep this in mind when using it with other values in dp.
+        /// </para>
+        /// <para>
         /// This does not interact with the platform, so it's only possible to use it inside your application, not to
         /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </para>
         /// </remarks>
         /// <param name="e">The event arguments.</param>
         public void SimulateMouseWheel(MouseWheelEventArgs e)
