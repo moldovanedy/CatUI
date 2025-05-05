@@ -3,6 +3,11 @@ using CatUI.Elements;
 
 namespace CatUI.Windowing.Common
 {
+    /// <summary>
+    /// The base for all application windows. This interface contains all the methods that are common to all platforms.
+    /// Most application windows will also implement other interfaces, as the app lifecycle is different from platform to
+    /// platform.
+    /// </summary>
     public interface IApplicationWindow
     {
         /// <summary>
@@ -24,7 +29,7 @@ namespace CatUI.Windowing.Common
         public int Height { get; set; }
 
         /// <summary>
-        /// If true, it means the window respects the platform scaling that is generally set by users. This means that
+        /// If true, it means the window respects the platform scaling that is generally set by the users. This means that
         /// <see cref="Width"/> and <see cref="Height"/> do NOT map to pixels 1:1, but rather they are scaled.
         /// This is generally the best behavior because CatUI will manage scaling for you, even if the scale is
         /// adjusted by the platform during runtime.
@@ -56,14 +61,10 @@ namespace CatUI.Windowing.Common
         /// </summary>
         /// <remarks>
         /// Although the window will be closed after this returns true, your app will still run until the end of the Main function.
+        /// This is ignored on mobile platforms (Android and iOS) because they don't have a "close" button, and the app
+        /// lifecycle is radically different from desktop and web.
         /// </remarks>
         public Func<bool> OnCloseRequested { get; set; }
-
-        /// <summary>
-        /// Creates and displays a graphical window, taking into consideration the supported parameters, if any.
-        /// Those parameters are generally environment-specific (desktop vs. mobile).
-        /// </summary>
-        public void Open();
 
         /// <summary>
         /// Closes this window by releasing all its resources, if any.
@@ -71,20 +72,13 @@ namespace CatUI.Windowing.Common
         public void Close();
 
         /// <summary>
-        /// This function works similarly to the requestAnimationFrame web API. The given callback will be executed before starting
-        /// to draw the next frame.
+        /// This function works similarly to the requestAnimationFrame web API. The given callback will be executed
+        /// before starting to draw the next frame.
         /// </summary>
         /// <param name="frameCallback">
         /// A function that receives the time between the last frame and the current frame in seconds as a parameter.
         /// </param>
         public void RequestAnimationFrame(Action<double> frameCallback);
-
-        /// <summary>
-        /// Starts listening for platform events, handles the rendering and the general window lifecycle. Will return
-        /// only when the window was closed either by the user or programmatically and only if the invoked <see cref="OnCloseRequested"/>
-        /// returns true.
-        /// </summary>
-        public void Run();
 
         /// <summary>
         /// Fired when the platform's window manager detected a resize done by the user or when the window was resized
@@ -97,7 +91,7 @@ namespace CatUI.Windowing.Common
         /// <summary>
         /// An event that is fired when the internal windowing system decides to redraw
         /// a part of the viewport or the whole viewport. Do NOT use this as a "game loop", as this won't be invoked
-        /// on a regular basis, but rather only when it's necessary (something has changed visually).
+        /// regularly, but rather only when it's necessary (something has changed visually).
         /// </summary>
         /// <remarks>
         /// If you want a reliable continuous loop for each frame, see <see cref="RequestAnimationFrame(Action{double})"/>.

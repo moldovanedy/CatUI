@@ -43,18 +43,6 @@ namespace CatUISample.UI
                     });
                 Children.Add(new HorizontalDivider(1, new ColorBrush(Color.Default)));
             }
-
-            Children.Add(
-                new Button("AA", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
-                {
-                    Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
-                    StyleClass = "MenuButtons",
-                    InitializationFunction = el =>
-                    {
-                        el.PointerEnterEvent += (_, _) => CatLogger.LogDebug("ENTER");
-                        el.PointerExitEvent += (_, _) => CatLogger.LogDebug("EXIT");
-                    }
-                });
         }
     }
 }

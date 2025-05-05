@@ -7,11 +7,37 @@ namespace CatUI.RenderingEngine
 {
     public partial class Renderer
     {
+        /// <summary>
+        /// True when you can safely use <see cref="Surface"/> and <see cref="Canvas"/>, false otherwise.
+        /// </summary>
+        public bool CanDraw { get; private set; }
+
+        /// <summary>
+        /// Represents the SkiaSharp surface where the drawing happens. Its canvas is stored in <see cref="Canvas"/>.
+        /// This is only safe to use when the drawing actually happens, that is when <see cref="CanDraw"/> is true.
+        /// </summary>
         public SKSurface? Surface { get; private set; }
+
+        /// <summary>
+        /// Represents the canvas where all content is drawn. Use this for pretty much any drawing.
+        /// This is only safe to use when the drawing actually happens, that is when <see cref="CanDraw"/> is true.
+        /// </summary>
         public SKCanvas? Canvas { get; private set; }
+
+        /// <summary>
+        /// This will always be null when <see cref="IsManagedByPlatform"/> is true.
+        /// </summary>
         public GRContext? Context { get; private set; }
 
         public bool IsCanvasDirty { get; private set; }
+
+        /// <summary>
+        /// If true, it means that the underlying rendering is managed by SkiaSharp.Views package, so the OpenGL related
+        /// properties and methods (like <see cref="SetFramebufferData"/>) will be useless and
+        /// <see cref="SetPlatformManagedData"/> will be mandatory. This is true for all platforms except classic desktop
+        /// platforms (Win32, macOS, Linux).
+        /// </summary>
+        public bool IsManagedByPlatform { get; }
 
         private const SKColorType COLOR_TYPE = SKColorType.Rgba8888;
         private const GRSurfaceOrigin SURFACE_ORIGIN = GRSurfaceOrigin.BottomLeft;
@@ -26,8 +52,55 @@ namespace CatUI.RenderingEngine
         private int _stencilBits;
         private int _samples;
 
+        public Renderer(bool isManagedByPlatform)
+        {
+            IsManagedByPlatform = isManagedByPlatform;
+        }
+
+        /// <summary>
+        /// You must only call this inside internal window managers (e.g. DesktopWindow, AndroidWindow) and never
+        /// from UI code. This is called before any drawing can happen.
+        /// </summary>
+        public void BeginDraw()
+        {
+            CanDraw = true;
+        }
+
+        /// <summary>
+        /// You must only call this inside internal window managers (e.g. DesktopWindow, AndroidWindow) and never
+        /// from UI code. This is called after all drawing operations are finished.
+        /// </summary>
+        public void EndDraw()
+        {
+            CanDraw = false;
+        }
+
+        /// <summary>
+        /// This method should be called only if the rendering is done with SkiaSharp.Views (i.e. when
+        /// <see cref="IsManagedByPlatform"/> is true), but always before <see cref="ResetAndClear"/>, this is generally
+        /// called whenever SkiaSharp.Views paint event is fired.
+        /// </summary>
+        /// <remarks>
+        /// You can still call this when the rendering is not managed by SkiaSharp.Views, but then you are completely
+        /// responsible for the drawing, as <see cref="ResetAndClear"/> will still consider it has control over the
+        /// context, so it will still use the framebuffer data you give.
+        /// </remarks>
+        /// <param name="surface"></param>
+        /// <param name="canvas"></param>
+        public void SetPlatformManagedData(SKSurface surface, SKCanvas canvas)
+        {
+            Surface = surface;
+            Canvas = canvas;
+            Context = null;
+        }
+
         public void SetFramebufferData(int fbBinding, int stencilBits, int samples)
         {
+            if (IsManagedByPlatform)
+            {
+                return;
+            }
+
             _framebufferBinding = fbBinding;
             _stencilBits = stencilBits;
             _samples = samples;
@@ -45,10 +118,16 @@ namespace CatUI.RenderingEngine
 
         /// <summary>
         /// Will clear the viewport with the viewport's background color,
-        /// but will also take care of recreating the surface if needed (for example on a window resize).
+        /// but will also take care of recreating the surface if needed (for example, on a window resize).
         /// </summary>
         public void ResetAndClear()
         {
+            if (IsManagedByPlatform)
+            {
+                ClearCanvas();
+                return;
+            }
+
             //create the contexts if not done already
             if (Context == null)
             {
@@ -99,15 +178,12 @@ namespace CatUI.RenderingEngine
                 Canvas = Surface.Canvas;
             }
 
-            ArgumentNullException.ThrowIfNull(Canvas);
-            using (new SKAutoCanvasRestore(Canvas, true))
-            {
-                Canvas.Clear(_bgColor);
-            }
+            ClearCanvas();
         }
 
+
         /// <summary>
-        /// Flushes the SkiaSharp contents to GL.
+        /// Flushes the SkiaSharp contents to the screen.
         /// </summary>
         public void Flush()
         {
@@ -205,5 +281,15 @@ namespace CatUI.RenderingEngine
         }
 
         #endregion
+
+
+        private void ClearCanvas()
+        {
+            ArgumentNullException.ThrowIfNull(Canvas);
+            using (new SKAutoCanvasRestore(Canvas, true))
+            {
+                Canvas.Clear(_bgColor);
+            }
+        }
     }
 }

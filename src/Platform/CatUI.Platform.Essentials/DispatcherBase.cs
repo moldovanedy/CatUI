@@ -11,7 +11,7 @@ namespace CatUI.Platform.Essentials
     /// </summary>
     public abstract class DispatcherBase
     {
-        private readonly List<Action> _actions = new();
+        private readonly List<Action> _actions = [];
 
         /// <summary>
         /// The given action will be called on the UI thread regardless of what thread this method is called on

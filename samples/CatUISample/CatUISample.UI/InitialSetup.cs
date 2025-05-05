@@ -2,7 +2,6 @@ using CatUI.Data;
 using CatUI.Data.Enums;
 using CatUI.Data.Theming;
 using CatUI.Data.Theming.Colors;
-using CatUI.Windowing.Desktop;
 
 namespace CatUISample.UI
 {
@@ -10,12 +9,6 @@ namespace CatUISample.UI
     {
         public static void Init()
         {
-            //early initialization of the app
-            CatApplication
-                .NewBuilder()
-                .SetInitializer(new DesktopPlatformInfo().AppInitializer)
-                .Build();
-
             //ReSharper disable All
             CatThemeBuilder.SetColors(
                 primary: new ThemeColor(

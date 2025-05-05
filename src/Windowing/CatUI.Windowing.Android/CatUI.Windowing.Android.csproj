@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0-android</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible>True</IsAotCompatible>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <IsTrimmable>True</IsTrimmable>
+        <IsAotCompatible>True</IsAotCompatible>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="SkiaSharp.Views" Version="2.88.8" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj" />
+    </ItemGroup>
+</Project>

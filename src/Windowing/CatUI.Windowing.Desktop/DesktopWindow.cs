@@ -17,7 +17,7 @@ namespace CatUI.Windowing.Desktop
     /// Represents a window on a desktop platform. On desktop, your app can create multiple windows and can generally
     /// set their size, position on the display etc.
     /// </summary>
-    public unsafe class DesktopWindow : IApplicationWindow
+    public unsafe class DesktopWindow : IApplicationWindow, IClassicLifecycle
     {
         /// <summary>
         /// Represents the pointer to the platform's window representation. You can use this to implement platform-specific
@@ -380,12 +380,12 @@ namespace CatUI.Windowing.Desktop
 
         /// <summary>
         /// Fired when an internal GLFW error occured. GLFW is the windowing library that CatUI uses on desktop to
-        /// create windows, manage input and handle hardware graphics context (OpenGL).
+        /// create windows, manage input, and handle hardware graphics context (OpenGL).
         /// </summary>
         public event Action<OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode, string>? ErrorOccurred;
 
         /// <summary>
-        /// This function will be called when the user, the platform or your code tries to close the window. You can
+        /// This function will be called when the user, the platform, or your code tries to close the window. You can
         /// set this to any function that returns a boolean: if it returns true, the window will be closed and its
         /// resources freed, if it returns false the close request is ignored.
         /// </summary>
@@ -397,13 +397,13 @@ namespace CatUI.Windowing.Desktop
         public Func<bool> OnCloseRequested { get; set; } = () => true;
 
         /// <summary>
-        /// Fired when the window is resized, either by the user, by the platform or by your code.
+        /// Fired when the window is resized, either by the user, by the platform, or by your code.
         /// </summary>
         public event WindowResizedEventHandler? ResizedEvent;
 
         /// <summary>
         /// Fired when the window mode (i.e. windowed, maximized, minimized, or full-screen) is changed either by the user,
-        /// by the platform or by your code. To enter full-screen (simple or exclusive), only your code can trigger this
+        /// by the platform, or by your code. To enter full-screen (simple or exclusive), only your code can trigger this
         /// event by calling <see cref="SetWindowMode"/>.
         /// </summary>
         public event WindowModeChangedEventHandler? WindowModeChangedEvent;
@@ -436,7 +436,7 @@ namespace CatUI.Windowing.Desktop
             Visible = 2,
 
             /// <summary>
-            /// Makes the window have the platform's decorations like borders, the title bar and the control buttons. 
+            /// Makes the window have the platform's decorations like borders, the title bar, and the control buttons. 
             /// </summary>
             Decorated = 4,
 
@@ -502,7 +502,7 @@ namespace CatUI.Windowing.Desktop
         }
 
         private double _lastTime;
-        private readonly List<Action<double>> _animationFrameCallbacks = new();
+        private readonly List<Action<double>> _animationFrameCallbacks = [];
 
         /// <summary>
         /// Fired when the window is "dirty" and it needs a repaint, either partially or fully. This is fired before the
@@ -561,20 +561,20 @@ namespace CatUI.Windowing.Desktop
                 GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out contentScale, out float _);
             }
 
-            Document = new UiDocument(new Size(_width, _height), contentScale);
+            Document = new UiDocument(false, new Size(_width, _height), contentScale);
         }
 
-        ~DesktopWindow()
-        {
-            Terminate();
-
-            if (GlfwWindow != null)
-            {
-                UnregisterCallbacks();
-            }
-
-            //GLFW.SetErrorCallback(null);
-        }
+        // ~DesktopWindow()
+        // {
+        //     Terminate();
+        //
+        //     if (GlfwWindow != null)
+        //     {
+        //         UnregisterCallbacks();
+        //     }
+        //
+        //     //GLFW.SetErrorCallback(null);
+        // }
 
         #endregion
 
@@ -731,7 +731,7 @@ namespace CatUI.Windowing.Desktop
 
         /// <summary>
         /// Sets the window mode. Any value will trigger <see cref="WindowModeChangedEvent"/>. You can minimize, maximize,
-        /// make full-screen or make windowed this window. Regardless of the mode, the window will only be manipulated
+        /// make full-screen, or make windowed this window. Regardless of the mode, the window will only be manipulated
         /// on the current display.
         /// </summary>
         /// <param name="mode">The new mode.</param>
@@ -1182,6 +1182,7 @@ namespace CatUI.Windowing.Desktop
         {
             //remove all the elements from the document
             Document.Root = null;
+            UnregisterCallbacks();
 
 #if USE_ANGLE
             Egl.DestroySurface(_eglDisplay, _eglSurface);
@@ -1266,9 +1267,11 @@ namespace CatUI.Windowing.Desktop
 
         private void FullyRedraw()
         {
+            Document.Renderer.BeginDraw();
             Document.Renderer.ResetAndClear();
             Document.DrawAllElements();
             Document.Renderer.Flush();
+            Document.Renderer.EndDraw();
         }
 
         /// <summary>
