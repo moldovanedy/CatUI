@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using CatUI.Data;
-using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.Desktop.PlatformImplementations;
@@ -17,7 +16,7 @@ namespace CatUI.Windowing.Desktop
     /// Represents a window on a desktop platform. On desktop, your app can create multiple windows and can generally
     /// set their size, position on the display etc.
     /// </summary>
-    public unsafe class DesktopWindow : IApplicationWindow, IClassicLifecycle
+    public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycle
     {
         /// <summary>
         /// Represents the pointer to the platform's window representation. You can use this to implement platform-specific
@@ -76,7 +75,7 @@ namespace CatUI.Windowing.Desktop
         private bool _shouldCloseWindow;
         private readonly WindowFlags _flags;
 
-#if USE_ANGLE
+#if CAT_USE_ANGLE
         private nint _eglDisplay;
         private nint _eglSurface;
         private nint _eglContext;
@@ -86,6 +85,7 @@ namespace CatUI.Windowing.Desktop
         private GLFWCallbacks.WindowContentScaleCallback? _contentScaleCallback;
         private GLFWCallbacks.WindowIconifyCallback? _iconifyCallback;
         private GLFWCallbacks.WindowMaximizeCallback? _maximizeCallback;
+        private GLFWCallbacks.WindowFocusCallback? _focusCallback;
         private GLFWCallbacks.WindowRefreshCallback? _refreshCallback;
 
         private GLFWCallbacks.CursorPosCallback? _cursorMoveCallback;
@@ -385,18 +385,6 @@ namespace CatUI.Windowing.Desktop
         public event Action<OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode, string>? ErrorOccurred;
 
         /// <summary>
-        /// This function will be called when the user, the platform, or your code tries to close the window. You can
-        /// set this to any function that returns a boolean: if it returns true, the window will be closed and its
-        /// resources freed, if it returns false the close request is ignored.
-        /// </summary>
-        /// <remarks>
-        /// This is useful for prompting the user to do some action (e.g. save the file or the modified settings).
-        /// Beware that the user or the platform might still be able to close the window forcefully without this function
-        /// being called.
-        /// </remarks>
-        public Func<bool> OnCloseRequested { get; set; } = () => true;
-
-        /// <summary>
         /// Fired when the window is resized, either by the user, by the platform, or by your code.
         /// </summary>
         public event WindowResizedEventHandler? ResizedEvent;
@@ -561,7 +549,7 @@ namespace CatUI.Windowing.Desktop
                 GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out contentScale, out float _);
             }
 
-            Document = new UiDocument(false, new Size(_width, _height), contentScale);
+            Document = new UiDocument(false, this, new Size(_width, _height), contentScale);
         }
 
         // ~DesktopWindow()
@@ -606,7 +594,7 @@ namespace CatUI.Windowing.Desktop
                 if (GLFW.WindowShouldClose(GlfwWindow))
                 {
                     //if the handler returns true, close the window
-                    if (OnCloseRequested.Invoke())
+                    if (Document.OnCloseRequested.Invoke())
                     {
                         Terminate();
                         return;
@@ -706,7 +694,7 @@ namespace CatUI.Windowing.Desktop
             GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
             CreateSurface();
 
-#if USE_ANGLE
+#if CAT_USE_ANGLE
             Egl.SwapInterval(_eglDisplay, SwapInterval);
             GL.LoadBindings(new AngleBindingsContext());
 #else
@@ -716,12 +704,13 @@ namespace CatUI.Windowing.Desktop
 #endif
 
             RegisterCallbacks();
+            DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);
             FullyRedraw();
         }
 
         /// <summary>
-        /// Closes the window, but if <see cref="OnCloseRequested"/> is overriden, it will be called, so the window might
-        /// not close directly.
+        /// Closes the window, but if <see cref="UiDocument.OnCloseRequested"/> is overriden, it will be called, so the
+        /// window might not close directly.
         /// </summary>
         public void Close()
         {
@@ -882,178 +871,6 @@ namespace CatUI.Windowing.Desktop
             _animationFrameCallbacks.Add(frameCallback);
         }
 
-        private void RegisterCallbacks()
-        {
-            _resizeCallback = (_, newWidth, newHeight) =>
-            {
-                ResizedEvent?.Invoke(
-                    this,
-                    new WindowResizedEventArgs(Width, Height, newWidth, newHeight)
-                );
-            };
-            ResizedEvent += OnResize;
-            GLFW.SetWindowSizeCallback(GlfwWindow, _resizeCallback);
-
-            _contentScaleCallback = (_, xScale, _) =>
-            {
-                DocumentInvoke("WndSetContentScale", xScale);
-            };
-            GLFW.SetWindowContentScaleCallback(GlfwWindow, _contentScaleCallback);
-
-            _iconifyCallback = (_, hasMinimizedNow) =>
-            {
-                OnMinimizeOrRestore(hasMinimizedNow);
-            };
-            GLFW.SetWindowIconifyCallback(GlfwWindow, _iconifyCallback);
-
-            _maximizeCallback = (_, hasMaximizedNow) =>
-            {
-                OnMaximizeOrRestore(hasMaximizedNow);
-            };
-            GLFW.SetWindowMaximizeCallback(GlfwWindow, _maximizeCallback);
-
-            _refreshCallback = _ =>
-            {
-                Monitor* monitor = GLFW.GetWindowMonitor(GlfwWindow);
-                if (monitor == null)
-                {
-                    if (GLFW.GetWindowAttrib(GlfwWindow, WindowAttributeGetBool.Iconified))
-                    {
-                        LastSetWindowMode = WindowMode.Minimized;
-                    }
-                    else if (GLFW.GetWindowAttrib(GlfwWindow, WindowAttributeGetBool.Maximized))
-                    {
-                        LastSetWindowMode = WindowMode.Maximized;
-                    }
-                    else
-                    {
-                        LastSetWindowMode = WindowMode.Windowed;
-                    }
-                }
-            };
-            GLFW.SetWindowRefreshCallback(GlfwWindow, _refreshCallback);
-
-            _cursorMoveCallback = (_, posX, posY) =>
-            {
-                float positionX = (float)posX;
-                float positionY = (float)posY;
-                Point2D pos = new(positionX, positionY);
-                bool pressed = (Document.PressedMouseButtons & MouseButtonType.Primary) != 0;
-
-                Document.SimulatePointerMove(
-                    new PointerMoveEventArgs(
-                        pos,
-                        pos,
-                        positionX - _lastMouseX,
-                        positionY - _lastMouseY,
-                        pressed));
-
-                _lastMouseX = positionX;
-                _lastMouseY = positionY;
-            };
-            GLFW.SetCursorPosCallback(GlfwWindow, _cursorMoveCallback);
-
-            _cursorEnterOrExitCallback = (_, entered) =>
-            {
-                GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
-                Point2D pos = new((float)x, (float)y);
-                bool pressed = (Document.PressedMouseButtons & MouseButtonType.Primary) != 0;
-
-                if (entered)
-                {
-                    Document.SimulatePointerEnter(
-                        new PointerEnterEventArgs(pos, pos, pressed));
-                }
-                else
-                {
-                    Document.SimulatePointerExit(
-                        new PointerExitEventArgs(pos, pos, pressed));
-                }
-            };
-            GLFW.SetCursorEnterCallback(GlfwWindow, _cursorEnterOrExitCallback);
-
-            _mouseButtonCallback = (_, glfwMouseBtn, action, _) =>
-            {
-                //there's a 1:1 correspondence between GLFW button index and our MouseButtonType
-                var button = (MouseButtonType)(1 << (int)glfwMouseBtn);
-                GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
-                Point2D pos = new((float)x, (float)y);
-
-                Document.SimulateMouseButton(
-                    new MouseButtonEventArgs(
-                        pos,
-                        pos,
-                        button,
-                        action == InputAction.Press));
-
-                if (button != MouseButtonType.Primary)
-                {
-                    return;
-                }
-
-                if (action == InputAction.Press)
-                {
-                    Document.SimulatePointerDown(
-                        new PointerDownEventArgs(pos, pos));
-                }
-                else
-                {
-                    Document.SimulatePointerUp(
-                        new PointerUpEventArgs(pos, pos));
-                }
-            };
-            GLFW.SetMouseButtonCallback(GlfwWindow, _mouseButtonCallback);
-
-            _mouseScrollCallback = (_, deltaX, deltaY) =>
-            {
-                //TODO: both mouse and touchpad generate only -1 and 1 (at least on Linux), so we need to somehow
-                // detect if it's a mouse or touchpad and scale the mouse accordingly or use platform-specific APIs
-
-                GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
-                Point2D pos = new((float)x, (float)y);
-
-                Document.SimulateMouseWheel(
-                    new MouseWheelEventArgs(
-                        pos,
-                        pos,
-                        (float)(deltaX == 0 ? deltaX : -deltaX) * 10,
-                        (float)(deltaY == 0 ? deltaY : -deltaY) * 10,
-                        (Document.PressedMouseButtons & MouseButtonType.Middle) != 0));
-            };
-            GLFW.SetScrollCallback(GlfwWindow, _mouseScrollCallback);
-        }
-
-        private void UnregisterCallbacks()
-        {
-            ResizedEvent = null;
-            _resizeCallback = null;
-            GLFW.SetWindowSizeCallback(GlfwWindow, null);
-
-            _contentScaleCallback = null;
-            GLFW.SetWindowContentScaleCallback(GlfwWindow, null);
-
-            _iconifyCallback = null;
-            GLFW.SetWindowIconifyCallback(GlfwWindow, null);
-
-            _maximizeCallback = null;
-            GLFW.SetWindowMaximizeCallback(GlfwWindow, null);
-
-            _refreshCallback = null;
-            GLFW.SetWindowRefreshCallback(GlfwWindow, null);
-
-            _cursorMoveCallback = null;
-            GLFW.SetCursorPosCallback(GlfwWindow, null);
-
-            _cursorEnterOrExitCallback = null;
-            GLFW.SetCursorEnterCallback(GlfwWindow, null);
-
-            _mouseButtonCallback = null;
-            GLFW.SetMouseButtonCallback(GlfwWindow, null);
-
-            _mouseScrollCallback = null;
-            GLFW.SetScrollCallback(GlfwWindow, null);
-        }
-
         private void DoFrameActions()
         {
             double delta = GLFW.GetTime() - _lastTime;
@@ -1092,7 +909,7 @@ namespace CatUI.Windowing.Desktop
 
                 _lastTime = GLFW.GetTime();
 
-#if USE_ANGLE
+#if CAT_USE_ANGLE
                 Egl.SwapBuffers(_eglDisplay, _eglSurface);
 #else
                 GLFW.SwapBuffers(GlfwWindow);
@@ -1123,7 +940,7 @@ namespace CatUI.Windowing.Desktop
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private void CreateSurface()
         {
-#if USE_ANGLE
+#if CAT_USE_ANGLE
             GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.NoApi);
 
             int[] platformAttributes =
@@ -1180,11 +997,26 @@ namespace CatUI.Windowing.Desktop
 
         private void Terminate()
         {
+            if (Document.CurrentAppState == UiDocument.AppState.Active)
+            {
+                DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
+            }
+
+            if (Document.CurrentAppState == UiDocument.AppState.Inactive)
+            {
+                DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
+            }
+
+            if (Document.CurrentAppState == UiDocument.AppState.Hidden)
+            {
+                DocumentInvoke("WndSetAppState", UiDocument.AppState.Detached);
+            }
+
             //remove all the elements from the document
             Document.Root = null;
             UnregisterCallbacks();
 
-#if USE_ANGLE
+#if CAT_USE_ANGLE
             Egl.DestroySurface(_eglDisplay, _eglSurface);
             Egl.DestroyContext(_eglDisplay, _eglContext);
             Egl.Terminate(_eglDisplay);
@@ -1196,74 +1028,6 @@ namespace CatUI.Windowing.Desktop
                 GlfwWindow = (Window*)0;
             }
         }
-
-        #region Callback functions
-
-        private void OnResize(object sender, WindowResizedEventArgs e)
-        {
-            //GL.Viewport(0, 0, width, height);
-            //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-
-            _width = e.NewWidth;
-            _height = e.NewHeight;
-
-            GL.GetInteger(GetPName.FramebufferBinding, out int frame);
-            GL.GetInteger(GetPName.StencilBits, out int stencil);
-            GL.GetInteger(GetPName.Samples, out int samples);
-            Document.Renderer.SetFramebufferData(frame, stencil, samples);
-
-            DocumentInvoke("WndSetViewportSize", new Size(e.NewWidth, e.NewHeight));
-            Document.Renderer.SetCanvasDirty();
-            DoFrameActions();
-        }
-
-        private void OnMinimizeOrRestore(bool hasMinimizedNow)
-        {
-            CurrentWindowMode = hasMinimizedNow ? WindowMode.Minimized : LastSetWindowMode;
-
-            WindowModeChangedEvent?.Invoke(
-                this,
-                hasMinimizedNow
-                    ? new WindowModeChangedEventArgs(WindowMode.Minimized, LastSetWindowMode)
-                    : new WindowModeChangedEventArgs(LastSetWindowMode, WindowMode.Minimized));
-
-            //This is a workaround for some window managers/display servers like KWin that will show the window framebuffer
-            //as transparent after minimizing or restoring until a redraw happens.
-
-            //TODO: instead of a full redraw, only redraw parts that are different from the back buffer \
-            //TODO (): (this can only be implemented once partial redraws are implemented)
-            GL.GetInteger(GetPName.FramebufferBinding, out int frame);
-            GL.GetInteger(GetPName.StencilBits, out int stencil);
-            GL.GetInteger(GetPName.Samples, out int samples);
-            Document.Renderer.SetFramebufferData(frame, stencil, samples);
-
-            Document.Renderer.SetCanvasDirty();
-            DoFrameActions();
-
-// #if USE_ANGLE
-//             Egl.SwapBuffers(_eglDisplay, _eglSurface);
-// #else
-//             GLFW.SwapBuffers(GlfwWindow);
-// #endif
-        }
-
-        private void OnMaximizeOrRestore(bool hasMaximizedNow)
-        {
-            if (!_canInvokeMaximize)
-            {
-                return;
-            }
-
-            CurrentWindowMode = hasMaximizedNow ? WindowMode.Maximized : WindowMode.Windowed;
-
-            WindowModeChangedEvent?.Invoke(
-                this,
-                hasMaximizedNow
-                    ? new WindowModeChangedEventArgs(WindowMode.Maximized, WindowMode.Windowed)
-                    : new WindowModeChangedEventArgs(WindowMode.Windowed, WindowMode.Maximized));
-        }
-
-        #endregion
 
         private void FullyRedraw()
         {

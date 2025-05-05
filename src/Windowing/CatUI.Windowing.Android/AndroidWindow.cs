@@ -66,8 +66,6 @@ namespace CatUI.Windowing.Android
 
         public UiDocument Document { get; }
 
-        public Func<bool> OnCloseRequested { get; set; } = () => true;
-
         #endregion
 
         public event WindowResizedEventHandler? ResizedEvent;
@@ -76,12 +74,13 @@ namespace CatUI.Windowing.Android
         private readonly List<Action<double>> _animationFrameCallbacks = [];
         private Choreographer? _choreographer;
         private readonly Stopwatch _stopwatch = new();
+        private bool _isAlreadyCreated;
 
         private SKCanvasView? _canvasView;
 
         public AndroidWindow()
         {
-            Document = new UiDocument(true, new Data.Size(0, 0));
+            Document = new UiDocument(true, this, new Data.Size(0, 0));
             ResizedEvent += OnResize;
         }
 
@@ -112,13 +111,81 @@ namespace CatUI.Windowing.Android
 
             _choreographer = Choreographer.Instance;
             SetupCallbacks();
+
+            if (_isAlreadyCreated)
+            {
+                return;
+            }
+
+            DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);
+            _isAlreadyCreated = true;
+        }
+
+        protected override void OnStart()
+        {
+            base.OnStart();
+
+            //otherwise it means it is right before OnCreate; in that case we don't change the state
+            if (Document.CurrentAppState != UiDocument.AppState.Active)
+            {
+                DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
+            }
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+
+            //otherwise it means it is right before OnCreate; in that case we don't change the state
+            if (Document.CurrentAppState != UiDocument.AppState.Active)
+            {
+                DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);
+            }
+        }
+
+        protected override void OnPause()
+        {
+            base.OnPause();
+            DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
+        }
+
+        protected override void OnStop()
+        {
+            base.OnStop();
+            DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            if (IsFinishing)
+            {
+                if (Document.CurrentAppState == UiDocument.AppState.Active)
+                {
+                    DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
+                }
+
+                if (Document.CurrentAppState == UiDocument.AppState.Inactive)
+                {
+                    DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
+                }
+
+                if (Document.CurrentAppState == UiDocument.AppState.Hidden)
+                {
+                    DocumentInvoke("WndSetAppState", UiDocument.AppState.Detached);
+                }
+
+                //remove all the elements from the document
+                Document.Root = null;
+            }
         }
 
         #endregion
 
         #region Event handling
 
-        private readonly Dictionary<int, Point2D> activePointers = [];
+        private readonly Dictionary<int, Point2D> _activePointers = [];
 
         private void OnTouchEvent(object? sender, View.TouchEventArgs e)
         {
@@ -139,7 +206,7 @@ namespace CatUI.Windowing.Android
                         MotionEvent.PointerCoords coords = new();
                         e.Event.GetPointerCoords(pointerIndex, coords);
                         Point2D pos = new(coords.X, coords.Y);
-                        activePointers[pointerId] = pos;
+                        _activePointers[pointerId] = pos;
 
                         Document.SimulatePointerEnter(
                             new PointerEnterEventArgs(pos, pos, false));
@@ -156,7 +223,7 @@ namespace CatUI.Windowing.Android
                             for (int ptr = 0; ptr < e.Event.PointerCount; ptr++)
                             {
                                 int id = e.Event.GetPointerId(ptr);
-                                if (!activePointers.TryGetValue(id, out Point2D previousPos))
+                                if (!_activePointers.TryGetValue(id, out Point2D previousPos))
                                 {
                                     continue;
                                 }
@@ -164,7 +231,7 @@ namespace CatUI.Windowing.Android
                                 MotionEvent.PointerCoords coords = new();
                                 e.Event.GetHistoricalPointerCoords(ptr, i, coords);
                                 Point2D pos = new(coords.X, coords.Y);
-                                activePointers[id] = pos;
+                                _activePointers[id] = pos;
 
                                 Document.SimulatePointerMove(
                                     new PointerMoveEventArgs(
@@ -180,7 +247,7 @@ namespace CatUI.Windowing.Android
                         for (int ptr = 0; ptr < e.Event.PointerCount; ptr++)
                         {
                             int id = e.Event.GetPointerId(ptr);
-                            if (!activePointers.TryGetValue(id, out Point2D previousPos))
+                            if (!_activePointers.TryGetValue(id, out Point2D previousPos))
                             {
                                 continue;
                             }
@@ -188,7 +255,7 @@ namespace CatUI.Windowing.Android
                             MotionEvent.PointerCoords coords = new();
                             e.Event.GetPointerCoords(ptr, coords);
                             Point2D pos = new(coords.X, coords.Y);
-                            activePointers[id] = pos;
+                            _activePointers[id] = pos;
 
                             Document.SimulatePointerMove(
                                 new PointerMoveEventArgs(
@@ -206,7 +273,7 @@ namespace CatUI.Windowing.Android
                 case MotionEventActions.PointerUp:
                 case MotionEventActions.Cancel:
                     {
-                        if (!activePointers.TryGetValue(pointerId, out Point2D pos))
+                        if (!_activePointers.TryGetValue(pointerId, out Point2D pos))
                         {
                             break;
                         }
@@ -219,11 +286,20 @@ namespace CatUI.Windowing.Android
                         Document.SimulatePointerExit(
                             new PointerExitEventArgs(pos, pos, false));
 
-                        activePointers.Remove(pointerId);
+                        _activePointers.Remove(pointerId);
                         break;
                     }
             }
         }
+
+        //TODO: implement
+        //
+        // public override void OnConfigurationChanged(Configuration newConfig)
+        // {
+        //     base.OnConfigurationChanged(newConfig);
+        //
+        //     //for size changes, we don't need to use this method as it's already handled by SkCanvasView
+        // }
 
         #endregion
 

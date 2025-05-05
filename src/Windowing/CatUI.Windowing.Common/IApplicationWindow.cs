@@ -55,18 +55,6 @@ namespace CatUI.Windowing.Common
         public UiDocument Document { get; }
 
         /// <summary>
-        /// Called when the user or the platform requested the application close. Returning true (the default behavior)
-        /// will close the window immediately, while returning false will make the window continue running.
-        /// This can be useful for implementing a prompt for the user (e.g. if they would like to save changes before the app is closed).
-        /// </summary>
-        /// <remarks>
-        /// Although the window will be closed after this returns true, your app will still run until the end of the Main function.
-        /// This is ignored on mobile platforms (Android and iOS) because they don't have a "close" button, and the app
-        /// lifecycle is radically different from desktop and web.
-        /// </remarks>
-        public Func<bool> OnCloseRequested { get; set; }
-
-        /// <summary>
         /// Closes this window by releasing all its resources, if any.
         /// </summary>
         public void Close();
