@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CatUI.Data;
 using CatUI.Data.ElementData;
 using CatUI.Data.Events.Input.Pointer;
@@ -166,19 +167,87 @@ namespace CatUI.Elements
 
         private float _contentScale = 1f;
 
-        private readonly Dictionary<string, Element> _elementCache = new();
+        #region App lifecycle
+
+        /// <summary>
+        /// Represents the current state of the application. When a state change event is fired (such as
+        /// <see cref="OnAppActivate"/> or <see cref="OnAppHide"/>), this still holds the previous state (e.g. when OnActivate
+        /// is fired, this is still <see cref="AppState.Inactive"/>).
+        /// </summary>
+        public AppState CurrentAppState { get; private set; } = AppState.Detached;
+
+        /// <summary>
+        /// Transition from AppState.Detached to AppState.Active.
+        /// </summary>
+        public event Action? OnAppStart;
+
+        /// <summary>
+        /// Transition from AppState.Active to AppState.Inactive.
+        /// </summary>
+        public event Action? OnAppDeactivate;
+
+        /// <summary>
+        /// Transition from AppState.Inactive to AppState.Active.
+        /// </summary>
+        public event Action? OnAppActivate;
+
+        /// <summary>
+        /// Transition from AppState.Inactive to AppState.Hidden.
+        /// </summary>
+        public event Action? OnAppHide;
+
+        /// <summary>
+        /// Transition from AppState.Hidden to AppState.Inactive.
+        /// </summary>
+        public event Action? OnAppShow;
+
+        /// <summary>
+        /// Transition from AppState.Hidden to AppState.Detached. Windowing implementations on desktop should also take
+        /// into account <see cref="OnCloseRequested"/>.
+        /// </summary>
+        public event Action? OnAppStop;
+
+        /// <summary>
+        /// Any app state transition. Fired before any concrete events (such as <see cref="OnAppHide"/> or
+        /// <see cref="OnAppActivate"/>). Contains the new app state.
+        /// </summary>
+        public event Action<AppState>? OnAppStateChange;
+
+        /// <summary>
+        /// Called when the user or the platform requested the application close. Returning true (the default behavior)
+        /// will close the window immediately, while returning false will make the window continue running.
+        /// This can be useful for implementing a prompt for the user (e.g. if they would like to save changes before
+        /// the app is closed).
+        /// </summary>
+        /// <remarks>
+        /// Although the window will be closed after this returns true, your app will still run until the end of the
+        /// Main function. This is ignored on mobile platforms (Android and iOS) because they don't have a "close"
+        /// button, and the app lifecycle is radically different from desktop and web.
+        /// </remarks>
+        public Func<bool> OnCloseRequested { get; set; } = () => true;
+
+        #endregion
+
+        private readonly Dictionary<string, Element> _elementCache = [];
+        private readonly object _window;
 
         /// <summary>
         /// Creates a new document.
         /// </summary>
         /// <param name="isManagedByPlatform">
-        /// True if the rendering is displayed using SkiaSharp.Views, false otherwise (for example by setting up an
+        /// True if the rendering is displayed using SkiaSharp.Views, false otherwise (for example, by setting up an
         /// OpenGL context for SkiaSharp to detect and use).
         /// </param>
+        /// <param name="window">The IApplicationWindow instance that owns this document.</param>
         /// <param name="initialViewportSize"></param>
         /// <param name="initialContentScale"></param>
-        public UiDocument(bool isManagedByPlatform, Size initialViewportSize = default, float initialContentScale = 1f)
+        public UiDocument(
+            bool isManagedByPlatform,
+            object window,
+            Size initialViewportSize = default,
+            float initialContentScale = 1f)
         {
+            _window = window;
             Renderer = new Renderer(isManagedByPlatform);
             ContentScale = initialContentScale;
             ViewportSize = new Size(
@@ -216,6 +285,16 @@ namespace CatUI.Elements
         public Element? GetElementById(string id)
         {
             return Root == null ? null : _elementCache.GetValueOrDefault(id);
+        }
+
+        /// <summary>
+        /// Get the IApplicationWindow that owns this document.
+        /// </summary>
+        /// <typeparam name="T">The window type. Must be of type IApplicationWindow or derived.</typeparam>
+        /// <returns>The window that owns this document.</returns>
+        public T GetWindow<T>()
+        {
+            return (T)_window;
         }
 
         #region Artificial events
@@ -431,6 +510,121 @@ namespace CatUI.Elements
             ContentScale = scale;
         }
 
+        /// <summary>
+        /// Will be used by window implementation to set the current app state. Do NOT modify its signature.
+        /// </summary>
+        /// <param name="state">
+        /// The new state. If it's the same as the <see cref="CurrentAppState"/> or describing an invalid transition,
+        /// the method will return without changing or firing anything.
+        /// </param>
+        internal void WndSetAppState(AppState state)
+        {
+            if (CurrentAppState == state)
+            {
+                return;
+            }
+
+            switch (CurrentAppState)
+            {
+                case AppState.Detached:
+                    {
+                        if (state == AppState.Active)
+                        {
+                            OnAppStateChange?.Invoke(state);
+                            OnAppStart?.Invoke();
+                            break;
+                        }
+
+                        //invalid transition
+                        return;
+                    }
+                case AppState.Active:
+                    {
+                        if (state == AppState.Inactive)
+                        {
+                            OnAppStateChange?.Invoke(state);
+                            OnAppDeactivate?.Invoke();
+                            break;
+                        }
+
+                        //invalid transition
+                        return;
+                    }
+                case AppState.Inactive:
+                    {
+                        if (state == AppState.Active)
+                        {
+                            OnAppStateChange?.Invoke(state);
+                            OnAppActivate?.Invoke();
+                        }
+                        else if (state == AppState.Hidden)
+                        {
+                            OnAppStateChange?.Invoke(state);
+                            OnAppHide?.Invoke();
+                        }
+                        else
+                        {
+                            //invalid transition
+                            return;
+                        }
+
+                        break;
+                    }
+                case AppState.Hidden:
+                    {
+                        if (state == AppState.Inactive)
+                        {
+                            OnAppStateChange?.Invoke(state);
+                            OnAppShow?.Invoke();
+                        }
+                        else if (state == AppState.Detached)
+                        {
+                            OnAppStateChange?.Invoke(state);
+                            OnAppStop?.Invoke();
+                        }
+                        else
+                        {
+                            //invalid transition
+                            return;
+                        }
+
+                        break;
+                    }
+            }
+
+            CurrentAppState = state;
+        }
+
         #endregion
+
+
+        /// <summary>
+        /// The states your application can be in.
+        /// </summary>
+        public enum AppState
+        {
+            /// <summary>
+            /// The starting state. The app is either starting now or detached from the system and about to be terminated.
+            /// </summary>
+            Detached = 0,
+
+            /// <summary>
+            /// The most important state: the app has focus, is visible to the user and can work normally.
+            /// </summary>
+            Active = 1,
+
+            /// <summary>
+            /// The app lost focus but is still visible to the user and can work normally.
+            /// </summary>
+            Inactive = 2,
+
+            /// <summary>
+            /// The app is either minimized on desktop or simply not visible on mobile (due to the user switching to
+            /// another app). You should stop drawing UI in this state and possibly save any relevant data. On mobile,
+            /// this is where the app has higher chances to be terminated by the system, so it's important to save any
+            /// important data.
+            /// </summary>
+            Hidden = 3
+        }
     }
 }

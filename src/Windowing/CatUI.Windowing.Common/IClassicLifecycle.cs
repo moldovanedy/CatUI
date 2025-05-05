@@ -14,7 +14,7 @@ namespace CatUI.Windowing.Common
         /// <summary>
         /// Starts listening for platform events, handles the rendering and the general window lifecycle. Will return
         /// only when the window was closed either by the user or programmatically and only if the invoked
-        /// <see cref="IApplicationWindow.OnCloseRequested"/> returns true.
+        /// UiDocument.OnCloseRequested returns true.
         /// </summary>
         public void Run();
     }
