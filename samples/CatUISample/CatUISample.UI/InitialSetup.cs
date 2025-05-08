@@ -1,5 +1,4 @@
 using CatUI.Data;
-using CatUI.Data.Enums;
 using CatUI.Data.Theming;
 using CatUI.Data.Theming.Colors;
 
@@ -253,7 +252,7 @@ namespace CatUISample.UI
             //ReSharper enable All
 
             CatThemeBuilder.ApplyTheme();
-            CatTheme.Settings.IsDarkModeEnabled = PlatformOption.PlatformDependentFallbackEnabled;
+            CatTheme.Settings.IsDarkModeEnabled = new CatPlatformDependentSetting<bool>(true, true);
         }
     }
 }

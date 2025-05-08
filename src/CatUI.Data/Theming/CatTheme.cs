@@ -30,22 +30,13 @@ namespace CatUI.Data.Theming
         {
             get
             {
-                // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-                switch (Settings.IsDarkModeEnabled)
-                {
-                    case PlatformOption.Enabled:
-                        return true;
-                    case PlatformOption.Disabled:
-                        return false;
-                }
-
                 bool? platformValue = CatApplication.Instance.PlatformUiOptions.IsDarkModeEnabled;
                 if (platformValue.HasValue)
                 {
                     return platformValue.Value;
                 }
 
-                return Settings.IsDarkModeEnabled == PlatformOption.PlatformDependentFallbackEnabled;
+                return Settings.IsDarkModeEnabled.FallbackValue;
             }
         }
 

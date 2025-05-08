@@ -10,6 +10,7 @@ using CatUI.Data.Events.Document;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.Data.Shapes;
+using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers.Linear;
 using CatUI.RenderingEngine;
 using CatUI.Utils;
@@ -104,23 +105,18 @@ namespace CatUI.Elements
             {
                 _children.Clear();
 
-                //this is because we set children to null on destruction, so it can cause trouble
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-                if (value != null)
+                try
                 {
-                    try
+                    EnterLayoutFreezeRecursively();
+                    foreach (Element child in value)
                     {
-                        EnterLayoutFreezeRecursively();
-                        foreach (Element child in value)
-                        {
-                            _children.Add(child);
-                        }
+                        _children.Add(child);
                     }
-                    finally
-                    {
-                        ExitLayoutFreezeRecursively();
-                        MarkLayoutDirty();
-                    }
+                }
+                finally
+                {
+                    ExitLayoutFreezeRecursively();
+                    MarkLayoutDirty();
                 }
             }
         }
@@ -637,7 +633,7 @@ namespace CatUI.Elements
 
         protected virtual void DrawBackground()
         {
-            if (!_visible)
+            if (!_visible || this is INonVisualElement)
             {
                 return;
             }
@@ -661,7 +657,6 @@ namespace CatUI.Elements
             e.Item._parent = this;
             e.Item.IndexInParent = e.Index;
 
-
             if (Document != null)
             {
                 e.Item.Document = Document;
@@ -679,19 +674,13 @@ namespace CatUI.Elements
 
             if (Document != null)
             {
-                e.Item.InvokeExitDocument();
+                e.Item.InvokeExitDocumentRecursive();
             }
 
-            //WARNING: Order is important! We first remove the child's connections to its parent, THEN clear all its
-            //descendants and set finally set the document to null. Setting the document to null before clearing won't
-            //fire ExitDocumentEvent, while clearing children first, then removing connections to its parent will result
-            //in crashes because this element **already removed the child** from its children list, but the child still has
-            //the reference to the parent, which will cause IndexOutOfRangeException and unexpected behavior in general
             e.Item._parent = null;
             e.Item.IndexInParent = -1;
             e.Item.Bounds = new Rect();
 
-            e.Item.Children.Clear();
             e.Item._document = null;
             MarkLayoutDirty();
         }
@@ -839,9 +828,14 @@ namespace CatUI.Elements
             EnterDocumentEvent?.Invoke(this);
         }
 
-        internal void InvokeExitDocument()
+        internal void InvokeExitDocumentRecursive()
         {
             ExitDocumentEvent?.Invoke(this);
+
+            foreach (Element child in Children)
+            {
+                child.InvokeExitDocumentRecursive();
+            }
         }
 
         internal void InvokeLoad()
@@ -1046,7 +1040,10 @@ namespace CatUI.Elements
 
         public void RequestRedraw()
         {
-            Document?.MarkVisualDirty();
+            if (this is not INonVisualElement)
+            {
+                Document?.MarkVisualDirty();
+            }
         }
 
         /// <summary>

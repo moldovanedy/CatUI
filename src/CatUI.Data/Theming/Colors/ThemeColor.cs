@@ -59,6 +59,16 @@ namespace CatUI.Data.Theming.Colors
         public Color? LightHighContrast { get; }
 
         /// <summary>
+        /// Sets a single color for both dark and light mode and all contrast options.
+        /// </summary>
+        /// <param name="color"></param>
+        public ThemeColor(Color color)
+        {
+            LightStandardContrast = color;
+            DarkStandardContrast = color;
+        }
+
+        /// <summary>
         /// Sets a light color and a dark color for all contrast options.
         /// </summary>
         /// <param name="lightColor"></param>

@@ -101,8 +101,7 @@ namespace CatUI.Elements
             {
                 if (_root != value)
                 {
-                    _root?.InvokeExitDocument();
-                    _root?.Children.Clear();
+                    _root?.InvokeExitDocumentRecursive();
                 }
 
                 _root = value;
