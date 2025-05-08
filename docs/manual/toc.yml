@@ -1,4 +1,9 @@
 - name: Introduction
   href: introduction.md
+- name: Overview
+  href: overview.md
+- name: Supported platforms
+  href: supported-platforms.md
+
 - name: Getting Started
   href: getting-started.md
