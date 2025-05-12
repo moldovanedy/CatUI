@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using CatUI.Data;
+using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
@@ -266,6 +267,7 @@ namespace CatUI.RenderingEngine
         /// </param>
         /// <returns>The number of characters drawn.</returns>
         /// <exception cref="ArgumentException">Thrown if the text contains an invalid newline (\r instead of \n or \r\n).</exception>
+        [Obsolete("Unreliable, use a custom solution with DrawTextRowFast instead. See the TextBlock implementation.")]
         public int DrawTextRow(
             string text,
             Point2D topLeftPoint,
@@ -415,6 +417,7 @@ namespace CatUI.RenderingEngine
         /// <param name="topLeftPoint"></param>
         /// <param name="fontSize"></param>
         /// <param name="elementSize"></param>
+        /// <param name="font">The font that is used for drawing, otherwise it will use the platform default.</param>
         /// <param name="fillBrush"></param>
         /// <param name="outlineBrush"></param>
         /// <param name="textAlignment"></param>
@@ -423,6 +426,7 @@ namespace CatUI.RenderingEngine
             Point2D topLeftPoint,
             float fontSize,
             Size elementSize,
+            FontAsset? font = null,
             IBrush? fillBrush = null,
             IBrush? outlineBrush = null,
             TextAlignmentType textAlignment = TextAlignmentType.Left)
@@ -433,10 +437,9 @@ namespace CatUI.RenderingEngine
             {
                 return;
             }
+
             //fill, but no outline
-            else if (
-                fillBrush != null && !fillBrush.IsSkippable &&
-                (outlineBrush == null || outlineBrush.IsSkippable))
+            if (fillBrush != null && !fillBrush.IsSkippable && (outlineBrush == null || outlineBrush.IsSkippable))
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
@@ -446,9 +449,7 @@ namespace CatUI.RenderingEngine
                     fontSize: fontSize);
             }
             //outline, but no fill
-            else if (
-                outlineBrush != null && !outlineBrush.IsSkippable &&
-                (fillBrush == null || fillBrush.IsSkippable))
+            else if (outlineBrush != null && !outlineBrush.IsSkippable && (fillBrush == null || fillBrush.IsSkippable))
             {
                 painter = outlineBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
@@ -458,9 +459,7 @@ namespace CatUI.RenderingEngine
                     fontSize: fontSize);
             }
             //both fill and outline
-            else if (
-                outlineBrush != null && !outlineBrush.IsSkippable &&
-                fillBrush != null && !fillBrush.IsSkippable)
+            else if (outlineBrush != null && !outlineBrush.IsSkippable && fillBrush != null && !fillBrush.IsSkippable)
             {
                 painter = fillBrush.ToSkiaPaint();
                 PaintManager.ModifyPaint(
@@ -472,6 +471,11 @@ namespace CatUI.RenderingEngine
             else
             {
                 return;
+            }
+
+            if (font != null)
+            {
+                painter.Typeface = font.SkiaFont;
             }
 
             float drawPointX = topLeftPoint.X;

@@ -306,6 +306,7 @@ namespace CatUI.Elements.Text
                     rowPosition,
                     fontSize,
                     new Size(bounds.Width, bounds.Height),
+                    Font,
                     TextBrush,
                     OutlineTextBrush,
                     TextAlignment);
@@ -823,7 +824,7 @@ namespace CatUI.Elements.Text
             /// Text: "fgh-ijk-lm opq"
             /// List: [2, 5, 8]
             /// </example>
-            public List<int> PossibleBreakPoints { get; set; } = new();
+            public List<int> PossibleBreakPoints { get; set; } = [];
         }
     }
 }

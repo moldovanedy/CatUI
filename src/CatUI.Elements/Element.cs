@@ -148,6 +148,7 @@ namespace CatUI.Elements
         private string? _state;
         public ObservableProperty<string> StateProperty { get; private set; } = new(null);
 
+        //NOTE: this will always be called before El.Style
         private void SetState(string? value)
         {
             //El.Style will trigger actual changes
@@ -913,7 +914,7 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Deep clones the element. The element will not belong to the document, but will have all the original properties
-        /// cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like <see cref="Image"/>).
+        /// cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like <see cref="ImageAsset"/>).
         /// </summary>
         /// <returns>
         /// A new deep clone of the object that is not attached to the document but has the properties of the original.

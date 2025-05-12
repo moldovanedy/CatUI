@@ -1,5 +1,7 @@
 ﻿using CatUI.Data;
+using CatUI.Data.Assets;
 using CatUI.Data.Enums;
+using CatUI.RenderingEngine.GraphicsCaching;
 
 namespace CatUI.Elements.Text
 {
@@ -27,6 +29,30 @@ namespace CatUI.Elements.Text
         {
             _text = value ?? string.Empty;
             MarkLayoutDirty();
+        }
+
+        public FontAsset? Font
+        {
+            get => _font;
+            set
+            {
+                SetFont(value);
+                FontProperty.Value = value;
+            }
+        }
+
+        private FontAsset? _font;
+        public ObservableProperty<FontAsset> FontProperty { get; } = new();
+
+        private void SetFont(FontAsset? value)
+        {
+            _font = value;
+            MarkLayoutDirty();
+
+            if (value != null)
+            {
+                TextMeasuringCache.UseFont(value);
+            }
         }
 
         /// <summary>
@@ -151,6 +177,7 @@ namespace CatUI.Elements.Text
         private void InitPropertiesEvents()
         {
             TextProperty.ValueChangedEvent += SetText;
+            FontProperty.ValueChangedEvent += SetFont;
             FontSizeProperty.ValueChangedEvent += SetFontSize;
             OverflowModeProperty.ValueChangedEvent += SetOverflowMode;
             TextAlignmentProperty.ValueChangedEvent += SetTextAlignment;

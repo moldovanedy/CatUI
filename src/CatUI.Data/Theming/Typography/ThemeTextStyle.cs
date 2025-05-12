@@ -14,7 +14,7 @@ namespace CatUI.Data.Theming.Typography
         /// Specifies how thick (bold) the text is. Although an int, allowed values are multiples of 100 from 100 to 1000
         /// (100, 200, ..., 1000). Any other value will be rounded to the nearest valid value.
         /// </summary>
-        public int FontWeight { get; }
+        public FontWeightPreset FontWeight { get; }
 
         /// <summary>
         /// Specifies the font size used. This is always in font units, which are similar to <see cref="Unit.Dp"/>,
@@ -33,7 +33,7 @@ namespace CatUI.Data.Theming.Typography
         /// </example>
         public float LineHeight { get; }
 
-        public ThemeTextStyle(int fontWeight, float fontSize, float lineHeight)
+        public ThemeTextStyle(FontWeightPreset fontWeight, float fontSize, float lineHeight)
         {
             FontWeight = fontWeight;
             FontSize = fontSize;
