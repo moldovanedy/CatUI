@@ -66,14 +66,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _displayLarge = new(FontWeightPresets.NORMAL, 64f, 1.2f);
+        private ThemeTextStyle _displayLarge = new(FontWeightPreset.Normal, 64f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> DisplayLargeProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 64f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 64f, 1.2f));
 
         private void SetDisplayLarge(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 64f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 64f, 1.2f);
             _displayLarge = value;
         }
 
@@ -91,14 +91,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _displayMedium = new(FontWeightPresets.NORMAL, 51f, 1.2f);
+        private ThemeTextStyle _displayMedium = new(FontWeightPreset.Normal, 51f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> DisplayMediumProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 51f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 51f, 1.2f));
 
         private void SetDisplayMedium(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 51f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 51f, 1.2f);
             _displayMedium = value;
         }
 
@@ -116,14 +116,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _displaySmall = new(FontWeightPresets.NORMAL, 40f, 1.2f);
+        private ThemeTextStyle _displaySmall = new(FontWeightPreset.Normal, 40f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> DisplaySmallProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 40f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 40f, 1.2f));
 
         private void SetDisplaySmall(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 40f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 40f, 1.2f);
             _displaySmall = value;
         }
 
@@ -145,14 +145,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _headingLarge = new(FontWeightPresets.NORMAL, 32f, 1.2f);
+        private ThemeTextStyle _headingLarge = new(FontWeightPreset.Normal, 32f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> HeadingLargeProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 32f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 32f, 1.2f));
 
         private void SetHeadingLarge(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 32f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 32f, 1.2f);
             _headingLarge = value;
         }
 
@@ -170,14 +170,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _headingMedium = new(FontWeightPresets.NORMAL, 28f, 1.2f);
+        private ThemeTextStyle _headingMedium = new(FontWeightPreset.Normal, 28f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> HeadingMediumProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 28f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 28f, 1.2f));
 
         private void SetHeadingMedium(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 28f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 28f, 1.2f);
             _headingMedium = value;
         }
 
@@ -195,14 +195,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _headingSmall = new(FontWeightPresets.NORMAL, 25f, 1.2f);
+        private ThemeTextStyle _headingSmall = new(FontWeightPreset.Normal, 25f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> HeadingSmallProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 25f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 25f, 1.2f));
 
         private void SetHeadingSmall(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 25f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 25f, 1.2f);
             _headingSmall = value;
         }
 
@@ -223,14 +223,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _bodyLarge = new(FontWeightPresets.NORMAL, 20f, 1.2f);
+        private ThemeTextStyle _bodyLarge = new(FontWeightPreset.Normal, 20f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> BodyLargeProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 20f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 20f, 1.2f));
 
         private void SetBodyLarge(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 20f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 20f, 1.2f);
             _bodyLarge = value;
         }
 
@@ -247,14 +247,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _bodyMedium = new(FontWeightPresets.NORMAL, 16f, 1.2f);
+        private ThemeTextStyle _bodyMedium = new(FontWeightPreset.Normal, 16f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> BodyMediumProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 16f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 16f, 1.2f));
 
         private void SetBodyMedium(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 16f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 16f, 1.2f);
             _bodyMedium = value;
         }
 
@@ -271,14 +271,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _bodySmall = new(FontWeightPresets.NORMAL, 14f, 1.2f);
+        private ThemeTextStyle _bodySmall = new(FontWeightPreset.Normal, 14f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> BodySmallProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.NORMAL, 14f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Normal, 14f, 1.2f));
 
         private void SetBodySmall(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.NORMAL, 14f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Normal, 14f, 1.2f);
             _bodySmall = value;
         }
 
@@ -300,14 +300,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _labelLarge = new(FontWeightPresets.MEDIUM, 14f, 1.2f);
+        private ThemeTextStyle _labelLarge = new(FontWeightPreset.Medium, 14f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> LabelLargeProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.MEDIUM, 14f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Medium, 14f, 1.2f));
 
         private void SetLabelLarge(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.MEDIUM, 14f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Medium, 14f, 1.2f);
             _labelLarge = value;
         }
 
@@ -325,14 +325,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _labelMedium = new(FontWeightPresets.MEDIUM, 12f, 1.2f);
+        private ThemeTextStyle _labelMedium = new(FontWeightPreset.Medium, 12f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> LabelMediumProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.MEDIUM, 12f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Medium, 12f, 1.2f));
 
         private void SetLabelMedium(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.MEDIUM, 12f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Medium, 12f, 1.2f);
             _labelMedium = value;
         }
 
@@ -350,14 +350,14 @@ namespace CatUI.Data.Theming.Typography
             }
         }
 
-        private ThemeTextStyle _labelSmall = new(FontWeightPresets.MEDIUM, 11f, 1.2f);
+        private ThemeTextStyle _labelSmall = new(FontWeightPreset.Medium, 11f, 1.2f);
 
         public ObservableProperty<ThemeTextStyle> LabelSmallProperty { get; private set; } =
-            new(new ThemeTextStyle(FontWeightPresets.MEDIUM, 11f, 1.2f));
+            new(new ThemeTextStyle(FontWeightPreset.Medium, 11f, 1.2f));
 
         private void SetLabelSmall(ThemeTextStyle? value)
         {
-            value ??= new ThemeTextStyle(FontWeightPresets.MEDIUM, 11f, 1.2f);
+            value ??= new ThemeTextStyle(FontWeightPreset.Medium, 11f, 1.2f);
             _labelSmall = value;
         }
 

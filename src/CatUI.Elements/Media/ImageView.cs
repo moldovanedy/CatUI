@@ -32,7 +32,7 @@ namespace CatUI.Elements.Media
         /// to internal resizing (it might get resized, but everything will only affect a copy of this, not the original
         /// image). The default value is null, meaning nothing will be drawn.
         /// </summary>
-        public Image? Source
+        public ImageAsset? Source
         {
             get => _source;
             set
@@ -42,10 +42,10 @@ namespace CatUI.Elements.Media
             }
         }
 
-        private Image? _source;
-        public ObservableProperty<Image> SourceProperty { get; } = new();
+        private ImageAsset? _source;
+        public ObservableProperty<ImageAsset> SourceProperty { get; } = new();
 
-        private void SetSource(Image? value)
+        private void SetSource(ImageAsset? value)
         {
             _source = value;
             MarkLayoutDirty();
@@ -180,7 +180,7 @@ namespace CatUI.Elements.Media
             InitPropertiesEvents();
         }
 
-        public ImageView(Image source)
+        public ImageView(ImageAsset source)
         {
             Source = source;
             InitPropertiesEvents();

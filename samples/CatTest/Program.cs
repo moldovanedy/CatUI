@@ -2,10 +2,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CatUI.Data;
+using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
+using CatUI.Data.Theming.Typography;
 using CatUI.Elements;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
@@ -44,6 +46,8 @@ namespace CatTest
             try
             {
                 Init();
+                //var font = AssetsManager.LoadFromAssembly<FontAsset>("/Assets/NotoSerif-Italic.ttf", typeof(Program));
+                FontAsset font = FontUtility.DefaultPlatformFont;
 
                 _window = new DesktopWindow(
                     800,
@@ -94,10 +98,10 @@ namespace CatTest
                                         [
                                             new TextBlock("True")
                                             {
-                                                OnDraw = el => CatLogger.LogDebug(((Element)el).Bounds),
                                                 Layout = new ElementLayout()
                                                          .SetFixedWidth("100%")
                                                          .SetFixedHeight("100%"),
+                                                //Font = font,
                                                 TextBrush = new ColorBrush(new Color(0xff_ff_ff))
                                             }
                                         ]
@@ -112,6 +116,7 @@ namespace CatTest
                                                 Layout = new ElementLayout()
                                                          .SetFixedWidth("100%")
                                                          .SetFixedHeight("100%"),
+                                                //Font = font,
                                                 TextBrush = new ColorBrush(new Color(0xff_ff_ff))
                                             }
                                         ]
