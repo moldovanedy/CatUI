@@ -2,12 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CatUI.Data;
-using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
-using CatUI.Data.Theming.Typography;
 using CatUI.Elements;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
@@ -47,7 +45,6 @@ namespace CatTest
             {
                 Init();
                 //var font = AssetsManager.LoadFromAssembly<FontAsset>("/Assets/NotoSerif-Italic.ttf", typeof(Program));
-                FontAsset font = FontUtility.DefaultPlatformFont;
 
                 _window = new DesktopWindow(
                     800,

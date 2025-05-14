@@ -84,7 +84,7 @@ namespace CatUI.Elements
         /// button, just bitwise AND it with that button, if the result is not 0, it's pressed, otherwise it's released.
         /// </summary>
         /// <example>
-        /// ((PressedMouseButtons & MouseButtonType.Secondary) != 0) is true if the secondary mouse button is pressed,
+        /// ((PressedMouseButtons &amp; MouseButtonType.Secondary) != 0) is true if the secondary mouse button is pressed,
         /// false otherwise.
         /// </example>
         public MouseButtonType PressedMouseButtons { get; private set; }
