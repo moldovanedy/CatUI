@@ -45,6 +45,7 @@ namespace CatUI.Data
                 Unit.Percent => "%",
                 Unit.ViewportWidth => "vw",
                 Unit.ViewportHeight => "vh",
+                Unit.Em => "em",
                 _ => "?"
             };
 
@@ -105,6 +106,9 @@ namespace CatUI.Data
                         break;
                     case "vh":
                         unit = Unit.ViewportHeight;
+                        break;
+                    case "em":
+                        unit = Unit.Em;
                         break;
                     default:
                         unitStartPos = literal.Length;
@@ -183,8 +187,14 @@ namespace CatUI.Data
         public float CalculateDimension(
             float pixelDimensionForPercent = 0,
             float contentScale = 1,
-            Size? viewportSize = null)
+            Size? viewportSize = null,
+            float rootEmSize = 16)
         {
+            if (IsUnset())
+            {
+                return 0;
+            }
+
             switch (MeasuringUnit)
             {
                 default:
@@ -198,6 +208,8 @@ namespace CatUI.Data
                     return Value * (viewportSize?.Width ?? 0) / 100f;
                 case Unit.ViewportHeight:
                     return Value * (viewportSize?.Height ?? 0) / 100f;
+                case Unit.Em:
+                    return Value * rootEmSize * contentScale;
             }
         }
 
@@ -210,6 +222,19 @@ namespace CatUI.Data
         public static float PxToDp(float px, float contentScale)
         {
             return px / contentScale;
+        }
+
+        /// <summary>
+        /// Given a pixel value, the content scale (from Document.ContentScale) and a root em size (from
+        /// Document.RootEmSize), returns the corresponding em value.
+        /// </summary>
+        /// <param name="px">The pixel value to convert.</param>
+        /// <param name="contentScale">The document content scale.</param>
+        /// <param name="rootEmSize">The document root em size.</param>
+        /// <returns>The equivalent value in em.</returns>
+        public static float PxToEm(float px, float contentScale, float rootEmSize)
+        {
+            return px / contentScale / rootEmSize;
         }
     }
 

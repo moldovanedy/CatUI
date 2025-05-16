@@ -588,6 +588,9 @@ namespace CatUI.Elements
             LayoutProperty.ValueChangedEvent += SetLayout;
 
             ThemeOverrideProperty.ValueChangedEvent += SetThemeOverride;
+            StyleClassProperty.ValueChangedEvent += SetStyleClass;
+            BaseThemingCountProperty.ValueChangedEvent += SetBaseThemingCount;
+            IgnoreGlobalThemingProperty.ValueChangedEvent += SetIgnoreGlobalTheming;
 
             Children.ItemInsertedEvent += OnChildInserted;
             Children.ItemRemovedEvent += OnChildRemoved;
@@ -818,6 +821,7 @@ namespace CatUI.Elements
             if ((ClipType & ClipApplicability.Drawing) != 0)
             {
                 restoreCount = Document.Renderer.SaveCanvasState();
+                //TODO: use ClipPath for actual clipping
                 Document.Renderer.SetClipRect(Bounds);
             }
 
@@ -1036,6 +1040,8 @@ namespace CatUI.Elements
 
                         return dimension.Value * Document.ViewportSize.Height / 100f;
                     }
+                case Unit.Em:
+                    return dimension.Value * (Document?.ContentScale ?? 1f) * (Document?.RootEmSize ?? 16f);
             }
         }
 

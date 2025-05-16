@@ -179,6 +179,8 @@ namespace CatUI.Elements.Containers.Scroll
                 {
                     InternalContent[idx] = value;
                 }
+
+                _minusButtonElement.ClickEvent += OnButtonMinusClick;
             }
         }
 
@@ -186,11 +188,11 @@ namespace CatUI.Elements.Containers.Scroll
 
         protected Button PlusButtonElement
         {
-            get => _plusButton!;
+            get => _plusButtonElement!;
             set
             {
-                int idx = _plusButton?.IndexInParent ?? -1;
-                _plusButton = value;
+                int idx = _plusButtonElement?.IndexInParent ?? -1;
+                _plusButtonElement = value;
 
                 //InternalContent will be null in constructor
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -198,10 +200,12 @@ namespace CatUI.Elements.Containers.Scroll
                 {
                     InternalContent[idx] = value;
                 }
+
+                _plusButtonElement.ClickEvent += OnButtonPlusClick;
             }
         }
 
-        private Button? _plusButton;
+        private Button? _plusButtonElement;
 
         /// <summary>
         /// Represents the place where the scroll thumb is free to move. This usually occupies the entire width or height
@@ -222,6 +226,10 @@ namespace CatUI.Elements.Containers.Scroll
                 {
                     InternalContent[idx] = value;
                 }
+
+                _internalScrollTrackElement.PointerUpEvent += OnScrollTrackPointerUp;
+                _internalScrollTrackElement.PointerDownEvent += OnScrollTrackPointerDown;
+                _internalScrollTrackElement.PointerMoveEvent += OnScrollTrackPointerMove;
             }
         }
 
@@ -244,7 +252,7 @@ namespace CatUI.Elements.Containers.Scroll
         }
 
         private Element _internalThumbElement =
-            new RectangleElement { FillBrush = new ColorBrush(new Color(0x64_B5_F6)) };
+            new RectangleElement { FillBrush = new ColorBrush(new Color(0x8C_8C_8C)) };
 
         /// <summary>
         /// Contains the minus/plus buttons (if present) and the scroller track. You can add elements to this
@@ -290,12 +298,6 @@ namespace CatUI.Elements.Containers.Scroll
                 InternalScrollTrackElement,
                 plusButtonElement
             ];
-
-            InternalScrollTrackElement.PointerUpEvent += OnScrollTrackPointerUp;
-            InternalScrollTrackElement.PointerDownEvent += OnScrollTrackPointerDown;
-            InternalScrollTrackElement.PointerMoveEvent += OnScrollTrackPointerMove;
-            MinusButtonElement.ClickEvent += OnButtonMinusClick;
-            PlusButtonElement.ClickEvent += OnButtonPlusClick;
 
             ShouldDisplayButtonsProperty.ValueChangedEvent += SetShouldDisplayButtons;
             RepositionBehaviorProperty.ValueChangedEvent += SetRepositionBehavior;

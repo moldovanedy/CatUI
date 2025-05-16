@@ -1,0 +1,1 @@
+The name was picked randomly from [here](https://letsmakeagame.net/planet-name-ideas/).

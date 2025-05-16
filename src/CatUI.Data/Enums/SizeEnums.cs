@@ -28,6 +28,16 @@
         /// <summary>
         /// Relative to the viewport height (in most cases, the window height). From 0 to 100.
         /// </summary>
-        ViewportHeight = 4
+        ViewportHeight = 4,
+
+        /// <summary>
+        /// Factor of the root em font size (set in UiDocument). Must be greater than 0. You should use this only for
+        /// font sizes.
+        /// </summary>
+        /// <example>
+        /// 1 em means 1 * RootEmSize, 1.5em means 1.5 * RootEmSize, so in these examples, if RootEmSize is 16 dp
+        /// (always set it in dp, not px or anything else), then you'll have 16 dp and 24 dp respectively.
+        /// </example>
+        Em = 5
     }
 }

@@ -166,6 +166,23 @@ namespace CatUI.Elements
 
         private float _contentScale = 1f;
 
+        /// <summary>
+        /// The root em font size. This is generally used only for fonts. Every dimension that uses em as a measuring
+        /// unit will have the value multiplied with this value. Always consider this in dp (all calculations will take
+        /// <see cref="ContentScale"/> into account). The default value is 16.
+        /// </summary>
+        public float RootEmSize
+        {
+            get => _rootEmSize;
+            set
+            {
+                _rootEmSize = value;
+                Root?.MarkLayoutDirty();
+            }
+        }
+
+        private float _rootEmSize = 16f;
+
         #region App lifecycle
 
         /// <summary>
