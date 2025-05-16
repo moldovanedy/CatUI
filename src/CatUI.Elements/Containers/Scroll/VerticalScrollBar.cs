@@ -28,7 +28,7 @@ namespace CatUI.Elements.Containers.Scroll
                 })
             {
                 Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20),
-                Background = new ColorBrush(new Color(0x42_A5_F5))
+                Background = new ColorBrush(new Color(0x8C_8C_8C))
             };
 
         public Button DownButtonElement
@@ -47,7 +47,7 @@ namespace CatUI.Elements.Containers.Scroll
                 })
             {
                 Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20),
-                Background = new ColorBrush(new Color(0x42_A5_F5))
+                Background = new ColorBrush(new Color(0x8C_8C_8C))
             };
 
         public VerticalScrollBar()

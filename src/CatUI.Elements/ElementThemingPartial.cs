@@ -49,10 +49,63 @@ namespace CatUI.Elements
 
         public ObservableProperty<string> StyleClassProperty { get; } = new("");
 
-        private void SetStyleClass(string value)
+        private void SetStyleClass(string? value)
         {
+            value ??= "";
             _styleClass = value;
             ApplyClassTheme(value, false);
+        }
+
+        /// <summary>
+        /// The number of times you want the element to go to its base type and apply the applicable theme for that type.
+        /// A value lower than 0 will apply every theme until reaching Element; 0 means only the current type will get
+        /// considered, ignoring base types. The default value is -1.
+        /// </summary>
+        /// <example>
+        /// For a TextBlock, a value of -1 means that the themes for Element, TextElement and TextBlock will be applied
+        /// in this order. A value of 0 means that only the Theme for TextBlock will be applied, while a value of 1
+        /// means that the themes for TextElement and TextBlock will be applied in this order.
+        /// </example>
+        public int BaseThemingCount
+        {
+            get => _baseThemingCount;
+            set
+            {
+                SetBaseThemingCount(value);
+                BaseThemingCountProperty.Value = value;
+            }
+        }
+
+        private int _baseThemingCount = -1;
+        public ObservableProperty<int> BaseThemingCountProperty { get; } = new(-1);
+
+        private void SetBaseThemingCount(int value)
+        {
+            _baseThemingCount = value;
+            ApplyElementTypeTheme();
+        }
+
+        /// <summary>
+        /// If set to true, the element will ignore any theme overrides from the ascendants and instead only uses the
+        /// theme overrides of itself.
+        /// </summary>
+        public bool IgnoreGlobalTheming
+        {
+            get => _ignoreGlobalTheming;
+            set
+            {
+                SetIgnoreGlobalTheming(value);
+                IgnoreGlobalThemingProperty.Value = value;
+            }
+        }
+
+        private bool _ignoreGlobalTheming;
+        public ObservableProperty<bool> IgnoreGlobalThemingProperty { get; } = new(false);
+
+        private void SetIgnoreGlobalTheming(bool value)
+        {
+            _ignoreGlobalTheming = value;
+            ApplyElementTypeTheme();
         }
 
         /// <summary>
@@ -90,25 +143,28 @@ namespace CatUI.Elements
             }
 
             //if the type is not set OR if it's the matching type
-            if (affectedType == null || GetType() == affectedType)
+            if (affectedType == null || IsMatchingType(affectedType))
             {
                 List<int> indices = new(10);
                 Element currentElement = this;
 
-                while (currentElement._parent != null)
+                if (!IgnoreGlobalTheming)
                 {
-                    indices.Add(currentElement.IndexInParent);
-                    currentElement = currentElement._parent;
-                }
+                    while (currentElement._parent != null)
+                    {
+                        indices.Add(currentElement.IndexInParent);
+                        currentElement = currentElement._parent;
+                    }
 
-                for (int i = indices.Count - 1; i >= 0; i--)
-                {
-                    currentElement.ThemeOverride?.GetElementTypeDefinition(GetType())?.InvokeOnThemeChanged(this);
-                    currentElement = currentElement.Children[indices[i]];
+                    for (int i = indices.Count - 1; i >= 0; i--)
+                    {
+                        ApplyBaseThemingFromElement(currentElement);
+                        currentElement = currentElement.Children[indices[i]];
+                    }
                 }
 
                 //check self override
-                currentElement.ThemeOverride?.GetElementTypeDefinition(GetType())?.InvokeOnThemeChanged(this);
+                ApplyBaseThemingFromElement(currentElement);
             }
 
             if (!recursive)
@@ -119,6 +175,62 @@ namespace CatUI.Elements
             foreach (Element child in Children)
             {
                 child.ApplyElementTypeTheme();
+            }
+        }
+
+        private bool IsMatchingType(Type affectedType)
+        {
+            if (BaseThemingCount == 0)
+            {
+                return GetType() == affectedType;
+            }
+
+            Type? currentType = GetType();
+            while (currentType != affectedType)
+            {
+                currentType = currentType.BaseType;
+                //reached Object
+                if (currentType == null)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void ApplyBaseThemingFromElement(Element currentElement)
+        {
+            List<Type> baseClasses = [];
+
+            if (BaseThemingCount != 0)
+            {
+                int baseThemingCount = BaseThemingCount < 0 ? int.MaxValue : BaseThemingCount;
+                int i = 0;
+                Type? baseType = GetType();
+                while (i < baseThemingCount && baseType != null)
+                {
+                    baseClasses.Add(baseType);
+                    if (baseType == typeof(Element))
+                    {
+                        break;
+                    }
+
+                    baseType = baseType.BaseType;
+                    i++;
+                }
+            }
+            else
+            {
+                baseClasses.Add(GetType());
+            }
+
+            for (int i = baseClasses.Count - 1; i >= 0; i--)
+            {
+                currentElement
+                    .ThemeOverride
+                    ?.GetElementTypeDefinition(baseClasses[i])
+                    ?.InvokeOnThemeChanged(this);
             }
         }
 
@@ -134,16 +246,19 @@ namespace CatUI.Elements
                 List<int> indices = new(10);
                 Element currentElement = this;
 
-                while (currentElement._parent != null)
+                if (!IgnoreGlobalTheming)
                 {
-                    indices.Add(currentElement.IndexInParent);
-                    currentElement = currentElement._parent;
-                }
+                    while (currentElement._parent != null)
+                    {
+                        indices.Add(currentElement.IndexInParent);
+                        currentElement = currentElement._parent;
+                    }
 
-                for (int i = indices.Count - 1; i >= 0; i--)
-                {
-                    currentElement.ThemeOverride?.GetClassDefinition(affectedClass)?.InvokeOnThemeChanged(this);
-                    currentElement = currentElement.Children[indices[i]];
+                    for (int i = indices.Count - 1; i >= 0; i--)
+                    {
+                        currentElement.ThemeOverride?.GetClassDefinition(affectedClass)?.InvokeOnThemeChanged(this);
+                        currentElement = currentElement.Children[indices[i]];
+                    }
                 }
 
                 //check self override

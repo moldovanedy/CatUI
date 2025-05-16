@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using CatUI.Data.Exceptions;
 using CatUI.Platform.Essentials;
 
 namespace CatUI.Data
@@ -13,15 +14,20 @@ namespace CatUI.Data
     {
         /// <summary>
         /// The global application object. Accessing this before creating the object with <see cref="NewBuilder"/>
-        /// will create a global instance with all the default parameters set, meaning it is unmodifiable after this point.
-        /// You should always create a new instance with <see cref="NewBuilder"/>, then calling
-        /// <see cref="AppBuilder.Build"/> before any CatUI-specific calls, as that will initialize this object properly.
+        /// will throw a <see cref="CatApplicationUninitializedException"/>. You should always create a new instance
+        /// with <see cref="NewBuilder"/>, then calling <see cref="AppBuilder.Build"/> before any CatUI-specific calls,
+        /// as that will initialize this object properly.
         /// </summary>
         public static CatApplication Instance
         {
             get
             {
-                _instance ??= new CatApplication();
+                if (_instance == null)
+                {
+                    throw new CatApplicationUninitializedException(
+                        "CatApplication is uninitialized. Did you forget to initialize it through CatApplicationBuilder?");
+                }
+
                 return _instance;
             }
         }
@@ -185,7 +191,7 @@ namespace CatUI.Data
                     throw new InvalidOperationException("A CatApplication has already been instantiated.");
                 }
 
-                //using Instance here is OK, as this has private access to CatApplication
+                _instance = new CatApplication();
                 Instance.AppName = _appName;
                 Instance.DebugLogLevel = _debugLogLevel;
                 Instance.ReleaseLogLevel = _releaseLogLevel;
