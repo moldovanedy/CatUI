@@ -1,4 +1,5 @@
 using System;
+using SkiaSharp;
 
 namespace CatUI.Data.Shapes
 {
@@ -15,6 +16,14 @@ namespace CatUI.Data.Shapes
             float r = Math.Min(bounds.Width, bounds.Height) / 2f;
 
             return (xOffset * xOffset) + (yOffset * yOffset) <= r * r;
+        }
+
+        public override SKPath GetSkiaClipPath(Rect bounds, float contentScale, Size viewportSize)
+        {
+            float r = Math.Min(bounds.Width, bounds.Height) / 2f;
+            SKPath path = new();
+            path.AddCircle(bounds.X + r, bounds.Y + r, r);
+            return path;
         }
 
         public override CircleClipShape Duplicate()

@@ -1,6 +1,5 @@
 ﻿using System;
 using CatUI.Data;
-using CatUI.Data.Shapes;
 using SkiaSharp;
 
 namespace CatUI.RenderingEngine
@@ -271,13 +270,14 @@ namespace CatUI.RenderingEngine
         }
 
         /// <summary>
-        /// Sets the clip region as the given path. It is generally much slower than <see cref="SetClipRect"/>.
+        /// Sets the clip region as the given path. It is generally as fast as <see cref="SetClipRect"/> for simple
+        /// shapes (circle, ellipse, rect), but gets significantly slower for complex paths.
         /// The coordinates are absolute pixel coordinates.
         /// </summary>
-        /// <param name="clipPath"></param>
-        public void SetClipPath(PathClipShape clipPath)
+        /// <param name="clipPath">The Skia clip path.</param>
+        public void SetClipPath(SKPath clipPath)
         {
-            Canvas?.ClipPath(clipPath.SkiaPath, SKClipOperation.Intersect, true);
+            Canvas?.ClipPath(clipPath, SKClipOperation.Intersect, true);
         }
 
         #endregion

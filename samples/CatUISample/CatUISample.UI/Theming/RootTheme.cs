@@ -15,6 +15,7 @@ namespace CatUISample.UI.Theming
                 new ThemeDefinition(
                     el =>
                     {
+                        el.ClipPath = null;
                         el.Background = new ColorBrush(CatTheme.Colors.Primary);
                     },
                     (el, state) =>

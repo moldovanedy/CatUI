@@ -1,3 +1,5 @@
+using SkiaSharp;
+
 namespace CatUI.Data.Shapes
 {
     /// <summary>
@@ -23,6 +25,13 @@ namespace CatUI.Data.Shapes
             }
 
             return true;
+        }
+
+        public override SKPath GetSkiaClipPath(Rect bounds, float contentScale, Size viewportSize)
+        {
+            SKPath path = new();
+            path.AddRect(bounds);
+            return path;
         }
 
         public override RectangleClipShape Duplicate()
