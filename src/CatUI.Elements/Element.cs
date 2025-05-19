@@ -139,7 +139,6 @@ namespace CatUI.Elements
             {
                 if (value != _state)
                 {
-                    SetState(value);
                     StateProperty.Value = value;
                 }
             }
@@ -148,11 +147,10 @@ namespace CatUI.Elements
         private string? _state;
         public ObservableProperty<string> StateProperty { get; private set; } = new(null);
 
-        //NOTE: this will always be called before El.Style
         private void SetState(string? value)
         {
-            //El.Style will trigger actual changes
             _state = value;
+            SetLocalValue(nameof(State), value);
             ApplyThemeStateChanges();
         }
 
@@ -167,7 +165,6 @@ namespace CatUI.Elements
             {
                 if (value != _position)
                 {
-                    SetPosition(value);
                     PositionProperty.Value = value;
                 }
             }
@@ -179,6 +176,7 @@ namespace CatUI.Elements
         private void SetPosition(Dimension2 value)
         {
             _position = value;
+            SetLocalValue(nameof(Position), value);
             MarkLayoutDirty();
         }
 
@@ -191,8 +189,10 @@ namespace CatUI.Elements
             get => _background;
             set
             {
-                SetBackground(value);
-                BackgroundProperty.Value = value;
+                if (value != _background)
+                {
+                    BackgroundProperty.Value = value;
+                }
             }
         }
 
@@ -202,6 +202,7 @@ namespace CatUI.Elements
         private void SetBackground(IBrush? value)
         {
             _background = value ?? new ColorBrush(Color.Default);
+            SetLocalValue(nameof(Background), value);
             Document?.MarkVisualDirty();
         }
 
@@ -224,8 +225,10 @@ namespace CatUI.Elements
             get => _clipPath;
             set
             {
-                SetClipPath(value);
-                ClipPathProperty.Value = value;
+                if (value != _clipPath)
+                {
+                    ClipPathProperty.Value = value;
+                }
             }
         }
 
@@ -235,6 +238,7 @@ namespace CatUI.Elements
         private void SetClipPath(ClipShape? value)
         {
             _clipPath = value;
+            SetLocalValue(nameof(ClipPath), value);
         }
 
         /// <summary>
@@ -250,8 +254,10 @@ namespace CatUI.Elements
             get => _clipType;
             set
             {
-                SetClipType(value);
-                ClipTypeProperty.Value = value;
+                if (value != _clipType)
+                {
+                    ClipTypeProperty.Value = value;
+                }
             }
         }
 
@@ -263,6 +269,7 @@ namespace CatUI.Elements
         private void SetClipType(ClipApplicability value)
         {
             _clipType = value;
+            SetLocalValue(nameof(ClipType), value);
         }
 
         /// <summary>
@@ -279,15 +286,10 @@ namespace CatUI.Elements
         public string? Id
         {
             get => _id;
-            set
-            {
-                SetId(value);
-                IdProperty.Value = value;
-            }
+            set => SetId(value);
         }
 
         private string? _id;
-        public ObservableProperty<string> IdProperty { get; } = new(null);
 
         private void SetId(string? value)
         {
@@ -317,7 +319,6 @@ namespace CatUI.Elements
             {
                 if (value != _visible)
                 {
-                    SetVisible(value);
                     VisibleProperty.Value = value;
                 }
             }
@@ -334,6 +335,7 @@ namespace CatUI.Elements
                 child.Visible = value;
             }
 
+            SetLocalValue(nameof(Visible), value);
             RequestRedraw();
         }
 
@@ -350,7 +352,6 @@ namespace CatUI.Elements
             {
                 if (value != _enabled)
                 {
-                    SetEnabled(value);
                     EnabledProperty.Value = value;
                 }
             }
@@ -362,11 +363,17 @@ namespace CatUI.Elements
         private void SetEnabled(bool value)
         {
             _enabled = value;
+            if (!value)
+            {
+                Bounds = new Rect();
+            }
+
             foreach (Element child in Children)
             {
                 child.Enabled = value;
             }
 
+            SetLocalValue(nameof(Enabled), value);
             RequestRedraw();
         }
 
@@ -387,7 +394,6 @@ namespace CatUI.Elements
             {
                 if (value != _elementContainerSizing)
                 {
-                    SetElementContainerSizing(value);
                     ElementContainerSizingProperty.Value = value;
                 }
             }
@@ -399,6 +405,7 @@ namespace CatUI.Elements
         private void SetElementContainerSizing(ContainerSizing? value)
         {
             _elementContainerSizing = value;
+            SetLocalValue(nameof(ElementContainerSizing), value);
             MarkLayoutDirty();
         }
 
@@ -580,7 +587,6 @@ namespace CatUI.Elements
             BackgroundProperty.ValueChangedEvent += SetBackground;
             ClipPathProperty.ValueChangedEvent += SetClipPath;
             ClipTypeProperty.ValueChangedEvent += SetClipType;
-            IdProperty.ValueChangedEvent += SetId;
             VisibleProperty.ValueChangedEvent += SetVisible;
             EnabledProperty.ValueChangedEvent += SetEnabled;
             ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
@@ -671,11 +677,6 @@ namespace CatUI.Elements
         private void OnChildRemoved(object? sender, ObservableListRemoveEventArgs<Element> e)
         {
             e.Item.IsChildOfContainer = false;
-            if (e.Item._id != null)
-            {
-                Document?.RemoveFromIdCache(e.Item._id);
-            }
-
             if (Document != null)
             {
                 e.Item.InvokeExitDocumentRecursive();
@@ -736,7 +737,7 @@ namespace CatUI.Elements
         protected internal virtual void InvokeDraw()
         {
             //check if the element is inside the viewport
-            if (!IsInsideViewport() || Document == null)
+            if (!IsInsideViewport() || Document == null || !Enabled)
             {
                 return;
             }
@@ -836,6 +837,10 @@ namespace CatUI.Elements
         internal void InvokeExitDocumentRecursive()
         {
             ExitDocumentEvent?.Invoke(this);
+            if (_id != null)
+            {
+                Document?.RemoveFromIdCache(_id);
+            }
 
             foreach (Element child in Children)
             {
@@ -980,16 +985,6 @@ namespace CatUI.Elements
         public Element? GetParent()
         {
             return _parent;
-        }
-
-        /// <summary>
-        /// This will unbind all the functions bound to <see cref="StateProperty"/>, notably
-        /// <see cref="El.Style{T}(CatUI.Elements.Element,CatUI.Data.ObservableProperty{T},El.PropertyStyleLambda{T})"/>.
-        /// </summary>
-        public void UnbindStyles()
-        {
-            StateProperty = null!;
-            StateProperty = new ObservableProperty<string>(null);
         }
 
         /// <summary>

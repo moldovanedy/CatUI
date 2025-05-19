@@ -49,8 +49,10 @@ namespace CatUI.Elements.Utils
             get => _padding;
             set
             {
-                SetPadding(value);
-                PaddingProperty.Value = value;
+                if (value != _padding)
+                {
+                    PaddingProperty.Value = value;
+                }
             }
         }
 
@@ -60,6 +62,7 @@ namespace CatUI.Elements.Utils
         private void SetPadding(EdgeInset value)
         {
             _padding = value;
+            SetLocalValue(nameof(Padding), value);
         }
 
         public PaddingElement()
@@ -69,8 +72,8 @@ namespace CatUI.Elements.Utils
 
         public PaddingElement(EdgeInset padding)
         {
-            Padding = padding;
             PaddingProperty.ValueChangedEvent += SetPadding;
+            Padding = padding;
         }
 
         //~PaddingElement()

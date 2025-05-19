@@ -44,8 +44,10 @@ namespace CatUI.Elements.Text
             get => _wordWrap;
             set
             {
-                SetWordWrap(value);
-                WordWrapProperty.Value = value;
+                if (value != _wordWrap)
+                {
+                    WordWrapProperty.Value = value;
+                }
             }
         }
 
@@ -55,6 +57,7 @@ namespace CatUI.Elements.Text
         private void SetWordWrap(bool value)
         {
             _wordWrap = value;
+            SetLocalValue(nameof(WordWrap), value);
             MarkLayoutDirty();
         }
 
@@ -67,8 +70,10 @@ namespace CatUI.Elements.Text
             get => _breakMode;
             set
             {
-                SetBreakMode(value);
-                BreakModeProperty.Value = value;
+                if (value != _breakMode)
+                {
+                    BreakModeProperty.Value = value;
+                }
             }
         }
 
@@ -79,6 +84,7 @@ namespace CatUI.Elements.Text
         private void SetBreakMode(TextBreakMode value)
         {
             _breakMode = value;
+            SetLocalValue(nameof(BreakMode), value);
             MarkLayoutDirty();
         }
 
@@ -93,8 +99,10 @@ namespace CatUI.Elements.Text
             get => _hyphenCharacter;
             set
             {
-                SetHyphenCharacter(value);
-                HyphenCharacterProperty.Value = value;
+                if (value != _hyphenCharacter)
+                {
+                    HyphenCharacterProperty.Value = value;
+                }
             }
         }
 
@@ -104,6 +112,7 @@ namespace CatUI.Elements.Text
         private void SetHyphenCharacter(char value)
         {
             _hyphenCharacter = value;
+            SetLocalValue(nameof(HyphenCharacter), value);
             MarkLayoutDirty();
         }
 
@@ -115,8 +124,10 @@ namespace CatUI.Elements.Text
             get => _textBrush;
             set
             {
-                SetTextBrush(value);
-                TextBrushProperty.Value = value;
+                if (value != _textBrush)
+                {
+                    TextBrushProperty.Value = value;
+                }
             }
         }
 
@@ -126,6 +137,7 @@ namespace CatUI.Elements.Text
         private void SetTextBrush(IBrush? value)
         {
             _textBrush = value ?? new ColorBrush(Color.Default);
+            SetLocalValue(nameof(TextBrush), value);
             RequestRedraw();
         }
 
@@ -138,8 +150,10 @@ namespace CatUI.Elements.Text
             get => _outlineTextBrush;
             set
             {
-                SetOutlineTextBrush(value);
-                OutlineTextBrushProperty.Value = value;
+                if (value != _outlineTextBrush)
+                {
+                    OutlineTextBrushProperty.Value = value;
+                }
             }
         }
 
@@ -151,6 +165,7 @@ namespace CatUI.Elements.Text
         private void SetOutlineTextBrush(IBrush? value)
         {
             _outlineTextBrush = value ?? new ColorBrush(Color.Default);
+            SetLocalValue(nameof(OutlineTextBrush), value);
             RequestRedraw();
         }
 
@@ -170,7 +185,6 @@ namespace CatUI.Elements.Text
                     value = 0;
                 }
 
-                SetLineHeight(value);
                 LineHeightProperty.Value = value;
             }
         }
@@ -181,6 +195,7 @@ namespace CatUI.Elements.Text
         private void SetLineHeight(float value)
         {
             _lineHeight = value;
+            SetLocalValue(nameof(LineHeight), value);
             MarkLayoutDirty();
         }
 
@@ -189,14 +204,14 @@ namespace CatUI.Elements.Text
         /// The <see cref="RowInformation.Width"/> and <see cref="RowInformation.WidthWithoutLastBreakPoint"/>
         /// fields are irrelevant here and always have the default value.
         /// </summary>
-        private readonly List<RowInformation> _userRows = new();
+        private readonly List<RowInformation> _userRows = [];
 
         /// <summary>
         /// Represents the rows that will be drawn. Will contain the hyphens and ellipsis if it's the case.
         /// The <see cref="RowInformation.PossibleBreakPoints"/> and <see cref="RowInformation.WidthWithoutLastBreakPoint"/>
         /// fields are irrelevant here and always have the default value.
         /// </summary>
-        private readonly List<RowInformation> _drawableRows = new();
+        private readonly List<RowInformation> _drawableRows = [];
 
         /// <summary>
         /// The width of the widest row currently drawn, (<see cref="_drawableRows"/>, not <see cref="_userRows"/>).
@@ -212,16 +227,12 @@ namespace CatUI.Elements.Text
 
         public TextBlock()
         {
-            TextProperty.ValueChangedEvent += OnTextChanged;
-            TextProperty.ForceRecallEvents();
             InitPropertiesEvents();
         }
 
         public TextBlock(string text, TextAlignmentType textAlignment = TextAlignmentType.Left)
             : base(text, textAlignment)
         {
-            TextProperty.ValueChangedEvent += OnTextChanged;
-            TextProperty.ForceRecallEvents();
             InitPropertiesEvents();
         }
 
@@ -239,6 +250,9 @@ namespace CatUI.Elements.Text
 
         private void InitPropertiesEvents()
         {
+            TextProperty.ValueChangedEvent += OnTextChanged;
+            TextProperty.ForceRecallEvents();
+
             WordWrapProperty.ValueChangedEvent += SetWordWrap;
             BreakModeProperty.ValueChangedEvent += SetBreakMode;
             HyphenCharacterProperty.ValueChangedEvent += SetHyphenCharacter;
@@ -319,7 +333,7 @@ namespace CatUI.Elements.Text
         protected internal override void InvokeDraw()
         {
             //check if the element is inside the viewport
-            if (!IsInsideViewport() || Document == null)
+            if (!IsInsideViewport() || Document == null || !Enabled)
             {
                 return;
             }

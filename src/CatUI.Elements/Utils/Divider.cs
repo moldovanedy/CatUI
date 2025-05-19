@@ -30,11 +30,7 @@ namespace CatUI.Elements.Utils
         public float LineThickness
         {
             get => _lineThickness;
-            set
-            {
-                SetLineThickness(value);
-                LineThicknessProperty.Value = value;
-            }
+            set => LineThicknessProperty.Value = value;
         }
 
         private float _lineThickness = 2;
@@ -44,6 +40,7 @@ namespace CatUI.Elements.Utils
         private void SetLineThickness(float value)
         {
             _lineThickness = value;
+            SetLocalValue(nameof(LineThickness), value);
             ResetLayout();
         }
 
@@ -55,8 +52,10 @@ namespace CatUI.Elements.Utils
             get => _lineBrush;
             set
             {
-                SetLineBrush(value);
-                LineBrushProperty.Value = value;
+                if (value != _lineBrush)
+                {
+                    LineBrushProperty.Value = value;
+                }
             }
         }
 
@@ -67,6 +66,7 @@ namespace CatUI.Elements.Utils
         private void SetLineBrush(IBrush? value)
         {
             _lineBrush = value ?? new ColorBrush(new Color(0));
+            SetLocalValue(nameof(LineBrush), value);
             Document?.MarkVisualDirty();
         }
 
@@ -78,8 +78,10 @@ namespace CatUI.Elements.Utils
             get => _lineCap;
             set
             {
-                SetLineCap(value);
-                LineCapProperty.Value = value;
+                if (value != _lineCap)
+                {
+                    LineCapProperty.Value = value;
+                }
             }
         }
 
@@ -90,6 +92,7 @@ namespace CatUI.Elements.Utils
         private void SetLineCap(LineCapType value)
         {
             _lineCap = value;
+            SetLocalValue(nameof(LineCap), value);
             Document?.MarkVisualDirty();
         }
 

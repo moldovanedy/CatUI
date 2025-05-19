@@ -50,11 +50,7 @@ namespace CatUI.Elements.Containers.Scroll
         public Point2D ScrollPosition
         {
             get => _scrollPosition;
-            private set
-            {
-                SetScrollPosition(value);
-                ScrollPositionProperty.Value = value;
-            }
+            private set => ScrollPositionProperty.Value = value;
         }
 
         private Point2D _scrollPosition = Point2D.Zero;
@@ -85,6 +81,7 @@ namespace CatUI.Elements.Containers.Scroll
 
             Point2D newValue = new(x, y);
             _scrollPosition = newValue;
+            SetLocalValue(nameof(ScrollPosition), value);
             InternalContentWrapper.Position = new Dimension2(-newValue.X, -newValue.Y);
 
             if (!_isSettingFromScrollBars)
@@ -109,8 +106,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _isHorizontalScrollEnabled;
             set
             {
-                SetIsHorizontalScrollEnabled(value);
-                IsHorizontalScrollEnabledProperty.Value = value;
+                if (value != _isHorizontalScrollEnabled)
+                {
+                    IsHorizontalScrollEnabledProperty.Value = value;
+                }
             }
         }
 
@@ -120,6 +119,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetIsHorizontalScrollEnabled(bool value)
         {
             _isHorizontalScrollEnabled = value;
+            SetLocalValue(nameof(IsHorizontalScrollEnabled), value);
             ReconsiderScrollBarsVisibility();
         }
 
@@ -138,8 +138,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _isVerticalScrollEnabled;
             set
             {
-                SetIsVerticalScrollEnabled(value);
-                IsVerticalScrollEnabledProperty.Value = value;
+                if (value != _isVerticalScrollEnabled)
+                {
+                    IsVerticalScrollEnabledProperty.Value = value;
+                }
             }
         }
 
@@ -149,6 +151,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetIsVerticalScrollEnabled(bool value)
         {
             _isVerticalScrollEnabled = value;
+            SetLocalValue(nameof(IsVerticalScrollEnabled), value);
             ReconsiderScrollBarsVisibility();
         }
 
@@ -163,8 +166,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _scrollBarsRepositionBehavior;
             set
             {
-                SetScrollBarsRepositionBehavior(value);
-                ScrollBarsRepositionBehaviorProperty.Value = value;
+                if (value != _scrollBarsRepositionBehavior)
+                {
+                    ScrollBarsRepositionBehaviorProperty.Value = value;
+                }
             }
         }
 
@@ -176,6 +181,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetScrollBarsRepositionBehavior(RepositionBehaviorType value)
         {
             _scrollBarsRepositionBehavior = value;
+            SetLocalValue(nameof(ScrollBarsRepositionBehavior), value);
             InternalHorizontalScrollBar.RepositionBehavior = value;
             InternalVerticalScrollBar.RepositionBehavior = value;
         }
@@ -186,8 +192,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _horizontalScrollBarVisibility;
             set
             {
-                SetHorizontalScrollBarVisibility(value);
-                HorizontalScrollBarVisibilityProperty.Value = value;
+                if (value != _horizontalScrollBarVisibility)
+                {
+                    HorizontalScrollBarVisibilityProperty.Value = value;
+                }
             }
         }
 
@@ -199,6 +207,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetHorizontalScrollBarVisibility(ScrollBarVisibility value)
         {
             _horizontalScrollBarVisibility = value;
+            SetLocalValue(nameof(HorizontalScrollBarVisibility), value);
             ReconsiderScrollBarsVisibility();
         }
 
@@ -208,8 +217,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _verticalScrollBarVisibility;
             set
             {
-                SetVerticalScrollBarVisibility(value);
-                VerticalScrollBarVisibilityProperty.Value = value;
+                if (value != _verticalScrollBarVisibility)
+                {
+                    VerticalScrollBarVisibilityProperty.Value = value;
+                }
             }
         }
 
@@ -221,6 +232,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetVerticalScrollBarVisibility(ScrollBarVisibility value)
         {
             _verticalScrollBarVisibility = value;
+            SetLocalValue(nameof(VerticalScrollBarVisibility), value);
             ReconsiderScrollBarsVisibility();
         }
 
@@ -239,8 +251,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _isUserScrollable;
             set
             {
-                SetIsUserScrollable(value);
-                IsUserScrollableProperty.Value = value;
+                if (value != _isUserScrollable)
+                {
+                    IsUserScrollableProperty.Value = value;
+                }
             }
         }
 
@@ -250,6 +264,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetIsUserScrollable(bool value)
         {
             _isUserScrollable = value;
+            SetLocalValue(nameof(IsUserScrollable), value);
         }
 
 
@@ -264,8 +279,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _scrollPastLimits;
             set
             {
-                SetScrollPastLimits(value);
-                ScrollPastLimitsProperty.Value = value;
+                if (value != _scrollPastLimits)
+                {
+                    ScrollPastLimitsProperty.Value = value;
+                }
             }
         }
 
@@ -277,6 +294,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetScrollPastLimits(ValueTuple<bool, bool> value)
         {
             _scrollPastLimits = value;
+            SetLocalValue(nameof(ScrollPastLimits), value);
         }
 
 
@@ -373,6 +391,15 @@ namespace CatUI.Elements.Containers.Scroll
 
         public ScrollContainer(bool isHorizontalScrollEnabled = true, bool isVerticalScrollEnabled = true)
         {
+            ScrollPositionProperty.ValueChangedEvent += SetScrollPosition;
+            IsHorizontalScrollEnabledProperty.ValueChangedEvent += SetIsHorizontalScrollEnabled;
+            IsVerticalScrollEnabledProperty.ValueChangedEvent += SetIsVerticalScrollEnabled;
+            ScrollBarsRepositionBehaviorProperty.ValueChangedEvent += SetScrollBarsRepositionBehavior;
+            HorizontalScrollBarVisibilityProperty.ValueChangedEvent += SetHorizontalScrollBarVisibility;
+            VerticalScrollBarVisibilityProperty.ValueChangedEvent += SetVerticalScrollBarVisibility;
+            IsUserScrollableProperty.ValueChangedEvent += SetIsUserScrollable;
+            ScrollPastLimitsProperty.ValueChangedEvent += SetScrollPastLimits;
+
             ObjectRef<Element> internalContentWrapperRef = new();
             ObjectRef<Element> internalVisibleContentWrapperRef = new();
 
@@ -432,15 +459,6 @@ namespace CatUI.Elements.Containers.Scroll
             Children.Add(InternalRowContainer);
             IsHorizontalScrollEnabled = isHorizontalScrollEnabled;
             IsVerticalScrollEnabled = isVerticalScrollEnabled;
-
-            ScrollPositionProperty.ValueChangedEvent += SetScrollPosition;
-            IsHorizontalScrollEnabledProperty.ValueChangedEvent += SetIsHorizontalScrollEnabled;
-            IsVerticalScrollEnabledProperty.ValueChangedEvent += SetIsVerticalScrollEnabled;
-            ScrollBarsRepositionBehaviorProperty.ValueChangedEvent += SetScrollBarsRepositionBehavior;
-            HorizontalScrollBarVisibilityProperty.ValueChangedEvent += SetHorizontalScrollBarVisibility;
-            VerticalScrollBarVisibilityProperty.ValueChangedEvent += SetVerticalScrollBarVisibility;
-            IsUserScrollableProperty.ValueChangedEvent += SetIsUserScrollable;
-            ScrollPastLimitsProperty.ValueChangedEvent += SetScrollPastLimits;
         }
 
         //~ScrollContainer()

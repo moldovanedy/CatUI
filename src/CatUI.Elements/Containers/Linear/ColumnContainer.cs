@@ -36,8 +36,10 @@ namespace CatUI.Elements.Containers.Linear
             get => (HorizontalAlignmentType)PreferredAlignment;
             set
             {
-                SetHorizontalAlignment(value);
-                HorizontalAlignmentProperty.Value = value;
+                if (value != (HorizontalAlignmentType)PreferredAlignment)
+                {
+                    HorizontalAlignmentProperty.Value = value;
+                }
             }
         }
 
@@ -47,6 +49,7 @@ namespace CatUI.Elements.Containers.Linear
         private void SetHorizontalAlignment(HorizontalAlignmentType value)
         {
             PreferredAlignment = (AlignmentType)value;
+            SetLocalValue(nameof(HorizontalAlignment), value);
             MarkLayoutDirty();
         }
 

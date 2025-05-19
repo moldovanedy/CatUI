@@ -12,7 +12,7 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void InvokeDraw()
         {
-            if (!IsInsideViewport() || Document == null)
+            if (!IsInsideViewport() || Document == null || !Enabled)
             {
                 return;
             }

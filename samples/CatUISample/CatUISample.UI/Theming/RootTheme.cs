@@ -1,6 +1,7 @@
 using CatUI.Data.Brushes;
 using CatUI.Data.Theming;
 using CatUI.Elements;
+using CatUI.Elements.Itania;
 
 namespace CatUISample.UI.Theming
 {
@@ -8,7 +9,7 @@ namespace CatUISample.UI.Theming
     {
         public static Theme GetTheme()
         {
-            Theme theme = new();
+            Theme theme = ItaniaTheme.GetTheme();
             theme.AddOrUpdateClassDefinition(
                 "MenuButtons",
                 new ThemeDefinition(

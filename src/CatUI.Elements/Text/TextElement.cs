@@ -17,8 +17,10 @@ namespace CatUI.Elements.Text
             get => _text;
             set
             {
-                SetText(value);
-                TextProperty.Value = value;
+                if (value != _text)
+                {
+                    TextProperty.Value = value;
+                }
             }
         }
 
@@ -28,6 +30,7 @@ namespace CatUI.Elements.Text
         private void SetText(string? value)
         {
             _text = value ?? string.Empty;
+            SetLocalValue(nameof(Text), value);
             MarkLayoutDirty();
         }
 
@@ -36,8 +39,10 @@ namespace CatUI.Elements.Text
             get => _font;
             set
             {
-                SetFont(value);
-                FontProperty.Value = value;
+                if (value != _font)
+                {
+                    FontProperty.Value = value;
+                }
             }
         }
 
@@ -47,6 +52,7 @@ namespace CatUI.Elements.Text
         private void SetFont(FontAsset? value)
         {
             _font = value;
+            SetLocalValue(nameof(Font), value);
             MarkLayoutDirty();
 
             if (value != null)
@@ -63,8 +69,10 @@ namespace CatUI.Elements.Text
             get => _fontSize;
             set
             {
-                SetFontSize(value);
-                FontSizeProperty.Value = value;
+                if (value != _fontSize)
+                {
+                    FontSizeProperty.Value = value;
+                }
             }
         }
 
@@ -74,6 +82,7 @@ namespace CatUI.Elements.Text
         private void SetFontSize(Dimension value)
         {
             _fontSize = value;
+            SetLocalValue(nameof(FontSize), value);
             MarkLayoutDirty();
         }
 
@@ -87,8 +96,10 @@ namespace CatUI.Elements.Text
             get => _overflowMode;
             set
             {
-                SetOverflowMode(value);
-                OverflowModeProperty.Value = value;
+                if (value != _overflowMode)
+                {
+                    OverflowModeProperty.Value = value;
+                }
             }
         }
 
@@ -100,6 +111,7 @@ namespace CatUI.Elements.Text
         private void SetOverflowMode(TextOverflowMode value)
         {
             _overflowMode = value;
+            SetLocalValue(nameof(OverflowMode), value);
             MarkLayoutDirty();
         }
 
@@ -114,8 +126,10 @@ namespace CatUI.Elements.Text
             get => _textAlignment;
             set
             {
-                SetTextAlignment(value);
-                TextAlignmentProperty.Value = value;
+                if (value != _textAlignment)
+                {
+                    TextAlignmentProperty.Value = value;
+                }
             }
         }
 
@@ -127,6 +141,7 @@ namespace CatUI.Elements.Text
         private void SetTextAlignment(TextAlignmentType value)
         {
             _textAlignment = value;
+            SetLocalValue(nameof(TextAlignment), value);
             MarkLayoutDirty();
         }
 
@@ -139,8 +154,10 @@ namespace CatUI.Elements.Text
             get => _overflowString;
             set
             {
-                SetOverflowString(value);
-                OverflowStringProperty.Value = value;
+                if (value != _overflowString)
+                {
+                    OverflowStringProperty.Value = value;
+                }
             }
         }
 
@@ -150,6 +167,7 @@ namespace CatUI.Elements.Text
         private void SetOverflowString(string? value)
         {
             _overflowString = value ?? string.Empty;
+            SetLocalValue(nameof(OverflowString), value);
             MarkLayoutDirty();
         }
 
@@ -160,9 +178,9 @@ namespace CatUI.Elements.Text
 
         public TextElement(string text, TextAlignmentType textAlignment = TextAlignmentType.Left)
         {
+            InitPropertiesEvents();
             Text = text;
             TextAlignment = textAlignment;
-            InitPropertiesEvents();
         }
 
         //~TextElement()
