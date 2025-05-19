@@ -1,3 +1,5 @@
+using SkiaSharp;
+
 namespace CatUI.Data.Shapes
 {
     /// <summary>
@@ -16,5 +18,7 @@ namespace CatUI.Data.Shapes
         /// <param name="viewportSize">The viewport size in pixels.</param>
         /// <returns>True if the given point is inside the shape, false otherwise.</returns>
         public abstract bool IsPointInside(Point2D point, Rect bounds, float contentScale, Size viewportSize);
+
+        public abstract SKPath GetSkiaClipPath(Rect bounds, float contentScale, Size viewportSize);
     }
 }

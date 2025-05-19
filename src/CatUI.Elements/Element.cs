@@ -139,7 +139,7 @@ namespace CatUI.Elements
         }
 
         private string? _state;
-        public ObservableProperty<string> StateProperty { get; private set; } = new(null);
+        public ObservableProperty<string> StateProperty { get; } = new(null);
 
         private void SetState(string? value)
         {
@@ -780,8 +780,16 @@ namespace CatUI.Elements
             if ((ClipType & ClipApplicability.Drawing) != 0)
             {
                 restoreCount = Document.Renderer.SaveCanvasState();
-                //TODO: use ClipPath for actual clipping
-                Document.Renderer.SetClipRect(Bounds);
+
+                if (ClipPath != null)
+                {
+                    Document.Renderer.SetClipPath(
+                        ClipPath.GetSkiaClipPath(Bounds, Document.ContentScale, Document.ViewportSize));
+                }
+                else
+                {
+                    Document.Renderer.SetClipRect(Bounds);
+                }
             }
 
             return restoreCount;

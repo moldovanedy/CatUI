@@ -31,14 +31,33 @@ namespace CatUI.Elements.Itania
                 {
                     var container = (ScrollContainer)el;
                     container.InternalHorizontalScrollBar.Layout?.SetFixedHeight(12);
-                    container.InternalHorizontalScrollBar.ShouldDisplayButtons = false;
-                    container.InternalHorizontalScrollBar.ClipPath =
-                        new RoundedRectangleClipShape((Dimension)"50%");
-
                     container.InternalVerticalScrollBar.Layout?.SetFixedWidth(12);
-                    container.InternalVerticalScrollBar.ShouldDisplayButtons = false;
-                    container.InternalVerticalScrollBar.ClipPath =
-                        new RoundedRectangleClipShape((Dimension)"50%");
+
+                    Theme scrollBarTheme = new();
+                    scrollBarTheme.AddOrUpdateElementTypeDefinition(
+                        typeof(ScrollBarBase),
+                        new ThemeDefinition(e =>
+                        {
+                            var scrollBar = (ScrollBarBase)e;
+                            scrollBar.ShouldDisplayButtons = false;
+
+                            scrollBar.InternalThumbElement.ClipPath
+                                = new RoundedRectangleClipShape(new Dimension("50%"));
+
+                            //override the button style from the scroll bar itself
+                            Theme selfButtonTheme = new();
+                            selfButtonTheme.AddOrUpdateElementTypeDefinition(
+                                typeof(Button),
+                                new ThemeDefinition(barButton =>
+                                {
+                                    var btn = (Button)barButton;
+                                    btn.ClipPath = null;
+                                }));
+                            scrollBar.ThemeOverride = selfButtonTheme;
+                        }));
+
+                    container.InternalHorizontalScrollBar.ThemeOverride = scrollBarTheme;
+                    container.InternalVerticalScrollBar.ThemeOverride = scrollBarTheme;
                 }));
 
             //button

@@ -1,3 +1,5 @@
+using SkiaSharp;
+
 namespace CatUI.Data.Shapes
 {
     public class EllipseClipShape : ClipShape
@@ -12,6 +14,13 @@ namespace CatUI.Data.Shapes
             return
                 (xOffset * xOffset / (a * a)) +
                 (yOffset * yOffset / (b * b)) <= 1;
+        }
+
+        public override SKPath GetSkiaClipPath(Rect bounds, float contentScale, Size viewportSize)
+        {
+            SKPath path = new();
+            path.AddOval(bounds);
+            return path;
         }
 
         public override EllipseClipShape Duplicate()

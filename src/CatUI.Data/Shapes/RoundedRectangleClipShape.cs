@@ -1,4 +1,5 @@
 using System;
+using SkiaSharp;
 
 namespace CatUI.Data.Shapes
 {
@@ -85,7 +86,7 @@ namespace CatUI.Data.Shapes
         private Dimension _bottomRightRadius = Dimension.Unset;
 
         /// <summary>
-        /// The X is the corner's ellipse X axis half value and the Y is the corner's ellipse Y axis half value for
+        /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
         /// the top-left corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
         /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
         /// (<see cref="TopLeftRadius"/>).
@@ -106,7 +107,7 @@ namespace CatUI.Data.Shapes
         private Dimension2 _topLeftEllipse = Dimension2.Unset;
 
         /// <summary>
-        /// The X is the corner's ellipse X axis half value and the Y is the corner's ellipse Y axis half value for
+        /// The X is the corner's ellipse X axis half-value and the Y is the corner's ellipse Y axis half-value for
         /// the top-right corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
         /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
         /// (<see cref="TopRightRadius"/>).
@@ -127,7 +128,7 @@ namespace CatUI.Data.Shapes
         private Dimension2 _topRightEllipse = Dimension2.Unset;
 
         /// <summary>
-        /// The X is the corner's ellipse X axis half value and the Y is the corner's ellipse Y axis half value for
+        /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
         /// the bottom-left corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
         /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
         /// (<see cref="BottomLeftRadius"/>).
@@ -148,7 +149,7 @@ namespace CatUI.Data.Shapes
         private Dimension2 _bottomLeftEllipse = Dimension2.Unset;
 
         /// <summary>
-        /// The X is the corner's ellipse X axis half value and the Y is the corner's ellipse Y axis half value for
+        /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
         /// the bottom-right corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
         /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
         /// (<see cref="BottomRightRadius"/>).
@@ -372,6 +373,47 @@ namespace CatUI.Data.Shapes
 
             //if the point wasn't in any of the 4 corner rectangles, then it must be inside the rounded rectangle
             return true;
+        }
+
+        public override SKPath GetSkiaClipPath(Rect bounds, float contentScale, Size viewportSize)
+        {
+            SKRoundRect roundRect = new();
+            roundRect.SetRectRadii(
+                bounds,
+                [
+                    TopLeftRadius.IsUnset()
+                        ? new SKPoint(
+                            TopLeftEllipse.X.CalculateDimension(bounds.Width, contentScale, viewportSize),
+                            TopLeftEllipse.Y.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                        : new SKPoint(
+                            TopLeftRadius.CalculateDimension(bounds.Width, contentScale, viewportSize),
+                            TopLeftRadius.CalculateDimension(bounds.Width, contentScale, viewportSize)),
+                    TopRightRadius.IsUnset()
+                        ? new SKPoint(
+                            TopRightEllipse.X.CalculateDimension(bounds.Width, contentScale, viewportSize),
+                            TopRightEllipse.Y.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                        : new SKPoint(
+                            TopRightRadius.CalculateDimension(bounds.Width, contentScale, viewportSize),
+                            TopRightRadius.CalculateDimension(bounds.Width, contentScale, viewportSize)),
+                    BottomRightRadius.IsUnset()
+                        ? new SKPoint(
+                            BottomRightEllipse.X.CalculateDimension(bounds.Width, contentScale, viewportSize),
+                            BottomRightEllipse.Y.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                        : new SKPoint(
+                            BottomRightRadius.CalculateDimension(bounds.Width, contentScale, viewportSize),
+                            BottomRightRadius.CalculateDimension(bounds.Width, contentScale, viewportSize)),
+                    BottomLeftRadius.IsUnset()
+                        ? new SKPoint(
+                            BottomLeftEllipse.X.CalculateDimension(bounds.Width, contentScale, viewportSize),
+                            BottomLeftEllipse.Y.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                        : new SKPoint(
+                            BottomLeftRadius.CalculateDimension(bounds.Width, contentScale, viewportSize),
+                            BottomLeftRadius.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                ]);
+
+            SKPath path = new();
+            path.AddRoundRect(roundRect);
+            return path;
         }
 
         private static float GetSmallWidth(

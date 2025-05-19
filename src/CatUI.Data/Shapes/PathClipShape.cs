@@ -38,7 +38,7 @@ namespace CatUI.Data.Shapes
                 if (!string.IsNullOrEmpty(_svgPath))
                 {
                     SkiaPath = SKPath.ParseSvgPathData(_svgPath);
-                    _scaledCachedPath = new SKPath(SkiaPath);
+                    _scaledPath = new SKPath(SkiaPath);
                 }
             }
         }
@@ -47,7 +47,7 @@ namespace CatUI.Data.Shapes
 
         public SKPath SkiaPath { get; private set; } = new();
 
-        private SKPath _scaledCachedPath = new();
+        private SKPath _scaledPath = new();
 
         private Vector2 _lastTopLeftPoint = Vector2.Zero;
         private SKMatrix _lastTransformMatrix = SKMatrix.Identity;
@@ -60,7 +60,7 @@ namespace CatUI.Data.Shapes
             }
 
             SkiaPath = path;
-            _scaledCachedPath = new SKPath(SkiaPath);
+            _scaledPath = new SKPath(SkiaPath);
         }
 
         public override bool IsPointInside(Point2D point, Rect bounds, float contentScale, Size viewportSize)
@@ -72,7 +72,7 @@ namespace CatUI.Data.Shapes
                 return false;
             }
 
-            _scaledCachedPath.Transform(_lastTransformMatrix.Invert());
+            _scaledPath.Transform(_lastTransformMatrix.Invert());
             var startPoint = new Vector2(SkiaPath.TightBounds.Left, SkiaPath.TightBounds.Top);
 
             if (ShouldApplyScaling)
@@ -94,8 +94,13 @@ namespace CatUI.Data.Shapes
                 _lastTransformMatrix = SKMatrix.CreateTranslation(_lastTopLeftPoint.X, _lastTopLeftPoint.Y);
             }
 
-            _scaledCachedPath.Transform(_lastTransformMatrix);
-            return _scaledCachedPath.Contains(point.X - bounds.X, point.Y - bounds.Y);
+            _scaledPath.Transform(_lastTransformMatrix);
+            return _scaledPath.Contains(point.X - bounds.X, point.Y - bounds.Y);
+        }
+
+        public override SKPath GetSkiaClipPath(Rect bounds, float contentScale, Size viewportSize)
+        {
+            return _scaledPath;
         }
 
         public override PathClipShape Duplicate()
