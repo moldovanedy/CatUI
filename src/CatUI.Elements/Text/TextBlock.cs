@@ -42,13 +42,7 @@ namespace CatUI.Elements.Text
         public bool WordWrap
         {
             get => _wordWrap;
-            set
-            {
-                if (value != _wordWrap)
-                {
-                    WordWrapProperty.Value = value;
-                }
-            }
+            set => WordWrapProperty.Value = value;
         }
 
         private bool _wordWrap;
@@ -68,13 +62,7 @@ namespace CatUI.Elements.Text
         public TextBreakMode BreakMode
         {
             get => _breakMode;
-            set
-            {
-                if (value != _breakMode)
-                {
-                    BreakModeProperty.Value = value;
-                }
-            }
+            set => BreakModeProperty.Value = value;
         }
 
         private TextBreakMode _breakMode = TextBreakMode.SoftBreak;
@@ -97,13 +85,7 @@ namespace CatUI.Elements.Text
         public char HyphenCharacter
         {
             get => _hyphenCharacter;
-            set
-            {
-                if (value != _hyphenCharacter)
-                {
-                    HyphenCharacterProperty.Value = value;
-                }
-            }
+            set => HyphenCharacterProperty.Value = value;
         }
 
         private char _hyphenCharacter = '-';
@@ -122,13 +104,7 @@ namespace CatUI.Elements.Text
         public IBrush TextBrush
         {
             get => _textBrush;
-            set
-            {
-                if (value != _textBrush)
-                {
-                    TextBrushProperty.Value = value;
-                }
-            }
+            set => TextBrushProperty.Value = value;
         }
 
         private IBrush _textBrush = new ColorBrush(new Color(0));
@@ -148,13 +124,7 @@ namespace CatUI.Elements.Text
         public IBrush OutlineTextBrush
         {
             get => _outlineTextBrush;
-            set
-            {
-                if (value != _outlineTextBrush)
-                {
-                    OutlineTextBrushProperty.Value = value;
-                }
-            }
+            set => OutlineTextBrushProperty.Value = value;
         }
 
         private IBrush _outlineTextBrush = new ColorBrush(Color.Default);

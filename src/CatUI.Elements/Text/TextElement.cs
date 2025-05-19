@@ -15,13 +15,7 @@ namespace CatUI.Elements.Text
         public string Text
         {
             get => _text;
-            set
-            {
-                if (value != _text)
-                {
-                    TextProperty.Value = value;
-                }
-            }
+            set => TextProperty.Value = value;
         }
 
         private string _text = string.Empty;
@@ -37,13 +31,7 @@ namespace CatUI.Elements.Text
         public FontAsset? Font
         {
             get => _font;
-            set
-            {
-                if (value != _font)
-                {
-                    FontProperty.Value = value;
-                }
-            }
+            set => FontProperty.Value = value;
         }
 
         private FontAsset? _font;
@@ -67,13 +55,7 @@ namespace CatUI.Elements.Text
         public Dimension FontSize
         {
             get => _fontSize;
-            set
-            {
-                if (value != _fontSize)
-                {
-                    FontSizeProperty.Value = value;
-                }
-            }
+            set => FontSizeProperty.Value = value;
         }
 
         private Dimension _fontSize = new(16);
@@ -94,13 +76,7 @@ namespace CatUI.Elements.Text
         public TextOverflowMode OverflowMode
         {
             get => _overflowMode;
-            set
-            {
-                if (value != _overflowMode)
-                {
-                    OverflowModeProperty.Value = value;
-                }
-            }
+            set => OverflowModeProperty.Value = value;
         }
 
         private TextOverflowMode _overflowMode = TextOverflowMode.Ellipsis;
@@ -124,13 +100,7 @@ namespace CatUI.Elements.Text
         public TextAlignmentType TextAlignment
         {
             get => _textAlignment;
-            set
-            {
-                if (value != _textAlignment)
-                {
-                    TextAlignmentProperty.Value = value;
-                }
-            }
+            set => TextAlignmentProperty.Value = value;
         }
 
         private TextAlignmentType _textAlignment = TextAlignmentType.Left;
@@ -152,13 +122,7 @@ namespace CatUI.Elements.Text
         public string OverflowString
         {
             get => _overflowString;
-            set
-            {
-                if (value != _overflowString)
-                {
-                    OverflowStringProperty.Value = value;
-                }
-            }
+            set => OverflowStringProperty.Value = value;
         }
 
         private string _overflowString = "\u2026";

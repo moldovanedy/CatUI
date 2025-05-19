@@ -47,13 +47,7 @@ namespace CatUI.Elements.Utils
         public EdgeInset Padding
         {
             get => _padding;
-            set
-            {
-                if (value != _padding)
-                {
-                    PaddingProperty.Value = value;
-                }
-            }
+            set => PaddingProperty.Value = value;
         }
 
         private EdgeInset _padding = new();

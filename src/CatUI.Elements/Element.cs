@@ -135,13 +135,7 @@ namespace CatUI.Elements
         public string? State
         {
             get => _state;
-            set
-            {
-                if (value != _state)
-                {
-                    StateProperty.Value = value;
-                }
-            }
+            set => StateProperty.Value = value;
         }
 
         private string? _state;
@@ -161,13 +155,7 @@ namespace CatUI.Elements
         public Dimension2 Position
         {
             get => _position;
-            set
-            {
-                if (value != _position)
-                {
-                    PositionProperty.Value = value;
-                }
-            }
+            set => PositionProperty.Value = value;
         }
 
         private Dimension2 _position = new(0, 0);
@@ -187,13 +175,7 @@ namespace CatUI.Elements
         public IBrush Background
         {
             get => _background;
-            set
-            {
-                if (value != _background)
-                {
-                    BackgroundProperty.Value = value;
-                }
-            }
+            set => BackgroundProperty.Value = value;
         }
 
         private IBrush _background = new ColorBrush(Color.Default);
@@ -223,13 +205,7 @@ namespace CatUI.Elements
         public ClipShape? ClipPath
         {
             get => _clipPath;
-            set
-            {
-                if (value != _clipPath)
-                {
-                    ClipPathProperty.Value = value;
-                }
-            }
+            set => ClipPathProperty.Value = value;
         }
 
         private ClipShape? _clipPath;
@@ -252,13 +228,7 @@ namespace CatUI.Elements
         public ClipApplicability ClipType
         {
             get => _clipType;
-            set
-            {
-                if (value != _clipType)
-                {
-                    ClipTypeProperty.Value = value;
-                }
-            }
+            set => ClipTypeProperty.Value = value;
         }
 
         private ClipApplicability _clipType = ClipApplicability.All;
@@ -315,13 +285,7 @@ namespace CatUI.Elements
         public bool Visible
         {
             get => _visible;
-            set
-            {
-                if (value != _visible)
-                {
-                    VisibleProperty.Value = value;
-                }
-            }
+            set => VisibleProperty.Value = value;
         }
 
         private bool _visible = true;
@@ -348,13 +312,7 @@ namespace CatUI.Elements
         public bool Enabled
         {
             get => _enabled;
-            set
-            {
-                if (value != _enabled)
-                {
-                    EnabledProperty.Value = value;
-                }
-            }
+            set => EnabledProperty.Value = value;
         }
 
         private bool _enabled = true;

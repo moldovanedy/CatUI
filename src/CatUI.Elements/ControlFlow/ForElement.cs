@@ -36,13 +36,7 @@ namespace CatUI.Elements.ControlFlow
         public Element GeneratorParent
         {
             get => _generatorParent;
-            set
-            {
-                if (value != _generatorParent)
-                {
-                    GeneratorParentProperty.Value = value;
-                }
-            }
+            set => GeneratorParentProperty.Value = value;
         }
 
         private Element _generatorParent;
@@ -80,9 +74,9 @@ namespace CatUI.Elements.ControlFlow
             _step = step;
             _callback = callback;
 
+            GeneratorParent = generatorParent;
             //silence compiler
             _generatorParent = generatorParent;
-            GeneratorParent = generatorParent;
 
             Reevaluate();
         }

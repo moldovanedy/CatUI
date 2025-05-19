@@ -104,13 +104,7 @@ namespace CatUI.Elements.Containers.Scroll
         public bool IsHorizontalScrollEnabled
         {
             get => _isHorizontalScrollEnabled;
-            set
-            {
-                if (value != _isHorizontalScrollEnabled)
-                {
-                    IsHorizontalScrollEnabledProperty.Value = value;
-                }
-            }
+            set => IsHorizontalScrollEnabledProperty.Value = value;
         }
 
         private bool _isHorizontalScrollEnabled = true;
@@ -136,13 +130,7 @@ namespace CatUI.Elements.Containers.Scroll
         public bool IsVerticalScrollEnabled
         {
             get => _isVerticalScrollEnabled;
-            set
-            {
-                if (value != _isVerticalScrollEnabled)
-                {
-                    IsVerticalScrollEnabledProperty.Value = value;
-                }
-            }
+            set => IsVerticalScrollEnabledProperty.Value = value;
         }
 
         private bool _isVerticalScrollEnabled = true;
@@ -164,13 +152,7 @@ namespace CatUI.Elements.Containers.Scroll
         public RepositionBehaviorType ScrollBarsRepositionBehavior
         {
             get => _scrollBarsRepositionBehavior;
-            set
-            {
-                if (value != _scrollBarsRepositionBehavior)
-                {
-                    ScrollBarsRepositionBehaviorProperty.Value = value;
-                }
-            }
+            set => ScrollBarsRepositionBehaviorProperty.Value = value;
         }
 
         private RepositionBehaviorType _scrollBarsRepositionBehavior = RepositionBehaviorType.GoToPosition;
@@ -190,13 +172,7 @@ namespace CatUI.Elements.Containers.Scroll
         public ScrollBarVisibility HorizontalScrollBarVisibility
         {
             get => _horizontalScrollBarVisibility;
-            set
-            {
-                if (value != _horizontalScrollBarVisibility)
-                {
-                    HorizontalScrollBarVisibilityProperty.Value = value;
-                }
-            }
+            set => HorizontalScrollBarVisibilityProperty.Value = value;
         }
 
         private ScrollBarVisibility _horizontalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -215,13 +191,7 @@ namespace CatUI.Elements.Containers.Scroll
         public ScrollBarVisibility VerticalScrollBarVisibility
         {
             get => _verticalScrollBarVisibility;
-            set
-            {
-                if (value != _verticalScrollBarVisibility)
-                {
-                    VerticalScrollBarVisibilityProperty.Value = value;
-                }
-            }
+            set => VerticalScrollBarVisibilityProperty.Value = value;
         }
 
         private ScrollBarVisibility _verticalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -249,13 +219,7 @@ namespace CatUI.Elements.Containers.Scroll
         public bool IsUserScrollable
         {
             get => _isUserScrollable;
-            set
-            {
-                if (value != _isUserScrollable)
-                {
-                    IsUserScrollableProperty.Value = value;
-                }
-            }
+            set => IsUserScrollableProperty.Value = value;
         }
 
         private bool _isUserScrollable = true;
@@ -277,13 +241,7 @@ namespace CatUI.Elements.Containers.Scroll
         public ValueTuple<bool, bool> ScrollPastLimits
         {
             get => _scrollPastLimits;
-            set
-            {
-                if (value != _scrollPastLimits)
-                {
-                    ScrollPastLimitsProperty.Value = value;
-                }
-            }
+            set => ScrollPastLimitsProperty.Value = value;
         }
 
         private ValueTuple<bool, bool> _scrollPastLimits = (false, false);

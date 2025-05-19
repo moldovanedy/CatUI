@@ -49,7 +49,6 @@ namespace CatUI.Elements.Shapes
         private ObjectRef<GeometricPathElement>? _ref;
 
         private SKPath _skiaPath = new();
-        private SKPath _scaledCachedPath = new();
 
         /// <summary>
         /// If true, the path will be scaled to respect the element's width and height. If false, no scaling will be applied,
@@ -117,16 +116,12 @@ namespace CatUI.Elements.Shapes
             if (!string.IsNullOrEmpty(_svgPath))
             {
                 _skiaPath = SKPath.ParseSvgPathData(_svgPath);
-                _scaledCachedPath = new SKPath(_skiaPath);
-                PathCache.CacheNewPath(_scaledCachedPath);
+                PathCache.CacheNewPath(_skiaPath);
             }
 
             SetLocalValue(nameof(SvgPath), value);
             MarkLayoutDirty();
         }
-
-        private Vector2 _lastTopLeftPoint = Vector2.Zero;
-        private SKMatrix _lastTransformMatrix = SKMatrix.Identity;
 
         public GeometricPathElement(string svgPath = "", IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
@@ -162,10 +157,9 @@ namespace CatUI.Elements.Shapes
                 return;
             }
 
-            PathCache.RemovePath(_scaledCachedPath);
+            PathCache.RemovePath(_skiaPath);
             _skiaPath = path;
-            _scaledCachedPath = new SKPath(_skiaPath);
-            PathCache.CacheNewPath(_scaledCachedPath);
+            PathCache.CacheNewPath(_skiaPath);
         }
 
         /// <summary>
@@ -174,10 +168,9 @@ namespace CatUI.Elements.Shapes
         /// <param name="svgPath">The SVG data from the SVG &lt;path&gt; element.</param>
         public void RecreateFromSvgPath(string svgPath)
         {
-            PathCache.RemovePath(_scaledCachedPath);
+            PathCache.RemovePath(_skiaPath);
             _skiaPath = SKPath.ParseSvgPathData(svgPath);
-            _scaledCachedPath = new SKPath(_skiaPath);
-            PathCache.CacheNewPath(_scaledCachedPath);
+            PathCache.CacheNewPath(_skiaPath);
         }
 
         protected override void DrawBackground()
@@ -188,14 +181,8 @@ namespace CatUI.Elements.Shapes
             }
 
             base.DrawBackground();
-
-            //TODO: investigate whether saving the canvas state, transforming the whole canvas, drawing and then
-            // restoring the canvas is a better choice when there are many paths instead of the inverse matrix technique;
-            // also look for ways to minimize the transformations, as it might invalidate Skia's caches, leading to poor
-            // performance; it's especially important for the case where scaling is not applied, as that's only a translation
-            //
-            _scaledCachedPath.Transform(_lastTransformMatrix.Invert());
-            //Vector2 startPoint = new(_skiaPath.TightBounds.Left, _skiaPath.TightBounds.Top);
+            Point2D topLeftPoint;
+            SKMatrix transformMatrix;
 
             if (ShouldApplyScaling)
             {
@@ -203,24 +190,26 @@ namespace CatUI.Elements.Shapes
                     Bounds.Width / _skiaPath.TightBounds.Width,
                     Bounds.Height / _skiaPath.TightBounds.Height);
 
-                // _lastTopLeftPoint = new Vector2(
-                //     Bounds.X - (startPoint.X * scale.X),
-                //     Bounds.Y - (startPoint.Y * scale.Y));
-                _lastTopLeftPoint = new Vector2(Bounds.X, Bounds.Y);
-
-                _lastTransformMatrix = SKMatrix.CreateScaleTranslation(
-                    scale.X, scale.Y, _lastTopLeftPoint.X, _lastTopLeftPoint.Y);
+                topLeftPoint = new Point2D(Bounds.X, Bounds.Y);
+                transformMatrix = SKMatrix.CreateScaleTranslation(
+                    scale.X, scale.Y, topLeftPoint.X, topLeftPoint.Y);
             }
             else
             {
-                //_lastTopLeftPoint = new Vector2(Bounds.X - startPoint.X, Bounds.Y - startPoint.Y);
-                _lastTopLeftPoint = new Vector2(Bounds.X, Bounds.Y);
-                _lastTransformMatrix = SKMatrix.CreateTranslation(_lastTopLeftPoint.X, _lastTopLeftPoint.Y);
+                topLeftPoint = new Point2D(Bounds.X, Bounds.Y);
+                transformMatrix = SKMatrix.CreateTranslation(topLeftPoint.X, topLeftPoint.Y);
             }
 
-            _scaledCachedPath.Transform(_lastTransformMatrix);
-            Document?.Renderer.DrawPath(_scaledCachedPath, FillBrush);
-            Document?.Renderer.DrawPathOutline(_scaledCachedPath, OutlineBrush, OutlineParameters);
+            int? stateCount = Document?.Renderer.SaveCanvasState();
+            Document?.Renderer.Canvas?.SetMatrix(transformMatrix);
+
+            Document?.Renderer.DrawPath(_skiaPath, FillBrush);
+            Document?.Renderer.DrawPathOutline(_skiaPath, OutlineBrush, OutlineParameters);
+
+            if (stateCount != null)
+            {
+                Document?.Renderer.RestoreCanvasState(stateCount.Value);
+            }
         }
 
         public override Size RecomputeLayout(
@@ -239,12 +228,12 @@ namespace CatUI.Elements.Shapes
                 parentEnforcedWidth ??
                 Math.Max(
                     thisSize.Width,
-                    ShouldApplyScaling ? float.NegativeInfinity : _scaledCachedPath.TightBounds.Width);
+                    ShouldApplyScaling ? float.NegativeInfinity : _skiaPath.TightBounds.Width);
             float height =
                 parentEnforcedHeight ??
                 Math.Max(
                     thisSize.Height,
-                    ShouldApplyScaling ? float.NegativeInfinity : _scaledCachedPath.TightBounds.Height);
+                    ShouldApplyScaling ? float.NegativeInfinity : _skiaPath.TightBounds.Height);
 
             float maxWidth = parentEnforcedWidth ?? Math.Max(thisMaxSize.Width, width);
             float maxHeight = parentEnforcedHeight ?? Math.Max(thisMaxSize.Height, height);

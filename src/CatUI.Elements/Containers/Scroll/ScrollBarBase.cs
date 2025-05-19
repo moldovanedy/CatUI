@@ -29,13 +29,7 @@ namespace CatUI.Elements.Containers.Scroll
         public bool ShouldDisplayButtons
         {
             get => _shouldDisplayButtons;
-            set
-            {
-                if (value != _shouldDisplayButtons)
-                {
-                    ShouldDisplayButtonsProperty.Value = value;
-                }
-            }
+            set => ShouldDisplayButtonsProperty.Value = value;
         }
 
         private bool _shouldDisplayButtons = true;
@@ -56,13 +50,7 @@ namespace CatUI.Elements.Containers.Scroll
         public RepositionBehaviorType RepositionBehavior
         {
             get => _repositionBehavior;
-            set
-            {
-                if (value != _repositionBehavior)
-                {
-                    RepositionBehaviorProperty.Value = value;
-                }
-            }
+            set => RepositionBehaviorProperty.Value = value;
         }
 
         private RepositionBehaviorType _repositionBehavior = RepositionBehaviorType.GoToPosition;

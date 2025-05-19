@@ -58,13 +58,7 @@ namespace CatUI.Elements.ControlFlow
         public Element GeneratorParent
         {
             get => _generatorParent;
-            set
-            {
-                if (value != _generatorParent)
-                {
-                    GeneratorParentProperty.Value = value;
-                }
-            }
+            set => GeneratorParentProperty.Value = value;
         }
 
         private Element _generatorParent;
@@ -96,13 +90,7 @@ namespace CatUI.Elements.ControlFlow
         public GeneratorFunctionCallback GeneratorFunction
         {
             get => _generatorFunction;
-            set
-            {
-                if (value != _generatorFunction)
-                {
-                    GeneratorFunctionProperty.Value = value;
-                }
-            }
+            set => GeneratorFunctionProperty.Value = value;
         }
 
         private GeneratorFunctionCallback _generatorFunction;
@@ -125,9 +113,9 @@ namespace CatUI.Elements.ControlFlow
             GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
             GeneratorFunctionProperty.ValueChangedEvent += SetGeneratorFunction;
 
+            GeneratorParent = generatorParent;
             //silence compiler
             _generatorParent = generatorParent;
-            GeneratorParent = generatorParent;
 
             GeneratorFunction = generatorFunction;
             //silence compiler

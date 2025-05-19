@@ -13,13 +13,7 @@ namespace CatUI.Elements
         public ElementLayout? Layout
         {
             get => _layout;
-            set
-            {
-                if (value != _layout)
-                {
-                    LayoutProperty.Value = value;
-                }
-            }
+            set => LayoutProperty.Value = value;
         }
 
         private ElementLayout? _layout;

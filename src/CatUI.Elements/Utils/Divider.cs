@@ -50,13 +50,7 @@ namespace CatUI.Elements.Utils
         public IBrush LineBrush
         {
             get => _lineBrush;
-            set
-            {
-                if (value != _lineBrush)
-                {
-                    LineBrushProperty.Value = value;
-                }
-            }
+            set => LineBrushProperty.Value = value;
         }
 
         private IBrush _lineBrush = new ColorBrush(new Color(0));
@@ -76,13 +70,7 @@ namespace CatUI.Elements.Utils
         public LineCapType LineCap
         {
             get => _lineCap;
-            set
-            {
-                if (value != _lineCap)
-                {
-                    LineCapProperty.Value = value;
-                }
-            }
+            set => LineCapProperty.Value = value;
         }
 
         private LineCapType _lineCap = LineCapType.Butt;

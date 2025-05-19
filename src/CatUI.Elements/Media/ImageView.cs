@@ -35,13 +35,7 @@ namespace CatUI.Elements.Media
         public ImageAsset? Source
         {
             get => _source;
-            set
-            {
-                if (value != _source)
-                {
-                    SourceProperty.Value = value;
-                }
-            }
+            set => SourceProperty.Value = value;
         }
 
         private ImageAsset? _source;
@@ -61,13 +55,7 @@ namespace CatUI.Elements.Media
         public HorizontalAlignmentType HorizontalAlignment
         {
             get => _horizontalAlignment;
-            set
-            {
-                if (value != _horizontalAlignment)
-                {
-                    HorizontalAlignmentProperty.Value = value;
-                }
-            }
+            set => HorizontalAlignmentProperty.Value = value;
         }
 
         private HorizontalAlignmentType _horizontalAlignment = HorizontalAlignmentType.Left;
@@ -89,13 +77,7 @@ namespace CatUI.Elements.Media
         public VerticalAlignmentType VerticalAlignment
         {
             get => _verticalAlignment;
-            set
-            {
-                if (value != _verticalAlignment)
-                {
-                    VerticalAlignmentProperty.Value = value;
-                }
-            }
+            set => VerticalAlignmentProperty.Value = value;
         }
 
         private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Top;
@@ -119,13 +101,7 @@ namespace CatUI.Elements.Media
         public bool ShouldKeepAspectRatio
         {
             get => _shouldKeepAspectRatio;
-            set
-            {
-                if (value != _shouldKeepAspectRatio)
-                {
-                    ShouldKeepAspectRatioProperty.Value = value;
-                }
-            }
+            set => ShouldKeepAspectRatioProperty.Value = value;
         }
 
         private bool _shouldKeepAspectRatio = true;
@@ -145,13 +121,7 @@ namespace CatUI.Elements.Media
         public ImageFitType ImageFit
         {
             get => _imageFit;
-            set
-            {
-                if (value != _imageFit)
-                {
-                    ImageFitProperty.Value = value;
-                }
-            }
+            set => ImageFitProperty.Value = value;
         }
 
         private ImageFitType _imageFit = ImageFitType.CanShrink;
@@ -172,13 +142,7 @@ namespace CatUI.Elements.Media
         public ImageResizeQuality ResizeQuality
         {
             get => _resizeQuality;
-            set
-            {
-                if (value != _resizeQuality)
-                {
-                    ResizeQualityProperty.Value = value;
-                }
-            }
+            set => ResizeQualityProperty.Value = value;
         }
 
         private ImageResizeQuality _resizeQuality = ImageResizeQuality.Medium;

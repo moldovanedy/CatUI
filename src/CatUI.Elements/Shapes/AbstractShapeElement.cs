@@ -17,13 +17,7 @@ namespace CatUI.Elements.Shapes
         public IBrush FillBrush
         {
             get => _fillBrush;
-            set
-            {
-                if (value != _fillBrush)
-                {
-                    FillBrushProperty.Value = value;
-                }
-            }
+            set => FillBrushProperty.Value = value;
         }
 
         private IBrush _fillBrush = new ColorBrush(Color.Default);
@@ -44,13 +38,7 @@ namespace CatUI.Elements.Shapes
         public IBrush OutlineBrush
         {
             get => _outlineBrush;
-            set
-            {
-                if (value != _outlineBrush)
-                {
-                    OutlineBrushProperty.Value = value;
-                }
-            }
+            set => OutlineBrushProperty.Value = value;
         }
 
         private IBrush _outlineBrush = new ColorBrush(Color.Default);

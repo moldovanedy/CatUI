@@ -96,6 +96,9 @@ namespace CatUI.Elements.ControlFlow
             Value = value;
             //silence compiler
             _value = value;
+
+            //force reevaluation when the value is the default one and no evaluation is made
+            Reevaluate();
         }
 
         /// <summary>
