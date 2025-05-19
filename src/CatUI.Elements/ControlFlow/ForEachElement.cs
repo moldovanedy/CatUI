@@ -60,8 +60,10 @@ namespace CatUI.Elements.ControlFlow
             get => _generatorParent;
             set
             {
-                SetGeneratorParent(value);
-                GeneratorParentProperty.Value = value;
+                if (value != _generatorParent)
+                {
+                    GeneratorParentProperty.Value = value;
+                }
             }
         }
 
@@ -76,6 +78,8 @@ namespace CatUI.Elements.ControlFlow
             }
 
             _generatorParent = value;
+            SetLocalValue(nameof(GeneratorParent), value);
+
             if (Children.Count > 0)
             {
                 Children.RemoveAt(0);
@@ -94,8 +98,10 @@ namespace CatUI.Elements.ControlFlow
             get => _generatorFunction;
             set
             {
-                SetGeneratorFunction(value);
-                GeneratorFunctionProperty.Value = value;
+                if (value != _generatorFunction)
+                {
+                    GeneratorFunctionProperty.Value = value;
+                }
             }
         }
 
@@ -107,6 +113,7 @@ namespace CatUI.Elements.ControlFlow
             if (value != null)
             {
                 _generatorFunction = value;
+                SetLocalValue(nameof(GeneratorFunction), value);
             }
         }
 
@@ -115,6 +122,9 @@ namespace CatUI.Elements.ControlFlow
             ObservableList<T> items,
             GeneratorFunctionCallback generatorFunction)
         {
+            GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
+            GeneratorFunctionProperty.ValueChangedEvent += SetGeneratorFunction;
+
             //silence compiler
             _generatorParent = generatorParent;
             GeneratorParent = generatorParent;
@@ -122,9 +132,6 @@ namespace CatUI.Elements.ControlFlow
             GeneratorFunction = generatorFunction;
             //silence compiler
             _generatorFunction = generatorFunction;
-
-            GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
-            GeneratorFunctionProperty.ValueChangedEvent += SetGeneratorFunction;
 
             Items = items;
             for (int i = 0; i < Items.Count; i++)

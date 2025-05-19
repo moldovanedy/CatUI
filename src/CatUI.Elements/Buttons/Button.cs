@@ -48,8 +48,10 @@ namespace CatUI.Elements.Buttons
             get => _padding;
             set
             {
-                SetPadding(value);
-                PaddingProperty.Value = value;
+                if (value != _padding)
+                {
+                    PaddingProperty.Value = value;
+                }
             }
         }
 
@@ -59,6 +61,7 @@ namespace CatUI.Elements.Buttons
         private void SetPadding(EdgeInset value)
         {
             _padding = value;
+            SetLocalValue(nameof(Padding), value);
         }
 
         /// <summary>
@@ -70,8 +73,10 @@ namespace CatUI.Elements.Buttons
             get => _spacing;
             set
             {
-                SetSpacing(value);
-                SpacingProperty.Value = value;
+                if (value != _spacing)
+                {
+                    SpacingProperty.Value = value;
+                }
             }
         }
 
@@ -81,6 +86,7 @@ namespace CatUI.Elements.Buttons
         private void SetSpacing(Dimension value)
         {
             _spacing = value;
+            SetLocalValue(nameof(Spacing), value);
             InternalRowContainer.Arrangement.Spacing = value;
         }
 
@@ -94,23 +100,24 @@ namespace CatUI.Elements.Buttons
             get => _horizontalArrangement;
             set
             {
-                SetHorizontalArrangement(value);
-                HorizontalArrangementProperty.Value = value;
+                if (value != _horizontalArrangement)
+                {
+                    HorizontalArrangementProperty.Value = value;
+                }
             }
         }
 
         private LinearArrangement.JustificationType _horizontalArrangement = LinearArrangement.JustificationType.Center;
 
-        public ObservableProperty<LinearArrangement.JustificationType>
-            HorizontalArrangementProperty
+        public ObservableProperty<LinearArrangement.JustificationType> HorizontalArrangementProperty
         {
             get;
-        }
-            = new(LinearArrangement.JustificationType.Center);
+        } = new(LinearArrangement.JustificationType.Center);
 
         private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
         {
             _horizontalArrangement = value;
+            SetLocalValue(nameof(HorizontalArrangement), value);
             InternalRowContainer.Arrangement.ContentJustification = value;
         }
 
@@ -122,8 +129,10 @@ namespace CatUI.Elements.Buttons
             get => _verticalAlignment;
             set
             {
-                SetVerticalAlignment(value);
-                VerticalAlignmentProperty.Value = value;
+                if (value != _verticalAlignment)
+                {
+                    VerticalAlignmentProperty.Value = value;
+                }
             }
         }
 
@@ -135,6 +144,7 @@ namespace CatUI.Elements.Buttons
         private void SetVerticalAlignment(VerticalAlignmentType value)
         {
             _verticalAlignment = value;
+            SetLocalValue(nameof(VerticalAlignment), value);
             InternalRowContainer.VerticalAlignment = value;
         }
 
@@ -245,6 +255,11 @@ namespace CatUI.Elements.Buttons
         /// <param name="iconElement">The value of <see cref="IconElement"/>.</param>
         public Button(Element? textElement = null, Element? iconElement = null)
         {
+            PaddingProperty.ValueChangedEvent += SetPadding;
+            SpacingProperty.ValueChangedEvent += SetSpacing;
+            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
+            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+
             _textElement = textElement;
             _iconElement = iconElement;
 
@@ -273,11 +288,6 @@ namespace CatUI.Elements.Buttons
             Children.Add(InternalPaddingElement);
 
             InternalPaddingElement.PaddingProperty.BindBidirectional(PaddingProperty);
-
-            PaddingProperty.ValueChangedEvent += SetPadding;
-            SpacingProperty.ValueChangedEvent += SetSpacing;
-            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
-            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
         }
 
         /// <summary>

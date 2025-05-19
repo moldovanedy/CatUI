@@ -11,7 +11,7 @@ namespace CatUI.Elements.Itania
 {
     public static class ItaniaTheme
     {
-        public static Theme BuildFinalTheme()
+        public static Theme GetTheme()
         {
             Theme theme = new();
 

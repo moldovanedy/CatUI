@@ -19,8 +19,10 @@ namespace CatUI.Elements.Containers.Linear
             get => _arrangement;
             set
             {
-                SetArrangement(value);
-                ArrangementProperty.Value = _arrangement;
+                if (value != _arrangement)
+                {
+                    ArrangementProperty.Value = value;
+                }
             }
         }
 
@@ -29,9 +31,10 @@ namespace CatUI.Elements.Containers.Linear
         public ObservableProperty<LinearArrangement> ArrangementProperty { get; } =
             new(new LinearArrangement());
 
-        private void SetArrangement(LinearArrangement? arrangement)
+        private void SetArrangement(LinearArrangement? value)
         {
-            _arrangement = arrangement ?? new LinearArrangement();
+            _arrangement = value ?? new LinearArrangement();
+            SetLocalValue(nameof(Arrangement), value);
             MarkLayoutDirty();
         }
 

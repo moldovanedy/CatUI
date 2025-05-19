@@ -38,11 +38,7 @@ namespace CatUI.Elements.ControlFlow
         public T Value
         {
             get => _value;
-            set
-            {
-                SetValue(value);
-                ValueProperty.Value = value;
-            }
+            set => ValueProperty.Value = value;
         }
 
         private T _value;
@@ -57,6 +53,7 @@ namespace CatUI.Elements.ControlFlow
             }
 
             _value = value;
+            SetLocalValue(nameof(Value), value);
             Reevaluate();
         }
 
@@ -88,12 +85,12 @@ namespace CatUI.Elements.ControlFlow
         /// </param>
         public SwitchElement(T value, List<SwitchLabel>? caseLabels = null, Element? defaultElement = null)
         {
+            ValueProperty.ValueChangedEvent += SetValue;
+
             if (caseLabels != null)
             {
                 CaseLabels = caseLabels;
             }
-
-            ValueProperty.ValueChangedEvent += SetValue;
 
             DefaultElement = defaultElement;
             Value = value;

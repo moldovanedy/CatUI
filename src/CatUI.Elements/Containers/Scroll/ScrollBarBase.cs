@@ -31,8 +31,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _shouldDisplayButtons;
             set
             {
-                SetShouldDisplayButtons(value);
-                ShouldDisplayButtonsProperty.Value = value;
+                if (value != _shouldDisplayButtons)
+                {
+                    ShouldDisplayButtonsProperty.Value = value;
+                }
             }
         }
 
@@ -42,6 +44,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetShouldDisplayButtons(bool value)
         {
             _shouldDisplayButtons = value;
+            SetLocalValue(nameof(ShouldDisplayButtons), value);
             MinusButtonElement.Enabled = value;
             PlusButtonElement.Enabled = value;
         }
@@ -55,8 +58,10 @@ namespace CatUI.Elements.Containers.Scroll
             get => _repositionBehavior;
             set
             {
-                SetRepositionBehavior(value);
-                RepositionBehaviorProperty.Value = value;
+                if (value != _repositionBehavior)
+                {
+                    RepositionBehaviorProperty.Value = value;
+                }
             }
         }
 
@@ -68,6 +73,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void SetRepositionBehavior(RepositionBehaviorType value)
         {
             _repositionBehavior = value;
+            SetLocalValue(nameof(RepositionBehavior), value);
         }
 
         #endregion
@@ -267,6 +273,9 @@ namespace CatUI.Elements.Containers.Scroll
 
         protected ScrollBarBase(Orientation scrollOrientation, Button minusButtonElement, Button plusButtonElement)
         {
+            ShouldDisplayButtonsProperty.ValueChangedEvent += SetShouldDisplayButtons;
+            RepositionBehaviorProperty.ValueChangedEvent += SetRepositionBehavior;
+
             _scrollOrientation = scrollOrientation;
             MinusButtonElement = minusButtonElement;
             PlusButtonElement = plusButtonElement;
@@ -298,9 +307,6 @@ namespace CatUI.Elements.Containers.Scroll
                 InternalScrollTrackElement,
                 plusButtonElement
             ];
-
-            ShouldDisplayButtonsProperty.ValueChangedEvent += SetShouldDisplayButtons;
-            RepositionBehaviorProperty.ValueChangedEvent += SetRepositionBehavior;
         }
 
         //~ScrollBarBase()

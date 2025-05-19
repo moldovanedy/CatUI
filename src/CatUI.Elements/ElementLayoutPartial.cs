@@ -15,8 +15,10 @@ namespace CatUI.Elements
             get => _layout;
             set
             {
-                SetLayout(value);
-                LayoutProperty.Value = value;
+                if (value != _layout)
+                {
+                    LayoutProperty.Value = value;
+                }
             }
         }
 

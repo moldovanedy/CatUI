@@ -19,17 +19,20 @@ namespace CatUI.Elements.Shapes
             get => _fillBrush;
             set
             {
-                SetFillBrush(value);
-                FillBrushProperty.Value = _fillBrush;
+                if (value != _fillBrush)
+                {
+                    FillBrushProperty.Value = value;
+                }
             }
         }
 
         private IBrush _fillBrush = new ColorBrush(Color.Default);
         public ObservableProperty<IBrush> FillBrushProperty { get; } = new(new ColorBrush(Color.Default));
 
-        private void SetFillBrush(IBrush? brush)
+        private void SetFillBrush(IBrush? value)
         {
-            _fillBrush = brush ?? new ColorBrush(Color.Default);
+            _fillBrush = value ?? new ColorBrush(Color.Default);
+            SetLocalValue(nameof(FillBrush), value);
             RequestRedraw();
         }
 
@@ -43,8 +46,10 @@ namespace CatUI.Elements.Shapes
             get => _outlineBrush;
             set
             {
-                SetOutlineBrush(value);
-                OutlineBrushProperty.Value = _outlineBrush;
+                if (value != _outlineBrush)
+                {
+                    OutlineBrushProperty.Value = value;
+                }
             }
         }
 
@@ -53,9 +58,10 @@ namespace CatUI.Elements.Shapes
         public ObservableProperty<IBrush> OutlineBrushProperty { get; } =
             new(new ColorBrush(Color.Default));
 
-        private void SetOutlineBrush(IBrush? brush)
+        private void SetOutlineBrush(IBrush? value)
         {
-            _outlineBrush = brush ?? new ColorBrush(Color.Default);
+            _outlineBrush = value ?? new ColorBrush(Color.Default);
+            SetLocalValue(nameof(OutlineBrush), value);
             RequestRedraw();
         }
 
@@ -67,11 +73,7 @@ namespace CatUI.Elements.Shapes
         public OutlineParams OutlineParameters
         {
             get => _outlineParameters;
-            set
-            {
-                SetOutlineParameters(value);
-                OutlineParametersProperty.Value = _outlineParameters;
-            }
+            set => OutlineParametersProperty.Value = value;
         }
 
         private OutlineParams _outlineParameters = new();
@@ -79,14 +81,19 @@ namespace CatUI.Elements.Shapes
         public ObservableProperty<OutlineParams> OutlineParametersProperty { get; } =
             new(new OutlineParams());
 
-        private void SetOutlineParameters(OutlineParams outlineParameters)
+        private void SetOutlineParameters(OutlineParams value)
         {
-            _outlineParameters = outlineParameters;
+            _outlineParameters = value;
+            SetLocalValue(nameof(OutlineParameters), value);
             MarkLayoutDirty();
         }
 
         public AbstractShapeElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
         {
+            FillBrushProperty.ValueChangedEvent += SetFillBrush;
+            OutlineBrushProperty.ValueChangedEvent += SetOutlineBrush;
+            OutlineParametersProperty.ValueChangedEvent += SetOutlineParameters;
+
             if (fillBrush != null)
             {
                 FillBrush = fillBrush;
@@ -96,10 +103,6 @@ namespace CatUI.Elements.Shapes
             {
                 OutlineBrush = outlineBrush;
             }
-
-            FillBrushProperty.ValueChangedEvent += SetFillBrush;
-            OutlineBrushProperty.ValueChangedEvent += SetOutlineBrush;
-            OutlineParametersProperty.ValueChangedEvent += SetOutlineParameters;
         }
 
         //~AbstractShapeElement()

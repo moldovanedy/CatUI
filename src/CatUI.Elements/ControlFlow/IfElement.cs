@@ -37,8 +37,10 @@ namespace CatUI.Elements.ControlFlow
             get => _condition;
             set
             {
-                SetCondition(value);
-                ConditionProperty.Value = value;
+                if (value != _condition)
+                {
+                    ConditionProperty.Value = value;
+                }
             }
         }
 
@@ -58,6 +60,7 @@ namespace CatUI.Elements.ControlFlow
             _condition = value;
             _condition.ValueChangedEvent += EvaluateCondition;
 
+            SetLocalValue(nameof(Condition), value);
             EvaluateCondition(value.Value);
         }
 
@@ -70,8 +73,10 @@ namespace CatUI.Elements.ControlFlow
             get => _trueBranchElement;
             set
             {
-                SetTrueBranchElement(value);
-                TrueBranchElementProperty.Value = value;
+                if (value != _trueBranchElement)
+                {
+                    TrueBranchElementProperty.Value = value;
+                }
             }
         }
 
@@ -86,6 +91,7 @@ namespace CatUI.Elements.ControlFlow
             }
 
             _trueBranchElement = value;
+            SetLocalValue(nameof(TrueBranchElement), value);
 
             if (Condition.Value)
             {
@@ -107,8 +113,10 @@ namespace CatUI.Elements.ControlFlow
             get => _falseBranchElement;
             set
             {
-                SetFalseBranchElement(value);
-                FalseBranchElementProperty.Value = value;
+                if (value != _falseBranchElement)
+                {
+                    FalseBranchElementProperty.Value = value;
+                }
             }
         }
 
@@ -123,6 +131,7 @@ namespace CatUI.Elements.ControlFlow
             }
 
             _falseBranchElement = value;
+            SetLocalValue(nameof(FalseBranchElement), value);
 
             if (!Condition.Value)
             {
@@ -137,14 +146,14 @@ namespace CatUI.Elements.ControlFlow
 
         public IfElement(ObservableProperty<bool> condition, Element trueBranchElement)
         {
+            ConditionProperty.ValueChangedEvent += SetCondition;
+            TrueBranchElementProperty.ValueChangedEvent += SetTrueBranchElement;
+            FalseBranchElementProperty.ValueChangedEvent += SetFalseBranchElement;
+
             Condition = condition;
             TrueBranchElement = trueBranchElement;
             //silence compiler
             _trueBranchElement = trueBranchElement;
-
-            ConditionProperty.ValueChangedEvent += SetCondition;
-            TrueBranchElementProperty.ValueChangedEvent += SetTrueBranchElement;
-            FalseBranchElementProperty.ValueChangedEvent += SetFalseBranchElement;
         }
 
         public IfElement(ObservableProperty<bool> condition, Element trueBranchElement, Element falseBranchElement)

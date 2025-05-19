@@ -60,8 +60,10 @@ namespace CatUI.Elements.Shapes
             get => _shouldApplyScaling;
             set
             {
-                SetShouldApplyScaling(value);
-                ShouldApplyScalingProperty.Value = value;
+                if (value != _shouldApplyScaling)
+                {
+                    ShouldApplyScalingProperty.Value = value;
+                }
             }
         }
 
@@ -72,6 +74,7 @@ namespace CatUI.Elements.Shapes
         private void SetShouldApplyScaling(bool value)
         {
             _shouldApplyScaling = value;
+            SetLocalValue(nameof(ShouldApplyScaling), value);
             MarkLayoutDirty();
         }
 
@@ -98,8 +101,10 @@ namespace CatUI.Elements.Shapes
             get => _svgPath;
             set
             {
-                SetSvgPath(value);
-                SvgPathProperty.Value = value;
+                if (value != _svgPath)
+                {
+                    SvgPathProperty.Value = value;
+                }
             }
         }
 
@@ -116,6 +121,7 @@ namespace CatUI.Elements.Shapes
                 PathCache.CacheNewPath(_scaledCachedPath);
             }
 
+            SetLocalValue(nameof(SvgPath), value);
             MarkLayoutDirty();
         }
 
@@ -125,10 +131,10 @@ namespace CatUI.Elements.Shapes
         public GeometricPathElement(string svgPath = "", IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
-            SvgPath = svgPath;
-
             ShouldApplyScalingProperty.ValueChangedEvent += SetShouldApplyScaling;
             SvgPathProperty.ValueChangedEvent += SetSvgPath;
+
+            SvgPath = svgPath;
         }
 
         //~GeometricPathElement()

@@ -36,8 +36,10 @@ namespace CatUI.Elements.Containers.Linear
             get => (VerticalAlignmentType)PreferredAlignment;
             set
             {
-                SetVerticalAlignment(value);
-                VerticalAlignmentProperty.Value = value;
+                if (value != (VerticalAlignmentType)PreferredAlignment)
+                {
+                    VerticalAlignmentProperty.Value = value;
+                }
             }
         }
 
@@ -47,6 +49,7 @@ namespace CatUI.Elements.Containers.Linear
         private void SetVerticalAlignment(VerticalAlignmentType value)
         {
             PreferredAlignment = (AlignmentType)value;
+            SetLocalValue(nameof(VerticalAlignment), value);
             MarkLayoutDirty();
         }
 

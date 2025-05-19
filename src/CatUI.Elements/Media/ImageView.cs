@@ -37,8 +37,10 @@ namespace CatUI.Elements.Media
             get => _source;
             set
             {
-                SetSource(value);
-                SourceProperty.Value = value;
+                if (value != _source)
+                {
+                    SourceProperty.Value = value;
+                }
             }
         }
 
@@ -48,6 +50,7 @@ namespace CatUI.Elements.Media
         private void SetSource(ImageAsset? value)
         {
             _source = value;
+            SetLocalValue(nameof(Source), value);
             MarkLayoutDirty();
         }
 
@@ -60,8 +63,10 @@ namespace CatUI.Elements.Media
             get => _horizontalAlignment;
             set
             {
-                SetHorizontalAlignment(value);
-                HorizontalAlignmentProperty.Value = value;
+                if (value != _horizontalAlignment)
+                {
+                    HorizontalAlignmentProperty.Value = value;
+                }
             }
         }
 
@@ -73,6 +78,7 @@ namespace CatUI.Elements.Media
         private void SetHorizontalAlignment(HorizontalAlignmentType value)
         {
             _horizontalAlignment = value;
+            SetLocalValue(nameof(HorizontalAlignment), value);
             RequestRedraw();
         }
 
@@ -85,8 +91,10 @@ namespace CatUI.Elements.Media
             get => _verticalAlignment;
             set
             {
-                SetVerticalAlignment(value);
-                VerticalAlignmentProperty.Value = value;
+                if (value != _verticalAlignment)
+                {
+                    VerticalAlignmentProperty.Value = value;
+                }
             }
         }
 
@@ -98,6 +106,7 @@ namespace CatUI.Elements.Media
         private void SetVerticalAlignment(VerticalAlignmentType value)
         {
             _verticalAlignment = value;
+            SetLocalValue(nameof(VerticalAlignment), value);
             RequestRedraw();
         }
 
@@ -112,8 +121,10 @@ namespace CatUI.Elements.Media
             get => _shouldKeepAspectRatio;
             set
             {
-                SetShouldKeepAspectRatio(value);
-                ShouldKeepAspectRatioProperty.Value = value;
+                if (value != _shouldKeepAspectRatio)
+                {
+                    ShouldKeepAspectRatioProperty.Value = value;
+                }
             }
         }
 
@@ -123,6 +134,7 @@ namespace CatUI.Elements.Media
         private void SetShouldKeepAspectRatio(bool value)
         {
             _shouldKeepAspectRatio = value;
+            SetLocalValue(nameof(ShouldKeepAspectRatio), value);
             MarkLayoutDirty();
         }
 
@@ -135,8 +147,10 @@ namespace CatUI.Elements.Media
             get => _imageFit;
             set
             {
-                SetImageFit(value);
-                ImageFitProperty.Value = value;
+                if (value != _imageFit)
+                {
+                    ImageFitProperty.Value = value;
+                }
             }
         }
 
@@ -146,6 +160,7 @@ namespace CatUI.Elements.Media
         private void SetImageFit(ImageFitType value)
         {
             _imageFit = value;
+            SetLocalValue(nameof(ImageFit), value);
             RequestRedraw();
         }
 
@@ -159,8 +174,10 @@ namespace CatUI.Elements.Media
             get => _resizeQuality;
             set
             {
-                SetResizeQuality(value);
-                ResizeQualityProperty.Value = value;
+                if (value != _resizeQuality)
+                {
+                    ResizeQualityProperty.Value = value;
+                }
             }
         }
 
@@ -170,6 +187,7 @@ namespace CatUI.Elements.Media
         private void SetResizeQuality(ImageResizeQuality value)
         {
             _resizeQuality = value;
+            SetLocalValue(nameof(ResizeQuality), value);
             RequestRedraw();
         }
 
@@ -182,8 +200,8 @@ namespace CatUI.Elements.Media
 
         public ImageView(ImageAsset source)
         {
-            Source = source;
             InitPropertiesEvents();
+            Source = source;
         }
 
         private void InitPropertiesEvents()

@@ -6,13 +6,60 @@ namespace CatUI.Elements
 {
     public partial class Element
     {
+        /// <summary>
+        /// A lambda function that has as a parameter the new state the element is in and this element. You should
+        /// set the properties directly depending on the state (i.e. use a switch statement or something).
+        /// </summary>
+        public delegate void LocalThemeLambda(string? newState, Element element);
+
+        /// <summary>
+        /// The local theming function that is called:
+        /// <list type="bullet">
+        /// <item>
+        /// directly when set (always with the default state of null and, if the current state is other than null,
+        /// called again with the current state)
+        /// </item>
+        /// <item>whenever the element enters a new state (with the current state)</item>
+        /// <item>
+        /// whenever the global theme is applied for this element (generally when there is a change in the global theme)
+        /// with the current state
+        /// </item>
+        /// </list>
+        /// </summary>
+        /// <remarks>
+        /// This is always called after the global themes are applied, but before setting the direct properties to their
+        /// custom value (i.e. if you set a certain property that has a *Property counterpart to a value directly, then
+        /// that value will have precedence over the global theme and this local theme). Refer to the manual for more
+        /// information about theming.
+        /// </remarks>
+        public LocalThemeLambda? LocalThemingFunction
+        {
+            get => _localThemingFunction;
+            set
+            {
+                _localThemingFunction = value;
+                //always call for the default state
+                _localThemingFunction?.Invoke(null, this);
+
+                //then, call for the current state if it's other than default
+                if (State != null)
+                {
+                    _localThemingFunction?.Invoke(State, this);
+                }
+            }
+        }
+
+        private LocalThemeLambda? _localThemingFunction;
+
         public Theme? ThemeOverride
         {
             get => _themeOverride;
             set
             {
-                SetThemeOverride(value);
-                ThemeOverrideProperty.Value = value;
+                if (value != _themeOverride)
+                {
+                    ThemeOverrideProperty.Value = value;
+                }
             }
         }
 
@@ -40,8 +87,10 @@ namespace CatUI.Elements
             get => _styleClass;
             set
             {
-                SetStyleClass(value);
-                StyleClassProperty.Value = value;
+                if (value != _styleClass)
+                {
+                    StyleClassProperty.Value = value;
+                }
             }
         }
 
@@ -71,8 +120,10 @@ namespace CatUI.Elements
             get => _baseThemingCount;
             set
             {
-                SetBaseThemingCount(value);
-                BaseThemingCountProperty.Value = value;
+                if (value != _baseThemingCount)
+                {
+                    BaseThemingCountProperty.Value = value;
+                }
             }
         }
 
@@ -94,8 +145,10 @@ namespace CatUI.Elements
             get => _ignoreGlobalTheming;
             set
             {
-                SetIgnoreGlobalTheming(value);
-                IgnoreGlobalThemingProperty.Value = value;
+                if (value != _ignoreGlobalTheming)
+                {
+                    IgnoreGlobalThemingProperty.Value = value;
+                }
             }
         }
 
@@ -106,6 +159,74 @@ namespace CatUI.Elements
         {
             _ignoreGlobalTheming = value;
             ApplyElementTypeTheme();
+        }
+
+
+        private readonly Dictionary<string, object?> _localValues = [];
+        private bool _isLocalValueDictionaryLocked;
+
+        /// <summary>
+        /// Local values are the values that are directly set on a property outside the global theme. Once you set it,
+        /// it takes precedence over the global themes. Call this if you want to remove the local value and make the
+        /// global theme relevant for the given property name once again.
+        /// </summary>
+        /// <remarks>
+        /// This is only relevant for bindable properties (i.e. the ones that have a *Property counterpart). Calling
+        /// this for another type of property won't do anything. Refer to the manual for more information about theming.
+        /// </remarks>
+        /// <param name="propertyName">The property name; always use <c>nameof(PROPERTY)</c> for this.</param>
+        public void RemoveLocalValue(string propertyName)
+        {
+            _localValues.Remove(propertyName);
+        }
+
+        /// <summary>
+        /// Only call this on property change handlers, as this marks the given property value as being "local", so it
+        /// will always be reset to the given value after the global theming finishes.
+        /// </summary>
+        /// <param name="propertyName">
+        /// The name of the property. You should always use `nameof(PROPERTY)` to get this string.
+        /// </param>
+        /// <param name="value">The local value that will be set after global theming.</param>
+        protected void SetLocalValue(string propertyName, object? value)
+        {
+            if (!_isLocalValueDictionaryLocked)
+            {
+                _localValues[propertyName] = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns the value of a property that was set as "local" either directly or inside
+        /// <see cref="LocalThemingFunction"/>. Returns null if nothing was found, with wasSet being false.
+        /// </summary>
+        /// <param name="propertyName">The name of the searched property (use <c>nameof(PROPERTY)</c>).</param>
+        /// <param name="wasSet">Will be true if the property was found, otherwise false.</param>
+        /// <returns></returns>
+        public object? GetLocalValue(string propertyName, out bool wasSet)
+        {
+            if (_localValues.TryGetValue(propertyName, out object? value))
+            {
+                wasSet = true;
+                return value;
+            }
+
+            wasSet = false;
+            return null;
+        }
+
+        /// <summary>
+        /// Applies the local theme; it should always be called after the global themes are applied. The local theme
+        /// is represented by all the properties that are set by the user outside the global themes (the value overrides).
+        /// </summary>
+        private void ApplyLocalTheme()
+        {
+            LocalThemingFunction?.Invoke(State, this);
+
+            foreach (KeyValuePair<string, object?> localValue in _localValues)
+            {
+                GetType().GetProperty(localValue.Key)?.SetValue(this, localValue.Value);
+            }
         }
 
         /// <summary>
@@ -142,39 +263,50 @@ namespace CatUI.Elements
                 return;
             }
 
-            //if the type is not set OR if it's the matching type
-            if (affectedType == null || IsMatchingType(affectedType))
+            _isLocalValueDictionaryLocked = true;
+
+            try
             {
-                List<int> indices = new(10);
-                Element currentElement = this;
-
-                if (!IgnoreGlobalTheming)
+                //if the type is not set OR if it's the matching type
+                if (affectedType == null || IsMatchingType(affectedType))
                 {
-                    while (currentElement._parent != null)
+                    List<int> indices = new(10);
+                    Element currentElement = this;
+
+                    if (!IgnoreGlobalTheming)
                     {
-                        indices.Add(currentElement.IndexInParent);
-                        currentElement = currentElement._parent;
+                        while (currentElement._parent != null)
+                        {
+                            indices.Add(currentElement.IndexInParent);
+                            currentElement = currentElement._parent;
+                        }
+
+                        for (int i = indices.Count - 1; i >= 0; i--)
+                        {
+                            ApplyBaseThemingFromElement(currentElement);
+                            currentElement = currentElement.Children[indices[i]];
+                        }
                     }
 
-                    for (int i = indices.Count - 1; i >= 0; i--)
-                    {
-                        ApplyBaseThemingFromElement(currentElement);
-                        currentElement = currentElement.Children[indices[i]];
-                    }
+                    //check self override
+                    ApplyBaseThemingFromElement(currentElement);
                 }
 
-                //check self override
-                ApplyBaseThemingFromElement(currentElement);
-            }
+                if (!recursive)
+                {
+                    _isLocalValueDictionaryLocked = false;
+                    return;
+                }
 
-            if (!recursive)
-            {
-                return;
+                foreach (Element child in Children)
+                {
+                    child.ApplyElementTypeTheme();
+                }
             }
-
-            foreach (Element child in Children)
+            finally
             {
-                child.ApplyElementTypeTheme();
+                _isLocalValueDictionaryLocked = false;
+                ApplyLocalTheme();
             }
         }
 
@@ -241,38 +373,49 @@ namespace CatUI.Elements
         /// <param name="recursive"></param>
         private void ApplyClassTheme(string affectedClass, bool recursive = true)
         {
-            if (StyleClass == affectedClass)
+            _isLocalValueDictionaryLocked = true;
+
+            try
             {
-                List<int> indices = new(10);
-                Element currentElement = this;
-
-                if (!IgnoreGlobalTheming)
+                if (StyleClass == affectedClass)
                 {
-                    while (currentElement._parent != null)
+                    List<int> indices = new(10);
+                    Element currentElement = this;
+
+                    if (!IgnoreGlobalTheming)
                     {
-                        indices.Add(currentElement.IndexInParent);
-                        currentElement = currentElement._parent;
+                        while (currentElement._parent != null)
+                        {
+                            indices.Add(currentElement.IndexInParent);
+                            currentElement = currentElement._parent;
+                        }
+
+                        for (int i = indices.Count - 1; i >= 0; i--)
+                        {
+                            currentElement.ThemeOverride?.GetClassDefinition(affectedClass)?.InvokeOnThemeChanged(this);
+                            currentElement = currentElement.Children[indices[i]];
+                        }
                     }
 
-                    for (int i = indices.Count - 1; i >= 0; i--)
-                    {
-                        currentElement.ThemeOverride?.GetClassDefinition(affectedClass)?.InvokeOnThemeChanged(this);
-                        currentElement = currentElement.Children[indices[i]];
-                    }
+                    //check self override
+                    currentElement.ThemeOverride?.GetClassDefinition(affectedClass)?.InvokeOnThemeChanged(this);
                 }
 
-                //check self override
-                currentElement.ThemeOverride?.GetClassDefinition(affectedClass)?.InvokeOnThemeChanged(this);
-            }
+                if (!recursive)
+                {
+                    _isLocalValueDictionaryLocked = false;
+                    return;
+                }
 
-            if (!recursive)
-            {
-                return;
+                foreach (Element child in Children)
+                {
+                    child.ApplyClassTheme(affectedClass);
+                }
             }
-
-            foreach (Element child in Children)
+            finally
             {
-                child.ApplyClassTheme(affectedClass);
+                _isLocalValueDictionaryLocked = false;
+                ApplyLocalTheme();
             }
         }
 
@@ -292,16 +435,27 @@ namespace CatUI.Elements
                 currentElement = currentElement._parent;
             }
 
-            for (int i = indices.Count - 1; i >= 0; i--)
+            _isLocalValueDictionaryLocked = true;
+
+            try
             {
+                for (int i = indices.Count - 1; i >= 0; i--)
+                {
+                    currentElement.ThemeOverride?.GetElementTypeDefinition(GetType())
+                                  ?.InvokeOnStateChanged(this, State);
+                    currentElement.ThemeOverride?.GetClassDefinition(StyleClass)?.InvokeOnStateChanged(this, State);
+                    currentElement = currentElement.Children[indices[i]];
+                }
+
+                //check self override
                 currentElement.ThemeOverride?.GetElementTypeDefinition(GetType())?.InvokeOnStateChanged(this, State);
                 currentElement.ThemeOverride?.GetClassDefinition(StyleClass)?.InvokeOnStateChanged(this, State);
-                currentElement = currentElement.Children[indices[i]];
             }
-
-            //check self override
-            currentElement.ThemeOverride?.GetElementTypeDefinition(GetType())?.InvokeOnStateChanged(this, State);
-            currentElement.ThemeOverride?.GetClassDefinition(StyleClass)?.InvokeOnStateChanged(this, State);
+            finally
+            {
+                _isLocalValueDictionaryLocked = false;
+                ApplyLocalTheme();
+            }
         }
     }
 }

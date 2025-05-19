@@ -38,8 +38,10 @@ namespace CatUI.Elements.ControlFlow
             get => _generatorParent;
             set
             {
-                SetGeneratorParent(value);
-                GeneratorParentProperty.Value = value;
+                if (value != _generatorParent)
+                {
+                    GeneratorParentProperty.Value = value;
+                }
             }
         }
 
@@ -54,6 +56,8 @@ namespace CatUI.Elements.ControlFlow
             }
 
             _generatorParent = value;
+            SetLocalValue(nameof(GeneratorParent), value);
+
             if (Children.Count > 0)
             {
                 Children.RemoveAt(0);
@@ -69,6 +73,8 @@ namespace CatUI.Elements.ControlFlow
 
         public ForElement(int start, int end, int step, Element generatorParent, Func<int, Element> callback)
         {
+            GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
+
             _start = start;
             _end = end;
             _step = step;
@@ -77,7 +83,6 @@ namespace CatUI.Elements.ControlFlow
             //silence compiler
             _generatorParent = generatorParent;
             GeneratorParent = generatorParent;
-            GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
 
             Reevaluate();
         }

@@ -31,8 +31,10 @@ namespace CatUI.Elements.Buttons
             get => _canUserCancelClick;
             set
             {
-                SetCanUserCancelClick(value);
-                CanUserCancelClickProperty.Value = value;
+                if (value != _canUserCancelClick)
+                {
+                    CanUserCancelClickProperty.Value = value;
+                }
             }
         }
 
@@ -42,6 +44,7 @@ namespace CatUI.Elements.Buttons
         private void SetCanUserCancelClick(bool value)
         {
             _canUserCancelClick = value;
+            SetLocalValue(nameof(CanUserCancelClick), value);
         }
 
         public event ClickEventHandler? ClickEvent;
