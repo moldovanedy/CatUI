@@ -29,13 +29,7 @@ namespace CatUI.Elements.Buttons
         public bool CanUserCancelClick
         {
             get => _canUserCancelClick;
-            set
-            {
-                if (value != _canUserCancelClick)
-                {
-                    CanUserCancelClickProperty.Value = value;
-                }
-            }
+            set => CanUserCancelClickProperty.Value = value;
         }
 
         private bool _canUserCancelClick = true;

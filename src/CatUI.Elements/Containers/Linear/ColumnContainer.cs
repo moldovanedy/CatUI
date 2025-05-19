@@ -34,13 +34,7 @@ namespace CatUI.Elements.Containers.Linear
         public HorizontalAlignmentType HorizontalAlignment
         {
             get => (HorizontalAlignmentType)PreferredAlignment;
-            set
-            {
-                if (value != (HorizontalAlignmentType)PreferredAlignment)
-                {
-                    HorizontalAlignmentProperty.Value = value;
-                }
-            }
+            set => HorizontalAlignmentProperty.Value = value;
         }
 
         public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; }

@@ -46,13 +46,7 @@ namespace CatUI.Elements.Buttons
         public EdgeInset Padding
         {
             get => _padding;
-            set
-            {
-                if (value != _padding)
-                {
-                    PaddingProperty.Value = value;
-                }
-            }
+            set => PaddingProperty.Value = value;
         }
 
         private EdgeInset _padding = new();
@@ -71,13 +65,7 @@ namespace CatUI.Elements.Buttons
         public Dimension Spacing
         {
             get => _spacing;
-            set
-            {
-                if (value != _spacing)
-                {
-                    SpacingProperty.Value = value;
-                }
-            }
+            set => SpacingProperty.Value = value;
         }
 
         private Dimension _spacing = new();
@@ -98,13 +86,7 @@ namespace CatUI.Elements.Buttons
         public LinearArrangement.JustificationType HorizontalArrangement
         {
             get => _horizontalArrangement;
-            set
-            {
-                if (value != _horizontalArrangement)
-                {
-                    HorizontalArrangementProperty.Value = value;
-                }
-            }
+            set => HorizontalArrangementProperty.Value = value;
         }
 
         private LinearArrangement.JustificationType _horizontalArrangement = LinearArrangement.JustificationType.Center;
@@ -127,13 +109,7 @@ namespace CatUI.Elements.Buttons
         public VerticalAlignmentType VerticalAlignment
         {
             get => _verticalAlignment;
-            set
-            {
-                if (value != _verticalAlignment)
-                {
-                    VerticalAlignmentProperty.Value = value;
-                }
-            }
+            set => VerticalAlignmentProperty.Value = value;
         }
 
         private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Center;

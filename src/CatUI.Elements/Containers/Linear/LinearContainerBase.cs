@@ -17,13 +17,7 @@ namespace CatUI.Elements.Containers.Linear
         public LinearArrangement Arrangement
         {
             get => _arrangement;
-            set
-            {
-                if (value != _arrangement)
-                {
-                    ArrangementProperty.Value = value;
-                }
-            }
+            set => ArrangementProperty.Value = value;
         }
 
         private LinearArrangement _arrangement = new();

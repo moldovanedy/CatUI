@@ -90,22 +90,23 @@ namespace CatTest
                                     ifElseState,
                                     new RectangleElement(new ColorBrush(new Color(0x00_00_ff)))
                                     {
-                                        Layout = new ElementLayout().SetFixedWidth(150).SetFixedHeight(50),
+                                        Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                                         Children =
                                         [
-                                            new TextBlock("True")
+                                            new GeometricPathElement(
+                                                "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855\n\tl2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
+                                                new ColorBrush(new Color(0xff_ff_ff)))
                                             {
                                                 Layout = new ElementLayout()
                                                          .SetFixedWidth("100%")
                                                          .SetFixedHeight("100%"),
-                                                //Font = font,
-                                                TextBrush = new ColorBrush(new Color(0xff_ff_ff))
+                                                ShouldApplyScaling = true
                                             }
                                         ]
                                     },
                                     new RectangleElement(new ColorBrush(new Color(0xff_00_00)))
                                     {
-                                        Layout = new ElementLayout().SetFixedWidth(150).SetFixedHeight(50),
+                                        Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                                         Children =
                                         [
                                             new TextBlock("False")
@@ -117,7 +118,7 @@ namespace CatTest
                                                 TextBrush = new ColorBrush(new Color(0xff_ff_ff))
                                             }
                                         ]
-                                    }) { Layout = new ElementLayout().SetFixedWidth(150).SetFixedHeight(50) },
+                                    }) { Layout = new ElementLayout().SetFixedWidth("20%").SetFixedHeight(50) },
 
                                 //foreach
                                 new ForEachElement<string>(

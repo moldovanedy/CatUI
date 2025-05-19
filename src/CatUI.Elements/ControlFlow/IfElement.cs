@@ -35,13 +35,7 @@ namespace CatUI.Elements.ControlFlow
         public ObservableProperty<bool> Condition
         {
             get => _condition;
-            set
-            {
-                if (value != _condition)
-                {
-                    ConditionProperty.Value = value;
-                }
-            }
+            set => ConditionProperty.Value = value;
         }
 
         private ObservableProperty<bool> _condition = new(true);
@@ -71,13 +65,7 @@ namespace CatUI.Elements.ControlFlow
         public Element TrueBranchElement
         {
             get => _trueBranchElement;
-            set
-            {
-                if (value != _trueBranchElement)
-                {
-                    TrueBranchElementProperty.Value = value;
-                }
-            }
+            set => TrueBranchElementProperty.Value = value;
         }
 
         private Element _trueBranchElement;
@@ -111,13 +99,7 @@ namespace CatUI.Elements.ControlFlow
         public Element FalseBranchElement
         {
             get => _falseBranchElement;
-            set
-            {
-                if (value != _falseBranchElement)
-                {
-                    FalseBranchElementProperty.Value = value;
-                }
-            }
+            set => FalseBranchElementProperty.Value = value;
         }
 
         private Element _falseBranchElement = new();

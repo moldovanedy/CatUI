@@ -54,13 +54,7 @@ namespace CatUI.Elements
         public Theme? ThemeOverride
         {
             get => _themeOverride;
-            set
-            {
-                if (value != _themeOverride)
-                {
-                    ThemeOverrideProperty.Value = value;
-                }
-            }
+            set => ThemeOverrideProperty.Value = value;
         }
 
         private Theme? _themeOverride;
@@ -85,13 +79,7 @@ namespace CatUI.Elements
         public string StyleClass
         {
             get => _styleClass;
-            set
-            {
-                if (value != _styleClass)
-                {
-                    StyleClassProperty.Value = value;
-                }
-            }
+            set => StyleClassProperty.Value = value;
         }
 
         private string _styleClass = "";
@@ -118,13 +106,7 @@ namespace CatUI.Elements
         public int BaseThemingCount
         {
             get => _baseThemingCount;
-            set
-            {
-                if (value != _baseThemingCount)
-                {
-                    BaseThemingCountProperty.Value = value;
-                }
-            }
+            set => BaseThemingCountProperty.Value = value;
         }
 
         private int _baseThemingCount = -1;
@@ -143,13 +125,7 @@ namespace CatUI.Elements
         public bool IgnoreGlobalTheming
         {
             get => _ignoreGlobalTheming;
-            set
-            {
-                if (value != _ignoreGlobalTheming)
-                {
-                    IgnoreGlobalThemingProperty.Value = value;
-                }
-            }
+            set => IgnoreGlobalThemingProperty.Value = value;
         }
 
         private bool _ignoreGlobalTheming;

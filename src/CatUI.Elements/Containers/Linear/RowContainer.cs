@@ -34,13 +34,7 @@ namespace CatUI.Elements.Containers.Linear
         public VerticalAlignmentType VerticalAlignment
         {
             get => (VerticalAlignmentType)PreferredAlignment;
-            set
-            {
-                if (value != (VerticalAlignmentType)PreferredAlignment)
-                {
-                    VerticalAlignmentProperty.Value = value;
-                }
-            }
+            set => VerticalAlignmentProperty.Value = value;
         }
 
         public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
