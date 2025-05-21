@@ -303,7 +303,7 @@ namespace CatUI.Elements.Text
         protected internal override void InvokeDraw()
         {
             //check if the element is inside the viewport
-            if (!IsInsideViewport() || Document == null || !Enabled)
+            if (!IsInsideViewport() || Document == null || !IsCurrentlyEnabled)
             {
                 return;
             }
@@ -343,8 +343,8 @@ namespace CatUI.Elements.Text
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),
                 ClipType = ClipType,
-                Visible = Visible,
-                Enabled = Enabled,
+                LocallyVisible = LocallyVisible,
+                LocallyEnabled = LocallyEnabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };

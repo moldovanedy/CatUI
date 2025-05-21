@@ -104,8 +104,8 @@ namespace CatUI.Elements.ControlFlow
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),
                 ClipType = ClipType,
-                Visible = Visible,
-                Enabled = Enabled,
+                LocallyVisible = LocallyVisible,
+                LocallyEnabled = LocallyEnabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };

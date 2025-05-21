@@ -281,26 +281,58 @@ namespace CatUI.Elements
         /// space in the layout and be moved in a container, just that it is not visible (it is hidden).
         /// The default value is true.
         /// </summary>
-        /// <seealso cref="Enabled" />
-        public bool Visible
+        /// <remarks>
+        /// This only dictates the currently set value for this element, not propagating to descendants. To really check
+        /// if the element is visible or not at a certain moment, see <see cref="IsCurrentlyVisible"/>.
+        /// </remarks>
+        /// <seealso cref="LocallyEnabled" />
+        /// <seealso cref="IsCurrentlyVisible"/>
+        public bool LocallyVisible
         {
-            get => _visible;
-            set => VisibleProperty.Value = value;
+            get => _locallyVisible;
+            set => LocallyVisibleProperty.Value = value;
         }
 
-        private bool _visible = true;
-        public ObservableProperty<bool> VisibleProperty { get; } = new(true);
+        private bool _locallyVisible = true;
+        public ObservableProperty<bool> LocallyVisibleProperty { get; } = new(true);
 
-        private void SetVisible(bool value)
+        private void SetLocallyVisible(bool value)
         {
-            _visible = value;
-            foreach (Element child in Children)
+            _locallyVisible = value;
+            SetLocalValue(nameof(LocallyVisible), value);
+
+            SetCurrentVisibleRecursive(value);
+            RequestRedraw();
+        }
+
+        /// <summary>
+        /// Returns true if the element is visible in the hierarchy, false otherwise. This is influenced by this
+        /// element's and ascendants' <see cref="LocallyVisible"/> property. This is used to check if the element really
+        /// is visible in the hierarchy at a certain moment.
+        /// </summary>
+        public bool IsCurrentlyVisible { get; private set; } = true;
+
+        private void SetCurrentVisibleRecursive(bool visibleMessage)
+        {
+            if (visibleMessage)
             {
-                child.Visible = value;
+                if (!_locallyVisible)
+                {
+                    IsCurrentlyVisible = false;
+                    return;
+                }
+
+                IsCurrentlyVisible = true;
+            }
+            else
+            {
+                IsCurrentlyVisible = false;
             }
 
-            SetLocalValue(nameof(Visible), value);
-            RequestRedraw();
+            foreach (Element child in Children)
+            {
+                child.SetCurrentVisibleRecursive(visibleMessage);
+            }
         }
 
         /// <summary>
@@ -308,31 +340,59 @@ namespace CatUI.Elements
         /// a layout and will generally give misleading values on properties that are related to layout in any way
         /// such as <see cref="Bounds" />. The default value is true.
         /// </summary>
-        /// <seealso cref="Visible" />
-        public bool Enabled
+        /// <remarks>
+        /// This only dictates the currently set value for this element, not propagating to descendants. To really check
+        /// if the element is enabled or not at a certain moment, see <see cref="IsCurrentlyEnabled"/>.
+        /// </remarks>
+        /// <seealso cref="LocallyVisible" />
+        /// <seealso cref="IsCurrentlyEnabled"/>
+        public bool LocallyEnabled
         {
-            get => _enabled;
-            set => EnabledProperty.Value = value;
+            get => _locallyEnabled;
+            set => LocallyEnabledProperty.Value = value;
         }
 
-        private bool _enabled = true;
-        public ObservableProperty<bool> EnabledProperty { get; } = new(true);
+        private bool _locallyEnabled = true;
+        public ObservableProperty<bool> LocallyEnabledProperty { get; } = new(true);
 
-        private void SetEnabled(bool value)
+        private void SetLocallyEnabled(bool value)
         {
-            _enabled = value;
-            if (!value)
+            _locallyEnabled = value;
+            SetLocalValue(nameof(LocallyEnabled), value);
+
+            SetCurrentEnabledRecursive(value);
+            RequestRedraw();
+        }
+
+        /// <summary>
+        /// Returns true if the element is enabled in the hierarchy, false otherwise. This is influenced by this
+        /// element's and ascendants' <see cref="LocallyEnabled"/> property. This is used to check if the element really
+        /// is enabled in the hierarchy at a certain moment.
+        /// </summary>
+        public bool IsCurrentlyEnabled { get; private set; } = true;
+
+        private void SetCurrentEnabledRecursive(bool enableMessage)
+        {
+            if (enableMessage)
             {
+                if (!_locallyEnabled)
+                {
+                    IsCurrentlyEnabled = false;
+                    return;
+                }
+
+                IsCurrentlyEnabled = true;
+            }
+            else
+            {
+                IsCurrentlyEnabled = false;
                 Bounds = new Rect();
             }
 
             foreach (Element child in Children)
             {
-                child.Enabled = value;
+                child.SetCurrentEnabledRecursive(enableMessage);
             }
-
-            SetLocalValue(nameof(Enabled), value);
-            RequestRedraw();
         }
 
         /// <summary>
@@ -545,8 +605,8 @@ namespace CatUI.Elements
             BackgroundProperty.ValueChangedEvent += SetBackground;
             ClipPathProperty.ValueChangedEvent += SetClipPath;
             ClipTypeProperty.ValueChangedEvent += SetClipType;
-            VisibleProperty.ValueChangedEvent += SetVisible;
-            EnabledProperty.ValueChangedEvent += SetEnabled;
+            LocallyVisibleProperty.ValueChangedEvent += SetLocallyVisible;
+            LocallyEnabledProperty.ValueChangedEvent += SetLocallyEnabled;
             ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
 
             LayoutProperty.ValueChangedEvent += SetLayout;
@@ -601,7 +661,7 @@ namespace CatUI.Elements
 
         protected virtual void DrawBackground()
         {
-            if (!_visible || this is INonVisualElement)
+            if (!_locallyVisible || this is INonVisualElement)
             {
                 return;
             }
@@ -695,7 +755,7 @@ namespace CatUI.Elements
         protected internal virtual void InvokeDraw()
         {
             //check if the element is inside the viewport
-            if (!IsInsideViewport() || Document == null || !Enabled)
+            if (!IsInsideViewport() || Document == null || !IsCurrentlyEnabled)
             {
                 return;
             }
@@ -748,7 +808,7 @@ namespace CatUI.Elements
         /// </summary>
         protected void DrawChildren()
         {
-            if (!_visible)
+            if (!_locallyVisible)
             {
                 return;
             }
@@ -903,8 +963,8 @@ namespace CatUI.Elements
                 Background = _background.Duplicate(),
                 ClipPath = (ClipShape?)_clipPath?.Duplicate(),
                 ClipType = _clipType,
-                Visible = _visible,
-                Enabled = _enabled,
+                LocallyVisible = _locallyVisible,
+                LocallyEnabled = _locallyEnabled,
                 ElementContainerSizing = (ContainerSizing?)_elementContainerSizing?.Duplicate(),
                 Layout = _layout
             };
@@ -1020,12 +1080,12 @@ namespace CatUI.Elements
         /// parameters will call this automatically if it's necessary.
         /// </summary>
         /// <remarks>
-        /// If this element is not <see cref="Enabled"/> or not inside the document, it does nothing (the same for any
+        /// If this element is not <see cref="LocallyEnabled"/> or not inside the document, it does nothing (the same for any
         /// child). If this element is the root, it will simply call <see cref="RecomputeLayout"/>.
         /// </remarks>
         public void MarkLayoutDirty()
         {
-            if (!Enabled || !IsInsideDocument || IsLayoutFrozen)
+            if (!IsCurrentlyEnabled || !IsInsideDocument || IsLayoutFrozen)
             {
                 return;
             }

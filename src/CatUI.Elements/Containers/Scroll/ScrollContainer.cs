@@ -327,7 +327,7 @@ namespace CatUI.Elements.Containers.Scroll
         /// a fixed height of 20 dp.
         /// </summary>
         /// <remarks>
-        /// When the scroll bar needs to be invisible, this will have its <see cref="Element.Enabled"/> set to false.
+        /// When the scroll bar needs to be invisible, this will have its <see cref="Element.LocallyEnabled"/> set to false.
         /// </remarks>
         public HorizontalScrollBar InternalHorizontalScrollBar { get; } = new()
         {
@@ -340,7 +340,7 @@ namespace CatUI.Elements.Containers.Scroll
         /// a fixed height of 100%.
         /// </summary>
         /// <remarks>
-        /// When the scroll bar needs to be invisible, this will have its <see cref="Element.Enabled"/> set to false.
+        /// When the scroll bar needs to be invisible, this will have its <see cref="Element.LocallyEnabled"/> set to false.
         /// </remarks>
         public VerticalScrollBar InternalVerticalScrollBar { get; } = new()
         {
@@ -504,14 +504,14 @@ namespace CatUI.Elements.Containers.Scroll
             switch (HorizontalScrollBarVisibility)
             {
                 case ScrollBarVisibility.Hidden:
-                    InternalHorizontalScrollBar.Enabled = false;
+                    InternalHorizontalScrollBar.LocallyEnabled = false;
                     break;
                 case ScrollBarVisibility.Visible:
-                    InternalHorizontalScrollBar.Enabled = true;
+                    InternalHorizontalScrollBar.LocallyEnabled = true;
                     break;
                 default:
                 case ScrollBarVisibility.Auto:
-                    InternalHorizontalScrollBar.Enabled =
+                    InternalHorizontalScrollBar.LocallyEnabled =
                         IsHorizontalScrollEnabled &&
                         InternalContentWrapper.Bounds.Width > InternalVisibleContentWrapper.Bounds.Width;
                     break;
@@ -520,14 +520,14 @@ namespace CatUI.Elements.Containers.Scroll
             switch (VerticalScrollBarVisibility)
             {
                 case ScrollBarVisibility.Hidden:
-                    InternalVerticalScrollBar.Enabled = false;
+                    InternalVerticalScrollBar.LocallyEnabled = false;
                     break;
                 case ScrollBarVisibility.Visible:
-                    InternalVerticalScrollBar.Enabled = true;
+                    InternalVerticalScrollBar.LocallyEnabled = true;
                     break;
                 default:
                 case ScrollBarVisibility.Auto:
-                    InternalVerticalScrollBar.Enabled =
+                    InternalVerticalScrollBar.LocallyEnabled =
                         IsVerticalScrollEnabled &&
                         InternalContentWrapper.Bounds.Height > InternalVisibleContentWrapper.Bounds.Height;
                     break;
@@ -577,8 +577,8 @@ namespace CatUI.Elements.Containers.Scroll
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),
                 ClipType = ClipType,
-                Visible = Visible,
-                Enabled = Enabled,
+                LocallyVisible = LocallyVisible,
+                LocallyEnabled = LocallyEnabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };

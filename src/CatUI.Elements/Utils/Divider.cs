@@ -144,7 +144,7 @@ namespace CatUI.Elements.Utils
 
         protected override void DrawBackground()
         {
-            if (!Visible)
+            if (!IsCurrentlyVisible)
             {
                 return;
             }
