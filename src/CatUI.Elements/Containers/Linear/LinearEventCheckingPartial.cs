@@ -12,7 +12,7 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void InvokeDraw()
         {
-            if (!IsInsideViewport() || Document == null || !Enabled)
+            if (!IsInsideViewport() || Document == null || !IsCurrentlyEnabled)
             {
                 return;
             }
@@ -20,16 +20,19 @@ namespace CatUI.Elements.Containers.Linear
             int? restoreCount = DrawingSetClip();
 
             FireDrawEvent();
-            if (!Visible || Children.Count == 0)
+            if (!IsCurrentlyVisible || Children.Count == 0)
             {
-                return;
+                goto Restore;
             }
 
+            //get the first enabled element
             //TODO: start this at the first visible element, not at the first element
+            int index = GetIndexOfNextEnabledElement(0, 0, Children.Count - 1);
+
             float lastPositionOnAxis =
                 ContainerOrientation == Orientation.Horizontal
-                    ? Children[0].Bounds.X
-                    : Children[0].Bounds.Y;
+                    ? Children[index].Bounds.X
+                    : Children[index].Bounds.Y;
             float posLimit =
                 ContainerOrientation == Orientation.Horizontal
                     ? Document.ViewportSize.Width
@@ -39,13 +42,19 @@ namespace CatUI.Elements.Containers.Linear
             while (i < Children.Count && lastPositionOnAxis <= posLimit)
             {
                 Children[i].InvokeDraw();
-                lastPositionOnAxis =
-                    ContainerOrientation == Orientation.Horizontal
-                        ? Children[i].Bounds.X
-                        : Children[i].Bounds.Y;
+
+                if (Children[i].IsCurrentlyEnabled)
+                {
+                    lastPositionOnAxis =
+                        ContainerOrientation == Orientation.Horizontal
+                            ? Children[i].Bounds.X
+                            : Children[i].Bounds.Y;
+                }
+
                 i++;
             }
 
+        Restore:
             if ((ClipType & ClipApplicability.Drawing) != 0 && restoreCount != null)
             {
                 Document.Renderer.RestoreCanvasState(restoreCount.Value);
@@ -115,6 +124,13 @@ namespace CatUI.Elements.Containers.Linear
 
             while (currentDelta < requiredDelta && currentIndex < Children.Count)
             {
+                currentIndex = GetIndexOfNextEnabledElement(currentIndex, currentIndex, Children.Count - 1);
+                //it means there are no more enabled elements in this direction
+                if (!Children[currentIndex].IsCurrentlyEnabled)
+                {
+                    break;
+                }
+
                 Element child = Children[currentIndex];
                 child.CheckInvokePointerExit(e);
 
@@ -134,6 +150,13 @@ namespace CatUI.Elements.Containers.Linear
 
             while (currentDelta > requiredDelta && currentIndex >= 0)
             {
+                currentIndex = GetIndexOfNextEnabledElement(currentIndex, 0, currentIndex);
+                //it means there are no more enabled elements in this direction
+                if (!Children[currentIndex].IsCurrentlyEnabled)
+                {
+                    break;
+                }
+
                 Element child = Children[currentIndex];
                 child.CheckInvokePointerExit(e);
 
@@ -357,10 +380,12 @@ namespace CatUI.Elements.Containers.Linear
                 _lastCheckedElementIndex = Children.Count / 2;
             }
 
-            //we first check the last element, as it is possible to fire to the same one, eliminating search
+            //we first check the last checked element, as it is possible to fire to the same one, eliminating search
             int idx = _lastCheckedElementIndex;
             int left = 0;
             int right = Children.Count - 1;
+
+            idx = GetIndexOfNextEnabledElement(idx, left, right);
             Rect bounds = Children[idx].Bounds;
 
             //binary search
@@ -376,7 +401,7 @@ namespace CatUI.Elements.Containers.Linear
                     right = idx - 1;
                 }
 
-                idx = (left + right) / 2;
+                idx = GetIndexOfNextEnabledElement((left + right) / 2, left, right);
                 bounds = Children[idx].Bounds;
             }
 
@@ -406,6 +431,33 @@ namespace CatUI.Elements.Containers.Linear
             }
 
             return stop;
+        }
+
+        private int GetIndexOfNextEnabledElement(int indexOfCurrentElement, int left, int right)
+        {
+            int initialIndex = indexOfCurrentElement;
+            if (Children[indexOfCurrentElement].IsCurrentlyEnabled)
+            {
+                return indexOfCurrentElement;
+            }
+
+            //go to the next enabled element
+            while (indexOfCurrentElement < right && !Children[indexOfCurrentElement].IsCurrentlyEnabled)
+            {
+                indexOfCurrentElement++;
+            }
+
+            //if nothing was enabled to the right, go to the left now
+            if (!Children[indexOfCurrentElement].IsCurrentlyEnabled)
+            {
+                indexOfCurrentElement = initialIndex;
+                while (indexOfCurrentElement > left && !Children[indexOfCurrentElement].IsCurrentlyEnabled)
+                {
+                    indexOfCurrentElement--;
+                }
+            }
+
+            return indexOfCurrentElement;
         }
     }
 }

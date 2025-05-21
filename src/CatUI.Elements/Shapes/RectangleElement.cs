@@ -59,7 +59,7 @@ namespace CatUI.Elements.Shapes
 
         protected override void DrawBackground()
         {
-            if (!Visible || FillBrush.IsSkippable)
+            if (!IsCurrentlyVisible || FillBrush.IsSkippable)
             {
                 return;
             }
@@ -87,8 +87,8 @@ namespace CatUI.Elements.Shapes
                 Background = Background.Duplicate(),
                 ClipPath = (ClipShape?)ClipPath?.Duplicate(),
                 ClipType = ClipType,
-                Visible = Visible,
-                Enabled = Enabled,
+                LocallyVisible = LocallyVisible,
+                LocallyEnabled = LocallyEnabled,
                 ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
                 Layout = Layout
             };

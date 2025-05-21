@@ -394,7 +394,7 @@ namespace CatUI.Elements
         {
             foreach (Element child in _children)
             {
-                if (!child.Enabled)
+                if (!child.IsCurrentlyEnabled)
                 {
                     continue;
                 }

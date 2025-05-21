@@ -23,7 +23,7 @@ namespace CatUI.Elements.Containers.Scroll
 
         /// <summary>
         /// Specifies whether to have the buttons at the end of the scroll bar. If set to false, the buttons will be
-        /// disabled, but will still be inside the document, as this simply changes the <see cref="Element.Enabled"/>
+        /// disabled, but will still be inside the document, as this simply changes the <see cref="Element.LocallyEnabled"/>
         /// property for the buttons. The default value is true.
         /// </summary>
         public bool ShouldDisplayButtons
@@ -39,8 +39,8 @@ namespace CatUI.Elements.Containers.Scroll
         {
             _shouldDisplayButtons = value;
             SetLocalValue(nameof(ShouldDisplayButtons), value);
-            MinusButtonElement.Enabled = value;
-            PlusButtonElement.Enabled = value;
+            MinusButtonElement.LocallyEnabled = value;
+            PlusButtonElement.LocallyEnabled = value;
         }
 
         /// <summary>

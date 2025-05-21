@@ -104,7 +104,7 @@ namespace CatUI.Elements.Containers.Linear
             foreach (Element child in Children)
             {
                 ElementLayout childLayout = child.Layout ?? new ElementLayout();
-                if (!child.Enabled)
+                if (!child.IsCurrentlyEnabled)
                 {
                     continue;
                 }
@@ -259,7 +259,7 @@ namespace CatUI.Elements.Containers.Linear
             foreach (Element child in Children)
             {
                 ElementLayout childLayout = child.Layout ?? new ElementLayout();
-                if (!child.Enabled)
+                if (!child.IsCurrentlyEnabled)
                 {
                     continue;
                 }
