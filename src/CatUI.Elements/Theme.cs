@@ -77,6 +77,16 @@ namespace CatUI.Elements
         }
 
         /// <summary>
+        /// Adds or updates an existing definition for a type of elements.
+        /// </summary>
+        /// <param name="themeDefinition">The new definition.</param>
+        /// <typeparam name="T">The type of element for which you give the definition.</typeparam>
+        public void AddOrUpdateElementTypeDefinition<T>(ThemeDefinition themeDefinition)
+        {
+            AddOrUpdateElementTypeDefinition(typeof(T), themeDefinition);
+        }
+
+        /// <summary>
         /// Adds or updates an existing definition for a style class.
         /// </summary>
         /// <param name="className">The style class name for which you give the definition.</param>
@@ -117,6 +127,15 @@ namespace CatUI.Elements
             definition.PropertyChanged -= OnStylingFunctionsChanged;
             _themeDefinitions.Remove(elementType);
             ThemeModified?.Invoke(new ThemeModifiedArgs(elementType));
+        }
+
+        /// <summary>
+        /// Remove the definition for the type of elements.
+        /// </summary>
+        /// <typeparam name="T">The type of element that has the definition.</typeparam>
+        public void RemoveElementTypeDefinition<T>()
+        {
+            RemoveElementTypeDefinition(typeof(T));
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using CatUI.Data;
 using CatUI.Data.ElementData;
 using CatUI.Data.Events.Input.Pointer;
@@ -14,6 +15,8 @@ namespace CatUI.Elements
     /// Represents the root of all elements. Every window has one document, and all elements attached to the document
     /// will participate in the application lifecycle.
     /// </summary>
+    //this is for WndSet* methods
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)]
     public class UiDocument
     {
         /// <summary>

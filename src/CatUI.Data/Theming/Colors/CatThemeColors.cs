@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace CatUI.Data.Theming.Colors
 {
     /// <summary>
@@ -11,6 +13,7 @@ namespace CatUI.Data.Theming.Colors
     /// does not imply any kind of link to Material Design 3, as these are just colors in the end. Use of Material
     /// Design 3 is not forced by CatUI, nor is it discouraged or encouraged.
     /// </remarks>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
     public class CatThemeColors
     {
         internal CatThemeColors()
