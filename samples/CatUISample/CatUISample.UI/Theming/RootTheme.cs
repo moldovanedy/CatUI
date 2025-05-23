@@ -1,7 +1,7 @@
+using CatUI.CoreExtensions.Itania;
 using CatUI.Data.Brushes;
 using CatUI.Data.Theming;
 using CatUI.Elements;
-using CatUI.Elements.Itania;
 
 namespace CatUISample.UI.Theming
 {

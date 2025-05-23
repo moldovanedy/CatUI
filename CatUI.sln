@@ -58,6 +58,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Windowing.Android", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUISample.Android", "samples\CatUISample\CatUISample.Android\CatUISample.Android.csproj", "{BF9278E4-8704-41C0-88D1-4EEAB3228835}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CoreExtensions", "CoreExtensions", "{62160A47-947B-423E-8A4C-945BBB2D593A}"
+	ProjectSection(SolutionItems) = preProject
+		src\CoreExtensions\README.md = src\CoreExtensions\README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.CoreExtensions.Itania", "src\CoreExtensions\CatUI.CoreExtensions.Itania\CatUI.CoreExtensions.Itania.csproj", "{C96E1CCF-9607-4161-AE85-89ABED67B05F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -136,6 +143,10 @@ Global
 		{BF9278E4-8704-41C0-88D1-4EEAB3228835}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF9278E4-8704-41C0-88D1-4EEAB3228835}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF9278E4-8704-41C0-88D1-4EEAB3228835}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C96E1CCF-9607-4161-AE85-89ABED67B05F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C96E1CCF-9607-4161-AE85-89ABED67B05F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C96E1CCF-9607-4161-AE85-89ABED67B05F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C96E1CCF-9607-4161-AE85-89ABED67B05F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -165,5 +176,7 @@ Global
 		{F2BD7976-CCAB-449C-B52C-ABB2D5896B88} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
 		{6332CEBD-018F-4245-BD68-B596B45E961C} = {85F159D3-64E3-49A3-BD84-75FB677A27EC}
 		{BF9278E4-8704-41C0-88D1-4EEAB3228835} = {36CE2A23-D640-4A3B-9D9B-231F98D5FC72}
+		{62160A47-947B-423E-8A4C-945BBB2D593A} = {6A741393-490B-4A59-99B7-21E40CB53DBC}
+		{C96E1CCF-9607-4161-AE85-89ABED67B05F} = {62160A47-947B-423E-8A4C-945BBB2D593A}
 	EndGlobalSection
 EndGlobal

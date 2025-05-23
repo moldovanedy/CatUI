@@ -18,6 +18,9 @@ namespace ProjectName.UI
         //called when this element is added to the window's document
         protected override void EnterDocument(object sender)
         {
+            //set the root theme
+            ThemeOverride = ThemeSetup.GetTheme();
+
             //set this element's children
             Children =
             [

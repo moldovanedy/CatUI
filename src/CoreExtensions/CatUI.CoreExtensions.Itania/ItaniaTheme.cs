@@ -3,11 +3,12 @@ using CatUI.Data.Brushes;
 using CatUI.Data.ElementData;
 using CatUI.Data.Shapes;
 using CatUI.Data.Theming;
+using CatUI.Elements;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Scroll;
 using CatUI.Elements.Text;
 
-namespace CatUI.Elements.Itania
+namespace CatUI.CoreExtensions.Itania
 {
     public static class ItaniaTheme
     {
