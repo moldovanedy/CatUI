@@ -7,7 +7,6 @@ using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.RenderingEngine;
 using CatUI.Utils;
-using SkiaSharp;
 
 namespace CatUI.Elements
 {
@@ -131,7 +130,6 @@ namespace CatUI.Elements
             private set
             {
                 _viewportSize = value;
-                Renderer.SetNewSize(new SKSize(value.Width, value.Height));
                 Root?.MarkLayoutDirty();
             }
         }
@@ -253,21 +251,16 @@ namespace CatUI.Elements
         /// <summary>
         /// Creates a new document.
         /// </summary>
-        /// <param name="isManagedByPlatform">
-        /// True if the rendering is displayed using SkiaSharp.Views, false otherwise (for example, by setting up an
-        /// OpenGL context for SkiaSharp to detect and use).
-        /// </param>
         /// <param name="window">The IApplicationWindow instance that owns this document.</param>
         /// <param name="initialViewportSize"></param>
         /// <param name="initialContentScale"></param>
         public UiDocument(
-            bool isManagedByPlatform,
             object window,
             Size initialViewportSize = default,
             float initialContentScale = 1f)
         {
             _window = window;
-            Renderer = new Renderer(isManagedByPlatform);
+            Renderer = new Renderer();
             ContentScale = initialContentScale;
             ViewportSize = new Size(
                 initialViewportSize.Width * initialContentScale,

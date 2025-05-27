@@ -13,7 +13,7 @@
     </PropertyGroup>
 
     <Target Name="DefineAngle" BeforeTargets="Build">
-        <Message Text="Building with CatUseAngle"/>
+        <Message Text="Building with CatUseAngle" />
         <!--<MSBuild Projects="CatTest.csproj" Properties="CatUseAngle=true" />-->
         <PropertyGroup>
             <CatUseAngle>true</CatUseAngle>
@@ -21,21 +21,21 @@
     </Target>
 
     <ItemGroup>
-        <None Remove="Assets/**/*.*"/>
+        <None Remove="Assets/**/*.*" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Assets/**/*.*"/>
+        <EmbeddedResource Include="Assets/**/*.*" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTK.Graphics" Version="4.9.3"/>
-        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.3"/>
-        <PackageReference Include="SkiaSharp" Version="2.88.8"/>
+        <PackageReference Include="OpenTK.Graphics" Version="4.9.4" />
+        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4" />
+        <PackageReference Include="SkiaSharp" Version="2.88.8" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\CatUI\CatUI.csproj"/>
+        <ProjectReference Include="..\..\src\CatUI\CatUI.csproj" />
     </ItemGroup>
 
 </Project>

@@ -210,16 +210,13 @@ namespace CatUI.Windowing.Desktop
 
         private void OnResize(object sender, WindowResizedEventArgs e)
         {
-            //GL.Viewport(0, 0, width, height);
-            //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-
             _width = e.NewWidth;
             _height = e.NewHeight;
 
             GL.GetInteger(GetPName.FramebufferBinding, out int frame);
             GL.GetInteger(GetPName.StencilBits, out int stencil);
             GL.GetInteger(GetPName.Samples, out int samples);
-            Document.Renderer.SetFramebufferData(frame, stencil, samples);
+            SetHwFramebufferData(frame, stencil, samples);
 
             DocumentInvoke("WndSetViewportSize", new Size(e.NewWidth, e.NewHeight));
             Document.Renderer.SetCanvasDirty();
@@ -260,16 +257,10 @@ namespace CatUI.Windowing.Desktop
             GL.GetInteger(GetPName.FramebufferBinding, out int frame);
             GL.GetInteger(GetPName.StencilBits, out int stencil);
             GL.GetInteger(GetPName.Samples, out int samples);
-            Document.Renderer.SetFramebufferData(frame, stencil, samples);
+            SetHwFramebufferData(frame, stencil, samples);
 
             Document.Renderer.SetCanvasDirty();
             DoFrameActions();
-
-// #if CAT_USE_ANGLE
-//             Egl.SwapBuffers(_eglDisplay, _eglSurface);
-// #else
-//             GLFW.SwapBuffers(GlfwWindow);
-// #endif
         }
 
         private void OnMaximizeOrRestore(bool hasMaximizedNow)

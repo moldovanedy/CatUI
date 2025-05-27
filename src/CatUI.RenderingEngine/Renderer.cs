@@ -23,38 +23,11 @@ namespace CatUI.RenderingEngine
         /// </summary>
         public SKCanvas? Canvas { get; private set; }
 
-        /// <summary>
-        /// This will always be null when <see cref="IsManagedByPlatform"/> is true.
-        /// </summary>
-        public GRContext? Context { get; private set; }
-
         public bool IsCanvasDirty { get; private set; }
 
-        /// <summary>
-        /// If true, it means that the underlying rendering is managed by SkiaSharp.Views package, so the OpenGL related
-        /// properties and methods (like <see cref="SetFramebufferData"/>) will be useless and
-        /// <see cref="SetPlatformManagedData"/> will be mandatory. This is true for all platforms except classic desktop
-        /// platforms (Win32, macOS, Linux).
-        /// </summary>
-        public bool IsManagedByPlatform { get; }
-
-        private const SKColorType COLOR_TYPE = SKColorType.Rgba8888;
-        private const GRSurfaceOrigin SURFACE_ORIGIN = GRSurfaceOrigin.BottomLeft;
-
-        private GRGlFramebufferInfo _glInfo;
-        private GRBackendRenderTarget? _renderTarget;
-        private SKSize _lastSize;
-        private SKSize _newSize;
 
         private Color _bgColor;
-        private int _framebufferBinding;
-        private int _stencilBits;
-        private int _samples;
 
-        public Renderer(bool isManagedByPlatform)
-        {
-            IsManagedByPlatform = isManagedByPlatform;
-        }
 
         /// <summary>
         /// You must only call this inside internal window managers (e.g. DesktopWindow, AndroidWindow) and never
@@ -75,9 +48,9 @@ namespace CatUI.RenderingEngine
         }
 
         /// <summary>
-        /// This method should be called only if the rendering is done with SkiaSharp.Views (i.e. when
-        /// <see cref="IsManagedByPlatform"/> is true), but always before <see cref="ResetAndClear"/>, this is generally
-        /// called whenever SkiaSharp.Views paint event is fired.
+        /// This method should be called always before <see cref="ResetAndClear"/>, this is generally
+        /// called whenever SkiaSharp.Views paint event is fired or when the surface needs to be recreated
+        /// (when the hardware drawing is done manually, like on desktop).
         /// </summary>
         /// <remarks>
         /// You can still call this when the rendering is not managed by SkiaSharp.Views, but then you are completely
@@ -86,28 +59,10 @@ namespace CatUI.RenderingEngine
         /// </remarks>
         /// <param name="surface"></param>
         /// <param name="canvas"></param>
-        public void SetPlatformManagedData(SKSurface surface, SKCanvas canvas)
+        public void SetPlatformManagedData(SKSurface? surface, SKCanvas? canvas)
         {
             Surface = surface;
             Canvas = canvas;
-            Context = null;
-        }
-
-        public void SetFramebufferData(int fbBinding, int stencilBits, int samples)
-        {
-            if (IsManagedByPlatform)
-            {
-                return;
-            }
-
-            _framebufferBinding = fbBinding;
-            _stencilBits = stencilBits;
-            _samples = samples;
-        }
-
-        public void SetNewSize(SKSize size)
-        {
-            _newSize = size;
         }
 
         public void SetBgColor(Color backgroundColor)
@@ -116,68 +71,15 @@ namespace CatUI.RenderingEngine
         }
 
         /// <summary>
-        /// Will clear the viewport with the viewport's background color,
-        /// but will also take care of recreating the surface if needed (for example, on a window resize).
+        /// Will clear the viewport with the viewport's background color.
         /// </summary>
         public void ResetAndClear()
         {
-            if (IsManagedByPlatform)
+            ArgumentNullException.ThrowIfNull(Canvas);
+            using (new SKAutoCanvasRestore(Canvas, true))
             {
-                ClearCanvas();
-                return;
+                Canvas.Clear(_bgColor);
             }
-
-            //create the contexts if not done already
-            if (Context == null)
-            {
-                var glInterface = GRGlInterface.Create();
-                Context = GRContext.CreateGl(glInterface);
-
-                if (Context == null)
-                {
-                    throw new NullReferenceException(
-                        "Graphics context is null. This is probably an internal graphics error.");
-                }
-            }
-
-            //manage the drawing surface
-            if (_renderTarget == null || _lastSize != _newSize || !_renderTarget.IsValid)
-            {
-                _lastSize = _newSize;
-
-                int maxSamples = Context.GetMaxSurfaceSampleCount(COLOR_TYPE);
-                if (_samples > maxSamples)
-                {
-                    _samples = maxSamples;
-                }
-
-                _glInfo = new GRGlFramebufferInfo((uint)_framebufferBinding, COLOR_TYPE.ToGlSizedFormat());
-
-                //destroy the old surface
-                Surface?.Dispose();
-                Surface = null;
-                Canvas = null;
-
-                //re-create the render target
-                _renderTarget?.Dispose();
-                _renderTarget = new GRBackendRenderTarget((int)_newSize.Width, (int)_newSize.Height, _samples,
-                    _stencilBits, _glInfo);
-            }
-
-            //create the surface
-            if (Surface == null)
-            {
-                Surface = SKSurface.Create(Context, _renderTarget, SURFACE_ORIGIN, COLOR_TYPE);
-                if (Surface == null)
-                {
-                    throw new NullReferenceException(
-                        "Drawing surface is null. This is probably an internal graphics error.");
-                }
-
-                Canvas = Surface.Canvas;
-            }
-
-            ClearCanvas();
         }
 
 
@@ -187,7 +89,6 @@ namespace CatUI.RenderingEngine
         public void Flush()
         {
             Canvas?.Flush();
-            Context?.Flush();
         }
 
         public void SetCanvasDirty()
@@ -281,15 +182,5 @@ namespace CatUI.RenderingEngine
         }
 
         #endregion
-
-
-        private void ClearCanvas()
-        {
-            ArgumentNullException.ThrowIfNull(Canvas);
-            using (new SKAutoCanvasRestore(Canvas, true))
-            {
-                Canvas.Clear(_bgColor);
-            }
-        }
     }
 }
