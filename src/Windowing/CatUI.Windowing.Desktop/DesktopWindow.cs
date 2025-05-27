@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using CatUI.Data;
+using CatUI.Data.Exceptions;
 using CatUI.Elements;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.Desktop.PlatformImplementations;
