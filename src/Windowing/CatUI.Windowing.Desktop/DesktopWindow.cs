@@ -550,7 +550,7 @@ namespace CatUI.Windowing.Desktop
                 GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out contentScale, out float _);
             }
 
-            Document = new UiDocument(false, this, new Size(_width, _height), contentScale);
+            Document = new UiDocument(this, new Size(_width, _height), contentScale);
         }
 
         // ~DesktopWindow()
@@ -615,10 +615,13 @@ namespace CatUI.Windowing.Desktop
         /// <exception cref="InternalPlatformException">Thrown when GLFW couldn't create or show the window.</exception>
         public void Open()
         {
+            GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland);
+
             //request OpenGL 3.3 core
             GLFW.WindowHint(WindowHintInt.ContextVersionMajor, 3);
             GLFW.WindowHint(WindowHintInt.ContextVersionMinor, 3);
             GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Core);
+            GLFW.WindowHint(WindowHintBool.OpenGLForwardCompat, true);
 
             switch (CurrentWindowMode)
             {
@@ -693,7 +696,7 @@ namespace CatUI.Windowing.Desktop
             }
 
             GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
-            CreateSurface();
+            CreateHwSurface();
 
 #if CAT_USE_ANGLE
             Egl.SwapInterval(_eglDisplay, SwapInterval);
@@ -937,65 +940,6 @@ namespace CatUI.Windowing.Desktop
             }
         }
 
-#pragma warning disable CA1822 // Mark members as static
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private void CreateSurface()
-        {
-#if CAT_USE_ANGLE
-            GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.NoApi);
-
-            int[] platformAttributes =
-            {
-                Egl.PLATFORM_ANGLE_TYPE_ANGLE, Egl.PLATFORM_ANGLE_TYPE_D3D11_ANGLE,
-                Egl.PLATFORM_ANGLE_MAX_VERSION_MAJOR_ANGLE, 1, Egl.PLATFORM_ANGLE_MAX_VERSION_MINOR_ANGLE, 1,
-                Egl.NONE
-            };
-            _eglDisplay = Egl.GetPlatformDisplay(Egl.PLATFORM_ANGLE_ANGLE, (nint)0, platformAttributes);
-            if (_eglDisplay == 0)
-            {
-                throw new InternalPlatformException("EGL: Could not get platform display");
-            }
-
-            if (!Egl.Initialize(_eglDisplay, out _, out _))
-            {
-                throw new InternalPlatformException("EGL: Could not initialize EGL");
-            }
-
-            int[] configAttributes =
-            {
-                Egl.SURFACE_TYPE, Egl.WINDOW_BIT, Egl.RENDERABLE_TYPE, Egl.OPENGL_ES2_BIT, Egl.NONE
-            };
-            nint[] eglConfig = new nint[1];
-            if (!Egl.ChooseConfig(_eglDisplay, configAttributes, eglConfig, 1, out int numberOfConfigs) ||
-                numberOfConfigs < 1)
-            {
-                throw new InternalPlatformException("EGL: Could not get configuration");
-            }
-
-            int[] contextAttributes = { Egl.CONTEXT_CLIENT_VERSION, 2, Egl.NONE };
-            _eglContext = Egl.CreateContext(_eglDisplay, eglConfig[0], (nint)0, contextAttributes);
-            if (_eglContext == 0)
-            {
-                throw new InternalPlatformException("EGL: Could not create context");
-            }
-
-            _eglSurface = Egl.CreateWindowSurface(_eglDisplay, eglConfig[0], NativeHandle, (nint)0);
-            if (_eglSurface == 0)
-            {
-                throw new InternalPlatformException("EGL: Could not create surface");
-            }
-
-            if (!Egl.MakeCurrent(_eglDisplay, _eglSurface, _eglSurface, _eglContext))
-            {
-                throw new InternalPlatformException("EGL: Could not make surface current");
-            }
-
-#else
-            GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlApi);
-#endif
-        }
-#pragma warning restore CA1822 // Mark members as static
-
         private void Terminate()
         {
             if (Document.CurrentAppState == UiDocument.AppState.Active)
@@ -1033,7 +977,9 @@ namespace CatUI.Windowing.Desktop
         private void FullyRedraw()
         {
             Document.Renderer.BeginDraw();
+            RecreateSkiaDrawingObjects();
             Document.Renderer.ResetAndClear();
+
             Document.DrawAllElements();
             Document.Renderer.Flush();
             Document.Renderer.EndDraw();

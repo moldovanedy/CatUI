@@ -80,7 +80,7 @@ namespace CatUI.Windowing.Android
 
         public AndroidWindow()
         {
-            Document = new UiDocument(true, this, new Data.Size(0, 0));
+            Document = new UiDocument(this, new Data.Size(0, 0));
             ResizedEvent += OnResize;
         }
 
