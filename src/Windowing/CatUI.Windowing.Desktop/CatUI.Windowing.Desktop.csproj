@@ -41,16 +41,4 @@
         <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(CatUseAngle)' == 'true'">
-        <None Update="libEGL.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="libGLESv2.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="zlib1.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
 </Project>
