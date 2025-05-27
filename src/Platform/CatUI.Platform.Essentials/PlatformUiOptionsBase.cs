@@ -9,10 +9,11 @@ namespace CatUI.Platform.Essentials
     public abstract class PlatformUiOptionsBase
     {
         /// <summary>
-        /// Whether dark mode is enabled or not in the system. Supported by most platforms, except Linux, as there is no
-        /// standard API for that. Support might still be available on some desktop environments on Linux.
+        /// Whether dark mode is enabled or not in the system. Supported by most platforms.
         /// </summary>
-        /// <remarks>Null means no support for the runtime platform or no implementation of CatUI exists for the platform.</remarks>
+        /// <remarks>
+        /// Null means no support for the runtime platform, or no implementation of CatUI exists for the platform.
+        /// </remarks>
         public bool? IsDarkModeEnabled
         {
             get => _isDarkModeEnabled;
@@ -33,9 +34,11 @@ namespace CatUI.Platform.Essentials
 
         /// <summary>
         /// The color contrast preferred by the user. 0 is standard contrast, 1 is medium contrast (only on Android 14 or
-        /// newer (API >= 34)) and 2 is high contrast (most platforms should support this).
+        /// newer (API >= 34)), and 2 is high contrast (most platforms should support this).
         /// </summary>
-        /// <remarks>Null means no support for the runtime platform or no implementation of CatUI exists for the platform.</remarks>
+        /// <remarks>
+        /// Null means no support for the runtime platform, or no implementation of CatUI exists for the platform.
+        /// </remarks>
         public int? ColorContrast
         {
             get => _colorContrast;
