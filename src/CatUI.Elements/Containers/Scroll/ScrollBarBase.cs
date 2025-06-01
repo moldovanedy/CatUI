@@ -367,6 +367,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void OnScrollTrackPointerDown(object sender, PointerDownEventArgs e)
         {
             _isDownOnTrack = true;
+            InternalScrollTrackElement.SetPointerCapture();
 
             if (RepositionBehavior == RepositionBehaviorType.GoToPosition)
             {
@@ -377,6 +378,7 @@ namespace CatUI.Elements.Containers.Scroll
         private void OnScrollTrackPointerUp(object sender, PointerUpEventArgs e)
         {
             _isDownOnTrack = false;
+            InternalScrollTrackElement.ReleasePointerCapture();
 
             if (e.WasCancelled || RepositionBehavior != RepositionBehaviorType.ScrollPage)
             {
@@ -401,6 +403,8 @@ namespace CatUI.Elements.Containers.Scroll
             {
                 return;
             }
+
+            Console.WriteLine(e.AbsolutePosition);
 
             if (RepositionBehavior == RepositionBehaviorType.GoToPosition)
             {

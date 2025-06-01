@@ -1,5 +1,7 @@
+using System;
 using CatUI.Data;
 using CatUI.Data.Enums;
+using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Pointer;
 
 namespace CatUI.Elements
@@ -179,6 +181,77 @@ namespace CatUI.Elements
         protected virtual void MouseButton(object sender, MouseButtonEventArgs e) { }
         protected virtual void MouseWheel(object sender, MouseWheelEventArgs e) { }
 
+        #region Pointer capture
+
+        public bool HasPointerCapture { get; private set; }
+
+        /// <summary>
+        /// Invoked when the pointer capture is lost (either by manually calling <see cref="ReleasePointerCapture"/> or
+        /// when the pointer is up). The first argument is the pointer ID, the second parameter is a boolean that is
+        /// true if the pointer capture was released because the pointer is up, false if the pointer capture was
+        /// manually released by calling <see cref="ReleasePointerCapture"/>.
+        /// </summary>
+        public Action<int, bool>? OnPointerCaptureRelease;
+
+        /// <summary>
+        /// Makes the element receive pointer move events even when the pointer is outside the bounds of this element.
+        /// This only works until the pointer is either released (pointer up) by the user/system or by calling
+        /// <see cref="ReleasePointerCapture"/>.
+        /// </summary>
+        public void SetPointerCapture()
+        {
+            HasPointerCapture = true;
+            Document?.ElementSetPointerCapture(this, 0);
+        }
+
+        /// <summary>
+        /// Releases the pointer capture set by <see cref="SetPointerCapture"/>, while also sending pointer up events to
+        /// the elements. This also invokes <see cref="OnPointerCaptureRelease"/>.
+        /// </summary>
+        public void ReleasePointerCapture()
+        {
+            if (!HasPointerCapture)
+            {
+                return;
+            }
+
+            HasPointerCapture = false;
+            Document?.ElementReleasePointerCapture(this, 0);
+            OnPointerCaptureRelease?.Invoke(0, false);
+
+            SendPointerUpOnRelease();
+        }
+
+        /// <summary>
+        /// Will release the pointer capture, as well as sending pointer up events
+        /// </summary>
+        internal void InternallyReleasePointerCapture()
+        {
+            if (!HasPointerCapture)
+            {
+                return;
+            }
+
+            HasPointerCapture = false;
+            Document?.ElementReleasePointerCapture(this, 0);
+            OnPointerCaptureRelease?.Invoke(0, true);
+
+            SendPointerUpOnRelease();
+        }
+
+        private void SendPointerUpOnRelease()
+        {
+            InputPointer? pointer = Document?.GetActivePointerFromId(0);
+            Point2D absolutePos = pointer?.AbsolutePosition ?? Point2D.Zero;
+            FirePointerUp(
+                new PointerUpEventArgs(
+                    new Point2D(absolutePos.X - Bounds.X, absolutePos.Y - Bounds.Y),
+                    absolutePos,
+                    0));
+        }
+
+        #endregion //Pointer capture
+
         #endregion
 
         //TODO: check if we can put pointer enter and pointer exit inside a single method
@@ -194,7 +267,7 @@ namespace CatUI.Elements
         /// </param>
         protected internal virtual void CheckInvokePointerEnter(PointerEnterEventArgs e)
         {
-            if (!IsPointerInside(e))
+            if (!IsCurrentlyEnabled || !IsPointerInside(e))
             {
                 return;
             }
@@ -221,7 +294,8 @@ namespace CatUI.Elements
             var elementArgs = new PointerEnterEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
-                e.IsPressed);
+                e.IsPressed,
+                e.PointerId);
             FirePointerEnter(elementArgs);
 
             if (elementArgs.IsPropagationStopped)
@@ -245,6 +319,11 @@ namespace CatUI.Elements
         /// </param>
         protected internal virtual void CheckInvokePointerExit(PointerExitEventArgs e)
         {
+            if (!IsCurrentlyEnabled)
+            {
+                return;
+            }
+
             int i = Children.Count - 1;
             while (i >= 0)
             {
@@ -267,7 +346,8 @@ namespace CatUI.Elements
             var elementArgs = new PointerExitEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
-                e.IsPressed);
+                e.IsPressed,
+                e.PointerId);
             FirePointerExit(elementArgs);
 
             if (elementArgs.IsPropagationStopped)
@@ -288,14 +368,11 @@ namespace CatUI.Elements
             //TODO: this is firing the pointer up events in between the pointer exit events... we probably need to fix that
             //
 
-            //we also need to check if we need to fire pointer up or mouse buttons up events (generally if the user
-            //drags the cursor or finger outside the element while pressed)
-            //it's OK to only call these functions here instead of the root because at most this element is affected,
-            //if there are other elements higher up the tree affected, this pointer exit invocation will solve those as well
             if (e.IsPressed)
             {
                 CanBypassPointerChecks = true;
-                CheckInvokePointerUp(new PointerUpEventArgs(e.Position, e.AbsolutePosition, true));
+                CheckInvokePointerUp(
+                    new PointerUpEventArgs(e.Position, e.AbsolutePosition, e.PointerId, true));
                 CanBypassPointerChecks = false;
             }
 
@@ -316,6 +393,7 @@ namespace CatUI.Elements
                             e.AbsolutePosition,
                             (MouseButtonType)(1 << btn),
                             e.IsPressed,
+                            e.PointerId,
                             true));
                 }
                 finally
@@ -335,7 +413,7 @@ namespace CatUI.Elements
         /// </param>
         protected internal virtual void CheckInvokePointerMove(PointerMoveEventArgs e)
         {
-            if (!WasPointerInside || !IsPointerInside(e))
+            if (!IsCurrentlyEnabled || !WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
@@ -357,7 +435,8 @@ namespace CatUI.Elements
                 e.AbsolutePosition,
                 e.DeltaX,
                 e.DeltaY,
-                e.IsPressed);
+                e.IsPressed,
+                e.PointerId);
             FirePointerMove(elementArgs);
 
             if (elementArgs.IsPropagationStopped)
@@ -366,7 +445,7 @@ namespace CatUI.Elements
             }
         }
 
-        protected void FirePointerMove(PointerMoveEventArgs elementArgs)
+        protected internal void FirePointerMove(PointerMoveEventArgs elementArgs)
         {
             PointerMoveEvent?.Invoke(this, elementArgs);
         }
@@ -381,7 +460,7 @@ namespace CatUI.Elements
         /// </param>
         protected internal virtual void CheckInvokePointerDown(PointerDownEventArgs e)
         {
-            if (!WasPointerInside || !IsPointerInside(e))
+            if (!IsCurrentlyEnabled || !WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
@@ -400,7 +479,8 @@ namespace CatUI.Elements
 
             var elementArgs = new PointerDownEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
-                e.AbsolutePosition);
+                e.AbsolutePosition,
+                e.PointerId);
             FirePointerDown(elementArgs);
 
             if (elementArgs.IsPropagationStopped)
@@ -425,6 +505,11 @@ namespace CatUI.Elements
         /// </param>
         protected internal virtual void CheckInvokePointerUp(PointerUpEventArgs e)
         {
+            if (!IsCurrentlyEnabled || HasPointerCapture)
+            {
+                return;
+            }
+
             int i = Children.Count - 1;
             while (i >= 0)
             {
@@ -453,6 +538,7 @@ namespace CatUI.Elements
             var elementArgs = new PointerUpEventArgs(
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
+                e.PointerId,
                 e.WasCancelled);
             FirePointerUp(elementArgs);
 
@@ -478,6 +564,11 @@ namespace CatUI.Elements
         /// </param>
         protected internal virtual void CheckInvokeMouseButton(MouseButtonEventArgs e)
         {
+            if (!IsCurrentlyEnabled)
+            {
+                return;
+            }
+
             int i = Children.Count - 1;
             while (i >= 0)
             {
@@ -508,6 +599,7 @@ namespace CatUI.Elements
                 e.AbsolutePosition,
                 e.ButtonType,
                 e.IsPressed,
+                e.PointerId,
                 e.WasCancelled);
             FireMouseButton(elementArgs);
 
@@ -532,7 +624,7 @@ namespace CatUI.Elements
         /// </param>
         protected internal virtual void CheckInvokeMouseWheel(MouseWheelEventArgs e)
         {
-            if (!WasPointerInside || !IsPointerInside(e))
+            if (!IsCurrentlyEnabled || !WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
@@ -554,7 +646,8 @@ namespace CatUI.Elements
                 e.AbsolutePosition,
                 e.DeltaX,
                 e.DeltaY,
-                e.IsPressed);
+                e.IsPressed,
+                e.PointerId);
             FireMouseWheel(elementArgs);
 
             if (elementArgs.IsPropagationStopped)

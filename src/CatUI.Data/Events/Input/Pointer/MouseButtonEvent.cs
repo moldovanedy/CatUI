@@ -15,6 +15,7 @@ namespace CatUI.Data.Events.Input.Pointer
                 other.AbsolutePosition,
                 other.ButtonType,
                 other.IsPressed,
+                other.PointerId,
                 other.WasCancelled)
         {
         }
@@ -24,12 +25,14 @@ namespace CatUI.Data.Events.Input.Pointer
             Point2D absolutePosition,
             MouseButtonType buttonType,
             bool isPressed,
+            int pointerId,
             bool wasCancelled = false)
         {
             Position = position;
             AbsolutePosition = absolutePosition;
             IsPressed = isPressed;
             ButtonType = buttonType;
+            PointerId = pointerId;
             WasCancelled = wasCancelled;
         }
     }

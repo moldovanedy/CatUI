@@ -8,15 +8,17 @@ namespace CatUI.Data.Events.Input.Pointer
             this(
                 other.Position,
                 other.AbsolutePosition,
-                other.IsPressed)
+                other.IsPressed,
+                other.PointerId)
         {
         }
 
-        public PointerExitEventArgs(Point2D position, Point2D absolutePosition, bool isPressed)
+        public PointerExitEventArgs(Point2D position, Point2D absolutePosition, bool isPressed, int pointerId)
         {
             Position = position;
             AbsolutePosition = absolutePosition;
             IsPressed = isPressed;
+            PointerId = pointerId;
         }
     }
 }

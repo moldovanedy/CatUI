@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using CatUI.Data;
 using CatUI.Data.ElementData;
+using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.RenderingEngine;
@@ -90,6 +91,15 @@ namespace CatUI.Elements
         /// false otherwise.
         /// </example>
         public MouseButtonType PressedMouseButtons { get; private set; }
+
+        private int _mousePointerId = -1;
+
+        /// <summary>
+        /// Represents the active pointer dictionary. Remember that the IDs are not always given in the order of presses,
+        /// but rather randomly. Don't use the key as some sort of index in this dictionary, as the first pointer
+        /// doesn't always have the ID 0. See <see cref="InputPointer.PointerId"/> for more info.
+        /// </summary>
+        private readonly Dictionary<int, InputPointer> _activePointers = [];
 
         /// <summary>
         /// Represents the root element of the document/window. All other elements are children of this element or one of its descendants.
@@ -243,7 +253,7 @@ namespace CatUI.Elements
         /// </remarks>
         public Func<bool> OnCloseRequested { get; set; } = () => true;
 
-        #endregion
+        #endregion //App lifecycle
 
         private readonly Dictionary<string, Element> _elementCache = [];
         private readonly object _window;
@@ -266,6 +276,8 @@ namespace CatUI.Elements
                 initialViewportSize.Width * initialContentScale,
                 initialViewportSize.Height * initialContentScale);
             Renderer.SetBgColor(_background);
+
+            PointerUpEvent += OnPointerUp;
         }
 
         /// <summary>
@@ -309,6 +321,43 @@ namespace CatUI.Elements
             return (T)_window;
         }
 
+        /// <summary>
+        /// Get the pointer with the specified ID. Returns null if there are no active pointers.
+        /// </summary>
+        /// <param name="pointerId">The pointer ID to search for.</param>
+        /// <returns></returns>
+        public InputPointer? GetActivePointerFromId(int pointerId)
+        {
+            return _activePointers.GetValueOrDefault(pointerId);
+        }
+
+        /// <summary>
+        /// Get the number of active pointers in the application window.
+        /// </summary>
+        /// <returns></returns>
+        public int GetActivePointerCount()
+        {
+            return _activePointers.Count;
+        }
+
+        /// <summary>
+        /// Get the pointer of the given device type if one exists. Currently, it works only for
+        /// <see cref="InputPointer.InputDeviceType.Mouse"/>, for others it will return null.
+        /// </summary>
+        /// <param name="deviceType">The device type you want to search pointers for.</param>
+        /// <returns></returns>
+        public InputPointer? GetPointerByDeviceType(InputPointer.InputDeviceType deviceType)
+        {
+            // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+            switch (deviceType)
+            {
+                case InputPointer.InputDeviceType.Mouse:
+                    return GetActivePointerFromId(_mousePointerId);
+                default:
+                    return null;
+            }
+        }
+
         #region Artificial events
 
         /// <summary>
@@ -331,9 +380,12 @@ namespace CatUI.Elements
         public void SimulatePointerMove(PointerMoveEventArgs e)
         {
             PointerMoveEvent?.Invoke(this, e);
+            SendEventsToPointerCapturingElements(e);
 
-            Root?.CheckInvokePointerEnter(new PointerEnterEventArgs(e.Position, e.AbsolutePosition, e.IsPressed));
-            Root?.CheckInvokePointerExit(new PointerExitEventArgs(e.Position, e.AbsolutePosition, e.IsPressed));
+            Root?.CheckInvokePointerEnter(
+                new PointerEnterEventArgs(e.Position, e.AbsolutePosition, e.IsPressed, e.PointerId));
+            Root?.CheckInvokePointerExit(
+                new PointerExitEventArgs(e.Position, e.AbsolutePosition, e.IsPressed, e.PointerId));
             Root?.CheckInvokePointerMove(e);
         }
 
@@ -479,7 +531,81 @@ namespace CatUI.Elements
             Root?.CheckInvokeMouseWheel(e);
         }
 
-        #endregion
+        #endregion //Artificial events
+
+        #region Pointer capture
+
+        private readonly Dictionary<int, List<Element>> _elementsWithPointerCapture = [];
+
+        internal void ElementSetPointerCapture(Element element, int pointerId)
+        {
+            if (!_elementsWithPointerCapture.TryGetValue(pointerId, out List<Element>? elementsForPointer))
+            {
+                elementsForPointer = [];
+                _elementsWithPointerCapture.Add(pointerId, elementsForPointer);
+            }
+
+            if (elementsForPointer.Contains(element))
+            {
+                return;
+            }
+
+            elementsForPointer.Add(element);
+        }
+
+        /// <summary>
+        /// NOTE: will also remove the element from the <see cref="_elementsWithPointerCapture"/> list of the ID.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="pointerId"></param>
+        internal void ElementReleasePointerCapture(Element element, int pointerId)
+        {
+            if (!_elementsWithPointerCapture.TryGetValue(pointerId, out List<Element>? elementsForPointer))
+            {
+                elementsForPointer = [];
+                _elementsWithPointerCapture.Add(pointerId, elementsForPointer);
+            }
+
+            elementsForPointer.Remove(element);
+        }
+
+        private void SendEventsToPointerCapturingElements(PointerMoveEventArgs e)
+        {
+            if (!_elementsWithPointerCapture.TryGetValue(e.PointerId, out List<Element>? elements))
+            {
+                return;
+            }
+
+            foreach (Element el in elements)
+            {
+                var elementArgs = new PointerMoveEventArgs(
+                    new Point2D(e.AbsolutePosition.X - el.Bounds.X, e.AbsolutePosition.Y - el.Bounds.Y),
+                    e.AbsolutePosition,
+                    e.DeltaX,
+                    e.DeltaY,
+                    e.IsPressed,
+                    e.PointerId);
+                el.FirePointerMove(elementArgs);
+            }
+        }
+
+        private void OnPointerUp(object sender, PointerUpEventArgs e)
+        {
+            if (!_elementsWithPointerCapture.TryGetValue(e.PointerId, out List<Element>? elements))
+            {
+                return;
+            }
+
+            //this will remove elements from the list, so don't use enumerators
+            while (elements.Count > 0)
+            {
+                elements[0].InternallyReleasePointerCapture();
+            }
+
+            _elementsWithPointerCapture.Remove(e.PointerId);
+        }
+
+        #endregion //Pointer capture
 
         internal void AddToIdCache(Element element)
         {
@@ -605,6 +731,37 @@ namespace CatUI.Elements
             }
 
             CurrentAppState = state;
+        }
+
+        /// <summary>
+        /// Will be used by window implementation to add a pointer in the internal dictionary. Do NOT modify its
+        /// signature.
+        /// </summary>
+        /// <param name="pointer">The pointer to add. Must have all parameters set.</param>
+        internal void WndAddPointer(InputPointer pointer)
+        {
+            _activePointers[pointer.PointerId] = pointer;
+
+            if (pointer.DeviceType == InputPointer.InputDeviceType.Mouse)
+            {
+                _mousePointerId = pointer.PointerId;
+            }
+        }
+
+        /// <summary>
+        /// Will be used by window implementation to remove a pointer from the internal dictionary. Do NOT modify its
+        /// signature.
+        /// </summary>
+        /// <param name="pointerId">The pointer ID.</param>
+        internal void WndRemovePointer(int pointerId)
+        {
+            InputPointer? pointer = _activePointers.GetValueOrDefault(pointerId);
+            _activePointers.Remove(pointerId);
+
+            if (pointer?.DeviceType == InputPointer.InputDeviceType.Mouse)
+            {
+                _mousePointerId = -1;
+            }
         }
 
         #endregion

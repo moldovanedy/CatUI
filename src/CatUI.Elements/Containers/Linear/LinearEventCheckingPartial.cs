@@ -63,7 +63,7 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void CheckInvokePointerEnter(PointerEnterEventArgs e)
         {
-            if (!IsPointerInside(e))
+            if (!IsCurrentlyEnabled || !IsPointerInside(e))
             {
                 return;
             }
@@ -89,7 +89,8 @@ namespace CatUI.Elements.Containers.Linear
             var elementArgs = new PointerEnterEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
-                e.IsPressed);
+                e.IsPressed,
+                e.PointerId);
             FirePointerEnter(elementArgs);
 
             if (elementArgs.IsPropagationStopped)
@@ -100,6 +101,11 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void CheckInvokePointerExit(PointerExitEventArgs e)
         {
+            if (!IsCurrentlyEnabled)
+            {
+                return;
+            }
+
             if (Children.Count == 0)
             {
                 goto NoChildCheck;
@@ -184,7 +190,8 @@ namespace CatUI.Elements.Containers.Linear
             var elementArgs = new PointerExitEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
                 e.AbsolutePosition,
-                e.IsPressed);
+                e.IsPressed,
+                e.PointerId);
             FirePointerExit(elementArgs);
 
             if (elementArgs.IsPropagationStopped)
@@ -197,7 +204,7 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void CheckInvokePointerMove(PointerMoveEventArgs e)
         {
-            if (!WasPointerInside || !IsPointerInside(e))
+            if (!IsCurrentlyEnabled || !WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
@@ -218,7 +225,8 @@ namespace CatUI.Elements.Containers.Linear
                 e.AbsolutePosition,
                 e.DeltaX,
                 e.DeltaY,
-                e.IsPressed);
+                e.IsPressed,
+                e.PointerId);
             FirePointerMove(elementArgs);
 
             if (elementArgs.IsPropagationStopped)
@@ -229,7 +237,7 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void CheckInvokePointerDown(PointerDownEventArgs e)
         {
-            if (!WasPointerInside || !IsPointerInside(e))
+            if (!IsCurrentlyEnabled || !WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
@@ -247,7 +255,8 @@ namespace CatUI.Elements.Containers.Linear
 
             var elementArgs = new PointerDownEventArgs(
                 new Point2D(e.AbsolutePosition.X - Bounds.X, e.AbsolutePosition.Y - Bounds.Y),
-                e.AbsolutePosition);
+                e.AbsolutePosition,
+                e.PointerId);
             FirePointerDown(elementArgs);
 
             if (elementArgs.IsPropagationStopped)
@@ -258,6 +267,11 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void CheckInvokePointerUp(PointerUpEventArgs e)
         {
+            if (!IsCurrentlyEnabled || HasPointerCapture)
+            {
+                return;
+            }
+
             if (Children.Count > 0)
             {
                 //TODO: cancelling does not work on the opposite axis of the container
@@ -286,6 +300,7 @@ namespace CatUI.Elements.Containers.Linear
             var elementArgs = new PointerUpEventArgs(
                 new Point2D(e.AbsolutePosition.X - bounds.X, e.AbsolutePosition.Y - bounds.Y),
                 e.AbsolutePosition,
+                e.PointerId,
                 e.WasCancelled);
             FirePointerUp(elementArgs);
 
@@ -297,6 +312,11 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void CheckInvokeMouseButton(MouseButtonEventArgs e)
         {
+            if (!IsCurrentlyEnabled)
+            {
+                return;
+            }
+
             if (Children.Count > 0)
             {
                 _lastCheckedElementIndex = GetEligibleElementIndex(e.AbsolutePosition);
@@ -326,6 +346,7 @@ namespace CatUI.Elements.Containers.Linear
                 e.AbsolutePosition,
                 e.ButtonType,
                 e.IsPressed,
+                e.PointerId,
                 e.WasCancelled);
             FireMouseButton(elementArgs);
 
@@ -337,7 +358,7 @@ namespace CatUI.Elements.Containers.Linear
 
         protected internal override void CheckInvokeMouseWheel(MouseWheelEventArgs e)
         {
-            if (!WasPointerInside || !IsPointerInside(e))
+            if (!IsCurrentlyEnabled || !WasPointerInside || !IsPointerInside(e))
             {
                 return;
             }
@@ -358,7 +379,8 @@ namespace CatUI.Elements.Containers.Linear
                 e.AbsolutePosition,
                 e.DeltaX,
                 e.DeltaY,
-                e.IsPressed);
+                e.IsPressed,
+                e.PointerId);
             FireMouseWheel(elementArgs);
 
             if (elementArgs.IsPropagationStopped)

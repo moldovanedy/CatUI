@@ -22,18 +22,20 @@ namespace CatUI.Data.Events.Input.Pointer
                 other.AbsolutePosition,
                 other.DeltaX,
                 other.DeltaY,
-                other.IsPressed)
+                other.IsPressed,
+                other.PointerId)
         {
         }
 
         public PointerMoveEventArgs(
-            Point2D position, Point2D absolutePosition, float deltaX, float deltaY, bool isPressed)
+            Point2D position, Point2D absolutePosition, float deltaX, float deltaY, bool isPressed, int pointerId)
         {
             Position = position;
             AbsolutePosition = absolutePosition;
             DeltaX = deltaX;
             DeltaY = deltaY;
             IsPressed = isPressed;
+            PointerId = pointerId;
         }
     }
 }

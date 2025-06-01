@@ -6,6 +6,7 @@ using Android.OS;
 using Android.Util;
 using Android.Views;
 using CatUI.Data;
+using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
 using CatUI.Windowing.Android.PlatformImplementations;
@@ -185,8 +186,6 @@ namespace CatUI.Windowing.Android
 
         #region Event handling
 
-        private readonly Dictionary<int, Point2D> _activePointers = [];
-
         private void OnTouchEvent(object? sender, View.TouchEventArgs e)
         {
             if (e.Event == null)
@@ -206,12 +205,16 @@ namespace CatUI.Windowing.Android
                         MotionEvent.PointerCoords coords = new();
                         e.Event.GetPointerCoords(pointerIndex, coords);
                         Point2D pos = new(coords.X, coords.Y);
-                        _activePointers[pointerId] = pos;
+                        //TODO: check if we should use a normalized pointerId, not the Android one (if the ID assignment
+                        //is too random
+                        DocumentInvoke(
+                            "WndAddPointer",
+                            new InputPointer(pos, false, pointerId, InputPointer.InputDeviceType.Touch));
 
                         Document.SimulatePointerEnter(
-                            new PointerEnterEventArgs(pos, pos, false));
+                            new PointerEnterEventArgs(pos, pos, false, pointerId));
                         Document.SimulatePointerDown(
-                            new PointerDownEventArgs(pos, pos));
+                            new PointerDownEventArgs(pos, pos, pointerId));
                         break;
                     }
 
@@ -223,7 +226,8 @@ namespace CatUI.Windowing.Android
                             for (int ptr = 0; ptr < e.Event.PointerCount; ptr++)
                             {
                                 int id = e.Event.GetPointerId(ptr);
-                                if (!_activePointers.TryGetValue(id, out Point2D previousPos))
+                                InputPointer? pointer = Document.GetActivePointerFromId(id);
+                                if (pointer == null)
                                 {
                                     continue;
                                 }
@@ -231,15 +235,22 @@ namespace CatUI.Windowing.Android
                                 MotionEvent.PointerCoords coords = new();
                                 e.Event.GetHistoricalPointerCoords(ptr, i, coords);
                                 Point2D pos = new(coords.X, coords.Y);
-                                _activePointers[id] = pos;
+                                DocumentInvoke(
+                                    "WndAddPointer",
+                                    new InputPointer(
+                                        pos,
+                                        pointer.IsConsideredPressed,
+                                        pointer.PointerId,
+                                        pointer.DeviceType));
 
                                 Document.SimulatePointerMove(
                                     new PointerMoveEventArgs(
                                         pos,
                                         pos,
-                                        pos.X - previousPos.X,
-                                        pos.Y - previousPos.Y,
-                                        true));
+                                        pos.X - pointer.AbsolutePosition.X,
+                                        pos.Y - pointer.AbsolutePosition.Y,
+                                        true,
+                                        pointerId));
                             }
                         }
 
@@ -247,7 +258,8 @@ namespace CatUI.Windowing.Android
                         for (int ptr = 0; ptr < e.Event.PointerCount; ptr++)
                         {
                             int id = e.Event.GetPointerId(ptr);
-                            if (!_activePointers.TryGetValue(id, out Point2D previousPos))
+                            InputPointer? pointer = Document.GetActivePointerFromId(id);
+                            if (pointer == null)
                             {
                                 continue;
                             }
@@ -255,15 +267,22 @@ namespace CatUI.Windowing.Android
                             MotionEvent.PointerCoords coords = new();
                             e.Event.GetPointerCoords(ptr, coords);
                             Point2D pos = new(coords.X, coords.Y);
-                            _activePointers[id] = pos;
+                            DocumentInvoke(
+                                "WndAddPointer",
+                                new InputPointer(
+                                    pos,
+                                    pointer.IsConsideredPressed,
+                                    pointer.PointerId,
+                                    pointer.DeviceType));
 
                             Document.SimulatePointerMove(
                                 new PointerMoveEventArgs(
                                     pos,
                                     pos,
-                                    pos.X - previousPos.X,
-                                    pos.Y - previousPos.Y,
-                                    true));
+                                    pos.X - pointer.AbsolutePosition.X,
+                                    pos.Y - pointer.AbsolutePosition.Y,
+                                    true,
+                                    pointerId));
                         }
 
                         break;
@@ -273,20 +292,26 @@ namespace CatUI.Windowing.Android
                 case MotionEventActions.PointerUp:
                 case MotionEventActions.Cancel:
                     {
-                        if (!_activePointers.TryGetValue(pointerId, out Point2D pos))
+                        InputPointer? pointer = Document.GetActivePointerFromId(pointerId);
+                        if (pointer == null)
                         {
                             break;
                         }
 
                         Document.SimulatePointerUp(
                             new PointerUpEventArgs(
-                                pos,
-                                pos,
+                                pointer.AbsolutePosition,
+                                pointer.AbsolutePosition,
+                                pointerId,
                                 action == MotionEventActions.Cancel));
                         Document.SimulatePointerExit(
-                            new PointerExitEventArgs(pos, pos, false));
+                            new PointerExitEventArgs(
+                                pointer.AbsolutePosition,
+                                pointer.AbsolutePosition,
+                                false,
+                                pointerId));
 
-                        _activePointers.Remove(pointerId);
+                        DocumentInvoke("WndRemovePointer", pointerId);
                         break;
                     }
             }
