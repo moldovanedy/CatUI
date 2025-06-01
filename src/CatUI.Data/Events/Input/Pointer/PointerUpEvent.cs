@@ -7,15 +7,16 @@ namespace CatUI.Data.Events.Input.Pointer
         public bool WasCancelled { get; }
 
         public PointerUpEventArgs(PointerUpEventArgs other) :
-            this(other.Position, other.AbsolutePosition, other.WasCancelled)
+            this(other.Position, other.AbsolutePosition, other.PointerId, other.WasCancelled)
         {
         }
 
-        public PointerUpEventArgs(Point2D position, Point2D absolutePosition, bool wasCancelled = false)
+        public PointerUpEventArgs(Point2D position, Point2D absolutePosition, int pointerId, bool wasCancelled = false)
         {
             Position = position;
             AbsolutePosition = absolutePosition;
             IsPressed = false;
+            PointerId = pointerId;
             WasCancelled = wasCancelled;
         }
     }

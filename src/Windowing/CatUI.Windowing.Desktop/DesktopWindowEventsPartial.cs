@@ -1,4 +1,5 @@
 using CatUI.Data;
+using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
 using OpenTK.Graphics.OpenGL;
@@ -88,13 +89,24 @@ namespace CatUI.Windowing.Desktop
                 Point2D pos = new(positionX, positionY);
                 bool pressed = (Document.PressedMouseButtons & MouseButtonType.Primary) != 0;
 
+                InputPointer? pointer = Document.GetPointerByDeviceType(InputPointer.InputDeviceType.Mouse);
+                if (pointer == null)
+                {
+                    return;
+                }
+
+                DocumentInvoke(
+                    "WndAddPointer",
+                    new InputPointer(pos, pressed, pointer.PointerId, InputPointer.InputDeviceType.Mouse));
+
                 Document.SimulatePointerMove(
                     new PointerMoveEventArgs(
                         pos,
                         pos,
                         positionX - _lastMouseX,
                         positionY - _lastMouseY,
-                        pressed));
+                        pressed,
+                        0));
 
                 _lastMouseX = positionX;
                 _lastMouseY = positionY;
@@ -109,13 +121,19 @@ namespace CatUI.Windowing.Desktop
 
                 if (entered)
                 {
+                    DocumentInvoke(
+                        "WndAddPointer",
+                        new InputPointer(pos, pressed, 0, InputPointer.InputDeviceType.Mouse));
                     Document.SimulatePointerEnter(
-                        new PointerEnterEventArgs(pos, pos, pressed));
+                        new PointerEnterEventArgs(pos, pos, pressed, 0));
                 }
                 else
                 {
+                    InputPointer? pointer = Document.GetPointerByDeviceType(InputPointer.InputDeviceType.Mouse);
                     Document.SimulatePointerExit(
-                        new PointerExitEventArgs(pos, pos, pressed));
+                        new PointerExitEventArgs(pos, pos, pressed, pointer?.PointerId ?? -1));
+
+                    DocumentInvoke("WndRemovePointer", pointer?.PointerId ?? -1);
                 }
             };
             GLFW.SetCursorEnterCallback(GlfwWindow, _cursorEnterOrExitCallback);
@@ -132,7 +150,8 @@ namespace CatUI.Windowing.Desktop
                         pos,
                         pos,
                         button,
-                        action == InputAction.Press));
+                        action == InputAction.Press,
+                        0));
 
                 if (button != MouseButtonType.Primary)
                 {
@@ -142,12 +161,12 @@ namespace CatUI.Windowing.Desktop
                 if (action == InputAction.Press)
                 {
                     Document.SimulatePointerDown(
-                        new PointerDownEventArgs(pos, pos));
+                        new PointerDownEventArgs(pos, pos, 0));
                 }
                 else
                 {
                     Document.SimulatePointerUp(
-                        new PointerUpEventArgs(pos, pos));
+                        new PointerUpEventArgs(pos, pos, 0));
                 }
             };
             GLFW.SetMouseButtonCallback(GlfwWindow, _mouseButtonCallback);
@@ -166,7 +185,8 @@ namespace CatUI.Windowing.Desktop
                         pos,
                         (float)(deltaX == 0 ? deltaX : -deltaX) * 10,
                         (float)(deltaY == 0 ? deltaY : -deltaY) * 10,
-                        (Document.PressedMouseButtons & MouseButtonType.Middle) != 0));
+                        (Document.PressedMouseButtons & MouseButtonType.Middle) != 0,
+                        0));
             };
             GLFW.SetScrollCallback(GlfwWindow, _mouseScrollCallback);
         }

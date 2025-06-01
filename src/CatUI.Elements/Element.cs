@@ -1068,6 +1068,8 @@ namespace CatUI.Elements
             }
         }
 
+        #region Refresh requests
+
         public void RequestRedraw()
         {
             if (this is not INonVisualElement)
@@ -1157,6 +1159,8 @@ namespace CatUI.Elements
                 child.ExitLayoutFreezeRecursively();
             }
         }
+
+        #endregion //Refresh requests
 
         #endregion //Public API
     }
