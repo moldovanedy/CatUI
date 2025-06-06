@@ -2,8 +2,8 @@ using CatUI.Data;
 using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
-using OpenTK.Graphics.OpenGL;
 using CatUI.Windowing.Common;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace CatUI.Windowing.Desktop
@@ -173,8 +173,8 @@ namespace CatUI.Windowing.Desktop
 
             _mouseScrollCallback = (_, deltaX, deltaY) =>
             {
-                //TODO: both mouse and touchpad generate only -1 and 1 (at least on Linux), so we need to somehow
-                // detect if it's a mouse or touchpad and scale the mouse accordingly or use platform-specific APIs
+                //TODO: use platform-specific APIs for better scrolling; this should only be the fallback if native
+                // APIs fail for some reason, except on Wayland, where this interface works properly
 
                 GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
                 Point2D pos = new((float)x, (float)y);
@@ -183,8 +183,9 @@ namespace CatUI.Windowing.Desktop
                     new MouseWheelEventArgs(
                         pos,
                         pos,
-                        (float)(deltaX == 0 ? deltaX : -deltaX) * 10,
-                        (float)(deltaY == 0 ? deltaY : -deltaY) * 10,
+                        //this isn't standardized, so we'll just use a generic 60 px scroll
+                        (float)(deltaX == 0 ? deltaX : -deltaX) * 60,
+                        (float)(deltaY == 0 ? deltaY : -deltaY) * 60,
                         (Document.PressedMouseButtons & MouseButtonType.Middle) != 0,
                         0));
             };
