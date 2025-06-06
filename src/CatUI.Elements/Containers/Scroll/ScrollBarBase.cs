@@ -404,8 +404,6 @@ namespace CatUI.Elements.Containers.Scroll
                 return;
             }
 
-            Console.WriteLine(e.AbsolutePosition);
-
             if (RepositionBehavior == RepositionBehaviorType.GoToPosition)
             {
                 SetValueFromScrollTrack(_scrollOrientation == Orientation.Horizontal ? e.Position.X : e.Position.Y);
