@@ -24,9 +24,11 @@ namespace CatUI.Elements.Containers.Scroll
                     "M 15 2 L 5 10 L 15 18",
                     outlineBrush: new ColorBrush(new Color(0xFF_FF_FF)))
                 {
+                    StyleClass = "HorizontalScrollBar::PlusButton::Graphic",
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%")
                 })
             {
+                StyleClass = "HorizontalScrollBar::PlusButton",
                 Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20),
                 Background = new ColorBrush(new Color(0x8C_8C_8C))
             };
@@ -43,9 +45,11 @@ namespace CatUI.Elements.Containers.Scroll
                     "M 5 2 L 15 10 L 5 18",
                     outlineBrush: new ColorBrush(new Color(0xFF_FF_FF)))
                 {
+                    StyleClass = "HorizontalScrollBar::MinusButton::Graphic",
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%")
                 })
             {
+                StyleClass = "HorizontalScrollBar::MinusButton",
                 Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20),
                 Background = new ColorBrush(new Color(0x8C_8C_8C))
             };

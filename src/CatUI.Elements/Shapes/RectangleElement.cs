@@ -11,7 +11,7 @@ namespace CatUI.Elements.Shapes
     /// <summary>
     /// Draws a rectangle, either filled, outlined or both. If the rectangle is both filled and outlined, the filled
     /// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
-    /// on each size. The outline will also overlap with the filled area by half of the outline width on each side.
+    /// on each side. The outline will also overlap with the filled area by half of the outline width on each side.
     /// </summary>
     public class RectangleElement : AbstractShapeElement
     {
@@ -59,7 +59,7 @@ namespace CatUI.Elements.Shapes
 
         protected override void DrawBackground()
         {
-            if (!IsCurrentlyVisible || FillBrush.IsSkippable)
+            if (!IsCurrentlyVisible)
             {
                 return;
             }

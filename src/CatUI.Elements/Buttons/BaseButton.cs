@@ -10,6 +10,8 @@ namespace CatUI.Elements.Buttons
 {
     public class BaseButton : Element, IClickable
     {
+        public const string STATE_DISABLED = "disabled";
+
         /// <inheritdoc cref="Element.Ref"/>
         public new ObjectRef<BaseButton>? Ref
         {
