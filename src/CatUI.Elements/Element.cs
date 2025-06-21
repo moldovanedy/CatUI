@@ -687,6 +687,11 @@ namespace CatUI.Elements
             e.Item._parent = this;
             e.Item.IndexInParent = e.Index;
 
+            for (int i = e.Index + 1; i < Children.Count; i++)
+            {
+                Children[i].IndexInParent++;
+            }
+
             if (Document != null)
             {
                 e.Item.Document = Document;
@@ -705,6 +710,11 @@ namespace CatUI.Elements
             e.Item._parent = null;
             e.Item.IndexInParent = -1;
             e.Item.Bounds = new Rect();
+
+            for (int i = e.Index + 1; i < Children.Count; i++)
+            {
+                Children[i].IndexInParent--;
+            }
 
             e.Item._document = null;
             MarkLayoutDirty();

@@ -13,25 +13,19 @@ namespace CatUISample.UI
 {
     public class Sidebar : ColumnContainer
     {
-        private readonly ObjectRef<Navigator> _navigatorRef;
-
         private readonly List<(string, string)> _entries =
         [
             ("Main page", "/"),
             ("Layout - RowContainer", "/Layout/RowContainer"),
-            ("Layout - ScrollContainer", "/Layout/ScrollContainer")
+            ("Layout - ScrollContainer", "/Layout/ScrollContainer"),
+            ("UI Elements - Buttons", "/UiElements/Buttons")
         ];
 
         public Sidebar(ObjectRef<Navigator> navigatorRef)
         {
-            _navigatorRef = navigatorRef;
-
             Layout = new ElementLayout().SetFixedWidth(250).SetFixedHeight("100%");
             Background = new ColorBrush(CatTheme.Colors.SurfaceContainer);
-        }
 
-        protected override void EnterDocument(object sender)
-        {
             foreach ((string, string) entry in _entries)
             {
                 Children.Add(
@@ -39,7 +33,7 @@ namespace CatUISample.UI
                     {
                         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
                         StyleClass = "MenuButtons",
-                        OnClick = (_, _) => _navigatorRef.Value?.Navigate(entry.Item2)
+                        OnClick = (_, _) => navigatorRef.Value?.Navigate(entry.Item2)
                     });
                 Children.Add(new HorizontalDivider(1, new ColorBrush(Color.Default)));
             }

@@ -24,9 +24,11 @@ namespace CatUI.Elements.Containers.Scroll
                     "M 2 15 L 10 5 L 18 15",
                     outlineBrush: new ColorBrush(new Color(0xFF_FF_FF)))
                 {
+                    StyleClass = "VerticalScrollBar::DownButton::Graphic",
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%")
                 })
             {
+                StyleClass = "VerticalScrollBar::DownButton",
                 Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20),
                 Background = new ColorBrush(new Color(0x8C_8C_8C))
             };
@@ -43,9 +45,11 @@ namespace CatUI.Elements.Containers.Scroll
                     "M 2 5 L 10 15 L 18 5",
                     outlineBrush: new ColorBrush(new Color(0xFF_FF_FF)))
                 {
+                    StyleClass = "VerticalScrollBar::UpButton::Graphic",
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%")
                 })
             {
+                StyleClass = "VerticalScrollBar::UpButton",
                 Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20),
                 Background = new ColorBrush(new Color(0x8C_8C_8C))
             };

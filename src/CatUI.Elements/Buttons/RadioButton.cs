@@ -4,31 +4,21 @@ using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
+using CatUI.Data.Events.Input.Gestures;
 using CatUI.Data.Shapes;
 using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers.Linear;
-using CatUI.Elements.Media;
+using CatUI.Elements.ControlFlow;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
-using CatUI.Elements.Utils;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Buttons
 {
-    /// <summary>
-    /// A UI button that is specialized in having a text, an icon, or both. For a button that has any kind of
-    /// content, see <see cref="BaseButton"/>. Do NOT set the <see cref="Element.Children"/> directly or interfere in any
-    /// way with the first child, as it is used internally. Modifying it without using <see cref="TextElement"/> and
-    /// <see cref="IconElement"/> might result in crashes or unexpected behavior in general.
-    /// </summary>
-    /// <remarks>
-    /// <see cref="Element.Children"/> is controlled internally. You should never set or modify any children directly,
-    /// but use convenience properties and methods instead. Direct children modification might cause crashes.
-    /// </remarks>
-    public class Button : BaseButton, IPaddingAware
+    public class RadioButton : BaseButton, IToggleable
     {
         /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<Button>? Ref
+        public new ObjectRef<RadioButton>? Ref
         {
             get => _ref;
             set
@@ -41,26 +31,27 @@ namespace CatUI.Elements.Buttons
             }
         }
 
-        private ObjectRef<Button>? _ref;
+        private ObjectRef<RadioButton>? _ref;
 
-        public EdgeInset Padding
+        public bool Value
         {
-            get => _padding;
-            set => PaddingProperty.Value = value;
+            get => _value;
+            set => ValueProperty.Value = value;
         }
 
-        private EdgeInset _padding = new();
-        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
+        private bool _value;
 
-        private void SetPadding(EdgeInset value)
+        public ObservableProperty<bool> ValueProperty { get; } = new(false);
+
+        private void SetValue(bool value)
         {
-            _padding = value;
-            SetLocalValue(nameof(Padding), value);
+            _value = value;
+            SetLocalValue(nameof(Value), value);
+            MarkLayoutDirty();
         }
 
         /// <summary>
-        /// Represents the spacing between <see cref="TextElement"/> and <see cref="IconElement"/>. This will be considered
-        /// only when both a text and an icon are given.
+        /// Represents the spacing between <see cref="IndicatorElement"/> and <see cref="TextElement"/>.
         /// </summary>
         public Dimension Spacing
         {
@@ -125,9 +116,8 @@ namespace CatUI.Elements.Buttons
         }
 
         /// <summary>
-        /// Represents the text content of the button, but it's optional, as you can have this, an <see cref="IconElement"/>
-        /// or both. Contrary to the name, this can be any kind of element, but it's much more common for it to be a
-        /// <see cref="TextBlock"/>.
+        /// Represents the text content of the radio button. Contrary to the name, this can be any kind of element, but
+        /// it's much more common for it to be a <see cref="TextBlock"/>.
         /// </summary>
         /// <remarks>
         /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
@@ -158,134 +148,137 @@ namespace CatUI.Elements.Buttons
                 }
 
                 _textElement = value;
-                InternalRowContainer.Children[_iconElement == null ? 0 : 1] = value;
+                InternalRowContainer.Children[1] = value;
             }
         }
 
         private Element? _textElement;
 
         /// <summary>
-        /// Represents content of the icon, but it's optional, as you can have this, an <see cref="TextElement"/> or both.
-        /// Contrary to the name, this can be any kind of element, but it's generally used as an icon, like a
-        /// <see cref="GeometricPathElement"/> or <see cref="ImageView"/>.
+        /// The actual visual indicator element (commonly a box with a check mark inside it). This cannot be null.
+        /// It always has to be present in the hierarchy.
         /// </summary>
-        /// <remarks>
-        /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
-        /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
-        /// <see cref="InternalRowContainer"/>.
-        /// </remarks>
-        public Element? IconElement
+        public IfElement IndicatorElement
         {
-            get => _iconElement;
+            get => _indicatorElement;
             set
             {
-                if (_iconElement == null)
-                {
-                    _iconElement = value;
-                    if (value != null)
-                    {
-                        InternalRowContainer.Children.Insert(0, value);
-                    }
-
-                    return;
-                }
-
-                if (value == null)
-                {
-                    InternalRowContainer.Children.Remove(_iconElement);
-                    _iconElement = null;
-                    return;
-                }
-
-                _iconElement = value;
+                _indicatorElement = value;
                 InternalRowContainer.Children[0] = value;
+                //bind the indicator to the radio button value
+                value.Condition.BindBidirectional(ValueProperty);
             }
         }
 
-        private Element? _iconElement;
-
-        /// <summary>
-        /// Gives direct access to the button's <see cref="PaddingElement"/>. You should generally not modify this
-        /// and certainly not remove it from the document, but you have access to it just in case you need it.
-        /// </summary>
-        public PaddingElement InternalPaddingElement { get; }
+        private IfElement _indicatorElement = null!;
 
         /// <summary>
         /// Gives direct access to the button's <see cref="RowContainer"/>, which holds <see cref="TextElement"/> and
-        /// <see cref="IconElement"/>. You should generally not modify this and certainly not remove it from the document,
+        /// <see cref="IndicatorElement"/>. You should generally not modify this and certainly not remove it from the document,
         /// but you have access to it just in case you need it.
         /// </summary>
         /// <remarks>
-        /// Modifying properties from here won't reflect in properties of Button like <see cref="HorizontalArrangement"/>,
-        /// that's why you should always modify everything that's possible from Button properties, not from this container
-        /// directly.
+        /// Modifying properties here directly will not reflect in some properties of the RadioButton like
+        /// <see cref="HorizontalArrangement"/>, that's why you should always use the RadioButton properties instead of
+        /// manually modifying this RowContainer where possible.
         /// </remarks>
         public RowContainer InternalRowContainer { get; }
 
+        private readonly IfElement _defaultIndicatorElement =
+            new(
+                new ObservableProperty<bool>(false),
+                new EllipseElement(outlineBrush: new ColorBrush(new Color(0)))
+                {
+                    StyleClass = "RadioButton::Indicator::Active::Outer",
+                    Position = new Dimension2(1, 1),
+                    Layout = new ElementLayout().SetFixedWidth(18).SetFixedHeight(18),
+                    OutlineParameters = new OutlineParams(2f),
+                    ClipType = ClipApplicability.HitTesting,
+                    Children =
+                    [
+                        new EllipseElement(outlineBrush: new ColorBrush(new Color(0x00_80_ff)))
+                        {
+                            StyleClass = "RadioButton::Indicator::Active::Inner",
+                            Position = new Dimension2(4, 4),
+                            Layout = new ElementLayout().SetFixedWidth(10).SetFixedHeight(10),
+                            OutlineParameters = new OutlineParams(5f),
+                            ClipType = ClipApplicability.HitTesting
+                        }
+                    ]
+                },
+                new EllipseElement(outlineBrush: new ColorBrush(new Color(0)))
+                {
+                    StyleClass = "RadioButton::Indicator::Inactive::Outer",
+                    Position = new Dimension2(1, 1),
+                    Layout = new ElementLayout().SetFixedWidth(18).SetFixedHeight(18),
+                    OutlineParameters = new OutlineParams(2f),
+                    ClipType = ClipApplicability.HitTesting
+                }
+            ) { Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20) };
+
         /// <summary>
-        /// A constructor that creates a Button based on the given text element and icon element. Both are optional
-        /// because you can have a button with none of them, one of them (either text-only or icon-only) or both
-        /// (a text accompanied by an icon).
+        /// The base constructor. Will create a new radio button given an Element as <see cref="TextElement"/> and
+        /// a generic Element as the <see cref="IndicatorElement"/>. If indicatorElement is not given, it will be a
+        /// default element.
         /// </summary>
+        /// <param name="initialValue"></param>
         /// <param name="textElement">The value of <see cref="TextElement"/>.</param>
-        /// <param name="iconElement">The value of <see cref="IconElement"/>.</param>
-        public Button(Element? textElement = null, Element? iconElement = null)
+        /// <param name="indicatorElement">
+        /// The value of <see cref="IndicatorElement"/>, will be a default element if omitted.
+        /// </param>
+        public RadioButton(
+            bool initialValue,
+            Element textElement,
+            IfElement? indicatorElement = null)
         {
-            PaddingProperty.ValueChangedEvent += SetPadding;
+            OnClick += PrivateOnClick;
+
+            ValueProperty.ValueChangedEvent += SetValue;
             SpacingProperty.ValueChangedEvent += SetSpacing;
             HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
             VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
-
-            _textElement = textElement;
-            _iconElement = iconElement;
 
             InternalRowContainer = new RowContainer
             {
                 Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                 Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
-                VerticalAlignment = VerticalAlignmentType.Center
+                VerticalAlignment = VerticalAlignmentType.Center,
+                //we need to have at least one child, as IndicatorElement will access index 0 (this will be replaced
+                //when IndicatorElement are set, immediately in this constructor)
+                Children = [new Element()]
             };
 
-            if (_iconElement != null)
-            {
-                InternalRowContainer.Children.Add(_iconElement);
-            }
+            InternalRowContainer.VerticalAlignmentProperty.BindBidirectional(VerticalAlignmentProperty);
+            Children.Add(InternalRowContainer);
 
-            if (_textElement != null)
-            {
-                InternalRowContainer.Children.Add(_textElement);
-            }
+            indicatorElement ??= _defaultIndicatorElement;
+            IndicatorElement = indicatorElement;
 
-            InternalPaddingElement = new PaddingElement
-            {
-                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
-                Children = [InternalRowContainer]
-            };
-            Children.Add(InternalPaddingElement);
-
-            InternalPaddingElement.PaddingProperty.BindBidirectional(PaddingProperty);
+            TextElement = textElement;
+            Value = initialValue;
         }
 
         /// <summary>
-        /// A helper constructor that will set the <see cref="TextElement"/> as a default <see cref="TextBlock"/> with
-        /// the given text, font size and text brush and will give it a padding.
+        /// Creates a new radio button with <see cref="TextElement"/> as a new <see cref="TextBlock"/> with the given
+        /// properties.
         /// </summary>
+        /// <param name="initialValue">The initial value of the radio button.</param>
         /// <param name="text">
         /// The text that a <see cref="TextBlock"/> will have when set as the value of <see cref="TextElement"/>.
         /// </param>
         /// <param name="fontSize">The value of <see cref="Text.TextElement.FontSize"/>.</param>
         /// <param name="textBrush">The value of <see cref="TextBlock.TextBrush"/>.</param>
-        /// <param name="padding">The value of <see cref="Padding"/>.</param>
-        public Button(
+        public RadioButton(
+            bool initialValue,
             string text,
             Dimension? fontSize = null,
-            ColorBrush? textBrush = null,
-            EdgeInset? padding = null) :
+            ColorBrush? textBrush = null) :
             this(
+                initialValue,
                 new TextBlock(text, TextAlignmentType.Center)
                 {
-                    StyleClass = "Button::TextElement",
-                    FontSize = fontSize ?? 16,
+                    StyleClass = "RadioButton::TextElement",
+                    FontSize = fontSize ?? "1em",
                     TextBrush = textBrush ?? new ColorBrush(new Color(0)),
                     Layout =
                         new ElementLayout()
@@ -295,42 +288,12 @@ namespace CatUI.Elements.Buttons
                 }
             )
         {
-            if (padding != null)
-            {
-                Padding = padding.Value;
-            }
         }
 
-        /// <summary>
-        /// A helper constructor that will set the <see cref="IconElement"/> as a given <see cref="AbstractShapeElement"/>
-        /// and will give it padding.
-        /// </summary>
-        /// <param name="shapeElement">
-        /// A shape element that will be set as the value of <see cref="IconElement"/>.
-        /// </param>
-        /// <param name="padding">The value of <see cref="Padding"/>.</param>
-        public Button(AbstractShapeElement shapeElement, EdgeInset? padding = null) :
-            this(null, shapeElement)
+        public override RadioButton Duplicate()
         {
-            if (padding != null)
+            RadioButton el = new(Value, _textElement!, _indicatorElement)
             {
-                Padding = padding.Value;
-            }
-        }
-
-        //~Button()
-        //{
-        //    PaddingProperty = null!;
-        //    SpacingProperty = null!;
-        //    HorizontalArrangementProperty = null!;
-        //    VerticalAlignmentProperty = null!;
-        //}
-
-        public override Button Duplicate()
-        {
-            Button el = new(_textElement, _iconElement)
-            {
-                Padding = Padding,
                 Spacing = Spacing,
                 HorizontalArrangement = HorizontalArrangement,
                 VerticalAlignment = VerticalAlignment,
@@ -350,6 +313,11 @@ namespace CatUI.Elements.Buttons
 
             DuplicateChildrenUtil(el);
             return el;
+        }
+
+        private void PrivateOnClick(object sender, ClickEventArgs e)
+        {
+            Value = !Value;
         }
     }
 }

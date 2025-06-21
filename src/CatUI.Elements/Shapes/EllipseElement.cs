@@ -72,16 +72,15 @@ namespace CatUI.Elements.Shapes
             //also draw the background
             base.DrawBackground();
 
-            if (FillBrush.IsSkippable)
+            if (!FillBrush.IsSkippable)
             {
-                return;
+                Document?.Renderer.DrawEllipse(
+                    new Point2D(Bounds.CenterX, Bounds.CenterY),
+                    Bounds.Width / 2f,
+                    Bounds.Height / 2f,
+                    FillBrush);
             }
 
-            Document?.Renderer.DrawEllipse(
-                new Point2D(Bounds.CenterX, Bounds.CenterY),
-                Bounds.Width / 2f,
-                Bounds.Height / 2f,
-                FillBrush);
 
             if (OutlineBrush.IsSkippable || OutlineParameters.OutlineWidth == 0)
             {

@@ -17,11 +17,6 @@ namespace CatUISample.UI.Pages.Layout
         {
             Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
             Arrangement = LinearArrangement.SpacedBy(20);
-        }
-
-        protected override void EnterDocument(object sender)
-        {
-            base.EnterDocument(sender);
 
             Children =
             [

@@ -10,9 +10,9 @@ namespace CatUI.Elements.Containers.Linear
     public abstract partial class LinearContainerBase : Container
     {
         /// <summary>
-        /// Specifies the arrangement of the children of this container. It only refers to the axis of orientation
+        /// Specifies the arrangement this container's children. It only refers to the axis of orientation
         /// (i.e. <see cref="ContainerOrientation"/>, meaning horizontal for <see cref="RowContainer"/>, vertical
-        /// for <see cref="ColumnContainer"/>); for the other axis, see ...
+        /// for <see cref="ColumnContainer"/>); for the other axis, see <see cref="PreferredAlignment"/>.
         /// </summary>
         public LinearArrangement Arrangement
         {
@@ -32,6 +32,11 @@ namespace CatUI.Elements.Containers.Linear
             MarkLayoutDirty();
         }
 
+        /// <summary>
+        /// The default alignment on the opposite axis of orientation. This is the value of
+        /// <see cref="ColumnContainer.HorizontalAlignment"/> in the <see cref="ColumnContainer"/> and
+        /// <see cref="RowContainer.VerticalAlignment"/> in the <see cref="RowContainer"/>.
+        /// </summary>
         protected AlignmentType PreferredAlignment { get; set; } = AlignmentType.Start;
 
         /// <summary>
