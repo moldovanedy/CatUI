@@ -1,173 +1,176 @@
 using System;
+using CatUI.Data.ElementData;
 using SkiaSharp;
 
 namespace CatUI.Data.Shapes
 {
     public class RoundedRectangleClipShape : ClipShape
     {
-        /// <summary>
-        /// Represents the radius of the top-left corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
-        /// to anything other than <see cref="Dimension.Unset"/> will overwrite the value of <see cref="TopLeftEllipse"/>
-        /// to be <see cref="Dimension2.Unset"/>.
-        /// </summary>
-        public Dimension TopLeftRadius
-        {
-            get => _topLeftRadius;
-            set
-            {
-                _topLeftRadius = value;
-                if (value != Dimension.Unset)
-                {
-                    _topLeftEllipse = Dimension2.Unset;
-                }
-            }
-        }
+        // /// <summary>
+        // /// Represents the radius of the top-left corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
+        // /// to anything other than <see cref="Dimension.Unset"/> will overwrite the value of <see cref="TopLeftEllipse"/>
+        // /// to be <see cref="Dimension2.Unset"/>.
+        // /// </summary>
+        // public Dimension TopLeftRadius
+        // {
+        //     get => _topLeftRadius;
+        //     set
+        //     {
+        //         _topLeftRadius = value;
+        //         if (value != Dimension.Unset)
+        //         {
+        //             _topLeftEllipse = Dimension2.Unset;
+        //         }
+        //     }
+        // }
+        //
+        // private Dimension _topLeftRadius = Dimension.Unset;
+        //
+        // /// <summary>
+        // /// Represents the radius of the top-right corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
+        // /// to anything other than <see cref="Dimension.Unset"/> will overwrite the value of <see cref="TopRightEllipse"/>
+        // /// to be <see cref="Dimension2.Unset"/>.
+        // /// </summary>
+        // public Dimension TopRightRadius
+        // {
+        //     get => _topRightRadius;
+        //     set
+        //     {
+        //         _topRightRadius = value;
+        //         if (value != Dimension.Unset)
+        //         {
+        //             _topRightEllipse = Dimension2.Unset;
+        //         }
+        //     }
+        // }
+        //
+        // private Dimension _topRightRadius = Dimension.Unset;
+        //
+        // /// <summary>
+        // /// Represents the radius of the bottom-left corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
+        // /// to anything other than <see cref="Dimension.Unset"/> will overwrite the value of <see cref="BottomLeftEllipse"/>
+        // /// to be <see cref="Dimension2.Unset"/>.
+        // /// </summary>
+        // public Dimension BottomLeftRadius
+        // {
+        //     get => _bottomLeftRadius;
+        //     set
+        //     {
+        //         _bottomLeftRadius = value;
+        //         if (value != Dimension.Unset)
+        //         {
+        //             _bottomLeftEllipse = Dimension2.Unset;
+        //         }
+        //     }
+        // }
+        //
+        // private Dimension _bottomLeftRadius = Dimension.Unset;
+        //
+        // /// <summary>
+        // /// Represents the radius of the bottom-right corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
+        // /// to anything other than <see cref="Dimension.Unset"/> will overwrite the value of <see cref="BottomRightEllipse"/>
+        // /// to be <see cref="Dimension2.Unset"/>.
+        // /// </summary>
+        // public Dimension BottomRightRadius
+        // {
+        //     get => _bottomRightRadius;
+        //     set
+        //     {
+        //         _bottomRightRadius = value;
+        //         if (value != Dimension.Unset)
+        //         {
+        //             _bottomRightEllipse = Dimension2.Unset;
+        //         }
+        //     }
+        // }
+        //
+        // private Dimension _bottomRightRadius = Dimension.Unset;
+        //
+        // /// <summary>
+        // /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
+        // /// the top-left corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
+        // /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
+        // /// (<see cref="TopLeftRadius"/>).
+        // /// </summary>
+        // public Dimension2 TopLeftEllipse
+        // {
+        //     get => _topLeftEllipse;
+        //     set
+        //     {
+        //         _topLeftEllipse = value;
+        //         if (value != Dimension2.Unset)
+        //         {
+        //             _topLeftRadius = Dimension.Unset;
+        //         }
+        //     }
+        // }
+        //
+        // private Dimension2 _topLeftEllipse = Dimension2.Unset;
+        //
+        // /// <summary>
+        // /// The X is the corner's ellipse X axis half-value and the Y is the corner's ellipse Y axis half-value for
+        // /// the top-right corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
+        // /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
+        // /// (<see cref="TopRightRadius"/>).
+        // /// </summary>
+        // public Dimension2 TopRightEllipse
+        // {
+        //     get => _topRightEllipse;
+        //     set
+        //     {
+        //         _topRightEllipse = value;
+        //         if (value != Dimension2.Unset)
+        //         {
+        //             _topRightRadius = Dimension.Unset;
+        //         }
+        //     }
+        // }
+        //
+        // private Dimension2 _topRightEllipse = Dimension2.Unset;
+        //
+        // /// <summary>
+        // /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
+        // /// the bottom-left corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
+        // /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
+        // /// (<see cref="BottomLeftRadius"/>).
+        // /// </summary>
+        // public Dimension2 BottomLeftEllipse
+        // {
+        //     get => _bottomLeftEllipse;
+        //     set
+        //     {
+        //         _bottomLeftEllipse = value;
+        //         if (value != Dimension2.Unset)
+        //         {
+        //             _bottomLeftRadius = Dimension.Unset;
+        //         }
+        //     }
+        // }
+        //
+        // private Dimension2 _bottomLeftEllipse = Dimension2.Unset;
+        //
+        // /// <summary>
+        // /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
+        // /// the bottom-right corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
+        // /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
+        // /// (<see cref="BottomRightRadius"/>).
+        // /// </summary>
+        // public Dimension2 BottomRightEllipse
+        // {
+        //     get => _bottomRightEllipse;
+        //     set
+        //     {
+        //         _bottomRightEllipse = value;
+        //         if (value != Dimension2.Unset)
+        //         {
+        //             _bottomRightRadius = Dimension.Unset;
+        //         }
+        //     }
+        // }
+        //
+        // private Dimension2 _bottomRightEllipse = Dimension2.Unset;
 
-        private Dimension _topLeftRadius = Dimension.Unset;
-
-        /// <summary>
-        /// Represents the radius of the top-right corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
-        /// to anything other than <see cref="Dimension.Unset"/> will overwrite the value of <see cref="TopRightEllipse"/>
-        /// to be <see cref="Dimension2.Unset"/>.
-        /// </summary>
-        public Dimension TopRightRadius
-        {
-            get => _topRightRadius;
-            set
-            {
-                _topRightRadius = value;
-                if (value != Dimension.Unset)
-                {
-                    _topRightEllipse = Dimension2.Unset;
-                }
-            }
-        }
-
-        private Dimension _topRightRadius = Dimension.Unset;
-
-        /// <summary>
-        /// Represents the radius of the bottom-left corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
-        /// to anything other than <see cref="Dimension.Unset"/> will overwrite the value of <see cref="BottomLeftEllipse"/>
-        /// to be <see cref="Dimension2.Unset"/>.
-        /// </summary>
-        public Dimension BottomLeftRadius
-        {
-            get => _bottomLeftRadius;
-            set
-            {
-                _bottomLeftRadius = value;
-                if (value != Dimension.Unset)
-                {
-                    _bottomLeftEllipse = Dimension2.Unset;
-                }
-            }
-        }
-
-        private Dimension _bottomLeftRadius = Dimension.Unset;
-
-        /// <summary>
-        /// Represents the radius of the bottom-right corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
-        /// to anything other than <see cref="Dimension.Unset"/> will overwrite the value of <see cref="BottomRightEllipse"/>
-        /// to be <see cref="Dimension2.Unset"/>.
-        /// </summary>
-        public Dimension BottomRightRadius
-        {
-            get => _bottomRightRadius;
-            set
-            {
-                _bottomRightRadius = value;
-                if (value != Dimension.Unset)
-                {
-                    _bottomRightEllipse = Dimension2.Unset;
-                }
-            }
-        }
-
-        private Dimension _bottomRightRadius = Dimension.Unset;
-
-        /// <summary>
-        /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
-        /// the top-left corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
-        /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
-        /// (<see cref="TopLeftRadius"/>).
-        /// </summary>
-        public Dimension2 TopLeftEllipse
-        {
-            get => _topLeftEllipse;
-            set
-            {
-                _topLeftEllipse = value;
-                if (value != Dimension2.Unset)
-                {
-                    _topLeftRadius = Dimension.Unset;
-                }
-            }
-        }
-
-        private Dimension2 _topLeftEllipse = Dimension2.Unset;
-
-        /// <summary>
-        /// The X is the corner's ellipse X axis half-value and the Y is the corner's ellipse Y axis half-value for
-        /// the top-right corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
-        /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
-        /// (<see cref="TopRightRadius"/>).
-        /// </summary>
-        public Dimension2 TopRightEllipse
-        {
-            get => _topRightEllipse;
-            set
-            {
-                _topRightEllipse = value;
-                if (value != Dimension2.Unset)
-                {
-                    _topRightRadius = Dimension.Unset;
-                }
-            }
-        }
-
-        private Dimension2 _topRightEllipse = Dimension2.Unset;
-
-        /// <summary>
-        /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
-        /// the bottom-left corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
-        /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
-        /// (<see cref="BottomLeftRadius"/>).
-        /// </summary>
-        public Dimension2 BottomLeftEllipse
-        {
-            get => _bottomLeftEllipse;
-            set
-            {
-                _bottomLeftEllipse = value;
-                if (value != Dimension2.Unset)
-                {
-                    _bottomLeftRadius = Dimension.Unset;
-                }
-            }
-        }
-
-        private Dimension2 _bottomLeftEllipse = Dimension2.Unset;
-
-        /// <summary>
-        /// The X is the corner's ellipse X axis half-value, and the Y is the corner's ellipse Y axis half-value for
-        /// the bottom-right corner. Default is <see cref="Dimension2.Unset"/> as normally the more simple, circle corners are used.
-        /// Setting this anything other than <see cref="Dimension2.Unset"/> will override the simple value
-        /// (<see cref="BottomRightRadius"/>).
-        /// </summary>
-        public Dimension2 BottomRightEllipse
-        {
-            get => _bottomRightEllipse;
-            set
-            {
-                _bottomRightEllipse = value;
-                if (value != Dimension2.Unset)
-                {
-                    _bottomRightRadius = Dimension.Unset;
-                }
-            }
-        }
-
-        private Dimension2 _bottomRightEllipse = Dimension2.Unset;
+        public CornerInset RoundCornersDescriptor { get; set; } = new();
 
         public RoundedRectangleClipShape() { }
 
@@ -184,10 +187,11 @@ namespace CatUI.Data.Shapes
             Dimension bottomLeft,
             Dimension bottomRight)
         {
-            TopLeftRadius = topLeft;
-            TopRightRadius = topRight;
-            BottomLeftRadius = bottomLeft;
-            BottomRightRadius = bottomRight;
+            RoundCornersDescriptor = new CornerInset(topLeft, topRight, bottomLeft, bottomRight);
+            // TopLeftRadius = topLeft;
+            // TopRightRadius = topRight;
+            // BottomLeftRadius = bottomLeft;
+            // BottomRightRadius = bottomRight;
         }
 
         /// <summary>
@@ -196,10 +200,11 @@ namespace CatUI.Data.Shapes
         /// <param name="cornerRadius">The radius for all corners.</param>
         public RoundedRectangleClipShape(Dimension cornerRadius)
         {
-            TopLeftRadius = cornerRadius;
-            TopRightRadius = cornerRadius;
-            BottomLeftRadius = cornerRadius;
-            BottomRightRadius = cornerRadius;
+            RoundCornersDescriptor = new CornerInset(cornerRadius);
+            // TopLeftRadius = cornerRadius;
+            // TopRightRadius = cornerRadius;
+            // BottomLeftRadius = cornerRadius;
+            // BottomRightRadius = cornerRadius;
         }
 
         /// <summary>
@@ -215,10 +220,8 @@ namespace CatUI.Data.Shapes
             Dimension2 bottomLeftEllipse,
             Dimension2 bottomRightEllipse)
         {
-            TopLeftEllipse = topLeftEllipse;
-            TopRightEllipse = topRightEllipse;
-            BottomLeftEllipse = bottomLeftEllipse;
-            BottomRightEllipse = bottomRightEllipse;
+            RoundCornersDescriptor =
+                new CornerInset(topLeftEllipse, topRightEllipse, bottomRightEllipse, bottomLeftEllipse);
         }
 
         /// <summary>
@@ -227,10 +230,11 @@ namespace CatUI.Data.Shapes
         /// <param name="ellipticalCornerRadius">The radius for all corners.</param>
         public RoundedRectangleClipShape(Dimension2 ellipticalCornerRadius)
         {
-            TopLeftEllipse = ellipticalCornerRadius;
-            TopRightEllipse = ellipticalCornerRadius;
-            BottomLeftEllipse = ellipticalCornerRadius;
-            BottomRightEllipse = ellipticalCornerRadius;
+            RoundCornersDescriptor = new CornerInset(ellipticalCornerRadius);
+            // TopLeftEllipse = ellipticalCornerRadius;
+            // TopRightEllipse = ellipticalCornerRadius;
+            // BottomLeftEllipse = ellipticalCornerRadius;
+            // BottomRightEllipse = ellipticalCornerRadius;
         }
 
         /// <inheritdoc cref="ClipShape.IsPointInside"/>
@@ -264,21 +268,40 @@ namespace CatUI.Data.Shapes
                 switch (i)
                 {
                     case 0:
-                        isElliptical = TopLeftRadius.IsUnset();
-                        width = GetSmallWidth(TopLeftRadius, TopLeftEllipse, bounds, contentScale, viewportSize);
+                        isElliptical = RoundCornersDescriptor.TopLeftRadius.IsUnset();
+                        width = GetSmallWidth(
+                            RoundCornersDescriptor.TopLeftRadius,
+                            RoundCornersDescriptor.TopLeftEllipse,
+                            bounds,
+                            contentScale,
+                            viewportSize);
                         break;
                     case 1:
-                        isElliptical = TopRightRadius.IsUnset();
-                        width = GetSmallWidth(TopRightRadius, TopRightEllipse, bounds, contentScale, viewportSize);
+                        isElliptical = RoundCornersDescriptor.TopRightRadius.IsUnset();
+                        width = GetSmallWidth(
+                            RoundCornersDescriptor.TopRightRadius,
+                            RoundCornersDescriptor.TopRightEllipse,
+                            bounds,
+                            contentScale,
+                            viewportSize);
                         break;
                     case 2:
-                        isElliptical = BottomRightRadius.IsUnset();
-                        width = GetSmallWidth(BottomRightRadius, BottomRightEllipse, bounds, contentScale,
+                        isElliptical = RoundCornersDescriptor.BottomRightRadius.IsUnset();
+                        width = GetSmallWidth(
+                            RoundCornersDescriptor.BottomRightRadius,
+                            RoundCornersDescriptor.BottomRightEllipse,
+                            bounds,
+                            contentScale,
                             viewportSize);
                         break;
                     case 3:
-                        isElliptical = BottomLeftRadius.IsUnset();
-                        width = GetSmallWidth(BottomLeftRadius, BottomLeftEllipse, bounds, contentScale, viewportSize);
+                        isElliptical = RoundCornersDescriptor.BottomLeftRadius.IsUnset();
+                        width = GetSmallWidth(
+                            RoundCornersDescriptor.BottomLeftRadius,
+                            RoundCornersDescriptor.BottomLeftEllipse,
+                            bounds,
+                            contentScale,
+                            viewportSize);
                         break;
                 }
 
@@ -288,17 +311,35 @@ namespace CatUI.Data.Shapes
                 switch (i)
                 {
                     case 0:
-                        height = GetSmallHeight(TopLeftRadius, TopLeftEllipse, bounds, contentScale, viewportSize);
+                        height = GetSmallHeight(
+                            RoundCornersDescriptor.TopLeftRadius,
+                            RoundCornersDescriptor.TopLeftEllipse,
+                            bounds,
+                            contentScale,
+                            viewportSize);
                         break;
                     case 1:
-                        height = GetSmallHeight(TopRightRadius, TopRightEllipse, bounds, contentScale, viewportSize);
+                        height = GetSmallHeight(
+                            RoundCornersDescriptor.TopRightRadius,
+                            RoundCornersDescriptor.TopRightEllipse,
+                            bounds,
+                            contentScale,
+                            viewportSize);
                         break;
                     case 2:
-                        height = GetSmallHeight(BottomRightRadius, BottomRightEllipse, bounds, contentScale,
+                        height = GetSmallHeight(
+                            RoundCornersDescriptor.BottomRightRadius,
+                            RoundCornersDescriptor.BottomRightEllipse,
+                            bounds,
+                            contentScale,
                             viewportSize);
                         break;
                     case 3:
-                        height = GetSmallHeight(BottomLeftRadius, BottomLeftEllipse, bounds, contentScale,
+                        height = GetSmallHeight(
+                            RoundCornersDescriptor.BottomLeftRadius,
+                            RoundCornersDescriptor.BottomLeftEllipse,
+                            bounds,
+                            contentScale,
                             viewportSize);
                         break;
                 }
@@ -381,34 +422,50 @@ namespace CatUI.Data.Shapes
             roundRect.SetRectRadii(
                 bounds,
                 [
-                    TopLeftRadius.IsUnset()
+                    RoundCornersDescriptor.TopLeftRadius.IsUnset()
                         ? new SKPoint(
-                            TopLeftEllipse.X.CalculateDimension(bounds.Width, contentScale, viewportSize),
-                            TopLeftEllipse.Y.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                            RoundCornersDescriptor.TopLeftEllipse.X.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize),
+                            RoundCornersDescriptor.TopLeftEllipse.Y.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize))
                         : new SKPoint(
-                            TopLeftRadius.CalculateDimension(bounds.Width, contentScale, viewportSize),
-                            TopLeftRadius.CalculateDimension(bounds.Width, contentScale, viewportSize)),
-                    TopRightRadius.IsUnset()
+                            RoundCornersDescriptor.TopLeftRadius.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize),
+                            RoundCornersDescriptor.TopLeftRadius.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize)),
+                    RoundCornersDescriptor.TopRightRadius.IsUnset()
                         ? new SKPoint(
-                            TopRightEllipse.X.CalculateDimension(bounds.Width, contentScale, viewportSize),
-                            TopRightEllipse.Y.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                            RoundCornersDescriptor.TopRightEllipse.X.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize),
+                            RoundCornersDescriptor.TopRightEllipse.Y.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize))
                         : new SKPoint(
-                            TopRightRadius.CalculateDimension(bounds.Width, contentScale, viewportSize),
-                            TopRightRadius.CalculateDimension(bounds.Width, contentScale, viewportSize)),
-                    BottomRightRadius.IsUnset()
+                            RoundCornersDescriptor.TopRightRadius.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize),
+                            RoundCornersDescriptor.TopRightRadius.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize)),
+                    RoundCornersDescriptor.BottomRightRadius.IsUnset()
                         ? new SKPoint(
-                            BottomRightEllipse.X.CalculateDimension(bounds.Width, contentScale, viewportSize),
-                            BottomRightEllipse.Y.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                            RoundCornersDescriptor.BottomRightEllipse.X.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize),
+                            RoundCornersDescriptor.BottomRightEllipse.Y.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize))
                         : new SKPoint(
-                            BottomRightRadius.CalculateDimension(bounds.Width, contentScale, viewportSize),
-                            BottomRightRadius.CalculateDimension(bounds.Width, contentScale, viewportSize)),
-                    BottomLeftRadius.IsUnset()
+                            RoundCornersDescriptor.BottomRightRadius.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize),
+                            RoundCornersDescriptor.BottomRightRadius.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize)),
+                    RoundCornersDescriptor.BottomLeftRadius.IsUnset()
                         ? new SKPoint(
-                            BottomLeftEllipse.X.CalculateDimension(bounds.Width, contentScale, viewportSize),
-                            BottomLeftEllipse.Y.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                            RoundCornersDescriptor.BottomLeftEllipse.X.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize),
+                            RoundCornersDescriptor.BottomLeftEllipse.Y.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize))
                         : new SKPoint(
-                            BottomLeftRadius.CalculateDimension(bounds.Width, contentScale, viewportSize),
-                            BottomLeftRadius.CalculateDimension(bounds.Width, contentScale, viewportSize))
+                            RoundCornersDescriptor.BottomLeftRadius.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize),
+                            RoundCornersDescriptor.BottomLeftRadius.CalculateDimension(
+                                bounds.Width, contentScale, viewportSize))
                 ]);
 
             SKPath path = new();
@@ -497,17 +554,7 @@ namespace CatUI.Data.Shapes
 
         public override RoundedRectangleClipShape Duplicate()
         {
-            return new RoundedRectangleClipShape
-            {
-                TopLeftEllipse = TopLeftEllipse,
-                TopRightEllipse = TopRightEllipse,
-                BottomLeftEllipse = BottomLeftEllipse,
-                BottomRightEllipse = BottomRightEllipse,
-                TopLeftRadius = TopLeftRadius,
-                TopRightRadius = TopRightRadius,
-                BottomLeftRadius = BottomLeftRadius,
-                BottomRightRadius = BottomRightRadius
-            };
+            return new RoundedRectangleClipShape { RoundCornersDescriptor = RoundCornersDescriptor.Duplicate() };
         }
     }
 }

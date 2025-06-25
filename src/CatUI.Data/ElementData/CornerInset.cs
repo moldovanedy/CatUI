@@ -1,4 +1,7 @@
-﻿namespace CatUI.Data.ElementData
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
+namespace CatUI.Data.ElementData
 {
     /// <summary>
     /// A set of offsets in each of the 4 rectangle corners: top-left, top-right, bottom-right, bottom-left.
@@ -6,7 +9,7 @@
     /// <remarks>
     /// This is generally used for corner radius.
     /// </remarks>
-    public class CornerInset
+    public class CornerInset : INotifyPropertyChanged
     {
         /// <summary>
         /// Represents the radius of the top-left corner. Default is <see cref="Dimension.Unset"/> or 0. Setting this
@@ -22,6 +25,7 @@
                 if (value != Dimension.Unset)
                 {
                     _topLeftEllipse = Dimension2.Unset;
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -42,6 +46,7 @@
                 if (value != Dimension.Unset)
                 {
                     _topRightEllipse = Dimension2.Unset;
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -62,6 +67,7 @@
                 if (value != Dimension.Unset)
                 {
                     _bottomLeftEllipse = Dimension2.Unset;
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -82,6 +88,7 @@
                 if (value != Dimension.Unset)
                 {
                     _bottomRightEllipse = Dimension2.Unset;
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -103,6 +110,7 @@
                 if (value != Dimension2.Unset)
                 {
                     _topLeftRadius = Dimension.Unset;
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -124,6 +132,7 @@
                 if (value != Dimension2.Unset)
                 {
                     _topRightRadius = Dimension.Unset;
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -145,6 +154,7 @@
                 if (value != Dimension2.Unset)
                 {
                     _bottomLeftRadius = Dimension.Unset;
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -166,11 +176,14 @@
                 if (value != Dimension2.Unset)
                 {
                     _bottomRightRadius = Dimension.Unset;
+                    NotifyPropertyChanged();
                 }
             }
         }
 
         private Dimension2 _bottomRightEllipse = Dimension2.Unset;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
         /// If true, it means that at least one of the corners has a value that is NOT 0.
@@ -282,6 +295,11 @@
                 BottomLeftRadius = BottomLeftRadius,
                 BottomRightRadius = BottomRightRadius
             };
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
