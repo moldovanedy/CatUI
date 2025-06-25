@@ -31,9 +31,12 @@ namespace CatUI.Elements.Shapes
 
         private ObjectRef<RectangleElement>? _ref;
 
+        public override ClipShape CorrespondingClipShape { get; }
+
         public RectangleElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
+            CorrespondingClipShape = new RectangleClipShape();
         }
 
         /// <summary>
@@ -55,6 +58,8 @@ namespace CatUI.Elements.Shapes
                 new ElementLayout()
                     .SetFixedWidth(Math.Abs(rectDescriptor.Width))
                     .SetFixedHeight(Math.Abs(rectDescriptor.Height));
+
+            CorrespondingClipShape = new RectangleClipShape();
         }
 
         protected override void DrawBackground()

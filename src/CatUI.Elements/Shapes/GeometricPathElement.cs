@@ -48,6 +48,10 @@ namespace CatUI.Elements.Shapes
 
         private ObjectRef<GeometricPathElement>? _ref;
 
+        public override ClipShape CorrespondingClipShape => _clipShape;
+
+        private readonly ClipShape _clipShape;
+
         private SKPath _skiaPath = new();
 
         /// <summary>
@@ -73,6 +77,11 @@ namespace CatUI.Elements.Shapes
         private void SetShouldApplyScaling(bool value)
         {
             _shouldApplyScaling = value;
+            if (_clipShape is PathClipShape pathClipShape)
+            {
+                pathClipShape.ShouldApplyScaling = value;
+            }
+
             SetLocalValue(nameof(ShouldApplyScaling), value);
             MarkLayoutDirty();
         }
@@ -119,6 +128,11 @@ namespace CatUI.Elements.Shapes
                 PathCache.CacheNewPath(_skiaPath);
             }
 
+            if (_clipShape is PathClipShape pathClipShape)
+            {
+                pathClipShape.SvgPath = _svgPath;
+            }
+
             SetLocalValue(nameof(SvgPath), value);
             MarkLayoutDirty();
         }
@@ -130,6 +144,7 @@ namespace CatUI.Elements.Shapes
             SvgPathProperty.ValueChangedEvent += SetSvgPath;
 
             SvgPath = svgPath;
+            _clipShape = new PathClipShape();
         }
 
         //~GeometricPathElement()
@@ -160,6 +175,11 @@ namespace CatUI.Elements.Shapes
             PathCache.RemovePath(_skiaPath);
             _skiaPath = path;
             PathCache.CacheNewPath(_skiaPath);
+
+            if (_clipShape is PathClipShape pathClipShape)
+            {
+                pathClipShape.SetNewSkiaPath(path);
+            }
         }
 
         /// <summary>
@@ -171,6 +191,11 @@ namespace CatUI.Elements.Shapes
             PathCache.RemovePath(_skiaPath);
             _skiaPath = SKPath.ParseSvgPathData(svgPath);
             PathCache.CacheNewPath(_skiaPath);
+
+            if (_clipShape is PathClipShape pathClipShape)
+            {
+                pathClipShape.SvgPath = svgPath;
+            }
         }
 
         protected override void DrawBackground()

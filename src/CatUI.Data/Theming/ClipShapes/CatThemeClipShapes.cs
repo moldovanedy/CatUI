@@ -164,7 +164,7 @@ namespace CatUI.Data.Theming.ClipShapes
             RoundedRectangleClipShape originalShape,
             AsymmetryDirection direction)
         {
-            Dimension radius = originalShape.TopLeftRadius;
+            Dimension radius = originalShape.RoundCornersDescriptor.TopLeftRadius;
 
             switch (direction)
             {

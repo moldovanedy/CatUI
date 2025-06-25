@@ -31,9 +31,12 @@ namespace CatUI.Elements.Shapes
 
         private ObjectRef<EllipseElement>? _ref;
 
+        public override ClipShape CorrespondingClipShape { get; }
+
         public EllipseElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
+            CorrespondingClipShape = new EllipseClipShape();
         }
 
         /// <summary>
@@ -60,6 +63,7 @@ namespace CatUI.Elements.Shapes
 
             Position = new Dimension2(centerPoint.X - radiusX, centerPoint.Y - radiusY);
             Layout = new ElementLayout().SetFixedWidth(radiusX * 2f).SetFixedHeight(radiusY * 2f);
+            CorrespondingClipShape = new EllipseClipShape();
         }
 
         protected override void DrawBackground()

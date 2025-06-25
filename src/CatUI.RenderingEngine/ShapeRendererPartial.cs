@@ -169,16 +169,16 @@ namespace CatUI.RenderingEngine
             {
                 if (roundedCorners.TopRightRadius.IsUnset())
                 {
-                    radii[0] = new SKPoint(0, 0);
+                    radii[1] = new SKPoint(0, 0);
                 }
                 else
                 {
-                    radii[0] = new SKPoint(roundedCorners.TopRightRadius.Value, roundedCorners.TopRightRadius.Value);
+                    radii[1] = new SKPoint(roundedCorners.TopRightRadius.Value, roundedCorners.TopRightRadius.Value);
                 }
             }
             else
             {
-                radii[0] =
+                radii[1] =
                     new SKPoint(
                         roundedCorners.TopRightEllipse.X.Value,
                         roundedCorners.TopRightEllipse.Y.Value);
@@ -188,17 +188,17 @@ namespace CatUI.RenderingEngine
             {
                 if (roundedCorners.BottomRightRadius.IsUnset())
                 {
-                    radii[0] = new SKPoint(0, 0);
+                    radii[2] = new SKPoint(0, 0);
                 }
                 else
                 {
-                    radii[0] = new SKPoint(roundedCorners.BottomRightRadius.Value,
+                    radii[2] = new SKPoint(roundedCorners.BottomRightRadius.Value,
                         roundedCorners.BottomRightRadius.Value);
                 }
             }
             else
             {
-                radii[0] =
+                radii[2] =
                     new SKPoint(
                         roundedCorners.BottomRightEllipse.X.Value,
                         roundedCorners.BottomRightEllipse.Y.Value);
@@ -208,17 +208,17 @@ namespace CatUI.RenderingEngine
             {
                 if (roundedCorners.BottomLeftRadius.IsUnset())
                 {
-                    radii[0] = new SKPoint(0, 0);
+                    radii[3] = new SKPoint(0, 0);
                 }
                 else
                 {
-                    radii[0] = new SKPoint(roundedCorners.BottomLeftRadius.Value,
+                    radii[3] = new SKPoint(roundedCorners.BottomLeftRadius.Value,
                         roundedCorners.BottomLeftRadius.Value);
                 }
             }
             else
             {
-                radii[0] =
+                radii[3] =
                     new SKPoint(
                         roundedCorners.BottomLeftEllipse.X.Value,
                         roundedCorners.BottomLeftEllipse.Y.Value);

@@ -1,5 +1,6 @@
 using CatUI.Data;
 using CatUI.Data.Brushes;
+using CatUI.Data.Shapes;
 
 namespace CatUI.Elements.Shapes
 {
@@ -9,6 +10,12 @@ namespace CatUI.Elements.Shapes
     /// </summary>
     public abstract class AbstractShapeElement : Element
     {
+        /// <summary>
+        /// Will return the clip shape that has the same properties of this shape.
+        /// </summary>
+        /// <returns></returns>
+        public abstract ClipShape CorrespondingClipShape { get; }
+
         /// <summary>
         /// The "brush" used to fill the shape. A brush contains information like the color to use, if it can use an image
         /// as fill etc. The default value is a <see cref="ColorBrush"/> that has a completely transparent color,
