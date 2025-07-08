@@ -120,7 +120,7 @@ namespace CatUI.Elements.Buttons
         /// it's much more common for it to be a <see cref="TextBlock"/>.
         /// </summary>
         /// <remarks>
-        /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
+        /// To see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
         /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
         /// <see cref="InternalRowContainer"/>.
         /// </remarks>
@@ -203,34 +203,49 @@ namespace CatUI.Elements.Buttons
         private readonly IfElement _defaultIndicatorElement =
             new(
                 new ObservableProperty<bool>(false),
-                new EllipseElement(outlineBrush: new ColorBrush(new Color(0)))
+                new RoundedRectangleElement(
+                    new ColorBrush(new Color(0x00_80_ff)),
+                    new ColorBrush(new Color(0)))
                 {
                     StyleClass = "SwitchButton::Indicator::Active::Outer",
+                    RoundCornersDescriptor = new CornerInset(1000),
                     Position = new Dimension2(1, 1),
-                    Layout = new ElementLayout().SetFixedWidth(18).SetFixedHeight(18),
+                    Layout = new ElementLayout().SetFixedWidth(33).SetFixedHeight(18),
                     OutlineParameters = new OutlineParams(2f),
                     ClipType = ClipApplicability.HitTesting,
                     Children =
                     [
-                        new EllipseElement(outlineBrush: new ColorBrush(new Color(0x00_80_ff)))
+                        new EllipseElement(outlineBrush: new ColorBrush(new Color(0xbd_bd_bd)))
                         {
                             StyleClass = "SwitchButton::Indicator::Active::Inner",
-                            Position = new Dimension2(4, 4),
-                            Layout = new ElementLayout().SetFixedWidth(10).SetFixedHeight(10),
-                            OutlineParameters = new OutlineParams(5f),
+                            Position = new Dimension2(20, 5),
+                            Layout = new ElementLayout().SetFixedWidth(8).SetFixedHeight(8),
+                            OutlineParameters = new OutlineParams(9f),
                             ClipType = ClipApplicability.HitTesting
                         }
                     ]
                 },
-                new EllipseElement(outlineBrush: new ColorBrush(new Color(0)))
+                new RoundedRectangleElement(outlineBrush: new ColorBrush(new Color(0)))
                 {
                     StyleClass = "SwitchButton::Indicator::Inactive::Outer",
+                    RoundCornersDescriptor = new CornerInset(1000),
                     Position = new Dimension2(1, 1),
-                    Layout = new ElementLayout().SetFixedWidth(18).SetFixedHeight(18),
+                    Layout = new ElementLayout().SetFixedWidth(33).SetFixedHeight(18),
                     OutlineParameters = new OutlineParams(2f),
-                    ClipType = ClipApplicability.HitTesting
+                    ClipType = ClipApplicability.HitTesting,
+                    Children =
+                    [
+                        new EllipseElement(outlineBrush: new ColorBrush(new Color(0xbd_bd_bd)))
+                        {
+                            StyleClass = "SwitchButton::Indicator::Inactive::Inner",
+                            Position = new Dimension2(4, 5),
+                            Layout = new ElementLayout().SetFixedWidth(8).SetFixedHeight(8),
+                            OutlineParameters = new OutlineParams(9f),
+                            ClipType = ClipApplicability.HitTesting
+                        }
+                    ]
                 }
-            ) { Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20) };
+            ) { Layout = new ElementLayout().SetFixedWidth(35).SetFixedHeight(20) };
 
         /// <summary>
         /// The base constructor. Will create a new switch button given an Element as <see cref="TextElement"/> and
@@ -260,7 +275,7 @@ namespace CatUI.Elements.Buttons
                 Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
                 VerticalAlignment = VerticalAlignmentType.Center,
                 //we need to have at least one child, as IndicatorElement will access index 0 (this will be replaced
-                //when IndicatorElement are set, immediately in this constructor)
+                //when IndicatorElement is set, immediately in this constructor)
                 Children = [new Element()]
             };
 

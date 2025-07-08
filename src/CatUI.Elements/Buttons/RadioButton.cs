@@ -196,12 +196,11 @@ namespace CatUI.Elements.Buttons
                     ClipType = ClipApplicability.HitTesting,
                     Children =
                     [
-                        new EllipseElement(outlineBrush: new ColorBrush(new Color(0x00_80_ff)))
+                        new EllipseElement(new ColorBrush(new Color(0x00_80_ff)))
                         {
                             StyleClass = "RadioButton::Indicator::Active::Inner",
-                            Position = new Dimension2(4, 4),
-                            Layout = new ElementLayout().SetFixedWidth(10).SetFixedHeight(10),
-                            OutlineParameters = new OutlineParams(5f),
+                            Position = new Dimension2(2, 2),
+                            Layout = new ElementLayout().SetFixedWidth(14).SetFixedHeight(14),
                             ClipType = ClipApplicability.HitTesting
                         }
                     ]

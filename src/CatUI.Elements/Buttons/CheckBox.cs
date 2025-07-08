@@ -224,7 +224,6 @@ namespace CatUI.Elements.Buttons
                 },
                 new RectangleElement(outlineBrush: new ColorBrush(new Color(0)))
                 {
-                    Id = "Element1",
                     StyleClass = "CheckBox::Indicator::Indeterminate::Outer",
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                     OutlineParameters = new OutlineParams(2f),
