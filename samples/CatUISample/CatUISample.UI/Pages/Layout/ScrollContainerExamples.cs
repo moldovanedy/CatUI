@@ -22,7 +22,7 @@ namespace CatUISample.UI.Pages.Layout
             [
                 new TextBlock("ScrollContainer examples", TextAlignmentType.Center)
                 {
-                    Layout = new ElementLayout().SetMinMaxWidth(0, "100%", true),
+                    Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
                     FontSize = 32,
                     TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                 },

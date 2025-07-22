@@ -281,8 +281,8 @@ namespace CatUI.Elements.Containers.Scroll
             InternalScrollTrackElement = new Element
             {
                 Layout = scrollOrientation == Orientation.Horizontal
-                    ? new ElementLayout().SetFixedHeight("100%").SetMinMaxWidth(0, "100%", true)
-                    : new ElementLayout().SetFixedWidth("100%").SetMinMaxHeight(0, "100%", true),
+                    ? new ElementLayout().SetFixedHeight("100%").SetMinMaxAndPreferredWidth("100%", 0, "100%")
+                    : new ElementLayout().SetFixedWidth("100%").SetMinMaxAndPreferredHeight("100%", 0, "100%"),
                 ElementContainerSizing = scrollOrientation == Orientation.Horizontal
                     ? new RowContainerSizing()
                     : new ColumnContainerSizing(),

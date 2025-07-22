@@ -371,3 +371,6 @@ FodyWeavers.xsd
 # Documentation output
 docs/_site/
 docs/api/
+
+# KDE personalization
+.directory

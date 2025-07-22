@@ -182,8 +182,8 @@ namespace CatUI.Elements
         protected Size GetDirectSizeUtil(Size parentPreferredSize, Size parentMaxSize)
         {
             ElementLayout layout = _layout ?? new ElementLayout();
-            Dimension? abstractWidth = layout.GetSuggestedWidth();
-            Dimension? abstractHeight = layout.GetSuggestedHeight();
+            Dimension? abstractWidth = layout.PreferredWidth;
+            Dimension? abstractHeight = layout.PreferredHeight;
 
             float width;
             Dimension minWidth = layout.MinWidth ?? Dimension.Unset;
@@ -199,30 +199,6 @@ namespace CatUI.Elements
                 default:
                 case ElementLayout.LayoutMode.Fixed:
                     width = CalculateDimension(setWidth, parentPreferredSize.Width);
-                    break;
-                case ElementLayout.LayoutMode.MinMax:
-                    if (layout.PrefersMaxWidth)
-                    {
-                        //ensure max is not smaller than min
-                        width = Math.Max(
-                            minWidth.IsUnset()
-                                ? float.MinValue
-                                : CalculateDimension(minWidth, parentPreferredSize.Width),
-                            //ensure the max width is not larger than the parent max width
-                            Math.Min(
-                                CalculateDimension(setWidth, parentPreferredSize.Width),
-                                maxAllowedSize.Width));
-                    }
-                    else
-                    {
-                        //ensure min is not larger than max
-                        width = Math.Min(
-                            CalculateDimension(setWidth, parentPreferredSize.Width),
-                            maxWidth.IsUnset()
-                                ? float.MaxValue
-                                : CalculateDimension(maxWidth, parentPreferredSize.Width));
-                    }
-
                     break;
                 case ElementLayout.LayoutMode.MinMaxAndPreferred:
                     float min =
@@ -242,6 +218,9 @@ namespace CatUI.Elements
                             Math.Min(
                                 CalculateDimension(maxWidth, parentPreferredSize.Width),
                                 maxAllowedSize.Width);
+
+                        //ensure max is not smaller than min
+                        max = Math.Max(max, min);
                     }
 
                     width = Math.Clamp(
@@ -259,30 +238,6 @@ namespace CatUI.Elements
                 default:
                 case ElementLayout.LayoutMode.Fixed:
                     height = CalculateDimension(setHeight, parentPreferredSize.Height);
-                    break;
-                case ElementLayout.LayoutMode.MinMax:
-                    if (layout.PrefersMaxHeight)
-                    {
-                        //ensure max is not smaller than min
-                        height = Math.Max(
-                            minHeight.IsUnset()
-                                ? float.MinValue
-                                : CalculateDimension(minHeight, parentPreferredSize.Height),
-                            //ensure the max height is not larger than the parent max height
-                            Math.Min(
-                                CalculateDimension(setHeight, parentPreferredSize.Height),
-                                maxAllowedSize.Height));
-                    }
-                    else
-                    {
-                        //ensure min is not larger than max
-                        height = Math.Min(
-                            CalculateDimension(setHeight, parentPreferredSize.Height),
-                            maxHeight.IsUnset()
-                                ? float.MaxValue
-                                : CalculateDimension(maxHeight, parentPreferredSize.Height));
-                    }
-
                     break;
                 case ElementLayout.LayoutMode.MinMaxAndPreferred:
                     float min =
@@ -302,6 +257,9 @@ namespace CatUI.Elements
                             Math.Min(
                                 CalculateDimension(maxHeight, parentPreferredSize.Height),
                                 maxAllowedSize.Height);
+
+                        //ensure max is not smaller than min
+                        max = Math.Max(max, min);
                     }
 
                     height = Math.Clamp(

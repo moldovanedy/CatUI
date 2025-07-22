@@ -39,7 +39,7 @@ namespace CatUISample.UI
                     Ref = navigatorRef,
                     Layout =
                         new ElementLayout()
-                            .SetMinMaxWidth(0, Dimension.Unset, true)
+                            .SetMinMaxAndPreferredWidth(Dimension.Unset, 0, Dimension.Unset)
                             .SetFixedHeight("100%"),
                     ElementContainerSizing = new RowContainerSizing()
                 }
