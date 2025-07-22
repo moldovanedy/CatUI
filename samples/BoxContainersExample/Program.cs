@@ -14,7 +14,7 @@ namespace BoxContainersExample
         {
             Init();
 
-            DesktopWindow window = new DesktopWindow(
+            var window = new DesktopWindow(
                 900,
                 600,
                 "BoxContainers example",
@@ -33,7 +33,9 @@ namespace BoxContainersExample
                 },
                 new RectangleElement
                 {
-                    Layout = new ElementLayout().SetFixedWidth("100%").SetMinMaxHeight(250, Dimension.Unset),
+                    Layout =
+                        new ElementLayout().SetFixedWidth("100%")
+                                           .SetMinMaxAndPreferredHeight(250, 250, Dimension.Unset),
                     FillBrush = new ColorBrush(new Color(0x75_75_75)),
                     ElementContainerSizing = new ColumnContainerSizing()
                 },

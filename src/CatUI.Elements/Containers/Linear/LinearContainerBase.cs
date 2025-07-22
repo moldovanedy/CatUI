@@ -149,8 +149,8 @@ namespace CatUI.Elements.Containers.Linear
 
                 Dimension childPrefDimension =
                     (ContainerOrientation == Orientation.Horizontal
-                        ? childLayout.GetSuggestedWidth()
-                        : childLayout.GetSuggestedHeight()) ?? Dimension.Unset;
+                        ? childLayout.PreferredWidth
+                        : childLayout.PreferredHeight) ?? Dimension.Unset;
 
                 Dimension childMinDimension =
                     GetChildMinDimension(
@@ -197,8 +197,8 @@ namespace CatUI.Elements.Containers.Linear
                 float maxDim = ContainerOrientation == Orientation.Horizontal ? thisMaxSize.Width : thisMaxSize.Height;
                 bool isMinMax =
                     ContainerOrientation == Orientation.Horizontal
-                        ? layout.WidthMode == ElementLayout.LayoutMode.MinMax
-                        : layout.HeightMode == ElementLayout.LayoutMode.MinMax;
+                        ? layout.WidthMode == ElementLayout.LayoutMode.MinMaxAndPreferred
+                        : layout.HeightMode == ElementLayout.LayoutMode.MinMaxAndPreferred;
 
                 //when it does NOT enter if, the whole content can fit and there's still space left, making it easy
                 //to respect the position of the content
@@ -343,9 +343,9 @@ namespace CatUI.Elements.Containers.Linear
                 else
                 {
                     float declaredWidth =
-                        CalculateDimension(childLayout.GetSuggestedWidth() ?? Dimension.Unset, thisSize.Width);
+                        CalculateDimension(childLayout.PreferredWidth ?? Dimension.Unset, thisSize.Width);
                     float declaredHeight =
-                        CalculateDimension(childLayout.GetSuggestedHeight() ?? Dimension.Unset, thisSize.Height);
+                        CalculateDimension(childLayout.PreferredHeight ?? Dimension.Unset, thisSize.Height);
                     Size actualSize;
 
                     if (canRespectPositioning || !needsForcedShrinking)
@@ -434,8 +434,8 @@ namespace CatUI.Elements.Containers.Linear
             //(finalContainerDim), otherwise respect the layout fixed size
             bool respectsComputedFinalDim =
                 ContainerOrientation == Orientation.Horizontal
-                    ? layout.WidthMode != ElementLayout.LayoutMode.Fixed && !layout.PrefersMaxWidth
-                    : layout.HeightMode != ElementLayout.LayoutMode.Fixed && !layout.PrefersMaxHeight;
+                    ? layout.WidthMode != ElementLayout.LayoutMode.Fixed
+                    : layout.HeightMode != ElementLayout.LayoutMode.Fixed;
 
             float finalMaxLayoutDim =
                 ContainerOrientation == Orientation.Horizontal
@@ -449,8 +449,8 @@ namespace CatUI.Elements.Containers.Linear
 
             bool respectsComputedOppositeDim =
                 ContainerOrientation == Orientation.Horizontal
-                    ? layout.HeightMode != ElementLayout.LayoutMode.Fixed && !layout.PrefersMaxHeight
-                    : layout.WidthMode != ElementLayout.LayoutMode.Fixed && !layout.PrefersMaxWidth;
+                    ? layout.HeightMode != ElementLayout.LayoutMode.Fixed
+                    : layout.WidthMode != ElementLayout.LayoutMode.Fixed;
 
             float oppositeMaxLayoutDim =
                 ContainerOrientation == Orientation.Horizontal
@@ -524,23 +524,6 @@ namespace CatUI.Elements.Containers.Linear
                     default:
                     case ElementLayout.LayoutMode.Fixed:
                         return childPrefDimension;
-                    case ElementLayout.LayoutMode.MinMax:
-                        if (layout.PrefersMaxWidth)
-                        {
-                            //it considers the element as a growing element
-                            isConsideredGrowing = true;
-
-                            //if the max dimension is unset, it means the element will be able to stretch infinitely,
-                            //so there's no point calculating the max dimension
-                            if ((layout.MaxHeight ?? Dimension.Unset).IsUnset())
-                            {
-                                canContainerRespectPositioning = false;
-                            }
-
-                            return layout.MinWidth ?? Dimension.Unset;
-                        }
-
-                        return childPrefDimension;
                     case ElementLayout.LayoutMode.MinMaxAndPreferred:
                         return layout.MinWidth ?? Dimension.Unset;
                 }
@@ -551,23 +534,6 @@ namespace CatUI.Elements.Containers.Linear
                 {
                     default:
                     case ElementLayout.LayoutMode.Fixed:
-                        return childPrefDimension;
-                    case ElementLayout.LayoutMode.MinMax:
-                        if (layout.PrefersMaxHeight)
-                        {
-                            //it considers the element as a growing element
-                            isConsideredGrowing = true;
-
-                            //if the max dimension is unset, it means the element will be able to stretch infinitely,
-                            //so there's no point calculating the max dimension
-                            if ((layout.MaxHeight ?? Dimension.Unset).IsUnset())
-                            {
-                                canContainerRespectPositioning = false;
-                            }
-
-                            return layout.MinHeight ?? Dimension.Unset;
-                        }
-
                         return childPrefDimension;
                     case ElementLayout.LayoutMode.MinMaxAndPreferred:
                         return layout.MinHeight ?? Dimension.Unset;

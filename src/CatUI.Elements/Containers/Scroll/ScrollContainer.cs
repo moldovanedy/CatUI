@@ -384,8 +384,8 @@ namespace CatUI.Elements.Containers.Scroll
                                         Ref = internalContentWrapperRef,
                                         Layout =
                                             new ElementLayout()
-                                                .SetMinMaxWidth("100%", Dimension.Unset)
-                                                .SetMinMaxHeight("100%", Dimension.Unset)
+                                                .SetMinMaxAndPreferredWidth("100%", "100%", Dimension.Unset)
+                                                .SetMinMaxAndPreferredHeight("100%", "100%", Dimension.Unset)
                                     }
                                 ]
                             },

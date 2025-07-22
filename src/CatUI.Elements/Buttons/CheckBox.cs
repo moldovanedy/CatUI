@@ -315,8 +315,8 @@ namespace CatUI.Elements.Buttons
                     TextBrush = textBrush ?? new ColorBrush(new Color(0)),
                     Layout =
                         new ElementLayout()
-                            .SetMinMaxHeight(0, "100%")
-                            .SetMinMaxWidth(0, "100%", true),
+                            .SetMinMaxAndPreferredHeight(0, 0, "100%")
+                            .SetMinMaxAndPreferredWidth("100%", 0, "100%"),
                     ElementContainerSizing = new RowContainerSizing(1f, VerticalAlignmentType.Center)
                 }
             )

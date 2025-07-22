@@ -29,7 +29,7 @@ namespace CatUISample.UI.Pages.UiElements
                         [
                             new TextBlock("Buttons examples", TextAlignmentType.Center)
                             {
-                                Layout = new ElementLayout().SetMinMaxWidth(0, "100%", true),
+                                Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
                                 FontSize = 32,
                                 TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                             },
@@ -41,7 +41,7 @@ namespace CatUISample.UI.Pages.UiElements
                             {
                                 Layout =
                                     new ElementLayout()
-                                        .SetMinMaxWidth(100, "100%", true)
+                                        .SetMinMaxAndPreferredWidth("100%", 100, "100%")
                                         .SetFixedHeight(20)
                             },
                             new RadioButton(
@@ -52,7 +52,7 @@ namespace CatUISample.UI.Pages.UiElements
                             {
                                 Layout =
                                     new ElementLayout()
-                                        .SetMinMaxWidth(100, "100%", true)
+                                        .SetMinMaxAndPreferredWidth("100%", 100, "100%")
                                         .SetFixedHeight(20)
                             },
                             new SwitchButton(
@@ -63,7 +63,7 @@ namespace CatUISample.UI.Pages.UiElements
                             {
                                 Layout =
                                     new ElementLayout()
-                                        .SetMinMaxWidth(100, "100%", true)
+                                        .SetMinMaxAndPreferredWidth("100%", 100, "100%")
                                         .SetFixedHeight(20)
                             }
                         ]
