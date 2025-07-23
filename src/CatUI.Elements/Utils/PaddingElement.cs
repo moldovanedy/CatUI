@@ -70,11 +70,6 @@ namespace CatUI.Elements.Utils
             Padding = padding;
         }
 
-        //~PaddingElement()
-        //{
-        //    PaddingProperty = null!;
-        //}
-
         public override Size RecomputeLayout(
             Size parentSize,
             Size parentMaxSize,
@@ -143,13 +138,61 @@ namespace CatUI.Elements.Utils
                 UpdatePositionOfChildren(this, offset);
             }
 
-            Bounds = new Rect(
-                parentAbsolutePosition.X,
-                parentAbsolutePosition.Y,
-                contentBounds.Width + (x - parentAbsolutePosition.X) + pRight,
-                contentBounds.Height + (y - parentAbsolutePosition.Y) + pBottom);
+            Bounds = new Rect(x, y, contentBounds.Width, contentBounds.Height);
             return thisSize;
         }
+
+        /*
+        protected override void OnChildLayoutChanged(object? sender, ChildLayoutChangedEventArgs e)
+        {
+            if (IsChildOfContainer)
+            {
+                MarkLayoutDirty();
+                return;
+            }
+
+            GetParentLayoutMetrics(out Size parentSize, out Size parentMaxSize, out Point2D parentAbsolutePosition);
+
+            float pLeft = CalculateDimension(_padding.Left, parentSize.Width);
+            float pTop = CalculateDimension(_padding.Top, parentSize.Height);
+            float pRight = CalculateDimension(_padding.Right, parentSize.Width);
+            float pBottom = CalculateDimension(_padding.Bottom, parentSize.Height);
+
+            float x = parentAbsolutePosition.X + Math.Min(parentSize.Width / 2f, pLeft);
+            float y = parentAbsolutePosition.Y + Math.Min(parentSize.Height / 2f, pTop);
+            // float width = parentSize.Width - pLeft - Math.Min(parentSize.Width / 2f, pRight);
+            // float height = parentSize.Height - pTop - Math.Min(parentSize.Height / 2f, pBottom);
+
+            //Point2D absolutePosition = GetAbsolutePositionUtil(parentAbsolutePosition, parentSize);
+            Size thisSize = GetDirectSizeUtil(parentSize, parentMaxSize);
+            Size thisMaxSize = GetMaxSizeUtil(parentSize);
+
+            Point2D absolutePosition = new(x, y);
+            thisSize = new Size(
+                Math.Max(thisSize.Width - pLeft - Math.Min(parentSize.Width / 2f, pRight), 0),
+                Math.Max(thisSize.Height - pTop - Math.Min(parentSize.Height / 2f, pBottom), 0));
+            thisMaxSize = new Size(
+                Math.Max(thisMaxSize.Width - pLeft - Math.Min(parentSize.Width / 2f, pRight), 0),
+                Math.Max(thisMaxSize.Height - pTop - Math.Min(parentSize.Height / 2f, pBottom), 0));
+
+            if (e.ChildIndex >= Children.Count)
+            {
+                return;
+            }
+
+            Children[e.ChildIndex].RecomputeLayout(thisSize, thisMaxSize, absolutePosition);
+            Rect previousBounds = Bounds;
+            Bounds = Rect.GetCommonBoundingRect(Bounds, Children[e.ChildIndex].Bounds);
+
+            if (Math.Abs(previousBounds.X - Bounds.X) > 0.01 ||
+                Math.Abs(previousBounds.Y - Bounds.Y) > 0.01 ||
+                Math.Abs(previousBounds.Width - Bounds.Width) > 0.01 ||
+                Math.Abs(previousBounds.Height - Bounds.Height) > 0.01)
+            {
+                MarkLayoutDirty();
+            }
+        }
+        */
 
         public override PaddingElement Duplicate()
         {

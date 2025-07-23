@@ -19,6 +19,7 @@ namespace CatUISample.UI.Pages.UiElements
 
             Content = new PaddingElement(new EdgeInset(0, 5))
             {
+                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                 Children =
                 [
                     new ColumnContainer
