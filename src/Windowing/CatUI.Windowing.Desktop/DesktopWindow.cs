@@ -94,6 +94,9 @@ namespace CatUI.Windowing.Desktop
         private GLFWCallbacks.MouseButtonCallback? _mouseButtonCallback;
         private GLFWCallbacks.ScrollCallback? _mouseScrollCallback;
 
+        private GLFWCallbacks.KeyCallback? _keyCallback;
+        private GLFWCallbacks.CharCallback? _charCallback;
+
         private float _lastMouseX;
         private float _lastMouseY;
         private bool _canInvokeMaximize = true;
@@ -706,6 +709,9 @@ namespace CatUI.Windowing.Desktop
             GLFW.SwapInterval(SwapInterval);
             GL.LoadBindings(new GLFWBindingsContext());
 #endif
+
+            //this is set so we know when Caps Lock and Num Lock were pressed through the key callbacks
+            GLFW.SetInputMode(GlfwWindow, LockKeyModAttribute.LockKeyMods, true);
 
             RegisterCallbacks();
             DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);

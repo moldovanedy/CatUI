@@ -1,10 +1,13 @@
 using CatUI.Data;
+using CatUI.Data.Enums;
 using CatUI.Data.Events.Input;
+using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
 using CatUI.Windowing.Common;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using KeyModifiers = CatUI.Data.Enums.KeyModifiers;
 
 namespace CatUI.Windowing.Desktop
 {
@@ -12,6 +15,8 @@ namespace CatUI.Windowing.Desktop
     {
         private void RegisterCallbacks()
         {
+            #region Window managing
+
             _resizeCallback = (_, newWidth, newHeight) =>
             {
                 ResizedEvent?.Invoke(
@@ -81,6 +86,11 @@ namespace CatUI.Windowing.Desktop
                 }
             };
             GLFW.SetWindowRefreshCallback(GlfwWindow, _refreshCallback);
+
+            #endregion
+
+
+            #region Cursor events
 
             _cursorMoveCallback = (_, posX, posY) =>
             {
@@ -190,6 +200,35 @@ namespace CatUI.Windowing.Desktop
                         0));
             };
             GLFW.SetScrollCallback(GlfwWindow, _mouseScrollCallback);
+
+            #endregion
+
+
+            #region Keyboard events
+
+            _keyCallback = (_, key, scancode, action, modifiers) =>
+            {
+                // string actionString =
+                //     action switch
+                //     {
+                //         InputAction.Press => "Pressed",
+                //         InputAction.Release => "Release",
+                //         _ => "Repeat"
+                //     };
+                // CatLogger.LogDebug($"Key: {key}, {actionString}, Modifiers: {modifiers}");
+
+                Document.SimulatePhysicalKeyEvent(
+                    KeyEventDispatcher(key, scancode, action, modifiers));
+            };
+            GLFW.SetKeyCallback(GlfwWindow, _keyCallback);
+
+            _charCallback = (_, codepoint) =>
+            {
+                Document.SimulateCharacterTyped(new CharTypedEventArgs((char)codepoint));
+            };
+            GLFW.SetCharCallback(GlfwWindow, _charCallback);
+
+            #endregion
         }
 
         private void UnregisterCallbacks()
@@ -224,6 +263,160 @@ namespace CatUI.Windowing.Desktop
 
             _mouseScrollCallback = null;
             GLFW.SetScrollCallback(GlfwWindow, null);
+
+            _keyCallback = null;
+            GLFW.SetKeyCallback(GlfwWindow, null);
+
+            _charCallback = null;
+            GLFW.SetCharModsCallback(GlfwWindow, null);
+        }
+
+        private KeyEventArgs KeyEventDispatcher(
+            Keys key,
+            int scancode,
+            InputAction action,
+            OpenTK.Windowing.GraphicsLibraryFramework.KeyModifiers modifiers)
+        {
+            PhysicalKey physicalKey = key == Keys.Unknown ? PhysicalKey.Unknown : (PhysicalKey)key;
+            var keyAction = (KeyAction)action;
+            var keyModifiers = KeyModifiers.None;
+
+            //we want to override GLFW's behavior of putting the key itself in the modifiers on release,
+            //but we need to make sure the other modifier key for the same function (e.g. Left Shift, Right Shift)
+            //is not already pressed
+            //if (keyAction == KeyAction.Released && physicalKey.IsModifierKey())
+            if (physicalKey.IsModifierKey())
+            {
+                // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+                switch (physicalKey)
+                {
+                    //if this key is released, but the equivalent on the other side is not, then we include
+                    //the modifier, otherwise not; for single modifiers, we simply don't include the modifier (as it
+                    //is this one and is being released)
+                    case PhysicalKey.LeftShift
+                        when GLFW.GetKey(GlfwWindow, Keys.RightShift) != InputAction.Release:
+                    case PhysicalKey.RightShift
+                        when GLFW.GetKey(GlfwWindow, Keys.LeftShift) != InputAction.Release:
+                        keyModifiers = KeyModifiers.Shift;
+                        break;
+                    case PhysicalKey.LeftControl
+                        when GLFW.GetKey(GlfwWindow, Keys.RightControl) != InputAction.Release:
+                    case PhysicalKey.RightControl
+                        when GLFW.GetKey(GlfwWindow, Keys.LeftControl) != InputAction.Release:
+                        keyModifiers = KeyModifiers.Control;
+                        break;
+                    case PhysicalKey.LeftAlt
+                        when GLFW.GetKey(GlfwWindow, Keys.RightAlt) != InputAction.Release:
+                    case PhysicalKey.RightAlt
+                        when GLFW.GetKey(GlfwWindow, Keys.LeftAlt) != InputAction.Release:
+                        keyModifiers = KeyModifiers.Alt;
+                        break;
+                    case PhysicalKey.LeftSuper
+                        when GLFW.GetKey(GlfwWindow, Keys.RightSuper) != InputAction.Release:
+                    case PhysicalKey.RightSuper
+                        when GLFW.GetKey(GlfwWindow, Keys.LeftSuper) != InputAction.Release:
+                        keyModifiers = KeyModifiers.Super;
+                        break;
+                }
+            }
+
+            //if it is the same modifier as the one from GLFW, we skip it because we treated this case above 
+            if (
+                (modifiers & OpenTK.Windowing.GraphicsLibraryFramework.KeyModifiers.Shift) != 0
+             && physicalKey != PhysicalKey.LeftShift && physicalKey != PhysicalKey.RightShift)
+            {
+                keyModifiers |= KeyModifiers.Shift;
+            }
+
+            if (
+                (modifiers & OpenTK.Windowing.GraphicsLibraryFramework.KeyModifiers.Control) != 0
+             && physicalKey != PhysicalKey.LeftControl && physicalKey != PhysicalKey.RightControl)
+            {
+                keyModifiers |= KeyModifiers.Control;
+            }
+
+            if (
+                (modifiers & OpenTK.Windowing.GraphicsLibraryFramework.KeyModifiers.Alt) != 0
+             && physicalKey != PhysicalKey.LeftAlt && physicalKey != PhysicalKey.RightAlt)
+            {
+                keyModifiers |= KeyModifiers.Alt;
+            }
+
+            if (
+                (modifiers & OpenTK.Windowing.GraphicsLibraryFramework.KeyModifiers.Super) != 0
+             && physicalKey != PhysicalKey.LeftSuper && physicalKey != PhysicalKey.RightSuper)
+            {
+                keyModifiers |= KeyModifiers.Super;
+            }
+
+            if (
+                (modifiers & OpenTK.Windowing.GraphicsLibraryFramework.KeyModifiers.CapsLock) != 0
+             && physicalKey != PhysicalKey.CapsLock)
+            {
+                keyModifiers |= KeyModifiers.CapsLock;
+            }
+
+            if (
+                (modifiers & OpenTK.Windowing.GraphicsLibraryFramework.KeyModifiers.NumLock) != 0
+             && physicalKey != PhysicalKey.NumLock)
+            {
+                keyModifiers |= KeyModifiers.NumLock;
+            }
+
+            Keys translatedGlfwKey = TranslateGlfwKey(key, scancode);
+            PhysicalKey translatedKey =
+                translatedGlfwKey == Keys.Unknown
+                    ? PhysicalKey.Unknown
+                    : (PhysicalKey)translatedGlfwKey;
+            return new KeyEventArgs(translatedKey, physicalKey, keyModifiers, keyAction);
+        }
+
+        /// <summary>
+        /// GLFW standardizes the keys by default, so it uses the US ANSI 104 keyboard layout. We try to translate
+        /// these keys so that it uses the user's keyboard layout, very useful for shortcuts.
+        /// </summary>
+        /// <param name="glfwKey"></param>
+        /// <param name="scancode"></param>
+        /// <returns></returns>
+        private static Keys TranslateGlfwKey(Keys glfwKey, int scancode)
+        {
+            if (glfwKey >= Keys.KeyPad0 && glfwKey <= Keys.KeyPadEqual)
+            {
+                return glfwKey;
+            }
+
+            string? keyName = GLFW.GetKeyName(glfwKey, scancode);
+            // ReSharper disable once MergeIntoNegatedPattern
+            if (keyName == null || keyName.Length != 1)
+            {
+                return glfwKey;
+            }
+
+            const string charNames = "`-=[]\\,;\'./";
+            Keys[] charGlfwKeys =
+            [
+                Keys.GraveAccent, Keys.Minus, Keys.Equal, Keys.LeftBracket, Keys.RightBracket, Keys.Backslash,
+                Keys.Comma, Keys.Semicolon, Keys.Apostrophe, Keys.Period, Keys.Slash
+            ];
+
+            char pressedChar = keyName[0];
+            switch (pressedChar)
+            {
+                case >= '0' and <= '9':
+                    return Keys.D0 + (pressedChar - '0');
+                case >= 'A' and <= 'Z':
+                    return Keys.A + (pressedChar - 'A');
+                case >= 'a' and <= 'z':
+                    return Keys.A + (pressedChar - 'a');
+            }
+
+            int charIdx = charNames.IndexOf(pressedChar);
+            if (charIdx > 0 && charIdx < charNames.Length)
+            {
+                return charGlfwKeys[charIdx];
+            }
+
+            return glfwKey;
         }
 
 

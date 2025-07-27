@@ -2,6 +2,7 @@ using System;
 using CatUI.Data;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Input;
+using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
 
 namespace CatUI.Elements
@@ -52,6 +53,24 @@ namespace CatUI.Elements
         /// that as well for scrolling (it's <see cref="MouseWheelEventArgs.DeltaX"/>).
         /// </remarks>
         public event MouseWheelEventHandler? MouseWheelEvent;
+
+        /// <summary>
+        /// Fired when a key on a keyboard (virtual or physical) was pressed, released, or held down for some time
+        /// (this will be a repeating event) while the window has focus. Unlike <see cref="CharTypedEvent"/> this
+        /// actually uses physical keys on the keyboard rather than text. However, for text input, you should
+        /// always use <see cref="CharTypedEvent"/>.
+        /// </summary>
+        public event KeyEventHandler? KeyEvent;
+
+        /// <summary>
+        /// Fired when the user types in a character. This is different from <see cref="KeyEvent"/>, as this is only
+        /// for text input.
+        /// </summary>
+        /// <remarks>
+        /// On some keyboards, you need multiple keystrokes to generate a single character, so this is preferred over
+        /// the key events for text input, but not for keyboard shortcuts.
+        /// </remarks>
+        public event CharTypedEventHandler? CharTypedEvent;
 
         #endregion
 
@@ -145,6 +164,32 @@ namespace CatUI.Elements
         }
 
         private MouseWheelEventHandler? _onMouseWheel;
+
+        public KeyEventHandler? OnKeyEvent
+        {
+            get => _onKeyEvent;
+            set
+            {
+                KeyEvent -= _onKeyEvent;
+                _onKeyEvent = value;
+                KeyEvent += _onKeyEvent;
+            }
+        }
+
+        private KeyEventHandler? _onKeyEvent;
+
+        public CharTypedEventHandler? OnCharTyped
+        {
+            get => _onCharTyped;
+            set
+            {
+                CharTypedEvent -= _onCharTyped;
+                _onCharTyped = value;
+                CharTypedEvent += _onCharTyped;
+            }
+        }
+
+        private CharTypedEventHandler? _onCharTyped;
 
         /// <summary>
         /// If true, will bypass the checks on pointer exiting so it can fire events needed when an event is cancelled.
@@ -659,6 +704,74 @@ namespace CatUI.Elements
         protected void FireMouseWheel(MouseWheelEventArgs elementArgs)
         {
             MouseWheelEvent?.Invoke(this, elementArgs);
+        }
+
+        protected internal virtual void CheckInvokeKeyEvent(KeyEventArgs e)
+        {
+            if (!IsCurrentlyEnabled)
+            {
+                return;
+            }
+
+            //TODO: this should only be invoked on the currently focused element and its ascendants (up until the root) 
+
+            // int i = Children.Count - 1;
+            // while (i >= 0)
+            // {
+            //     Children[i].CheckInvokeKeyEvent(e);
+            //     i--;
+            // }
+
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
+            var elementArgs = new KeyEventArgs(e);
+            FireKeyEvent(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
+        }
+
+        protected void FireKeyEvent(KeyEventArgs elementArgs)
+        {
+            KeyEvent?.Invoke(this, elementArgs);
+        }
+
+        protected internal virtual void CheckInvokeCharTyped(CharTypedEventArgs e)
+        {
+            if (!IsCurrentlyEnabled)
+            {
+                return;
+            }
+
+            int i = Children.Count - 1;
+            while (i >= 0)
+            {
+                Children[i].CheckInvokeCharTyped(e);
+                i--;
+            }
+
+            if (e.IsPropagationStopped)
+            {
+                return;
+            }
+
+            var elementArgs = new CharTypedEventArgs(e);
+            FireCharTyped(elementArgs);
+
+            if (elementArgs.IsPropagationStopped)
+            {
+                e.StopPropagation();
+            }
+        }
+
+        protected void FireCharTyped(CharTypedEventArgs elementArgs)
+        {
+            CharTypedEvent?.Invoke(this, elementArgs);
         }
 
 

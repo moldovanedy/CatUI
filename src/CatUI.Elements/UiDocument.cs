@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using CatUI.Data;
 using CatUI.Data.ElementData;
+using CatUI.Data.Enums;
 using CatUI.Data.Events.Input;
+using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
 using CatUI.RenderingEngine;
@@ -20,7 +23,7 @@ namespace CatUI.Elements
     public class UiDocument
     {
         /// <summary>
-        /// Fired when the pointer (generally mouse cursor or finger) is moved, either by the user, by the platform
+        /// Fired when the pointer (generally mouse cursor or finger) is moved, either by the user, by the platform,
         /// or by your app. The position is always relative to the top-left corner of the client area of the window
         /// (this means that any kind of window decoration will NOT be taken into account).
         /// </summary>
@@ -78,8 +81,26 @@ namespace CatUI.Elements
         /// </summary>
         public event MouseWheelEventHandler? MouseWheelEvent;
 
-        //GLFW already caches this state, but it's probably more efficient to get it from here instead of constantly
-        //calling GLFW functions.
+        /// <summary>
+        /// Fired when a key on a keyboard (virtual or physical) was pressed, released, or held down for some time
+        /// (this will be a repeating event) while the window has focus. Unlike <see cref="CharTypedEvent"/> this
+        /// actually uses physical keys on the keyboard rather than text. However, for text input, you should
+        /// always use <see cref="CharTypedEvent"/>.
+        /// </summary>
+        public event KeyEventHandler? KeyEvent;
+
+        /// <summary>
+        /// Fired when the user types in a character. This is different from <see cref="KeyEvent"/>, as this is only
+        /// for text input.
+        /// </summary>
+        /// <remarks>
+        /// On some keyboards, you need multiple keystrokes to generate a single character, so this is preferred over
+        /// the key events for text input, but not for keyboard shortcuts.
+        /// </remarks>
+        public event CharTypedEventHandler? CharTypedEvent;
+
+        //GLFW already caches mouse buttons state, but it's probably more efficient to get it from here instead
+        //of constantly calling GLFW functions.
 
         /// <summary>
         /// Represents a bitmap of all the pressed buttons of the mouse. Do NOT convert directly to a
@@ -92,7 +113,24 @@ namespace CatUI.Elements
         /// </example>
         public MouseButtonType PressedMouseButtons { get; private set; }
 
+        /// <summary>
+        /// Represents a bitmap of all the pressed key modifiers (like "Ctrl", "Alt", etc.). Does not take into account
+        /// whether the left key, the right key, or both keys were pressed (for modifiers that have 2 keys for the same
+        /// function).
+        /// </summary>
+        /// <example>
+        /// ((PressedKeyModifiers &amp; KeyModifiers.Shift) != 0) is true if one of the "Shift" keys is pressed,
+        /// false otherwise.
+        /// </example>
+        public KeyModifiers PressedKeyModifiers { get; private set; }
+
         private int _mousePointerId = -1;
+
+        /// <summary>
+        /// From least significant bits: bit 0 is left "Shift", bit 1 is right "Shift", bit 2-3 for left/right "Ctrl",
+        /// bit 4-5 for left/right "Alt", bit 6-7 for left/right "Super", bit 8 for "Caps Lock", bit 9 for "Num Lock".
+        /// </summary>
+        private int _keyModifiersBitmap;
 
         /// <summary>
         /// Represents the active pointer dictionary. Remember that the IDs are not always given in the order of presses,
@@ -531,6 +569,108 @@ namespace CatUI.Elements
             Root?.CheckInvokeMouseWheel(e);
         }
 
+        /// <summary>
+        /// Simulates a physical key event inside the document. This will always fire <see cref="KeyEvent"/>
+        /// on the document.
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulatePhysicalKeyEvent(KeyEventArgs e)
+        {
+            if (e.Key.IsModifierKey())
+            {
+                int mask = 0;
+                // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+                switch (e.Key)
+                {
+                    case PhysicalKey.LeftShift:
+                        mask |= 1 << 0;
+                        break;
+                    case PhysicalKey.RightShift:
+                        mask |= 1 << 1;
+                        break;
+                    case PhysicalKey.LeftControl:
+                        mask |= 1 << 2;
+                        break;
+                    case PhysicalKey.RightControl:
+                        mask |= 1 << 3;
+                        break;
+                    case PhysicalKey.LeftAlt:
+                        mask |= 1 << 4;
+                        break;
+                    case PhysicalKey.RightAlt:
+                        mask |= 1 << 5;
+                        break;
+                    case PhysicalKey.LeftSuper:
+                        mask |= 1 << 6;
+                        break;
+                    case PhysicalKey.RightSuper:
+                        mask |= 1 << 7;
+                        break;
+                    case PhysicalKey.CapsLock:
+                        mask |= 1 << 8;
+                        break;
+                    case PhysicalKey.NumLock:
+                        mask |= 1 << 9;
+                        break;
+                    default:
+#if DEBUG
+                        CatLogger.LogError($"Unexpected modifier key: {e.Key}.");
+#endif
+                        return;
+                }
+
+                if (e.Action == KeyAction.Released)
+                {
+                    _keyModifiersBitmap &= ~mask;
+                }
+                else
+                {
+                    _keyModifiersBitmap |= mask;
+                }
+
+                UpdateModifierState(KeyModifiers.Shift, 0);
+                UpdateModifierState(KeyModifiers.Control, 2);
+                UpdateModifierState(KeyModifiers.Alt, 4);
+                UpdateModifierState(KeyModifiers.Super, 6);
+                UpdateModifierState(KeyModifiers.CapsLock, 7, 1);
+                UpdateModifierState(KeyModifiers.NumLock, 8, 1);
+            }
+
+            KeyEvent?.Invoke(this, e);
+            Root?.CheckInvokeKeyEvent(e);
+
+            //TESTS: 
+            // CatLogger.LogDebug($"Key: {e.Key}, US key: {e.RawKey}, {e.Action}, Modifiers: {e.Modifiers}");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void UpdateModifierState(KeyModifiers modifier, int offset, int bitCount = 2)
+        {
+            int mask = bitCount == 1 ? 1 << offset : 0b11 << offset;
+            PressedKeyModifiers = (_keyModifiersBitmap & mask) == 0
+                ? PressedKeyModifiers & ~modifier
+                : PressedKeyModifiers | modifier;
+        }
+
+        /// <summary>
+        /// Simulates a text character input inside the document. This will always fire <see cref="CharTypedEvent"/>
+        /// on the document.
+        /// </summary>
+        /// <remarks>
+        /// This does not interact with the platform, so it's only possible to use it inside your application, not to
+        /// interact with any other user applications. Any event is simply a simulation inside your app window.
+        /// </remarks>
+        /// <param name="e">The event arguments.</param>
+        public void SimulateCharacterTyped(CharTypedEventArgs e)
+        {
+            CharTypedEvent?.Invoke(this, e);
+            Root?.CheckInvokeCharTyped(e);
+        }
+
         #endregion //Artificial events
 
         #region Pointer capture
@@ -778,7 +918,7 @@ namespace CatUI.Elements
             Detached = 0,
 
             /// <summary>
-            /// The most important state: the app has focus, is visible to the user and can work normally.
+            /// The most important state: the app has focus, is visible to the user, and can work normally.
             /// </summary>
             Active = 1,
 
