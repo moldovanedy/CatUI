@@ -4,8 +4,8 @@ using CatUI.Data.ElementData;
 namespace CatUI.Elements.Behaviors
 {
     /// <summary>
-    /// An element that implements this interface has a configurable content padding by default. Only use this on
-    /// elements that will usually have padding (i.e. where not having a padding is uncommon) like buttons. 
+    /// An element that implements this interface has configurable content padding by default. Only use this on
+    /// elements that will usually have padding (i.e. where not having padding is uncommon) like buttons. 
     /// </summary>
     public interface IPaddingAware
     {

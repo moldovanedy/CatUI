@@ -9,6 +9,7 @@ using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
+using CatUI.Elements.DocumentManagers;
 using CatUI.RenderingEngine;
 using CatUI.Utils;
 
@@ -185,6 +186,7 @@ namespace CatUI.Elements
         private Size _viewportSize = new();
 
         public Renderer Renderer { get; }
+        public FocusManager FocusManager { get; }
 
         public Color BackgroundColor
         {
@@ -309,6 +311,7 @@ namespace CatUI.Elements
         {
             _window = window;
             Renderer = new Renderer();
+            FocusManager = new FocusManager(this);
             ContentScale = initialContentScale;
             ViewportSize = new Size(
                 initialViewportSize.Width * initialContentScale,

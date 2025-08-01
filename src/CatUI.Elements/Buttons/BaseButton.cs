@@ -8,7 +8,7 @@ using CatUI.Utils;
 
 namespace CatUI.Elements.Buttons
 {
-    public class BaseButton : Element, IClickable
+    public class BaseButton : Element, IClickable, IFocusable
     {
         public const string STATE_DISABLED = "disabled";
 
@@ -58,25 +58,61 @@ namespace CatUI.Elements.Buttons
 
         private ClickEventHandler? _onClick;
 
+
+        #region Focus
+
+        public IFocusable? NextFocusableElement { get; set; }
+        public IFocusable? PreviousFocusableElement { get; set; }
+
+        public void OnFocusStateChanged(bool hasEnteredFocus)
+        {
+            FocusChangedEvent?.Invoke(this, hasEnteredFocus);
+        }
+
+        public bool IsFocusEnabled
+        {
+            get => _isFocusEnabled;
+            set => IsFocusEnabledProperty.Value = value;
+        }
+
+        private bool _isFocusEnabled = true;
+        public ObservableProperty<bool> IsFocusEnabledProperty { get; } = new(true);
+
+        private void SetIsFocusEnabled(bool value)
+        {
+            _isFocusEnabled = value;
+            SetLocalValue(nameof(IsFocusEnabled), value);
+        }
+
+        public event FocusChangedEventHandler? FocusChangedEvent;
+
+        public FocusChangedEventHandler? OnFocusChanged
+        {
+            get => _onFocusChanged;
+            set
+            {
+                FocusChangedEvent -= _onFocusChanged;
+                _onFocusChanged = value;
+                FocusChangedEvent += _onFocusChanged;
+            }
+        }
+
+        private FocusChangedEventHandler? _onFocusChanged;
+
+        #endregion
+
         private bool _isDown;
 
         public BaseButton()
         {
             CanUserCancelClickProperty.ValueChangedEvent += SetCanUserCancelClick;
+            IsFocusEnabledProperty.ValueChangedEvent += SetIsFocusEnabled;
             PointerDownEvent += PrivatePointerDown;
             PointerUpEvent += PrivatePointerUp;
         }
 
-        //~BaseButton()
-        //{
-        //    ClickEvent = null;
-        //    CanUserCancelClickProperty = null!;
-
-        //    PointerDownEvent -= PrivatePointerDown;
-        //    PointerUpEvent -= PrivatePointerUp;
-        //}
-
         public virtual void Click(object sender, ClickEventArgs e) { }
+        public void FocusChanged(object sender, FocusChangedEventHandler e) { }
 
         public override Element Duplicate()
         {

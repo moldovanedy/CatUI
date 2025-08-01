@@ -1,5 +1,9 @@
 namespace CatUI.Elements.Behaviors
 {
+    /// <summary>
+    /// An element that implements this interface can be toggled on/off, also it can be in the <see cref="STATE_ACTIVE"/>
+    /// <see cref="Element.State"/>.
+    /// </summary>
     public interface IToggleable
     {
         /// <summary>
