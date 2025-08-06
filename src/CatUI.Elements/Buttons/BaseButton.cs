@@ -109,6 +109,7 @@ namespace CatUI.Elements.Buttons
             IsFocusEnabledProperty.ValueChangedEvent += SetIsFocusEnabled;
             PointerDownEvent += PrivatePointerDown;
             PointerUpEvent += PrivatePointerUp;
+            ClickEvent += PrivateClick;
         }
 
         public virtual void Click(object sender, ClickEventArgs e) { }
@@ -154,6 +155,11 @@ namespace CatUI.Elements.Buttons
             }
 
             ClickEvent?.Invoke(this, new ClickEventArgs(e.Position, e.AbsolutePosition));
+        }
+
+        private void PrivateClick(object sender, ClickEventArgs e)
+        {
+            this.GrabFocus();
         }
     }
 }

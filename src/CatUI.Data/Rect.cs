@@ -115,6 +115,12 @@ namespace CatUI.Data
             return new Rect(x, y, endX - x, endY - y);
         }
 
+        /// <summary>
+        /// Get the overlapping area between two rects. Returns <see cref="Empty"/> if no overlap is found.
+        /// </summary>
+        /// <param name="rect1"></param>
+        /// <param name="rect2"></param>
+        /// <returns></returns>
         public static Rect GetIntersectingRect(ref Rect rect1, ref Rect rect2)
         {
             if (DoRectsIntersect(ref rect1, ref rect2))
@@ -130,6 +136,12 @@ namespace CatUI.Data
             return Empty;
         }
 
+        /// <summary>
+        /// Returns true if the rects intersect/overlap.
+        /// </summary>
+        /// <param name="rect1"></param>
+        /// <param name="rect2"></param>
+        /// <returns></returns>
         public static bool DoRectsIntersect(ref Rect rect1, ref Rect rect2)
         {
             if (rect2.X >= rect1.EndX)

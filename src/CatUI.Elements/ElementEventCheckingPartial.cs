@@ -4,6 +4,7 @@ using CatUI.Data.Enums;
 using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
+using CatUI.Elements.DocumentManagers;
 
 namespace CatUI.Elements
 {
@@ -706,33 +707,25 @@ namespace CatUI.Elements
             MouseWheelEvent?.Invoke(this, elementArgs);
         }
 
+        /// <summary>
+        /// Note that this will always use <see cref="FocusManager.CurrentlyFocusedElement"/> as the target, not
+        /// the current element. If there is no focused element, this will return immediately, having no effect.
+        /// </summary>
+        /// <param name="e"></param>
         protected internal virtual void CheckInvokeKeyEvent(KeyEventArgs e)
         {
-            if (!IsCurrentlyEnabled)
+            var currentElement = Document?.FocusManager.CurrentlyFocusedElement as Element;
+            while (currentElement != null)
             {
-                return;
-            }
+                var elementArgs = new KeyEventArgs(e);
+                currentElement.FireKeyEvent(elementArgs);
 
-            //TODO: this should only be invoked on the currently focused element and its ascendants (up until the root) 
+                if (elementArgs.IsPropagationStopped)
+                {
+                    return;
+                }
 
-            // int i = Children.Count - 1;
-            // while (i >= 0)
-            // {
-            //     Children[i].CheckInvokeKeyEvent(e);
-            //     i--;
-            // }
-
-            if (e.IsPropagationStopped)
-            {
-                return;
-            }
-
-            var elementArgs = new KeyEventArgs(e);
-            FireKeyEvent(elementArgs);
-
-            if (elementArgs.IsPropagationStopped)
-            {
-                e.StopPropagation();
+                currentElement = currentElement.GetParent();
             }
         }
 
@@ -741,31 +734,25 @@ namespace CatUI.Elements
             KeyEvent?.Invoke(this, elementArgs);
         }
 
+        /// <summary>
+        /// Note that this will always use <see cref="FocusManager.CurrentlyFocusedElement"/> as the target, not
+        /// the current element. If there is no focused element, this will return immediately, having no effect.
+        /// </summary>
+        /// <param name="e"></param>
         protected internal virtual void CheckInvokeCharTyped(CharTypedEventArgs e)
         {
-            if (!IsCurrentlyEnabled)
+            var currentElement = Document?.FocusManager.CurrentlyFocusedElement as Element;
+            while (currentElement != null)
             {
-                return;
-            }
+                var elementArgs = new CharTypedEventArgs(e);
+                currentElement.FireCharTyped(elementArgs);
 
-            int i = Children.Count - 1;
-            while (i >= 0)
-            {
-                Children[i].CheckInvokeCharTyped(e);
-                i--;
-            }
+                if (elementArgs.IsPropagationStopped)
+                {
+                    return;
+                }
 
-            if (e.IsPropagationStopped)
-            {
-                return;
-            }
-
-            var elementArgs = new CharTypedEventArgs(e);
-            FireCharTyped(elementArgs);
-
-            if (elementArgs.IsPropagationStopped)
-            {
-                e.StopPropagation();
+                currentElement = currentElement.GetParent();
             }
         }
 

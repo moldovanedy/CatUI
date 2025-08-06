@@ -26,8 +26,15 @@ namespace CatUI.Elements.Behaviors
         /// <see cref="FocusableExtensions.GrabFocus"/>.
         /// </summary>
         /// <remarks>
-        /// If the element is disabled (<see cref="Element.IsCurrentlyEnabled"/> is false), then the element can't
-        /// have focus, so it takes precedence over this property.
+        /// <para>
+        /// If the element is disabled or invisible (<see cref="Element.IsCurrentlyEnabled"/> or
+        /// <see cref="Element.IsCurrentlyVisible"/> is false), then the element can't have focus, so it takes
+        /// precedence over this property.
+        /// </para>
+        /// <para>
+        /// This only affects the current element, not its descendants. Its descendants can still be focused even if
+        /// this property is false.
+        /// </para>
         /// </remarks>
         public bool IsFocusEnabled { get; set; }
 
@@ -76,6 +83,12 @@ namespace CatUI.Elements.Behaviors
 
     public static class FocusableExtensions
     {
+        /// <summary>
+        /// Will make the given element to receive focus by "stealing" the focus of another element. This should be
+        /// called only by the implementing element itself when it receives focus, but can also be called to explicitly
+        /// give focus to an element.
+        /// </summary>
+        /// <param name="element"></param>
         public static void GrabFocus(this IFocusable element)
         {
             if (element is not Element directElement)
@@ -86,6 +99,12 @@ namespace CatUI.Elements.Behaviors
             directElement.Document?.FocusManager.ElementWantsFocus(element);
         }
 
+        /// <summary>
+        /// This will make the element to lose focus, but no other element will get focus unless by calling
+        /// <see cref="GrabFocus"/>, either manually or automatically by a user action. You should generally avoid
+        /// calling this function, as it might impose accessibility issues to users that rely on keyboard navigation.
+        /// </summary>
+        /// <param name="element"></param>
         public static void ReleaseFocus(this IFocusable element)
         {
             if (element is not Element directElement)

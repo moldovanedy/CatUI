@@ -643,6 +643,20 @@ namespace CatUI.Elements
                 UpdateModifierState(KeyModifiers.NumLock, 8, 1);
             }
 
+            //TODO: configurable shortcuts
+            if (e.Key == PhysicalKey.Tab && e.Action == KeyAction.Released)
+            {
+                //if it's JUST Shift, no other modifier
+                if (e.Modifiers == KeyModifiers.Shift)
+                {
+                    FocusManager.UserWantsPreviousFocusable();
+                }
+                else
+                {
+                    FocusManager.UserWantsNextFocusable();
+                }
+            }
+
             KeyEvent?.Invoke(this, e);
             Root?.CheckInvokeKeyEvent(e);
 
