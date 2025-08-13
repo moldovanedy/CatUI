@@ -28,5 +28,13 @@ namespace CatUI.Elements.Behaviors
         public ClickEventHandler? OnClick { get; set; }
 
         public void Click(object sender, ClickEventArgs e);
+
+        /// <summary>
+        /// This will be fired by the document when the element is focused and the user triggered the "select" action
+        /// (usually by pressing Enter on the keyboard). Normally this should automatically trigger the
+        /// <see cref="ClickEvent"/>, but some elements like text fields might perform a different action.
+        /// Don't call this in UI code, as it will be called by the document!
+        /// </summary>
+        public void FocusedSelectActionTriggered();
     }
 }

@@ -944,8 +944,7 @@ namespace CatUI.Elements
 
         private void InternalOnPointerUp(object sender, PointerUpEventArgs e)
         {
-            Rect bounds = Bounds;
-            State = Rect.IsPointInside(ref bounds, e.AbsolutePosition) ? STATE_HOVER : STATE_NORMAL;
+            State = Rect.IsPointInside(Bounds, e.AbsolutePosition) ? STATE_HOVER : STATE_NORMAL;
         }
 
         #endregion //Internal event handlers

@@ -66,6 +66,7 @@ namespace CatUI.Elements.Buttons
 
         public void OnFocusStateChanged(bool hasEnteredFocus)
         {
+            (this as IFocusable).SetFocusedStateUtility(hasEnteredFocus);
             FocusChangedEvent?.Invoke(this, hasEnteredFocus);
         }
 
@@ -113,7 +114,20 @@ namespace CatUI.Elements.Buttons
         }
 
         public virtual void Click(object sender, ClickEventArgs e) { }
-        public void FocusChanged(object sender, FocusChangedEventHandler e) { }
+        public virtual void FocusChanged(object sender, FocusChangedEventHandler e) { }
+
+        /// <inheritdoc cref="IClickable.FocusedSelectActionTriggered"/>
+        /// <remarks>
+        /// For this BaseButton, this will trigger a <see cref="ClickEvent"/> with <see cref="ClickEventArgs"/> that
+        /// have the position set as 0, while <see cref="ClickEventArgs.AbsolutePosition"/> will be the top-left
+        /// point of the element.
+        /// </remarks>
+        public void FocusedSelectActionTriggered()
+        {
+            ClickEvent?.Invoke(
+                this,
+                new ClickEventArgs(Point2D.Zero, new Point2D(Bounds.X, Bounds.Y)));
+        }
 
         public override Element Duplicate()
         {

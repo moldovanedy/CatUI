@@ -773,15 +773,14 @@ namespace CatUI.Elements
         /// </returns>
         protected bool IsPointerInside(AbstractPointerEventArgs e)
         {
-            Rect bounds = Bounds;
             if (ClipPath != null && (ClipType & ClipApplicability.HitTesting) != 0)
             {
                 return
                     Document != null &&
-                    ClipPath.IsPointInside(e.AbsolutePosition, bounds, Document.ContentScale, Document.ViewportSize);
+                    ClipPath.IsPointInside(e.AbsolutePosition, Bounds, Document.ContentScale, Document.ViewportSize);
             }
 
-            return Rect.IsPointInside(ref bounds, e.AbsolutePosition);
+            return Rect.IsPointInside(Bounds, e.AbsolutePosition);
         }
     }
 }

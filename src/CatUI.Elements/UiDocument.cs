@@ -9,6 +9,7 @@ using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
+using CatUI.Elements.Behaviors;
 using CatUI.Elements.DocumentManagers;
 using CatUI.RenderingEngine;
 using CatUI.Utils;
@@ -655,6 +656,14 @@ namespace CatUI.Elements
                 {
                     FocusManager.UserWantsNextFocusable();
                 }
+            }
+
+            if (
+                e.Key == PhysicalKey.Enter
+             && e.Action == KeyAction.Released
+             && FocusManager.CurrentlyFocusedElement is IClickable clickableElement)
+            {
+                clickableElement.FocusedSelectActionTriggered();
             }
 
             KeyEvent?.Invoke(this, e);

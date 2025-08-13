@@ -33,7 +33,11 @@ namespace CatUI.Elements.DocumentManagers
                 //guess the next focusable element (common case)
                 else if (_lastFocusedElement.NextFocusableElement == null)
                 {
-                    elementToFocus = GetAppropriateFocusable(_lastFocusedElement as Element);
+                    elementToFocus =
+                        GetAppropriateFocusable(_lastFocusedElement as Element)
+                        //this generally means we no longer have any elements, so we start all over again from the
+                        //first one
+                     ?? GetAppropriateFocusable(null, true);
                 }
                 else
                 {
@@ -43,7 +47,10 @@ namespace CatUI.Elements.DocumentManagers
             //guess the next focusable element (common case)
             else if (CurrentlyFocusedElement.NextFocusableElement == null)
             {
-                elementToFocus = GetAppropriateFocusable(CurrentlyFocusedElement as Element);
+                elementToFocus =
+                    GetAppropriateFocusable(CurrentlyFocusedElement as Element)
+                    //this generally means we no longer have any elements, so we start all over again from the first one
+                 ?? GetAppropriateFocusable(null, true);
             }
             else
             {
@@ -70,12 +77,6 @@ namespace CatUI.Elements.DocumentManagers
                 else if (_lastFocusedElement.PreviousFocusableElement == null)
                 {
                     elementToFocus = GetAppropriateFocusable(_lastFocusedElement as Element, true);
-
-                    //this generally means we no longer have any elements, so we start all over again from the first one
-                    if (elementToFocus != null)
-                    {
-                        elementToFocus = GetAppropriateFocusable(null, true);
-                    }
                 }
                 else
                 {
@@ -86,12 +87,6 @@ namespace CatUI.Elements.DocumentManagers
             else if (CurrentlyFocusedElement.PreviousFocusableElement == null)
             {
                 elementToFocus = GetAppropriateFocusable(CurrentlyFocusedElement as Element, true);
-
-                //this generally means we no longer have any elements, so we start all over again from the first one
-                if (elementToFocus != null)
-                {
-                    elementToFocus = GetAppropriateFocusable(null, true);
-                }
             }
             else
             {
@@ -170,7 +165,7 @@ namespace CatUI.Elements.DocumentManagers
             Element? previousFocused = null,
             bool wantsPreviousFocusable = false)
         {
-            if (parent.IsCurrentlyEnabled)
+            if (!parent.IsCurrentlyEnabled)
             {
                 return null;
             }
