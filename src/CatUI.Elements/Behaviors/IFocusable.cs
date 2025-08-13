@@ -39,6 +39,22 @@ namespace CatUI.Elements.Behaviors
         /// </remarks>
         public bool IsFocusEnabled { get; set; }
 
+        /// <summary>
+        /// Returns true if the element is currently focused, false otherwise.
+        /// </summary>
+        public bool IsCurrentlyFocused
+        {
+            get
+            {
+                if (this is Element element)
+                {
+                    return element.Document?.FocusManager.CurrentlyFocusedElement == this;
+                }
+
+                return false;
+            }
+        }
+
         public ObservableProperty<bool> IsFocusEnabledProperty { get; }
 
         /// <summary>

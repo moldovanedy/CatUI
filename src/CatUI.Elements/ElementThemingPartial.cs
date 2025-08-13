@@ -307,7 +307,16 @@ namespace CatUI.Elements
             return true;
         }
 
-        private void ApplyBaseThemingFromElement(Element currentElement)
+        /// <summary>
+        /// Applies the changes to the current element hierarhically, from the most abstract (<see cref="Element"/>) to
+        /// the most specific.
+        /// </summary>
+        /// <param name="currentElement">The element to apply theming for.</param>
+        /// <param name="isStateChange">
+        /// If true, it will apply the change as a "state" change, if false it will apply the change as a "theme"
+        /// change.
+        /// </param>
+        private void ApplyBaseThemingFromElement(Element currentElement, bool isStateChange = false)
         {
             List<Type> baseClasses = [];
 
@@ -324,6 +333,9 @@ namespace CatUI.Elements
                         break;
                     }
 
+                    //add the interfaces
+                    baseClasses.AddRange(baseType.GetInterfaces());
+
                     baseType = baseType.BaseType;
                     i++;
                 }
@@ -333,12 +345,27 @@ namespace CatUI.Elements
                 baseClasses.Add(GetType());
             }
 
+            if (currentElement.ThemeOverride != null)
+            {
+                return;
+            }
+
             for (int i = baseClasses.Count - 1; i >= 0; i--)
             {
-                currentElement
-                    .ThemeOverride
-                    ?.GetElementTypeDefinition(baseClasses[i])
-                    ?.InvokeOnThemeChanged(this);
+                if (isStateChange)
+                {
+                    currentElement
+                        .ThemeOverride
+                        ?.GetElementTypeDefinition(baseClasses[i])
+                        ?.InvokeOnStateChanged(this, State);
+                }
+                else
+                {
+                    currentElement
+                        .ThemeOverride
+                        ?.GetElementTypeDefinition(baseClasses[i])
+                        ?.InvokeOnThemeChanged(this);
+                }
             }
         }
 
@@ -417,16 +444,20 @@ namespace CatUI.Elements
             {
                 for (int i = indices.Count - 1; i >= 0; i--)
                 {
-                    //TODO: also check base types using BaseThemingCount
-                    currentElement.ThemeOverride?.GetElementTypeDefinition(GetType())
-                                  ?.InvokeOnStateChanged(this, State);
-                    currentElement.ThemeOverride?.GetClassDefinition(StyleClass)?.InvokeOnStateChanged(this, State);
+                    ApplyBaseThemingFromElement(currentElement, true);
+                    currentElement
+                        .ThemeOverride
+                        ?.GetClassDefinition(StyleClass)
+                        ?.InvokeOnStateChanged(this, State);
                     currentElement = currentElement.Children[indices[i]];
                 }
 
                 //check self override
-                currentElement.ThemeOverride?.GetElementTypeDefinition(GetType())?.InvokeOnStateChanged(this, State);
-                currentElement.ThemeOverride?.GetClassDefinition(StyleClass)?.InvokeOnStateChanged(this, State);
+                ApplyBaseThemingFromElement(currentElement, true);
+                currentElement
+                    .ThemeOverride
+                    ?.GetClassDefinition(StyleClass)
+                    ?.InvokeOnStateChanged(this, State);
             }
             finally
             {
