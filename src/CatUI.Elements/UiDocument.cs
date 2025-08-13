@@ -9,6 +9,8 @@ using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
+using CatUI.Elements.Behaviors;
+using CatUI.Elements.DocumentManagers;
 using CatUI.RenderingEngine;
 using CatUI.Utils;
 
@@ -185,6 +187,7 @@ namespace CatUI.Elements
         private Size _viewportSize = new();
 
         public Renderer Renderer { get; }
+        public FocusManager FocusManager { get; }
 
         public Color BackgroundColor
         {
@@ -309,6 +312,7 @@ namespace CatUI.Elements
         {
             _window = window;
             Renderer = new Renderer();
+            FocusManager = new FocusManager(this);
             ContentScale = initialContentScale;
             ViewportSize = new Size(
                 initialViewportSize.Width * initialContentScale,
@@ -638,6 +642,28 @@ namespace CatUI.Elements
                 UpdateModifierState(KeyModifiers.Super, 6);
                 UpdateModifierState(KeyModifiers.CapsLock, 7, 1);
                 UpdateModifierState(KeyModifiers.NumLock, 8, 1);
+            }
+
+            //TODO: configurable shortcuts
+            if (e.Key == PhysicalKey.Tab && e.Action == KeyAction.Released)
+            {
+                //if it's JUST Shift, no other modifier
+                if (e.Modifiers == KeyModifiers.Shift)
+                {
+                    FocusManager.UserWantsPreviousFocusable();
+                }
+                else
+                {
+                    FocusManager.UserWantsNextFocusable();
+                }
+            }
+
+            if (
+                e.Key == PhysicalKey.Enter
+             && e.Action == KeyAction.Released
+             && FocusManager.CurrentlyFocusedElement is IClickable clickableElement)
+            {
+                clickableElement.FocusedSelectActionTriggered();
             }
 
             KeyEvent?.Invoke(this, e);

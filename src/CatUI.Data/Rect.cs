@@ -115,9 +115,15 @@ namespace CatUI.Data
             return new Rect(x, y, endX - x, endY - y);
         }
 
-        public static Rect GetIntersectingRect(ref Rect rect1, ref Rect rect2)
+        /// <summary>
+        /// Get the overlapping area between two rects. Returns <see cref="Empty"/> if no overlap is found.
+        /// </summary>
+        /// <param name="rect1"></param>
+        /// <param name="rect2"></param>
+        /// <returns></returns>
+        public static Rect GetIntersectingRect(Rect rect1, Rect rect2)
         {
-            if (DoRectsIntersect(ref rect1, ref rect2))
+            if (DoRectsIntersect(rect1, rect2))
             {
                 float x = Math.Max(rect1.X, rect2.X);
                 float y = Math.Max(rect1.Y, rect2.Y);
@@ -130,7 +136,13 @@ namespace CatUI.Data
             return Empty;
         }
 
-        public static bool DoRectsIntersect(ref Rect rect1, ref Rect rect2)
+        /// <summary>
+        /// Returns true if the rects intersect/overlap.
+        /// </summary>
+        /// <param name="rect1"></param>
+        /// <param name="rect2"></param>
+        /// <returns></returns>
+        public static bool DoRectsIntersect(Rect rect1, Rect rect2)
         {
             if (rect2.X >= rect1.EndX)
             {
@@ -155,7 +167,7 @@ namespace CatUI.Data
             return true;
         }
 
-        public static bool IsPointInside(ref Rect rect, Point2D point)
+        public static bool IsPointInside(Rect rect, Point2D point)
         {
             if (point.X >= rect.EndX || point.X <= rect.X)
             {

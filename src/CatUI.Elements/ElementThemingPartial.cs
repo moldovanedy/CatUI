@@ -417,6 +417,7 @@ namespace CatUI.Elements
             {
                 for (int i = indices.Count - 1; i >= 0; i--)
                 {
+                    //TODO: also check base types using BaseThemingCount
                     currentElement.ThemeOverride?.GetElementTypeDefinition(GetType())
                                   ?.InvokeOnStateChanged(this, State);
                     currentElement.ThemeOverride?.GetClassDefinition(StyleClass)?.InvokeOnStateChanged(this, State);

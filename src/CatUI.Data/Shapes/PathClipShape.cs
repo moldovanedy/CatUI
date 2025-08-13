@@ -67,7 +67,7 @@ namespace CatUI.Data.Shapes
         {
             //we can be confident that if scaling is applied, if the point isn't inside the bounds, it's definitely not
             // inside the path; otherwise we can't assume that because the path might exceed the bounds
-            if (ShouldApplyScaling && !Rect.IsPointInside(ref bounds, point))
+            if (ShouldApplyScaling && !Rect.IsPointInside(bounds, point))
             {
                 return false;
             }

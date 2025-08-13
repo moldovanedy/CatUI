@@ -6,6 +6,7 @@ using CatUI.Data.Enums;
 using CatUI.Data.Shapes;
 using CatUI.Data.Theming;
 using CatUI.Elements;
+using CatUI.Elements.Behaviors;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Containers.Scroll;
@@ -20,6 +21,23 @@ namespace CatUI.CoreExtensions.Itania
         public static Theme GetTheme()
         {
             Theme theme = new();
+
+            //IFocusable
+            theme.AddOrUpdateElementTypeDefinition<IFocusable>(
+                new ThemeDefinition(
+                    onStateChanged: (el, newState) =>
+                    {
+                        if (newState == IFocusable.STATE_FOCUSED)
+                        {
+                            el.DrawEvent += OnFocusableDraw;
+                        }
+                        else
+                        {
+                            el.DrawEvent -= OnFocusableDraw;
+                        }
+
+                        el.RequestRedraw();
+                    }));
 
             //text
             theme.AddOrUpdateElementTypeDefinition<TextElement>(
@@ -249,6 +267,19 @@ namespace CatUI.CoreExtensions.Itania
             }));
 
             return theme;
+
+            void OnFocusableDraw(object sender)
+            {
+                if (sender is not Element element)
+                {
+                    return;
+                }
+
+                element.Document?.Renderer.DrawRectOutline(
+                    element.Bounds,
+                    new ColorBrush(CatTheme.Colors.OutlineVariant),
+                    new OutlineParams(3f));
+            }
         }
     }
 }

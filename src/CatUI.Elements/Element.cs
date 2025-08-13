@@ -284,8 +284,9 @@ namespace CatUI.Elements
         /// The default value is true.
         /// </summary>
         /// <remarks>
-        /// This only dictates the currently set value for this element, not propagating to descendants. To really check
-        /// if the element is visible or not at a certain moment, see <see cref="IsCurrentlyVisible"/>.
+        /// This only dictates the currently set value for this element, not propagating to descendants (however,
+        /// it makes all descendants invisible, as in <see cref="IsCurrentlyVisible"/> will be modified). To really
+        /// check if the element is visible or not at a certain moment, see <see cref="IsCurrentlyVisible"/>.
         /// </remarks>
         /// <seealso cref="LocallyEnabled" />
         /// <seealso cref="IsCurrentlyVisible"/>
@@ -343,8 +344,9 @@ namespace CatUI.Elements
         /// such as <see cref="Bounds" />. The default value is true.
         /// </summary>
         /// <remarks>
-        /// This only dictates the currently set value for this element, not propagating to descendants. To really check
-        /// if the element is enabled or not at a certain moment, see <see cref="IsCurrentlyEnabled"/>.
+        /// This only dictates the currently set value for this element, not propagating to descendants (however,
+        /// it enables/disabled all descendants, as in <see cref="IsCurrentlyEnabled"/> will be modified). To really
+        /// check if the element is enabled or not at a certain moment, see <see cref="IsCurrentlyEnabled"/>.
         /// </remarks>
         /// <seealso cref="LocallyVisible" />
         /// <seealso cref="IsCurrentlyEnabled"/>
@@ -942,8 +944,7 @@ namespace CatUI.Elements
 
         private void InternalOnPointerUp(object sender, PointerUpEventArgs e)
         {
-            Rect bounds = Bounds;
-            State = Rect.IsPointInside(ref bounds, e.AbsolutePosition) ? STATE_HOVER : STATE_NORMAL;
+            State = Rect.IsPointInside(Bounds, e.AbsolutePosition) ? STATE_HOVER : STATE_NORMAL;
         }
 
         #endregion //Internal event handlers

@@ -8,7 +8,7 @@ using CatUI.Utils;
 
 namespace CatUI.Elements.Buttons
 {
-    public class BaseButton : Element, IClickable
+    public class BaseButton : Element, IClickable, IFocusable
     {
         public const string STATE_DISABLED = "disabled";
 
@@ -58,25 +58,76 @@ namespace CatUI.Elements.Buttons
 
         private ClickEventHandler? _onClick;
 
+
+        #region Focus
+
+        public IFocusable? NextFocusableElement { get; set; }
+        public IFocusable? PreviousFocusableElement { get; set; }
+
+        public void OnFocusStateChanged(bool hasEnteredFocus)
+        {
+            (this as IFocusable).SetFocusedStateUtility(hasEnteredFocus);
+            FocusChangedEvent?.Invoke(this, hasEnteredFocus);
+        }
+
+        public bool IsFocusEnabled
+        {
+            get => _isFocusEnabled;
+            set => IsFocusEnabledProperty.Value = value;
+        }
+
+        private bool _isFocusEnabled = true;
+        public ObservableProperty<bool> IsFocusEnabledProperty { get; } = new(true);
+
+        private void SetIsFocusEnabled(bool value)
+        {
+            _isFocusEnabled = value;
+            SetLocalValue(nameof(IsFocusEnabled), value);
+        }
+
+        public event FocusChangedEventHandler? FocusChangedEvent;
+
+        public FocusChangedEventHandler? OnFocusChanged
+        {
+            get => _onFocusChanged;
+            set
+            {
+                FocusChangedEvent -= _onFocusChanged;
+                _onFocusChanged = value;
+                FocusChangedEvent += _onFocusChanged;
+            }
+        }
+
+        private FocusChangedEventHandler? _onFocusChanged;
+
+        #endregion
+
         private bool _isDown;
 
         public BaseButton()
         {
             CanUserCancelClickProperty.ValueChangedEvent += SetCanUserCancelClick;
+            IsFocusEnabledProperty.ValueChangedEvent += SetIsFocusEnabled;
             PointerDownEvent += PrivatePointerDown;
             PointerUpEvent += PrivatePointerUp;
+            ClickEvent += PrivateClick;
         }
 
-        //~BaseButton()
-        //{
-        //    ClickEvent = null;
-        //    CanUserCancelClickProperty = null!;
-
-        //    PointerDownEvent -= PrivatePointerDown;
-        //    PointerUpEvent -= PrivatePointerUp;
-        //}
-
         public virtual void Click(object sender, ClickEventArgs e) { }
+        public virtual void FocusChanged(object sender, FocusChangedEventHandler e) { }
+
+        /// <inheritdoc cref="IClickable.FocusedSelectActionTriggered"/>
+        /// <remarks>
+        /// For this BaseButton, this will trigger a <see cref="ClickEvent"/> with <see cref="ClickEventArgs"/> that
+        /// have the position set as 0, while <see cref="ClickEventArgs.AbsolutePosition"/> will be the top-left
+        /// point of the element.
+        /// </remarks>
+        public void FocusedSelectActionTriggered()
+        {
+            ClickEvent?.Invoke(
+                this,
+                new ClickEventArgs(Point2D.Zero, new Point2D(Bounds.X, Bounds.Y)));
+        }
 
         public override Element Duplicate()
         {
@@ -118,6 +169,11 @@ namespace CatUI.Elements.Buttons
             }
 
             ClickEvent?.Invoke(this, new ClickEventArgs(e.Position, e.AbsolutePosition));
+        }
+
+        private void PrivateClick(object sender, ClickEventArgs e)
+        {
+            this.GrabFocus();
         }
     }
 }

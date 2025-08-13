@@ -404,7 +404,7 @@ namespace CatUI.Data.Shapes
                 }
 
                 Rect cornerRect = new(x, y, width, height);
-                if (Rect.IsPointInside(ref cornerRect, point))
+                if (Rect.IsPointInside(cornerRect, point))
                 {
                     //no need to continue, as the problem of being inside is only valid for this rectangle if we entered
                     // this if
