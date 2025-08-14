@@ -345,7 +345,7 @@ namespace CatUI.Elements
                 baseClasses.Add(GetType());
             }
 
-            if (currentElement.ThemeOverride != null)
+            if (currentElement.ThemeOverride == null)
             {
                 return;
             }
