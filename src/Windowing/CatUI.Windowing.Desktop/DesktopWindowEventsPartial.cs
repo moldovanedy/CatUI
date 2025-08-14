@@ -5,7 +5,6 @@ using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Elements;
 using CatUI.Windowing.Common;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using KeyModifiers = CatUI.Data.Enums.KeyModifiers;
 
@@ -427,12 +426,8 @@ namespace CatUI.Windowing.Desktop
             _width = e.NewWidth;
             _height = e.NewHeight;
 
-            GL.GetInteger(GetPName.FramebufferBinding, out int frame);
-            GL.GetInteger(GetPName.StencilBits, out int stencil);
-            GL.GetInteger(GetPName.Samples, out int samples);
-            SetHwFramebufferData(frame, stencil, samples);
-
             DocumentInvoke("WndSetViewportSize", new Size(e.NewWidth, e.NewHeight));
+            GraphicsBackend?.Resized(e.NewWidth, e.NewHeight);
             Document.Renderer.SetCanvasDirty();
             DoFrameActions();
         }
@@ -468,10 +463,10 @@ namespace CatUI.Windowing.Desktop
             //This is a workaround for some window managers/display servers like KWin that will show the window framebuffer
             //as transparent after minimizing or restoring until a redrawing happens.
 
-            GL.GetInteger(GetPName.FramebufferBinding, out int frame);
-            GL.GetInteger(GetPName.StencilBits, out int stencil);
-            GL.GetInteger(GetPName.Samples, out int samples);
-            SetHwFramebufferData(frame, stencil, samples);
+            // GL.GetInteger(GetPName.FramebufferBinding, out int frame);
+            // GL.GetInteger(GetPName.StencilBits, out int stencil);
+            // GL.GetInteger(GetPName.Samples, out int samples);
+            // SetHwFramebufferData(frame, stencil, samples);
 
             Document.Renderer.SetCanvasDirty();
             DoFrameActions();

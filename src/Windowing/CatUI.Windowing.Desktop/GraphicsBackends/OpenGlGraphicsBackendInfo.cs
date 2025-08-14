@@ -1,0 +1,42 @@
+using System;
+using CatUI.Windowing.Common;
+using OpenTK.Graphics.OpenGL;
+
+namespace CatUI.Windowing.Desktop.GraphicsBackends
+{
+    public class OpenGlGraphicsBackendInfo : IGraphicsBackendInfo
+    {
+        private int? _majorVersion;
+        private int? _minorVersion;
+
+        public IGraphicsBackendInfo.GraphicsApi GetUsedGraphicsApi()
+        {
+            if (_majorVersion == null || _minorVersion == null)
+            {
+                string versionString = GL.GetString(StringName.Version);
+                if (int.TryParse(versionString.AsSpan(0, 1), out int majVer))
+                {
+                    _majorVersion = majVer;
+                }
+
+                if (int.TryParse(versionString.AsSpan(2, 1), out int minVer))
+                {
+                    _minorVersion = minVer;
+                }
+            }
+
+            return _majorVersion >= 3 && _minorVersion >= 2
+                ? IGraphicsBackendInfo.GraphicsApi.OpenGlCore
+                : IGraphicsBackendInfo.GraphicsApi.OpenGlCompatibility;
+        }
+
+        /// <summary>
+        /// Will return the current OpenGL version as major_version.minor_version
+        /// </summary>
+        /// <returns></returns>
+        public string GetGraphicsApiVersion()
+        {
+            return GL.GetString(StringName.Version).Split(' ')[0];
+        }
+    }
+}

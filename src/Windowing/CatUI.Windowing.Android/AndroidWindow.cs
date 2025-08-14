@@ -67,6 +67,8 @@ namespace CatUI.Windowing.Android
 
         public UiDocument Document { get; }
 
+        public IGraphicsBackendInfo GraphicsBackendInfo { get; } = new AndroidGraphicsBackendInfo();
+
         #endregion
 
         public event WindowResizedEventHandler? ResizedEvent;

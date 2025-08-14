@@ -25,6 +25,7 @@ namespace CatUI.Windowing.Desktop
             _uiOptions,
             () =>
             {
+                GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland);
                 GLFW.Init();
 #if WINDOWS || MACOS || MACCATALYST
 #else
