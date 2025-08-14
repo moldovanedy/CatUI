@@ -1,3 +1,4 @@
+using System;
 using CatUI.Data;
 using CatUI.Platform.Essentials;
 using CatUI.Windowing.Common;
@@ -25,13 +26,24 @@ namespace CatUI.Windowing.Desktop
             _uiOptions,
             () =>
             {
-#if WINDOWS || MACOS || MACCATALYST
+#if WINDOWS
+                GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Win32);
+#elif MACOS || MACCATALYST
+                GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Cocoa);
 #else
-                GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland);
+                if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
+                {
+                    GLFW.InitHint(InitHintPlatform.Platform,
+                        OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland);
+                }
+                else
+                {
+                    GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Any);
+                }
 #endif
-                
+
                 GLFW.Init();
-                
+
 #if WINDOWS || MACOS || MACCATALYST
 #else
                 LinuxNativeCommunicator.Open();
