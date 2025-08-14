@@ -25,8 +25,13 @@ namespace CatUI.Windowing.Desktop
             _uiOptions,
             () =>
             {
+#if WINDOWS || MACOS || MACCATALYST
+#else
                 GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland);
+#endif
+                
                 GLFW.Init();
+                
 #if WINDOWS || MACOS || MACCATALYST
 #else
                 LinuxNativeCommunicator.Open();
