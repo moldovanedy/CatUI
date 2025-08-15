@@ -8,7 +8,7 @@ using SkiaSharp;
 
 namespace CatUI.Windowing.Desktop.GraphicsBackends
 {
-    internal class AngleGraphicsBackend : IGraphicsBackend
+    internal sealed class AngleGraphicsBackend : IGraphicsBackend
     {
         private nint _nativeWindowHandle;
         private int _swapInterval;

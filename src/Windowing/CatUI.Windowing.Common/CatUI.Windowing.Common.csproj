@@ -12,6 +12,8 @@
         <PackageTags>UI;User Interface;fast</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Authors>Moldovan Eduard</Authors>
+
+        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>

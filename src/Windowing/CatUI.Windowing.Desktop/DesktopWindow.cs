@@ -528,6 +528,7 @@ namespace CatUI.Windowing.Desktop
             if (!GLFW.Init())
             {
                 OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode errorCode = GLFW.GetError(out string description);
+                CatLogger.LogError("GLFW: could not initialize. UI failed to render.");
                 throw new InternalPlatformException($"Internal GLFW error ({errorCode}): {description}");
             }
 
@@ -549,7 +550,15 @@ namespace CatUI.Windowing.Desktop
             float contentScale = 1f;
             if ((_flags & WindowFlags.DpiAware) != 0)
             {
-                GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out contentScale, out float _);
+                Monitor* monitor = GLFW.GetPrimaryMonitor();
+                if (monitor == null)
+                {
+                    CatLogger.LogWarning("GLFW: could not detect any display. Using a content scale factor of 1.");
+                }
+                else
+                {
+                    GLFW.GetMonitorContentScale(monitor, out contentScale, out float _);
+                }
             }
 
             Document = new UiDocument(this, new Size(_width, _height), contentScale);
@@ -584,15 +593,27 @@ namespace CatUI.Windowing.Desktop
             //this.Document.Renderer.SetBgColor(Document.BackgroundColor);
             Document.Renderer.SetCanvasDirty();
 
-            GLFW.GetMonitorContentScale(GLFW.GetPrimaryMonitor(), out float xScale, out float _);
-            DocumentInvoke("WndSetContentScale", xScale);
+            Monitor* monitor = GLFW.GetPrimaryMonitor();
+            float contentScale = 1f;
+            if (monitor == null)
+            {
+                CatLogger.LogWarning("GLFW: could not detect any display. Using a content scale factor of 1.");
+            }
+            else
+            {
+                GLFW.GetMonitorContentScale(monitor, out contentScale, out float _);
+            }
+
+            DocumentInvoke("WndSetContentScale", contentScale);
 
             //don't use Glfw.WindowShouldClose because that is handled by OnCloseRequested
             while (!_shouldCloseWindow)
             {
                 if (GlfwWindow == null)
                 {
-                    throw new NullReferenceException("Window pointer was null. Did you forget to open the window?");
+                    CatLogger.LogError("GLFW: no window opened. UI failed to render.");
+                    throw new NullReferenceException(
+                        "Window pointer was null. Did you forget to open the window using Open()?");
                 }
 
                 if (GLFW.WindowShouldClose(GlfwWindow))
@@ -628,7 +649,7 @@ namespace CatUI.Windowing.Desktop
                 {
                     //TODO: fallback to software rendering
                     CatLogger.LogError(
-                        "Graphics: No OpenGL context can be found (or lower than version 2.1). UI failed.");
+                        "Graphics: No OpenGL context can be found (or found lower than version 2.1). UI failed to render.");
                     throw new InternalPlatformException("GLFW: Could not create window");
                 }
             }
@@ -668,6 +689,7 @@ namespace CatUI.Windowing.Desktop
             GraphicsBackend = new OpenGlGraphicsBackend(major, minor);
             GraphicsBackend.PrepareWindowCreation();
 
+        RetryCreation:
             Window* ptr;
             switch (CurrentWindowMode)
             {
@@ -689,13 +711,19 @@ namespace CatUI.Windowing.Desktop
                         Monitor* monitor = GLFW.GetPrimaryMonitor();
                         if (monitor == null)
                         {
-                            throw new InternalPlatformException("GLFW: Could not get primary display");
+                            CatLogger.LogError(
+                                "GLFW: Could not get primary display. Opening window in \"Windowed\" mode instead.");
+                            CurrentWindowMode = WindowMode.Windowed;
+                            goto RetryCreation;
                         }
 
                         VideoMode* videoMode = GLFW.GetVideoMode(monitor);
                         if (videoMode == null)
                         {
-                            throw new InternalPlatformException("GLFW: Could not get video mode");
+                            CatLogger.LogError(
+                                "GLFW: Could not get video mode. Opening window in \"Windowed\" mode instead.");
+                            CurrentWindowMode = WindowMode.Windowed;
+                            goto RetryCreation;
                         }
 
                         GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
@@ -719,13 +747,19 @@ namespace CatUI.Windowing.Desktop
                         Monitor* monitor = GLFW.GetPrimaryMonitor();
                         if (monitor == null)
                         {
-                            throw new InternalPlatformException("GLFW: Could not get primary display");
+                            CatLogger.LogError(
+                                "GLFW: Could not get primary display. Opening window in \"Windowed\" mode instead.");
+                            CurrentWindowMode = WindowMode.Windowed;
+                            goto RetryCreation;
                         }
 
                         VideoMode* videoMode = GLFW.GetVideoMode(monitor);
                         if (videoMode == null)
                         {
-                            throw new InternalPlatformException("GLFW: Could not get video mode");
+                            CatLogger.LogError(
+                                "GLFW: Could not get video mode. Opening window in \"Windowed\" mode instead.");
+                            CurrentWindowMode = WindowMode.Windowed;
+                            goto RetryCreation;
                         }
 
                         _width = videoMode->Width;

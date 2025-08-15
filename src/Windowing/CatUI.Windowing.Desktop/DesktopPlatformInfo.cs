@@ -46,7 +46,10 @@ namespace CatUI.Windowing.Desktop
 
 #if WINDOWS || MACOS || MACCATALYST
 #else
-                LinuxNativeCommunicator.Open();
+                if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
+                {
+                    LinuxNativeCommunicator.Open();
+                }
 #endif
             });
     }

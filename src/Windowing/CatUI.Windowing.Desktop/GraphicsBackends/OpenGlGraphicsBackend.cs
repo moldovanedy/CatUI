@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace CatUI.Windowing.Desktop.GraphicsBackends
 {
-    internal unsafe class OpenGlGraphicsBackend : IGraphicsBackend
+    internal sealed unsafe class OpenGlGraphicsBackend : IGraphicsBackend
     {
         private readonly int _requestedMajorVersion;
         private readonly int _requestedMinorVersion;

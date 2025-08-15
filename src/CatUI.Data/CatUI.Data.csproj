@@ -16,21 +16,13 @@
         <PackageTags>UI;User Interface;fast</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Authors>Moldovan Eduard</Authors>
+
+        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="SkiaSharp" Version="2.88.8" />
     </ItemGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <IsTrimmable>True</IsTrimmable>
-        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-        <IsTrimmable>True</IsTrimmable>
-        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
-    </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Platform\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
