@@ -1,18 +1,21 @@
 using System;
+using CatUI.Data.Exceptions;
+using CatUI.Windowing.Common;
+using OpenTK.Graphics.Egl;
+using OpenTK.Graphics.ES20;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
-#if CAT_USE_ANGLE
-using CatUI.Data.Exceptions;
-using OpenTK.Graphics.Egl;
-#endif
-
-namespace CatUI.Windowing.Desktop
+namespace CatUI.Windowing.Desktop.GraphicsBackends
 {
-    public partial class DesktopWindow
+    internal sealed class AngleGraphicsBackend : IGraphicsBackend
     {
-        private const SKColorType COLOR_TYPE = SKColorType.Rgba8888;
-        private const GRSurfaceOrigin SURFACE_ORIGIN = GRSurfaceOrigin.BottomLeft;
+        private nint _nativeWindowHandle;
+        private int _swapInterval;
+
+        private nint _eglDisplay;
+        private nint _eglSurface;
+        private nint _eglContext;
 
         private GRContext? _grContext;
         private GRGlFramebufferInfo _glInfo;
@@ -23,27 +26,30 @@ namespace CatUI.Windowing.Desktop
         private int _stencilBits;
         private int _samples;
 
-        public void SetHwFramebufferData(int fbBinding, int stencilBits, int samples)
+        private int _width;
+        private int _height;
+
+        internal void SetWindowPointer(nint windowPtr)
         {
-            _framebufferBinding = fbBinding;
-            _stencilBits = stencilBits;
-            _samples = samples;
+            _nativeWindowHandle = windowPtr;
         }
 
-#pragma warning disable CA1822 // Mark members as static
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private void CreateHwSurface()
+        public void PrepareWindowCreation()
         {
-#if CAT_USE_ANGLE
             GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.NoApi);
+        }
 
+        public void PostWindowCreation()
+        {
+            //for DX11: Egl.PLATFORM_ANGLE_TYPE_D3D11_ANGLE
             int[] platformAttributes =
-            {
-                Egl.PLATFORM_ANGLE_TYPE_ANGLE, Egl.PLATFORM_ANGLE_TYPE_D3D11_ANGLE,
+            [
+                Egl.PLATFORM_ANGLE_TYPE_ANGLE, Egl.PLATFORM_ANGLE_TYPE_OPENGL_ANGLE,
                 Egl.PLATFORM_ANGLE_MAX_VERSION_MAJOR_ANGLE, 1, Egl.PLATFORM_ANGLE_MAX_VERSION_MINOR_ANGLE, 1,
                 Egl.NONE
-            };
-            _eglDisplay = Egl.GetPlatformDisplay(Egl.PLATFORM_ANGLE_ANGLE, (nint)0, platformAttributes);
+            ];
+
+            _eglDisplay = Egl.GetPlatformDisplay(Egl.PLATFORM_ANGLE_ANGLE, 0, platformAttributes);
             if (_eglDisplay == 0)
             {
                 throw new InternalPlatformException("EGL: Could not get platform display");
@@ -55,9 +61,10 @@ namespace CatUI.Windowing.Desktop
             }
 
             int[] configAttributes =
-            {
+            [
                 Egl.SURFACE_TYPE, Egl.WINDOW_BIT, Egl.RENDERABLE_TYPE, Egl.OPENGL_ES2_BIT, Egl.NONE
-            };
+            ];
+
             nint[] eglConfig = new nint[1];
             if (!Egl.ChooseConfig(_eglDisplay, configAttributes, eglConfig, 1, out int numberOfConfigs) ||
                 numberOfConfigs < 1)
@@ -66,13 +73,13 @@ namespace CatUI.Windowing.Desktop
             }
 
             int[] contextAttributes = { Egl.CONTEXT_CLIENT_VERSION, 2, Egl.NONE };
-            _eglContext = Egl.CreateContext(_eglDisplay, eglConfig[0], (nint)0, contextAttributes);
+            _eglContext = Egl.CreateContext(_eglDisplay, eglConfig[0], 0, contextAttributes);
             if (_eglContext == 0)
             {
                 throw new InternalPlatformException("EGL: Could not create context");
             }
 
-            _eglSurface = Egl.CreateWindowSurface(_eglDisplay, eglConfig[0], NativeHandle, (nint)0);
+            _eglSurface = Egl.CreateWindowSurface(_eglDisplay, eglConfig[0], _nativeWindowHandle, 0);
             if (_eglSurface == 0)
             {
                 throw new InternalPlatformException("EGL: Could not create surface");
@@ -82,14 +89,9 @@ namespace CatUI.Windowing.Desktop
             {
                 throw new InternalPlatformException("EGL: Could not make surface current");
             }
-
-#else
-            GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlApi);
-#endif
         }
-#pragma warning restore CA1822 // Mark members as static
 
-        private void RecreateSkiaDrawingObjects()
+        public SKSurface RecreateSurface(SKSurface previousSurface)
         {
             //create the contexts if not done already
             if (_grContext == null)
@@ -109,34 +111,45 @@ namespace CatUI.Windowing.Desktop
             }
 
             SKSize newSize = new(_width, _height);
+            bool isSurfaceDestroyed = false;
 
             //manage the drawing surface
             if (_renderTarget == null || _lastSize != newSize || !_renderTarget.IsValid)
             {
                 _lastSize = newSize;
 
-                int maxSamples = _grContext.GetMaxSurfaceSampleCount(COLOR_TYPE);
+                int maxSamples = _grContext.GetMaxSurfaceSampleCount(IGraphicsBackend.COLOR_TYPE);
                 if (_samples > maxSamples)
                 {
                     _samples = maxSamples;
                 }
 
-                _glInfo = new GRGlFramebufferInfo((uint)_framebufferBinding, COLOR_TYPE.ToGlSizedFormat());
+                _glInfo = new GRGlFramebufferInfo(
+                    (uint)_framebufferBinding,
+                    IGraphicsBackend.COLOR_TYPE.ToGlSizedFormat());
 
                 //destroy the old surface
-                Document.Renderer.Surface?.Dispose();
-                Document.Renderer.SetPlatformManagedData(null, null);
+                previousSurface.Dispose();
+                isSurfaceDestroyed = true;
 
                 //re-create the render target
                 _renderTarget?.Dispose();
-                _renderTarget = new GRBackendRenderTarget((int)newSize.Width, (int)newSize.Height, _samples,
-                    _stencilBits, _glInfo);
+                _renderTarget = new GRBackendRenderTarget(
+                    (int)newSize.Width,
+                    (int)newSize.Height,
+                    _samples,
+                    _stencilBits,
+                    _glInfo);
             }
 
             //create the surface
-            if (Document.Renderer.Surface == null)
+            if (isSurfaceDestroyed)
             {
-                var surface = SKSurface.Create(_grContext, _renderTarget, SURFACE_ORIGIN, COLOR_TYPE);
+                var surface = SKSurface.Create(
+                    _grContext,
+                    _renderTarget,
+                    IGraphicsBackend.SURFACE_ORIGIN,
+                    IGraphicsBackend.COLOR_TYPE);
                 if (surface == null)
                 {
                     throw new NullReferenceException(
@@ -149,8 +162,42 @@ namespace CatUI.Windowing.Desktop
                     throw new NullReferenceException("Canvas is null. This is probably an internal graphics error.");
                 }
 
-                Document.Renderer.SetPlatformManagedData(surface, canvas);
+                return surface;
             }
+
+            return previousSurface;
+        }
+
+        public void SwapBuffers()
+        {
+            Egl.SwapBuffers(_eglDisplay, _eglSurface);
+        }
+
+        public void DestroyAndTerminate()
+        {
+            Egl.DestroySurface(_eglDisplay, _eglSurface);
+            Egl.DestroyContext(_eglDisplay, _eglContext);
+            Egl.Terminate(_eglDisplay);
+        }
+
+        public void Resized(int width, int height)
+        {
+            _width = width;
+            _height = height;
+
+            GL.GetInteger(GetPName.FramebufferBinding, out int frame);
+            GL.GetInteger(GetPName.StencilBits, out int stencil);
+            GL.GetInteger(GetPName.Samples, out int samples);
+
+            _framebufferBinding = frame;
+            _stencilBits = stencil;
+            _samples = samples;
+        }
+
+        public void SwapIntervalChanged(int swapInterval)
+        {
+            _swapInterval = swapInterval;
+            Egl.SwapInterval(_eglDisplay, _swapInterval);
         }
     }
 }

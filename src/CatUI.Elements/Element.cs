@@ -19,7 +19,9 @@ using Container = CatUI.Elements.Containers.Container;
 
 namespace CatUI.Elements
 {
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+    [DynamicallyAccessedMembers(
+        DynamicallyAccessedMemberTypes.PublicProperties |
+        DynamicallyAccessedMemberTypes.Interfaces)]
     public partial class Element
     {
         public const string? STATE_NORMAL = null;

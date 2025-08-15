@@ -54,6 +54,8 @@ namespace CatUI.Windowing.Common
         /// </summary>
         public UiDocument Document { get; }
 
+        public IGraphicsBackendInfo GraphicsBackendInfo { get; }
+
         /// <summary>
         /// Closes this window by releasing all its resources, if any.
         /// </summary>

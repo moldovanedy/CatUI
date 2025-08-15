@@ -14,20 +14,12 @@
         <PackageTags>UI;User Interface;fast</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Authors>Moldovan Eduard</Authors>
+
+        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(CatUseAngle)' == 'true'">
         <DefineConstants>$(DefineConstants);CAT_USE_ANGLE</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <IsTrimmable>True</IsTrimmable>
-        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-        <IsTrimmable>True</IsTrimmable>
-        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>

@@ -15,16 +15,8 @@
         <PackageTags>UI;User Interface;fast</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Authors>Moldovan Eduard</Authors>
-    </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <IsTrimmable>True</IsTrimmable>
-        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-        <IsTrimmable>True</IsTrimmable>
-        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$TargetFramework', 'net7.0'))">True</IsAotCompatible>
+        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>
