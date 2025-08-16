@@ -14,7 +14,7 @@ using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
 using CatUI.Utils;
-using CatUI.Windowing.Desktop;
+using CatUI.Windowing.DesktopApp;
 
 namespace CatTest
 {
@@ -109,7 +109,7 @@ namespace CatTest
                                         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                                         Children =
                                         [
-                                            new TextBlock("False")
+                                            new Label("False")
                                             {
                                                 Layout = new ElementLayout()
                                                          .SetFixedWidth("100%")
@@ -134,7 +134,7 @@ namespace CatTest
                                         Background = new ColorBrush(new Color(0x61_61_61)),
                                         Children =
                                         [
-                                            new TextBlock($"El {item}")
+                                            new Label($"El {item}")
                                             {
                                                 Layout =
                                                     new ElementLayout()
@@ -166,7 +166,7 @@ namespace CatTest
                                         Background = new ColorBrush(new Color(0x61_61_61)),
                                         Children =
                                         [
-                                            new TextBlock("Default")
+                                            new Label("Default")
                                             {
                                                 Layout = new ElementLayout().SetFixedWidth("100%")
                                                                             .SetFixedHeight("100%"),
@@ -225,7 +225,7 @@ namespace CatTest
                 Background = new ColorBrush(new Color(0x61_61_61)),
                 Children =
                 [
-                    new TextBlock($"Case {value}")
+                    new Label($"Case {value}")
                     {
                         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                         TextBrush = new ColorBrush(new Color(0xff_ff_ff))
@@ -242,7 +242,7 @@ namespace CatTest
                 Background = new ColorBrush(new Color(0x61_61_61)),
                 Children =
                 [
-                    new TextBlock($"Eval case: {actualValue}")
+                    new Label($"Eval case: {actualValue}")
                     {
                         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
                         TextBrush = new ColorBrush(new Color(0xff_ff_ff))

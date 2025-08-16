@@ -28,7 +28,7 @@ namespace CatUISample.UI.Pages.UiElements
                         Arrangement = LinearArrangement.SpacedBy(5),
                         Children =
                         [
-                            new TextBlock("Buttons examples", TextAlignmentType.Center)
+                            new Label("Buttons examples", TextAlignmentType.Center)
                             {
                                 Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
                                 FontSize = 32,

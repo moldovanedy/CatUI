@@ -117,7 +117,7 @@ namespace CatUI.Elements.Buttons
 
         /// <summary>
         /// Represents the text content of the radio button. Contrary to the name, this can be any kind of element, but
-        /// it's much more common for it to be a <see cref="TextBlock"/>.
+        /// it's much more common for it to be a <see cref="Label"/>.
         /// </summary>
         /// <remarks>
         /// To see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
@@ -290,15 +290,15 @@ namespace CatUI.Elements.Buttons
         }
 
         /// <summary>
-        /// Creates a new switch button with <see cref="TextElement"/> as a new <see cref="TextBlock"/> with the given
+        /// Creates a new switch button with <see cref="TextElement"/> as a new <see cref="Label"/> with the given
         /// properties.
         /// </summary>
         /// <param name="initialValue">The initial value of the switch button.</param>
         /// <param name="text">
-        /// The text that a <see cref="TextBlock"/> will have when set as the value of <see cref="TextElement"/>.
+        /// The text that a <see cref="Label"/> will have when set as the value of <see cref="TextElement"/>.
         /// </param>
         /// <param name="fontSize">The value of <see cref="Text.TextElement.FontSize"/>.</param>
-        /// <param name="textBrush">The value of <see cref="TextBlock.TextBrush"/>.</param>
+        /// <param name="textBrush">The value of <see cref="Label.TextBrush"/>.</param>
         public SwitchButton(
             bool initialValue,
             string text,
@@ -306,7 +306,7 @@ namespace CatUI.Elements.Buttons
             ColorBrush? textBrush = null) :
             this(
                 initialValue,
-                new TextBlock(text, TextAlignmentType.Center)
+                new Label(text, TextAlignmentType.Center)
                 {
                     StyleClass = "SwitchButton::TextElement",
                     FontSize = fontSize ?? "1em",

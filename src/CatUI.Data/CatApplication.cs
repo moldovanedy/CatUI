@@ -57,6 +57,12 @@ namespace CatUI.Data
         public CatLogger.LogLevel ReleaseLogLevel { get; set; } = CatLogger.LogLevel.None;
 
         /// <summary>
+        /// If true, will log all messages in the application's stdout buffer. See
+        /// <see cref="AppBuilder.SetUseReleaseStdoutLogging"/> for more info. The default value is true.
+        /// </summary>
+        public bool UseReleaseStdoutLogging { get; private set; } = true;
+
+        /// <summary>
         /// The platform dispatcher. See <see cref="DispatcherBase"/> for more info.
         /// </summary>
         /// <exception cref="NotImplementedException">
@@ -78,7 +84,7 @@ namespace CatUI.Data
 #if DEBUG
             if (DebugLogLevel <= CatLogger.LogLevel.Debug)
             {
-                Debug.WriteLine(
+                Console.WriteLine(
                     "Initializing CatApplication. This message will only appear in debug mode if DebugLogLevel" +
                     " is LogLevel.Debug or lower. To configure debugging, use SetMinimumDebugLogLevel and " +
                     "SetMinimumReleaseLogLevel.");
@@ -109,6 +115,7 @@ namespace CatUI.Data
             private string _appName = "";
             private CatLogger.LogLevel _debugLogLevel = CatLogger.LogLevel.Debug;
             private CatLogger.LogLevel _releaseLogLevel = CatLogger.LogLevel.Warning;
+            private bool _useReleaseStdoutLogging = true;
             private CatApplicationInitializer? _initializer;
 
             /// <summary>
@@ -163,7 +170,10 @@ namespace CatUI.Data
             /// Simply sets <see cref="Trace.Listeners"/>, this is only a convenience function because its functionality
             /// can be easily achieved by directly manipulating <see cref="Trace.Listeners"/>.
             /// </summary>
-            /// <remarks>It clears existing Trace listeners.</remarks>
+            /// <remarks>
+            /// It clears existing Trace listeners. Don't put <see cref="Console.Out"/> here, as that's already
+            /// controlled by <see cref="SetUseReleaseStdoutLogging"/>.
+            /// </remarks>
             /// <param name="listeners">The listeners that will respond to any log by performing a certain action.</param>
             /// <returns>This builder.</returns>
             public AppBuilder SetReleaseLoggingListeners(List<TraceListener> listeners)
@@ -174,6 +184,19 @@ namespace CatUI.Data
                     Trace.Listeners.Add(listener);
                 }
 
+                return this;
+            }
+
+            /// <summary>
+            /// Adds the <see cref="Console.Out"/> to <see cref="Trace.Listeners"/>, so that the logs will appear in the
+            /// stdout stream of the application even in release mode. It is highly recommended to set this to true
+            /// (the default value is true), as most UI-based apps still do this for easier debugging.
+            /// </summary>
+            /// <param name="enabled">True if this feature should be used, false otherwise.</param>
+            /// <returns>This builder.</returns>
+            public AppBuilder SetUseReleaseStdoutLogging(bool enabled)
+            {
+                _useReleaseStdoutLogging = enabled;
                 return this;
             }
 
@@ -191,11 +214,18 @@ namespace CatUI.Data
                     throw new InvalidOperationException("A CatApplication has already been instantiated.");
                 }
 
+
                 _instance = new CatApplication();
                 Instance.AppName = _appName;
                 Instance.DebugLogLevel = _debugLogLevel;
                 Instance.ReleaseLogLevel = _releaseLogLevel;
                 Instance.AppInitializer = _initializer;
+
+                Instance.UseReleaseStdoutLogging = _useReleaseStdoutLogging;
+                if (_useReleaseStdoutLogging)
+                {
+                    Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
+                }
 
                 Instance.AppInitializer?.Initialize();
                 return Instance;

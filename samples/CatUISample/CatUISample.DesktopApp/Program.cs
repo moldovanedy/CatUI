@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using CatUI.Data;
-using CatUI.Windowing.Desktop;
+using CatUI.Windowing.DesktopApp;
 using CatUISample.UI;
 
-namespace CatUISample.Desktop
+namespace CatUISample.DesktopApp
 {
     public static class Program
     {

@@ -149,7 +149,7 @@ namespace CatUI.Utils
             /// <summary>
             /// Useful for storing application data that a user might want to use on multiple devices,
             /// like preferences and important files that will be available on multiple devices in a local network.
-            /// Data stored here are available only to the current user on all machines the user is connected on.
+            /// Data stored here is available only to the current user on all machines the user is connected on.
             /// <list type="bullet">
             /// <item>Windows: C:\Users\USERNAME\AppData\Roaming</item>
             /// <item>Linux: /home/USERNAME/.config</item>
@@ -167,7 +167,7 @@ namespace CatUI.Utils
             /// The files from this directory will be accessible to all the users, useful for non-user specific data.
             /// Beware that access to this directory might be blocked by the operating system, always check the permission
             /// using `METHOD`.
-            /// Data stored here are available to all users on the current machine.
+            /// Data stored here is available to all users on the current machine.
             /// <list type="bullet">
             /// <item>Windows: C:\ProgramData</item>
             /// <item>Linux: /usr/share</item>

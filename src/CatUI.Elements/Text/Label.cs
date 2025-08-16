@@ -19,10 +19,10 @@ namespace CatUI.Elements.Text
     /// lines support and is expandable. It is pretty efficient for both small and large amounts of text, so it can
     /// be used to display entire paragraphs of text.
     /// </summary>
-    public class TextBlock : TextElement, IWordWrappable
+    public class Label : TextElement, IWordWrappable
     {
         /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<TextBlock>? Ref
+        public new ObjectRef<Label>? Ref
         {
             get => _ref;
             set
@@ -35,7 +35,7 @@ namespace CatUI.Elements.Text
             }
         }
 
-        private ObjectRef<TextBlock>? _ref;
+        private ObjectRef<Label>? _ref;
 
 
         /// <inheritdoc cref="IWordWrappable.WordWrap"/>
@@ -195,28 +195,16 @@ namespace CatUI.Elements.Text
         /// </summary>
         private float _visibleTextTotalHeight;
 
-        public TextBlock()
+        public Label()
         {
             InitPropertiesEvents();
         }
 
-        public TextBlock(string text, TextAlignmentType textAlignment = TextAlignmentType.Left)
+        public Label(string text, TextAlignmentType textAlignment = TextAlignmentType.Left)
             : base(text, textAlignment)
         {
             InitPropertiesEvents();
         }
-
-        //~TextBlock()
-        //{
-        //    TextProperty.ValueChangedEvent -= OnTextChanged;
-
-        //    WordWrapProperty = null!;
-        //    BreakModeProperty = null!;
-        //    HyphenCharacterProperty = null!;
-        //    TextBrushProperty = null!;
-        //    OutlineTextBrushProperty = null!;
-        //    LineHeightProperty = null!;
-        //}
 
         private void InitPropertiesEvents()
         {
@@ -321,9 +309,9 @@ namespace CatUI.Elements.Text
             // }
         }
 
-        public override TextBlock Duplicate()
+        public override Label Duplicate()
         {
-            TextBlock el = new()
+            Label el = new()
             {
                 WordWrap = _wordWrap,
                 BreakMode = _breakMode,

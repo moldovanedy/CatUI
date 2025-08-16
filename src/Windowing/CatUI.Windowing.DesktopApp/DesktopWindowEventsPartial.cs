@@ -8,7 +8,7 @@ using CatUI.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using KeyModifiers = CatUI.Data.Enums.KeyModifiers;
 
-namespace CatUI.Windowing.Desktop
+namespace CatUI.Windowing.DesktopApp
 {
     public unsafe partial class DesktopWindow
     {

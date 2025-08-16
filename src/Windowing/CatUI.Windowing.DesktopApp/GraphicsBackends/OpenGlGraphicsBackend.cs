@@ -4,7 +4,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
-namespace CatUI.Windowing.Desktop.GraphicsBackends
+namespace CatUI.Windowing.DesktopApp.GraphicsBackends
 {
     internal sealed unsafe class OpenGlGraphicsBackend : IGraphicsBackend
     {

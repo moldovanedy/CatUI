@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Exceptions;
 using CatUI.Elements;
 using CatUI.Windowing.Common;
-using CatUI.Windowing.Desktop.GraphicsBackends;
-using CatUI.Windowing.Desktop.PlatformImplementations;
-using OpenTK;
-using OpenTK.Graphics.Egl;
+using CatUI.Windowing.DesktopApp.GraphicsBackends;
+using CatUI.Windowing.DesktopApp.PlatformImplementations;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
-namespace CatUI.Windowing.Desktop
+namespace CatUI.Windowing.DesktopApp
 {
     /// <summary>
     /// Represents a window on a desktop platform. On desktop, your app can create multiple windows and can generally
@@ -22,7 +21,7 @@ namespace CatUI.Windowing.Desktop
     {
         /// <summary>
         /// Represents the pointer to the platform's window representation. You can use this to implement platform-specific
-        /// functionality which almost always require a window handle. If you use this, you are responsible for the
+        /// functionality which almost always requires a window handle. If you use this, you are responsible for the
         /// functionality you use it for; misusing this might cause random crashes. 
         /// </summary>
         /// <remarks>
@@ -385,7 +384,7 @@ namespace CatUI.Windowing.Desktop
         /// Fired when an internal GLFW error occured. GLFW is the windowing library that CatUI uses on desktop to
         /// create windows, manage input, and handle hardware graphics context (OpenGL).
         /// </summary>
-        public event Action<OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode, string>? ErrorOccurred;
+        public event Action<ErrorCode, string>? ErrorOccurred;
 
         /// <summary>
         /// Fired when the window is resized, either by the user, by the platform, or by your code.
@@ -527,7 +526,7 @@ namespace CatUI.Windowing.Desktop
 
             if (!GLFW.Init())
             {
-                OpenTK.Windowing.GraphicsLibraryFramework.ErrorCode errorCode = GLFW.GetError(out string description);
+                ErrorCode errorCode = GLFW.GetError(out string description);
                 CatLogger.LogError("GLFW: could not initialize. UI failed to render.");
                 throw new InternalPlatformException($"Internal GLFW error ({errorCode}): {description}");
             }
@@ -611,7 +610,7 @@ namespace CatUI.Windowing.Desktop
             {
                 if (GlfwWindow == null)
                 {
-                    CatLogger.LogError("GLFW: no window opened. UI failed to render.");
+                    CatLogger.Log("GLFW: no window opened. UI failed to render.", CatLogger.LogLevel.Critical);
                     throw new NullReferenceException(
                         "Window pointer was null. Did you forget to open the window using Open()?");
                 }
@@ -641,17 +640,13 @@ namespace CatUI.Windowing.Desktop
         /// <exception cref="InternalPlatformException">Thrown when GLFW couldn't create or show the window.</exception>
         public void Open()
         {
-            Window* windowPtr = TryCreateWindow();
+            Window* windowPtr = TryCreateOpenGLWindow();
             if (windowPtr == null)
             {
-                windowPtr = TryCreateWindow(2, 1);
-                if (windowPtr == null)
-                {
-                    //TODO: fallback to software rendering
-                    CatLogger.LogError(
-                        "Graphics: No OpenGL context can be found (or found lower than version 2.1). UI failed to render.");
-                    throw new InternalPlatformException("GLFW: Could not create window");
-                }
+                CatLogger.Log(
+                    "GLFW: Could not create window. UI failed to render.",
+                    CatLogger.LogLevel.Critical);
+                throw new InternalPlatformException("GLFW: Could not create window");
             }
 
             GlfwWindow = windowPtr;
@@ -674,6 +669,18 @@ namespace CatUI.Windowing.Desktop
                 {
                     CatLogger.LogWarning("Graphics: OpenGL version is lower than 3.2. Some features might not work.");
                 }
+
+                if (int.Parse(versionString.AsSpan(0, 1)) < 2)
+                {
+                    //TODO: fallback to software rendering
+                    CatLogger.Log(
+                        "Graphics: OpenGL version is lower than 2.0. You need at least OpenGL 2.0 to run this app. UI failed to render.",
+                        CatLogger.LogLevel.Critical);
+                    Trace.Flush();
+
+                    Terminate();
+                    throw new InternalPlatformException("GLFW: Could not create window; OpenGL version too old");
+                }
             }
 
             //this is set so we know when Caps Lock and Num Lock were pressed through the key callbacks
@@ -684,7 +691,7 @@ namespace CatUI.Windowing.Desktop
             FullyRedraw();
         }
 
-        private Window* TryCreateWindow(int major = 0, int minor = 0)
+        private Window* TryCreateOpenGLWindow(int major = 0, int minor = 0)
         {
             GraphicsBackend = new OpenGlGraphicsBackend(major, minor);
             GraphicsBackend.PrepareWindowCreation();
@@ -1056,15 +1063,6 @@ namespace CatUI.Windowing.Desktop
             if (func != null)
             {
                 func.Invoke(Document, args);
-            }
-        }
-
-        // ReSharper disable once UnusedType.Local
-        private sealed class AngleBindingsContext : IBindingsContext
-        {
-            public nint GetProcAddress(string function)
-            {
-                return Egl.GetProcAddress(function);
             }
         }
     }

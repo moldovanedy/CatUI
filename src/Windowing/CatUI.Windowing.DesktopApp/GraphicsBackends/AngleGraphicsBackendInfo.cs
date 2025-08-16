@@ -1,6 +1,6 @@
 using CatUI.Windowing.Common;
 
-namespace CatUI.Windowing.Desktop.GraphicsBackends
+namespace CatUI.Windowing.DesktopApp.GraphicsBackends
 {
     public class AngleGraphicsBackendInfo : IGraphicsBackendInfo
     {

@@ -22,7 +22,7 @@ namespace CatUISample.UI.Pages
 
             Children =
             [
-                new TextBlock("CatUI Sample", TextAlignmentType.Center)
+                new Label("CatUI Sample", TextAlignmentType.Center)
                 {
                     Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
                     FontSize = 32,
