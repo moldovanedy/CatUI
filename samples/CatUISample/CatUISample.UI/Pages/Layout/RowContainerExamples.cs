@@ -18,7 +18,7 @@ namespace CatUISample.UI.Pages.Layout
 
             Children =
             [
-                new TextBlock("RowContainer examples", TextAlignmentType.Center)
+                new Label("RowContainer examples", TextAlignmentType.Center)
                 {
                     Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
                     FontSize = 32,
@@ -43,7 +43,7 @@ namespace CatUISample.UI.Pages.Layout
                 Arrangement = LinearArrangement.SpacedBy(10),
                 Children =
                 [
-                    new TextBlock($"Alignment: {justification}")
+                    new Label($"Alignment: {justification}")
                     {
                         FontSize = 16, TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                     },
@@ -88,7 +88,7 @@ namespace CatUISample.UI.Pages.Layout
                 Arrangement = LinearArrangement.SpacedBy(10),
                 Children =
                 [
-                    new TextBlock($"Alignment: {justification}")
+                    new Label($"Alignment: {justification}")
                     {
                         FontSize = 16, TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                     },

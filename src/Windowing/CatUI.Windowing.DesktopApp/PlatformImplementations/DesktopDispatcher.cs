@@ -1,6 +1,6 @@
 using CatUI.Platform.Essentials;
 
-namespace CatUI.Windowing.Desktop.PlatformImplementations
+namespace CatUI.Windowing.DesktopApp.PlatformImplementations
 {
     public class DesktopDispatcher : DispatcherBase
     {

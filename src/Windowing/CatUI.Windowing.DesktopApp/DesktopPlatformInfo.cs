@@ -2,7 +2,7 @@ using System;
 using CatUI.Data;
 using CatUI.Platform.Essentials;
 using CatUI.Windowing.Common;
-using CatUI.Windowing.Desktop.PlatformImplementations;
+using CatUI.Windowing.DesktopApp.PlatformImplementations;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 #if WINDOWS || MACOS || MACCATALYST
@@ -10,7 +10,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using CatUI.Platform.Linux;
 #endif
 
-namespace CatUI.Windowing.Desktop
+namespace CatUI.Windowing.DesktopApp
 {
     public class DesktopPlatformInfo : PlatformInfo
     {

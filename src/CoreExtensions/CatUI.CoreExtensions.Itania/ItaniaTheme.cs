@@ -43,8 +43,8 @@ namespace CatUI.CoreExtensions.Itania
             theme.AddOrUpdateElementTypeDefinition<TextElement>(
                 new ThemeDefinition(el => ((TextElement)el).FontSize = "1em"));
 
-            theme.AddOrUpdateElementTypeDefinition<TextBlock>(
-                new ThemeDefinition(el => ((TextBlock)el).TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)));
+            theme.AddOrUpdateElementTypeDefinition<Label>(
+                new ThemeDefinition(el => ((Label)el).TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)));
 
             //scroll
             theme.AddOrUpdateElementTypeDefinition<ScrollContainer>(

@@ -2,7 +2,7 @@ using System;
 using CatUI.Windowing.Common;
 using OpenTK.Graphics.OpenGL;
 
-namespace CatUI.Windowing.Desktop.GraphicsBackends
+namespace CatUI.Windowing.DesktopApp.GraphicsBackends
 {
     public class OpenGlGraphicsBackendInfo : IGraphicsBackendInfo
     {

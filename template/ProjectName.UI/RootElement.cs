@@ -13,7 +13,7 @@ namespace ProjectName.UI
     public class RootElement : ColumnContainer
     {
         //you can use an ObjectRef<Element> to acces an element in another context (see below)
-        private readonly ObjectRef<TextBlock>? _textBlockRef = new();
+        private readonly ObjectRef<Label>? _labelRef = new();
 
         //called when this element is added to the window's document
         protected override void EnterDocument(object sender)
@@ -24,7 +24,7 @@ namespace ProjectName.UI
             //set this element's children
             Children =
             [
-                new TextBlock(
+                new Label(
                     "Hello World from CatUI!")
                 {
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(20),
@@ -32,9 +32,9 @@ namespace ProjectName.UI
                     FontSize = 16,
                     Background = new ColorBrush(new Color(0xff_00_ff))
                 },
-                new TextBlock("")
+                new Label("")
                 {
-                    Ref = _textBlockRef,
+                    Ref = _labelRef,
                     Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(20),
                     TextAlignment = TextAlignmentType.Center,
                     Background = new ColorBrush(new Color(0xff_ff_00))
@@ -42,7 +42,7 @@ namespace ProjectName.UI
             ];
 
             //you can access the text block here!
-            _textBlockRef!.Value!.Text = "Current time: ";
+            _labelRef!.Value!.Text = "Current time: ";
         }
     }
 }

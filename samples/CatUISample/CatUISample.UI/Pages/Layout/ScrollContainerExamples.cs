@@ -20,7 +20,7 @@ namespace CatUISample.UI.Pages.Layout
 
             Children =
             [
-                new TextBlock("ScrollContainer examples", TextAlignmentType.Center)
+                new Label("ScrollContainer examples", TextAlignmentType.Center)
                 {
                     Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
                     FontSize = 32,

@@ -127,7 +127,7 @@ namespace CatUI.Elements.Buttons
         /// <summary>
         /// Represents the text content of the button, but it's optional, as you can have this, an <see cref="IconElement"/>
         /// or both. Contrary to the name, this can be any kind of element, but it's much more common for it to be a
-        /// <see cref="TextBlock"/>.
+        /// <see cref="Label"/>.
         /// </summary>
         /// <remarks>
         /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
@@ -267,14 +267,14 @@ namespace CatUI.Elements.Buttons
         }
 
         /// <summary>
-        /// A helper constructor that will set the <see cref="TextElement"/> as a default <see cref="TextBlock"/> with
+        /// A helper constructor that will set the <see cref="TextElement"/> as a default <see cref="Label"/> with
         /// the given text, font size and text brush and will give it a padding.
         /// </summary>
         /// <param name="text">
-        /// The text that a <see cref="TextBlock"/> will have when set as the value of <see cref="TextElement"/>.
+        /// The text that a <see cref="Label"/> will have when set as the value of <see cref="TextElement"/>.
         /// </param>
         /// <param name="fontSize">The value of <see cref="Text.TextElement.FontSize"/>.</param>
-        /// <param name="textBrush">The value of <see cref="TextBlock.TextBrush"/>.</param>
+        /// <param name="textBrush">The value of <see cref="Label.TextBrush"/>.</param>
         /// <param name="padding">The value of <see cref="Padding"/>.</param>
         public Button(
             string text,
@@ -282,7 +282,7 @@ namespace CatUI.Elements.Buttons
             ColorBrush? textBrush = null,
             EdgeInset? padding = null) :
             this(
-                new TextBlock(text, TextAlignmentType.Center)
+                new Label(text, TextAlignmentType.Center)
                 {
                     StyleClass = "Button::TextElement",
                     FontSize = fontSize ?? 16,

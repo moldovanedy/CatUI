@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
 using CatUI.Data;
-using CatUI.Windowing.Desktop;
+using CatUI.Windowing.DesktopApp;
 #if (usesLib)
 using ProjectName.UI;
 #endif
 
-namespace ProjectName.Desktop
+namespace ProjectName.DesktopApp
 {
     public static class Program
     {

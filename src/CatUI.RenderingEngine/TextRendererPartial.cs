@@ -267,7 +267,7 @@ namespace CatUI.RenderingEngine
         /// </param>
         /// <returns>The number of characters drawn.</returns>
         /// <exception cref="ArgumentException">Thrown if the text contains an invalid newline (\r instead of \n or \r\n).</exception>
-        [Obsolete("Unreliable, use a custom solution with DrawTextRowFast instead. See the TextBlock implementation.")]
+        [Obsolete("Unreliable, use a custom solution with DrawTextRowFast instead. See the Label implementation.")]
         public int DrawTextRow(
             string text,
             Point2D topLeftPoint,

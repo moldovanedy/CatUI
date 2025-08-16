@@ -1,6 +1,6 @@
 using System;
 
-namespace CatUI.Windowing.Desktop
+namespace CatUI.Windowing.DesktopApp
 {
     /// <summary>
     /// The sender is the window and the arguments describe the changes.

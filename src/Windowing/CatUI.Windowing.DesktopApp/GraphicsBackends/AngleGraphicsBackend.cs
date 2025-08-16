@@ -6,7 +6,7 @@ using OpenTK.Graphics.ES20;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
-namespace CatUI.Windowing.Desktop.GraphicsBackends
+namespace CatUI.Windowing.DesktopApp.GraphicsBackends
 {
     internal sealed class AngleGraphicsBackend : IGraphicsBackend
     {
@@ -98,7 +98,7 @@ namespace CatUI.Windowing.Desktop.GraphicsBackends
             {
                 var glInterface = GRGlInterface.Create(name =>
                 {
-                    IntPtr fnPointer = GLFW.GetProcAddress(name);
+                    IntPtr fnPointer = Egl.GetProcAddress(name);
                     return fnPointer;
                 });
                 _grContext = GRContext.CreateGl(glInterface);

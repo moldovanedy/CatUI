@@ -19,7 +19,7 @@ namespace CatUI.Data
                 return;
             }
 
-            Debug.WriteLine(FormatMessage(message, logLevel, showTimestamp));
+            Console.WriteLine(FormatMessage(message, logLevel, showTimestamp));
 #elif TRACE
             if (CatApplication.Instance.ReleaseLogLevel == LogLevel.None || 
                 logLevel < CatApplication.Instance.ReleaseLogLevel)

@@ -4,7 +4,7 @@ using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Shapes;
-using CatUI.Windowing.Desktop;
+using CatUI.Windowing.DesktopApp;
 
 namespace BoxContainersExample
 {

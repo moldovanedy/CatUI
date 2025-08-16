@@ -99,9 +99,9 @@ namespace CatUI.Elements
         /// considered, ignoring base types. The default value is -1.
         /// </summary>
         /// <example>
-        /// For a TextBlock, a value of -1 means that the themes for Element, TextElement and TextBlock will be applied
-        /// in this order. A value of 0 means that only the Theme for TextBlock will be applied, while a value of 1
-        /// means that the themes for TextElement and TextBlock will be applied in this order.
+        /// For a Label, a value of -1 means that the themes for Element, TextElement and Label will be applied
+        /// in this order. A value of 0 means that only the Theme for Label will be applied, while a value of 1
+        /// means that the themes for TextElement and Label will be applied in this order.
         /// </example>
         public int BaseThemingCount
         {

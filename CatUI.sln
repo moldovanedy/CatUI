@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatUI", "src\CatUI\CatUI.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatUI.RenderingEngine", "src\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj", "{194270E6-EAE5-40AF-A7CA-02DAB396534A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatUI.Windowing.Desktop", "src\Windowing\CatUI.Windowing.Desktop\CatUI.Windowing.Desktop.csproj", "{37A66CA9-A72C-42CB-B593-5E316C85F5BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatUI.Windowing.DesktopApp", "src\Windowing\CatUI.Windowing.DesktopApp\CatUI.Windowing.DesktopApp.csproj", "{37A66CA9-A72C-42CB-B593-5E316C85F5BE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatTest", "samples\CatTest\CatTest.csproj", "{71739093-0780-40A5-B69B-E13485C928E0}"
 EndProject
@@ -32,11 +32,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windowing", "Windowing", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "template", "template", "{88749603-F417-47CB-BC9A-EA9715E783AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectName.Desktop", "template\ProjectName.Desktop\ProjectName.Desktop.csproj", "{43ADCAD3-89AB-4124-BF22-8CDDCCED8AFC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectName.DesktopApp", "template\ProjectName.DesktopApp\ProjectName.DesktopApp.csproj", "{43ADCAD3-89AB-4124-BF22-8CDDCCED8AFC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectName.UI", "template\ProjectName.UI\ProjectName.UI.csproj", "{72FE1601-BFCE-441B-A338-62DB41420AF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUISample.Desktop", "samples\CatUISample\CatUISample.Desktop\CatUISample.Desktop.csproj", "{A062A26A-B3A1-465C-8538-92D3E67420CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUISample.DesktopApp", "samples\CatUISample\CatUISample.DesktopApp\CatUISample.DesktopApp.csproj", "{A062A26A-B3A1-465C-8538-92D3E67420CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUISample.UI", "samples\CatUISample\CatUISample.UI\CatUISample.UI.csproj", "{8C14CFCE-68FF-4E2E-9489-ECB8D40DBF6B}"
 EndProject
