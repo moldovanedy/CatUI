@@ -19,7 +19,7 @@ namespace CatUI.Elements.Behaviors
         /// Available for elements that can be focused, so the user can input keys or simply select the element
         /// using keyboard navigation.
         /// </summary>
-        public const string STATE_FOCUSED = "focused";
+        const string STATE_FOCUSED = "focused";
 
         /// <summary>
         /// If true (generally the default), it means the element can receive and grab focus. If false, it means the
@@ -37,12 +37,12 @@ namespace CatUI.Elements.Behaviors
         /// this property is false.
         /// </para>
         /// </remarks>
-        public bool IsFocusEnabled { get; set; }
+        bool IsFocusEnabled { get; set; }
 
         /// <summary>
         /// Returns true if the element is currently focused, false otherwise.
         /// </summary>
-        public bool IsCurrentlyFocused
+        bool IsCurrentlyFocused
         {
             get
             {
@@ -55,16 +55,16 @@ namespace CatUI.Elements.Behaviors
             }
         }
 
-        public ObservableProperty<bool> IsFocusEnabledProperty { get; }
+        ObservableProperty<bool> IsFocusEnabledProperty { get; }
 
         /// <summary>
         /// Fired when the focus of the element has changed.
         /// </summary>
-        public event FocusChangedEventHandler? FocusChangedEvent;
+        event FocusChangedEventHandler? FocusChangedEvent;
 
-        public FocusChangedEventHandler? OnFocusChanged { get; set; }
+        FocusChangedEventHandler? OnFocusChanged { get; set; }
 
-        public void FocusChanged(object sender, FocusChangedEventHandler e);
+        void FocusChanged(object sender, FocusChangedEventHandler e);
 
         /// <summary>
         /// If not null, the contained element will be focused next when navigating with the keyboard (using the Tab key
@@ -75,7 +75,7 @@ namespace CatUI.Elements.Behaviors
         /// It's generally recommended to leave this as null so CatUI can automatically focus elements using
         /// predictable patterns.
         /// </remarks>
-        public IFocusable? NextFocusableElement { get; set; }
+        IFocusable? NextFocusableElement { get; set; }
 
         /// <summary>
         /// If not null, the contained element will be focused next when navigating with the keyboard and triggering
@@ -86,7 +86,7 @@ namespace CatUI.Elements.Behaviors
         /// It's generally recommended to leave this as null so CatUI can automatically focus elements using
         /// predictable patterns.
         /// </remarks>
-        public IFocusable? PreviousFocusableElement { get; set; }
+        IFocusable? PreviousFocusableElement { get; set; }
 
         /// <summary>
         /// For internal use only! The implementation must invoke the <see cref="FocusChangedEvent"/> inside this method,
@@ -97,7 +97,7 @@ namespace CatUI.Elements.Behaviors
         /// <param name="hasEnteredFocus">
         /// True when the element entered (or got) focus, false when the element exited (or lost) focus.
         /// </param>
-        public void OnFocusStateChanged(bool hasEnteredFocus);
+        void OnFocusStateChanged(bool hasEnteredFocus);
 
         /// <summary>
         /// A utility to be used in implementations of <see cref="OnFocusStateChanged"/> to change
@@ -107,7 +107,7 @@ namespace CatUI.Elements.Behaviors
         /// If true, this will set the state to <see cref="STATE_FOCUSED"/>; if false, it will decide
         /// what's the best state for the element.
         /// </param>
-        public void SetFocusedStateUtility(bool isFocusedNow)
+        void SetFocusedStateUtility(bool isFocusedNow)
         {
             if (this is not Element directElement)
             {

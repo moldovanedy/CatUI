@@ -13,8 +13,8 @@ namespace CatUI.Elements.Text
         /// needed. See the remarks on each element that implements this interface for more information.
         /// The default value is false.
         /// </summary>
-        public bool WordWrap { get; set; }
+        bool WordWrap { get; set; }
 
-        public ObservableProperty<bool> WordWrapProperty { get; }
+        ObservableProperty<bool> WordWrapProperty { get; }
     }
 }

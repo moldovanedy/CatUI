@@ -17,4 +17,8 @@
         <ProjectReference Include="..\CatUISample.UI\CatUISample.UI.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <EmbeddedResource Include="search_128px.png" />
+    </ItemGroup>
+
 </Project>

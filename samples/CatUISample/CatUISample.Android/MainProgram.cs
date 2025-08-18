@@ -43,7 +43,7 @@ namespace CatUISample.Android
             //early initialization of the app
             CatApplication
                 .NewBuilder()
-                .SetInitializer(new AndroidPlatformInfo().AppInitializer)
+                .SetPlatformInfo(new AndroidPlatformInfo())
                 .Build();
 
             InitialSetup.Init();

@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using CatUI.Data;
+using CatUI.Data.Assets;
+using CatUI.Data.Managers;
+using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp;
 using CatUISample.UI;
 
@@ -10,10 +12,18 @@ namespace CatUISample.DesktopApp
     {
         private static void Main()
         {
+            //TODO: replace the search icon with the logo when we'll have one :)
+            var icon = AssetsManager.LoadFromAssembly<ImageAsset>(
+                "/search_128px.png",
+                typeof(Program));
+
             //early initialization of the app
             CatApplication
                 .NewBuilder()
-                .SetInitializer(new DesktopPlatformInfo().AppInitializer)
+                .SetPlatformInfo(
+                    new DesktopPlatformInfo()
+                        //.SetLinuxUseWayland(false)
+                        .SetDefaultWindowIcon(icon == null ? null : new WindowIcon(icon, false)))
                 .Build();
 
             InitialSetup.Init();
@@ -27,7 +37,7 @@ namespace CatUISample.DesktopApp
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Console.WriteLine(ex.Message);
             }
         }
     }

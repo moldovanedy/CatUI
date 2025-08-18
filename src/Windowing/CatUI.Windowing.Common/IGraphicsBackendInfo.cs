@@ -2,10 +2,10 @@ namespace CatUI.Windowing.Common
 {
     public interface IGraphicsBackendInfo
     {
-        public GraphicsApi GetUsedGraphicsApi();
-        public string GetGraphicsApiVersion();
+        GraphicsApi GetUsedGraphicsApi();
+        string GetGraphicsApiVersion();
 
-        public enum GraphicsApi
+        enum GraphicsApi
         {
             /// <summary>
             /// Native OpenGL core profile (version 3.2+) (desktop only).

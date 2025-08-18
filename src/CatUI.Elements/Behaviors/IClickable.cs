@@ -15,19 +15,19 @@ namespace CatUI.Elements.Behaviors
         /// outside the element hit zone), the event will still fire, which is generally bad UX. Set this to false only
         /// if your use case really needs it.
         /// </remarks>
-        public bool CanUserCancelClick { get; set; }
+        bool CanUserCancelClick { get; set; }
 
-        public ObservableProperty<bool> CanUserCancelClickProperty { get; }
+        ObservableProperty<bool> CanUserCancelClickProperty { get; }
 
         /// <summary>
         /// Fired when the user clicks on the element. For differences between Click and PointerDown, see the documentation
         /// for <see cref="ClickEventArgs"/>.
         /// </summary>
-        public event ClickEventHandler? ClickEvent;
+        event ClickEventHandler? ClickEvent;
 
-        public ClickEventHandler? OnClick { get; set; }
+        ClickEventHandler? OnClick { get; set; }
 
-        public void Click(object sender, ClickEventArgs e);
+        void Click(object sender, ClickEventArgs e);
 
         /// <summary>
         /// This will be fired by the document when the element is focused and the user triggered the "select" action
@@ -35,6 +35,6 @@ namespace CatUI.Elements.Behaviors
         /// <see cref="ClickEvent"/>, but some elements like text fields might perform a different action.
         /// Don't call this in UI code, as it will be called by the document!
         /// </summary>
-        public void FocusedSelectActionTriggered();
+        void FocusedSelectActionTriggered();
     }
 }

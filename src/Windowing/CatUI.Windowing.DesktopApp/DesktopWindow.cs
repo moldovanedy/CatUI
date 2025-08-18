@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using CatUI.Data;
+using CatUI.Data.Assets;
 using CatUI.Data.Exceptions;
 using CatUI.Elements;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.GraphicsBackends;
+using CatUI.Windowing.DesktopApp.NativeInterop.WindowIcon;
 using CatUI.Windowing.DesktopApp.PlatformImplementations;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
@@ -381,7 +384,7 @@ namespace CatUI.Windowing.DesktopApp
         #region Events
 
         /// <summary>
-        /// Fired when an internal GLFW error occured. GLFW is the windowing library that CatUI uses on desktop to
+        /// Fired when an internal GLFW error occurred. GLFW is the windowing library that CatUI uses on desktop to
         /// create windows, manage input, and handle hardware graphics context (OpenGL).
         /// </summary>
         public event Action<ErrorCode, string>? ErrorOccurred;
@@ -640,7 +643,7 @@ namespace CatUI.Windowing.DesktopApp
         /// <exception cref="InternalPlatformException">Thrown when GLFW couldn't create or show the window.</exception>
         public void Open()
         {
-            Window* windowPtr = TryCreateOpenGLWindow();
+            Window* windowPtr = TryCreateOpenGlWindow();
             if (windowPtr == null)
             {
                 CatLogger.Log(
@@ -683,6 +686,13 @@ namespace CatUI.Windowing.DesktopApp
                 }
             }
 
+            if (
+                CatApplication.Instance.PlatformInformation is DesktopPlatformInfo desktopPlatformInfo
+             && desktopPlatformInfo.DefaultWindowIcon != null)
+            {
+                SetWindowIcon(desktopPlatformInfo.DefaultWindowIcon);
+            }
+
             //this is set so we know when Caps Lock and Num Lock were pressed through the key callbacks
             GLFW.SetInputMode(GlfwWindow, LockKeyModAttribute.LockKeyMods, true);
 
@@ -691,7 +701,7 @@ namespace CatUI.Windowing.DesktopApp
             FullyRedraw();
         }
 
-        private Window* TryCreateOpenGLWindow(int major = 0, int minor = 0)
+        private Window* TryCreateOpenGlWindow(int major = 0, int minor = 0)
         {
             GraphicsBackend = new OpenGlGraphicsBackend(major, minor);
             GraphicsBackend.PrepareWindowCreation();
@@ -943,6 +953,138 @@ namespace CatUI.Windowing.DesktopApp
             _animationFrameCallbacks.Add(frameCallback);
         }
 
+        /// <inheritdoc cref="IApplicationWindow.GetWindowIcon"/>
+        /// <remarks>
+        /// <para>
+        /// Windows: Will try to get the icon from the window data (only if set by <see cref="SetWindowIcon"/>),
+        /// if it fails, it will return null.
+        /// </para>
+        /// <para>
+        /// Linux: Will try to get the icon from the window data (on X11 only, on Wayland it always returns null)
+        /// (only if set by <see cref="SetWindowIcon"/>), if it fails, it will return null.
+        /// </para>
+        /// <para>
+        /// macOS: Will always return null.
+        /// </para>
+        /// </remarks>
+        public WindowIcon? GetWindowIcon()
+        {
+            if (OperatingSystem.IsMacOS() || OperatingSystem.IsMacCatalyst())
+            {
+                return null;
+            }
+
+            SKImage? icon = null;
+            if (
+                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11 &&
+                (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD()))
+            {
+                icon = WindowIconLinux.GetWindowIcon(this);
+            }
+            else if (OperatingSystem.IsWindows())
+            {
+                icon = WindowIconWindows.GetWindowIcon(this);
+            }
+
+            return icon == null ? null : new WindowIcon(new ImageAsset(icon), false);
+        }
+
+        /// <summary>
+        /// Sets the window icon directly. Will return false on macOS and on Linux Wayland. Always call this AFTER
+        /// <see cref="Open"/>, otherwise it will also return false.
+        /// </summary>
+        /// <param name="icon">
+        /// The icon to set for this window. It's preferable to use both large and small sizes, as the platform will
+        /// decide at runtime what icon to use. If not, at least use a large size like 512x512 or 256x256.
+        /// </param>
+        /// <returns>
+        /// True if the operation succeeded, false if it failed or is not supported on the runtime platform.
+        /// </returns>
+        public bool SetWindowIcon(WindowIcon icon)
+        {
+            if (GlfwWindow == null)
+            {
+                return false;
+            }
+
+            if (OperatingSystem.IsMacOS() || OperatingSystem.IsMacCatalyst())
+            {
+                return false;
+            }
+
+            if (
+                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland &&
+                (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD()))
+            {
+                return false;
+            }
+
+            List<Image> imgArray = new(7);
+            List<IntPtr> dataToFree = new(7);
+            for (int i = 0; i < 7; i++)
+            {
+                ImageAsset? img = null;
+                int dim = 0;
+                switch (i)
+                {
+                    case 0:
+                        img = icon.Icon512X512;
+                        dim = 512;
+                        break;
+                    case 1:
+                        img = icon.Icon256X256;
+                        dim = 256;
+                        break;
+                    case 2:
+                        img = icon.Icon128X128;
+                        dim = 128;
+                        break;
+                    case 3:
+                        img = icon.Icon64X64;
+                        dim = 64;
+                        break;
+                    case 4:
+                        img = icon.Icon48X48;
+                        dim = 48;
+                        break;
+                    case 5:
+                        img = icon.Icon32X32;
+                        dim = 32;
+                        break;
+                    case 6:
+                        img = icon.Icon16X16;
+                        dim = 16;
+                        break;
+                }
+
+                if (img?.SkiaImage != null)
+                {
+                    IntPtr pixelPtr = Marshal.AllocHGlobal(dim * dim * 4);
+                    bool success = img.SkiaImage.ReadPixels(
+                        new SKImageInfo(dim, dim, SKColorType.Rgba8888),
+                        pixelPtr);
+                    if (!success)
+                    {
+                        goto FreeData;
+                    }
+
+                    var glfwImage = new Image { Width = dim, Height = dim, Pixels = (byte*)pixelPtr.ToPointer() };
+                    imgArray.Add(glfwImage);
+                    dataToFree.Add(pixelPtr);
+                }
+            }
+
+            GLFW.SetWindowIcon(GlfwWindow, imgArray.ToArray().AsSpan());
+
+        FreeData:
+            foreach (IntPtr pointer in dataToFree)
+            {
+                Marshal.FreeHGlobal(pointer);
+            }
+
+            return true;
+        }
+
         private void DoFrameActions()
         {
             double delta = GLFW.GetTime() - _lastTime;
@@ -965,7 +1107,7 @@ namespace CatUI.Windowing.DesktopApp
                 _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
             }
 
-            if (CatApplication.Instance.AppInitializer != null &&
+            if (CatApplication.Instance.PlatformInformation != null &&
                 CatApplication.Instance.Dispatcher is DesktopDispatcher dispatcher)
             {
                 dispatcher.CallActions();

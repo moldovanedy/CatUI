@@ -17,7 +17,7 @@ namespace CatUI.Windowing.Common
         /// (e.g. mobile).
         /// </summary>
         /// <remarks>For the unscaled equivalent, see <see cref="FramebufferWidth"/>.</remarks>
-        public int Width { get; set; }
+        int Width { get; set; }
 
         /// <summary>
         /// Represents the height of the window without any decoration, scaled according to user preferences if
@@ -26,7 +26,7 @@ namespace CatUI.Windowing.Common
         /// (e.g. mobile).
         /// </summary>
         /// <remarks>For the unscaled equivalent, see <see cref="FramebufferHeight"/>.</remarks>
-        public int Height { get; set; }
+        int Height { get; set; }
 
         /// <summary>
         /// If true, it means the window respects the platform scaling that is generally set by the users. This means that
@@ -34,32 +34,32 @@ namespace CatUI.Windowing.Common
         /// This is generally the best behavior because CatUI will manage scaling for you, even if the scale is
         /// adjusted by the platform during runtime.
         /// </summary>
-        public bool IsDpiAware { get; }
+        bool IsDpiAware { get; }
 
         /// <summary>
         /// Returns the width of the frame buffer, meaning the unscaled equivalent of <see cref="Width"/>.
         /// This represents direct pixel values.
         /// </summary>
-        public int FramebufferWidth { get; }
+        int FramebufferWidth { get; }
 
         /// <summary>
         /// Returns the height of the frame buffer, meaning the unscaled equivalent of <see cref="Height"/>.
         /// This represents direct pixel values.
         /// </summary>
-        public int FramebufferHeight { get; }
+        int FramebufferHeight { get; }
 
         /// <summary>
         /// Represents the UI document attached to the window. This is NOT platform-specific, it is an abstraction
         /// provided by CatUI.
         /// </summary>
-        public UiDocument Document { get; }
+        UiDocument Document { get; }
 
-        public IGraphicsBackendInfo GraphicsBackendInfo { get; }
+        IGraphicsBackendInfo GraphicsBackendInfo { get; }
 
         /// <summary>
         /// Closes this window by releasing all its resources, if any.
         /// </summary>
-        public void Close();
+        void Close();
 
         /// <summary>
         /// This function works similarly to the requestAnimationFrame web API. The given callback will be executed
@@ -68,7 +68,14 @@ namespace CatUI.Windowing.Common
         /// <param name="frameCallback">
         /// A function that receives the time between the last frame and the current frame in seconds as a parameter.
         /// </param>
-        public void RequestAnimationFrame(Action<double> frameCallback);
+        void RequestAnimationFrame(Action<double> frameCallback);
+
+        /// <summary>
+        /// Will return the window icon if possible. Cache this if possible, as it might be an expensive operation on
+        /// most platforms.
+        /// </summary>
+        /// <returns></returns>
+        WindowIcon? GetWindowIcon();
 
         /// <summary>
         /// Fired when the platform's window manager detected a resize done by the user or when the window was resized
@@ -76,7 +83,7 @@ namespace CatUI.Windowing.Common
         /// already been set to this instance (<see cref="Width"/> and <see cref="Height"/>), but you have the old
         /// values in this event as well.
         /// </summary>
-        public event WindowResizedEventHandler? ResizedEvent;
+        event WindowResizedEventHandler? ResizedEvent;
 
         /// <summary>
         /// An event that is fired when the internal windowing system decides to redraw
@@ -88,6 +95,6 @@ namespace CatUI.Windowing.Common
         /// This event won't be invoked even when using <see cref="RequestAnimationFrame(Action{double})"/>
         /// unless something really has been drawn.
         /// </remarks>
-        public event Action<double>? FrameUpdatedEvent;
+        event Action<double>? FrameUpdatedEvent;
     }
 }
