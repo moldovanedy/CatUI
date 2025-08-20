@@ -5,16 +5,24 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
+
         <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
         <TrimmerSingleWarn>false</TrimmerSingleWarn>
+
+        <ApplicationIcon>./icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\Windowing\CatUI.Windowing.DesktopApp\CatUI.Windowing.DesktopApp.csproj" />
-        <ProjectReference Include="..\..\..\src\CatUI\CatUI.csproj" />
+        <ProjectReference Include="..\..\..\src\Windowing\CatUI.Windowing.DesktopApp\CatUI.Windowing.DesktopApp.csproj"/>
+        <ProjectReference Include="..\..\..\src\CatUI\CatUI.csproj"/>
 
-        <ProjectReference Include="..\CatUISample.UI\CatUISample.UI.csproj" />
+        <ProjectReference Include="..\CatUISample.UI\CatUISample.UI.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="search_128px.png"/>
+        <EmbeddedResource Include="icon.png"/>
     </ItemGroup>
 
 </Project>

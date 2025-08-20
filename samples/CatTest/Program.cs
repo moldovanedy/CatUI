@@ -257,7 +257,7 @@ namespace CatTest
             CatApplication
                 .NewBuilder()
                 //you should ALWAYS set the initializer to ensure you have access to everything from CatApplication
-                .SetInitializer(new DesktopPlatformInfo().AppInitializer)
+                .SetPlatformInfo(new DesktopPlatformInfo())
                 .Build();
         }
     }

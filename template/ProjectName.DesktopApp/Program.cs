@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using CatUI.Data;
+﻿using CatUI.Data;
 using CatUI.Windowing.DesktopApp;
 #if (usesLib)
 using ProjectName.UI;
@@ -9,7 +8,7 @@ namespace ProjectName.DesktopApp
 {
     public static class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             Init();
 
@@ -23,19 +22,19 @@ namespace ProjectName.DesktopApp
             //you MUST open the window before you run it!
             window.Open();
 
-            //top-level exception handler: any exception unhandled by UI code will be logged and the window will close
-            //automatically (you can put this in some sort of loop, as Run can be called multiple times unless you called
-            //Close, but it's generally better to just show the user some kind of error and close the app as it is corrupted
-            //in unknown ways at that point)
+            //top-level exception handler: any exception unhandled by UI code will be logged, and the window will close
+            // automatically (you can put this in some sort of loop, as Run can be called multiple times unless you
+            // called Close, but it's generally better to just show the user some kind of error and close the app
+            // as it is corrupted in unknown ways at that point)
             try
             {
                 window.Run();
             }
             //you don't need to call Close: the Run function will automatically close the app when the user closes it
-            //or the platform requests the window to be closed
+            // or the platform requests the window to be closed
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -46,7 +45,9 @@ namespace ProjectName.DesktopApp
             CatApplication
                 .NewBuilder()
                 //you should ALWAYS set the initializer to ensure you have access to everything from CatApplication
-                .SetInitializer(new DesktopPlatformInfo().AppInitializer)
+                //you can modify some options that affect the entire application in the PlatformInfo object, for
+                // example, setting the icon of all windows
+                .SetPlatformInfo(new DesktopPlatformInfo())
                 .Build();
         }
     }

@@ -1,16 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>CatUI.Platform.Essentials</RootNamespace>
-
-        <IsAotCompatible>True</IsAotCompatible>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="SkiaSharp" Version="2.88.8"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj"/>
     </ItemGroup>
 
 </Project>

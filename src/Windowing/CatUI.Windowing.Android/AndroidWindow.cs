@@ -347,6 +347,18 @@ namespace CatUI.Windowing.Android
             _animationFrameCallbacks.Add(frameCallback);
         }
 
+        public WindowIcon? GetWindowIcon()
+        {
+            //OR use GetApplicationIcon
+            // if (Intent == null)
+            // {
+            //     return null;
+            // }
+            //
+            // Drawable? androidIcon = PackageManager?.GetActivityIcon(Intent);
+            return null;
+        }
+
         private void SetupCallbacks()
         {
             _choreographer?.PostFrameCallback(new FrameCallback(this));
@@ -400,7 +412,7 @@ namespace CatUI.Windowing.Android
                 _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
             }
 
-            if (CatApplication.Instance.AppInitializer != null &&
+            if (CatApplication.Instance.PlatformInformation != null &&
                 CatApplication.Instance.Dispatcher is AndroidDispatcher dispatcher)
             {
                 dispatcher.CallActions();

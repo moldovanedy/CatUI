@@ -11,7 +11,7 @@ namespace CatUI.Data
     /// <remarks>
     /// You should create a static property that returns a new instance of this class that sets all the necessary properties
     /// of the platform as the app developer should give that property as an argument to
-    /// <see cref="CatApplication.AppBuilder.SetInitializer"/>.
+    /// <see cref="CatApplication.AppBuilder.SetPlatformInfo"/>.
     /// </remarks>
     public class CatApplicationInitializer
     {
@@ -54,6 +54,7 @@ namespace CatUI.Data
 
             _initializationGuard = true;
             PostInitializationAction?.Invoke();
+            OS.Init();
             CatTheme.Initialize();
         }
     }

@@ -1,3 +1,4 @@
+using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
@@ -6,8 +7,10 @@ using CatUI.Data.Theming;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Containers.Scroll;
+using CatUI.Elements.Media;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
+using CatUI.Windowing.DesktopApp;
 
 namespace CatUISample.UI.Pages.UiElements
 {
@@ -66,6 +69,23 @@ namespace CatUISample.UI.Pages.UiElements
                                     new ElementLayout()
                                         .SetMinMaxAndPreferredWidth("100%", 100, "100%")
                                         .SetFixedHeight(20)
+                            },
+                            //TESTING: on X11 and Windows it should display the window icon
+                            new ImageView
+                            {
+                                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
+                                ImageFit = ImageFitType.CanShrinkAndGrow,
+                                OnEnterDocument = el =>
+                                {
+                                    if (el is not ImageView imgView)
+                                    {
+                                        return;
+                                    }
+
+                                    ImageAsset? imgAsset =
+                                        imgView.Document?.GetWindow<DesktopWindow>().GetWindowIcon()?.Icon512X512;
+                                    imgView.Source = imgAsset;
+                                }
                             }
                         ]
                     }

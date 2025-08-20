@@ -66,18 +66,18 @@ namespace CatUI.Data
         /// The platform dispatcher. See <see cref="DispatcherBase"/> for more info.
         /// </summary>
         /// <exception cref="NotImplementedException">
-        /// Thrown if the dispatcher wasn't available because you didn't set the <see cref="AppInitializer"/> in the
-        /// builder (using <see cref="AppBuilder.SetInitializer"/>).
+        /// Thrown if the dispatcher wasn't available because you didn't set the <see cref="PlatformInformation"/> in the
+        /// builder (using <see cref="AppBuilder.SetPlatformInfo"/>).
         /// </exception>
         public DispatcherBase Dispatcher =>
-            AppInitializer?.Dispatcher ?? throw new NotImplementedException(
+            PlatformInformation?.AppInitializer.Dispatcher ?? throw new NotImplementedException(
                 "Dispatcher is not available. Did you forgot to set the initializer?");
 
         public PlatformUiOptionsBase PlatformUiOptions =>
-            AppInitializer?.PlatformUiOptions ?? throw new NotImplementedException(
+            PlatformInformation?.AppInitializer.PlatformUiOptions ?? throw new NotImplementedException(
                 "Platform UI options are not available. Did you forgot to set the initializer?");
 
-        public CatApplicationInitializer? AppInitializer { get; private set; }
+        public PlatformInfo? PlatformInformation { get; private set; }
 
         private CatApplication()
         {
@@ -116,7 +116,7 @@ namespace CatUI.Data
             private CatLogger.LogLevel _debugLogLevel = CatLogger.LogLevel.Debug;
             private CatLogger.LogLevel _releaseLogLevel = CatLogger.LogLevel.Warning;
             private bool _useReleaseStdoutLogging = true;
-            private CatApplicationInitializer? _initializer;
+            private PlatformInfo? _platformInfo;
 
             /// <summary>
             /// Sets the application name.
@@ -152,17 +152,18 @@ namespace CatUI.Data
             }
 
             /// <summary>
-            /// Sets the platform-specific app initializer (this should be already given as a property for each
-            /// platform, like IPlatformInfo.PlatformInitializer). 
+            /// Sets the platform-specific app info object (this should be already given as a property for each
+            /// platform, like a class that extends <see cref="PlatformInfo"/>). 
             /// </summary>
-            /// <param name="initializer">
-            /// The app initializer. Without it, you will not be able to use critical functionality like
-            /// <see cref="CatApplication.Dispatcher"/>.
+            /// <remarks>If you don't set this, expect random crashes and weird behaviour all across CatUI.</remarks>
+            /// <param name="platformInfo">
+            /// The app info object. Without it, you will not be able to use critical functionality like
+            /// <see cref="CatApplication.Dispatcher"/> or other core functionality.
             /// </param>
             /// <returns>This builder.</returns>
-            public AppBuilder SetInitializer(CatApplicationInitializer initializer)
+            public AppBuilder SetPlatformInfo(PlatformInfo platformInfo)
             {
-                _initializer = initializer;
+                _platformInfo = platformInfo;
                 return this;
             }
 
@@ -219,7 +220,7 @@ namespace CatUI.Data
                 Instance.AppName = _appName;
                 Instance.DebugLogLevel = _debugLogLevel;
                 Instance.ReleaseLogLevel = _releaseLogLevel;
-                Instance.AppInitializer = _initializer;
+                Instance.PlatformInformation = _platformInfo;
 
                 Instance.UseReleaseStdoutLogging = _useReleaseStdoutLogging;
                 if (_useReleaseStdoutLogging)
@@ -227,7 +228,7 @@ namespace CatUI.Data
                     Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
                 }
 
-                Instance.AppInitializer?.Initialize();
+                Instance.PlatformInformation?.AppInitializer.Initialize();
                 return Instance;
             }
         }

@@ -9,13 +9,13 @@ namespace CatUI.Windowing.Common
         /// <summary>
         /// Creates and displays a graphical window, taking into consideration the supported parameters, if any.
         /// </summary>
-        public void Open();
+        void Open();
 
         /// <summary>
         /// Starts listening for platform events, handles the rendering and the general window lifecycle. Will return
         /// only when the window was closed either by the user or programmatically and only if the invoked
         /// UiDocument.OnCloseRequested returns true.
         /// </summary>
-        public void Run();
+        void Run();
     }
 }

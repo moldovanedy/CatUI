@@ -67,6 +67,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform.Linux", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.NativeAssets", "src\CatUI.NativeAssets\CatUI.NativeAssets.csproj", "{065D28C1-0D49-42E3-AF53-EE59F356A54D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform.Windows", "src\Platform\CatUI.Platform.Windows\CatUI.Platform.Windows.csproj", "{192D8181-29D4-4EC9-80DE-C6FE347047AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,10 @@ Global
 		{065D28C1-0D49-42E3-AF53-EE59F356A54D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{065D28C1-0D49-42E3-AF53-EE59F356A54D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{065D28C1-0D49-42E3-AF53-EE59F356A54D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{192D8181-29D4-4EC9-80DE-C6FE347047AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{192D8181-29D4-4EC9-80DE-C6FE347047AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{192D8181-29D4-4EC9-80DE-C6FE347047AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{192D8181-29D4-4EC9-80DE-C6FE347047AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -185,5 +191,6 @@ Global
 		{C96E1CCF-9607-4161-AE85-89ABED67B05F} = {62160A47-947B-423E-8A4C-945BBB2D593A}
 		{56F21D7E-8528-4CF0-80AC-868DC902D5E9} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
 		{065D28C1-0D49-42E3-AF53-EE59F356A54D} = {6A741393-490B-4A59-99B7-21E40CB53DBC}
+		{192D8181-29D4-4EC9-80DE-C6FE347047AB} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
 	EndGlobalSection
 EndGlobal

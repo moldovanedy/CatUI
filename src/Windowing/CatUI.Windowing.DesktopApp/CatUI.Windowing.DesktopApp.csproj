@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFrameworks>net8.0;</TargetFrameworks>
-        <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net8.0-windows</TargetFrameworks>
-        <TargetFrameworks Condition="'$(OS)' == 'OSX'">$(TargetFrameworks);net8.0-macos</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(TargetFrameworks);net8.0-windows</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('OSX'))">$(TargetFrameworks);net8.0-macos</TargetFrameworks>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -25,14 +25,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTK.Graphics" Version="4.9.4" />
-        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4" />
+        <PackageReference Include="OpenTK.Graphics" Version="4.9.4"/>
+        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj" />
-        <ProjectReference Include="..\..\Platform\CatUI.Platform.Linux\CatUI.Platform.Linux.csproj" />
-        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj" />
+        <ProjectReference Include="..\..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj"/>
+        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj"/>
     </ItemGroup>
 
 </Project>

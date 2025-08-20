@@ -12,8 +12,8 @@ namespace CatUI.Elements.Behaviors
         /// <summary>
         /// Represents the padding of the element's content from the element's bounds, so basically the content padding.
         /// </summary>
-        public EdgeInset Padding { get; set; }
+        EdgeInset Padding { get; set; }
 
-        public ObservableProperty<EdgeInset> PaddingProperty { get; }
+        ObservableProperty<EdgeInset> PaddingProperty { get; }
     }
 }

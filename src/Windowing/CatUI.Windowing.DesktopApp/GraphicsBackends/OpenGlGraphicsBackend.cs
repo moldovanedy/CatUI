@@ -84,13 +84,21 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends
             //create the contexts if not done already
             if (_grContext == null)
             {
-                var glInterface = GRGlInterface.Create(name =>
+                GRGlInterface glInterface;
+                if (GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11)
                 {
-                    IntPtr fnPointer = GLFW.GetProcAddress(name);
-                    return fnPointer;
-                });
-                _grContext = GRContext.CreateGl(glInterface);
+                    glInterface = GRGlInterface.Create();
+                }
+                else
+                {
+                    glInterface = GRGlInterface.Create(name =>
+                    {
+                        IntPtr fnPointer = GLFW.GetProcAddress(name);
+                        return fnPointer;
+                    });
+                }
 
+                _grContext = GRContext.CreateGl(glInterface);
                 if (_grContext == null)
                 {
                     throw new NullReferenceException(
