@@ -7,9 +7,9 @@ using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Exceptions;
 using CatUI.Elements;
+using CatUI.Platform.Essentials;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.GraphicsBackends;
-using CatUI.Windowing.DesktopApp.NativeInterop.WindowIcon;
 using CatUI.Windowing.DesktopApp.PlatformImplementations;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
@@ -953,40 +953,44 @@ namespace CatUI.Windowing.DesktopApp
             _animationFrameCallbacks.Add(frameCallback);
         }
 
-        /// <inheritdoc cref="IApplicationWindow.GetWindowIcon"/>
+        private WindowIcon? _windowIcon;
+
+        /// <summary>
+        /// Returns the given window icon, but also scaled to the common sizes. This caches the result, so you don't need
+        /// to cache it yourself.
+        /// </summary>
         /// <remarks>
         /// <para>
-        /// Windows: Will try to get the icon from the window data (only if set by <see cref="SetWindowIcon"/>),
-        /// if it fails, it will return null.
+        /// Windows: Will try to get the icon from the window data; if it fails, it will return null.
         /// </para>
         /// <para>
-        /// Linux: Will try to get the icon from the window data (on X11 only, on Wayland it always returns null)
-        /// (only if set by <see cref="SetWindowIcon"/>), if it fails, it will return null.
+        /// Linux: Will try to get the icon from the window data (on X11 only, on Wayland it always returns null);
+        /// if it fails, it will return null.
         /// </para>
         /// <para>
         /// macOS: Will always return null.
         /// </para>
+        /// <para>
+        /// NOTE: If you set the window icon without using <see cref="SetWindowIcon"/> (e.g. using native methods),
+        /// this will return outdated results. In that case, you must rely on <see cref="IWindowIcon.GetWindowIcon"/>
+        /// from <see cref="OS.WindowIcon"/> instead.
+        /// </para>
         /// </remarks>
         public WindowIcon? GetWindowIcon()
         {
-            if (OperatingSystem.IsMacOS() || OperatingSystem.IsMacCatalyst())
+            if (_windowIcon != null)
+            {
+                return _windowIcon;
+            }
+
+            SKImage? icon = OS.WindowIcon?.GetWindowIcon(NativeHandle);
+            if (icon == null)
             {
                 return null;
             }
 
-            SKImage? icon = null;
-            if (
-                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11 &&
-                (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD()))
-            {
-                icon = WindowIconLinux.GetWindowIcon(this);
-            }
-            else if (OperatingSystem.IsWindows())
-            {
-                icon = WindowIconWindows.GetWindowIcon(this);
-            }
-
-            return icon == null ? null : new WindowIcon(new ImageAsset(icon), false);
+            _windowIcon = new WindowIcon(new ImageAsset(icon), false);
+            return _windowIcon;
         }
 
         /// <summary>
@@ -1074,6 +1078,7 @@ namespace CatUI.Windowing.DesktopApp
                 }
             }
 
+            _windowIcon = icon;
             GLFW.SetWindowIcon(GlfwWindow, imgArray.ToArray().AsSpan());
 
         FreeData:

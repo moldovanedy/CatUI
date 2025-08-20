@@ -1,47 +1,25 @@
 using System;
-using System.Runtime.InteropServices;
+using CatUI.Platform.Essentials;
+using CatUI.Platform.Linux.PInvoke;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
-// ReSharper disable InconsistentNaming
-
-namespace CatUI.Windowing.DesktopApp.NativeInterop.WindowIcon
+namespace CatUI.Platform.Linux
 {
-    public static partial class WindowIconLinux
+    public class WindowIconLinux : IWindowIcon
     {
-        private const string libX11 = "libX11";
-
-        [LibraryImport(libX11)]
-        private static partial int XGetWindowProperty(
-            IntPtr display, IntPtr w, IntPtr property, IntPtr long_offset,
-            IntPtr long_length, [MarshalAs(UnmanagedType.Bool)] bool delete, IntPtr req_type,
-            out IntPtr actual_type_return, out int actual_format_return,
-            out IntPtr nitems_return, out IntPtr bytes_after_return, out IntPtr prop_return);
-
-        [LibraryImport(libX11, StringMarshalling = StringMarshalling.Utf8)]
-        private static partial IntPtr XInternAtom(
-            IntPtr display,
-            string atom_name,
-            [MarshalAs(UnmanagedType.Bool)] bool only_if_exists);
-
-        [LibraryImport(libX11)]
-        private static partial void XFree(IntPtr data);
-
-
-        public static unsafe SKImage? GetWindowIcon(DesktopWindow window)
+        public unsafe SKImage? GetWindowIcon(IntPtr windowHandle)
         {
             if (GLFW.GetPlatform() != OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11)
             {
                 return null;
             }
 
-            IntPtr x11Window = window.NativeHandle;
             IntPtr x11Display = GLFW.GetX11Display();
+            IntPtr netWmIcon = X11.XInternAtom(x11Display, "_NET_WM_ICON", false);
+            IntPtr cardinal = X11.XInternAtom(x11Display, "CARDINAL", false);
 
-            IntPtr netWmIcon = XInternAtom(x11Display, "_NET_WM_ICON", false);
-            IntPtr cardinal = XInternAtom(x11Display, "CARDINAL", false);
-
-            int status = XGetWindowProperty(x11Display, x11Window, netWmIcon,
+            int status = X11.XGetWindowProperty(x11Display, windowHandle, netWmIcon,
                 IntPtr.Zero, 1024 * 1024 * 4, false, cardinal,
                 out IntPtr _, out int _, out IntPtr nItems, out IntPtr _, out IntPtr prop);
 
@@ -60,7 +38,7 @@ namespace CatUI.Windowing.DesktopApp.NativeInterop.WindowIcon
             //only process the first icon's pixels (might contain multiple icons)
             if (pixelCount <= 0 || pixelCount + 2 > items)
             {
-                XFree(prop);
+                X11.XFree(prop);
                 return null;
             }
 
@@ -78,7 +56,7 @@ namespace CatUI.Windowing.DesktopApp.NativeInterop.WindowIcon
                 buffer[b + 3] = (byte)((rgba >> 24) & 0xFF);
             }
 
-            XFree(prop);
+            X11.XFree(prop);
 
             //create an image by copying the pixel data so memory lifetime is safe.
             var info = new SKImageInfo((int)width, (int)height, SKColorType.Rgba8888);

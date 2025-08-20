@@ -11,10 +11,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
+        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.2" />
+        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4"/>
+        <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.2"/>
     </ItemGroup>
 
 </Project>

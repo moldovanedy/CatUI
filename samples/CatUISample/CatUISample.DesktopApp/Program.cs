@@ -12,9 +12,8 @@ namespace CatUISample.DesktopApp
     {
         private static void Main()
         {
-            //TODO: replace the search icon with the logo when we'll have one :)
             var icon = AssetsManager.LoadFromAssembly<ImageAsset>(
-                "/search_128px.png",
+                "/icon.png",
                 typeof(Program));
 
             //early initialization of the app
