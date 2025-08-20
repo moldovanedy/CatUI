@@ -5,8 +5,7 @@ using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.PlatformImplementations;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-#if WINDOWS || MACOS || MACCATALYST
-#else
+#if CAT_LOCAL_LINUX
 using CatUI.Platform.Linux;
 #endif
 
@@ -27,10 +26,10 @@ namespace CatUI.Windowing.DesktopApp
         private bool _linuxUseWayland = true;
 
         private readonly PlatformUiOptionsBase _uiOptions =
-#if WINDOWS || MACOS || MACCATALYST
-            new DesktopPlatformUiOptions();
-#else
+#if CAT_LOCAL_LINUX
             new LinuxPlatformUiOptions();
+#else
+            new DesktopPlatformUiOptions();
 #endif
 
         public override CatApplicationInitializer AppInitializer => new(
@@ -38,9 +37,9 @@ namespace CatUI.Windowing.DesktopApp
             _uiOptions,
             () =>
             {
-#if WINDOWS
+#if CAT_LOCAL_WINDOWS
                 GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Win32);
-#elif MACOS || MACCATALYST
+#elif CAT_LOCAL_MACOS
                 GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Cocoa);
 #else
                 if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
@@ -59,12 +58,8 @@ namespace CatUI.Windowing.DesktopApp
 
                 GLFW.Init();
 
-#if WINDOWS || MACOS || MACCATALYST
-#else
-                if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
-                {
-                    LinuxNativeCommunicator.Open();
-                }
+#if CAT_LOCAL_LINUX
+                LinuxNativeCommunicator.Open();
 #endif
             });
 

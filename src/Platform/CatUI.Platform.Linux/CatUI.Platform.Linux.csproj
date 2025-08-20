@@ -4,18 +4,21 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
-
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj"/>
+        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4"/>
-        <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.2"/>
+        <!-- 
+        we need conditions because net8.0-linux is not defined and we don't want to include this with every platform 
+        (it's net8.0, so it would get included otherwise) 
+        -->
+        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4" />
+        <PackageReference Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))" Include="Tmds.DBus.Protocol" Version="0.21.2" />
     </ItemGroup>
 
 </Project>

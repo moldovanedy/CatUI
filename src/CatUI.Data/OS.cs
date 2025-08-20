@@ -1,10 +1,8 @@
 ﻿using CatUI.Platform.Essentials;
-#if WINDOWS
+#if CAT_LOCAL_WINDOWS
 using CatUI.Platform.Windows;
 #else
 using CatUI.Platform.Linux;
-using CatUI.Platform.Windows;
-using System;
 #endif
 
 namespace CatUI.Data
@@ -15,7 +13,7 @@ namespace CatUI.Data
     /// be available on Windows and Linux, but null on macOS).
     /// </summary>
     /// <remarks>
-    /// Some of the features are implemented at a higher level (for example, file pickers and window icons
+    /// Some features are implemented at a higher level (for example, file pickers and window icons
     /// (IApplicationWindow.GetWindowIcon)), details are revealed on each feature separately.
     /// </remarks>
     public static class OS
@@ -41,18 +39,10 @@ namespace CatUI.Data
 
             _isInitialized = true;
 
-#if WINDOWS
+#if CAT_LOCAL_WINDOWS
             WindowIcon = new WindowIconWindows();
-#else
-            if (OperatingSystem.IsWindows())
-            {
-                WindowIcon = new WindowIconWindows();
-            }
-
-            if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
-            {
-                WindowIcon = new WindowIconLinux();
-            }
+#elif CAT_LOCAL_LINUX
+            WindowIcon = new WindowIconLinux();
 #endif
         }
     }
