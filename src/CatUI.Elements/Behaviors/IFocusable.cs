@@ -22,6 +22,12 @@ namespace CatUI.Elements.Behaviors
         const string STATE_FOCUSED = "focused";
 
         /// <summary>
+        /// Available for elements that can be focused, so the user can input keys or simply select the element
+        /// using keyboard navigation. Has a priority of 100.
+        /// </summary>
+        const string PSEUDO_CLASS_FOCUSED = "focused";
+
+        /// <summary>
         /// If true (generally the default), it means the element can receive and grab focus. If false, it means the
         /// element will not take part in the focus workflow, but it can be focused programatically through
         /// <see cref="FocusableExtensions.GrabFocus"/>.

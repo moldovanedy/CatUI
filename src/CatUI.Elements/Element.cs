@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CatUI.Data;
@@ -27,6 +28,21 @@ namespace CatUI.Elements
         public const string? STATE_NORMAL = null;
         public const string? STATE_HOVER = "hover";
         public const string? STATE_PRESSED = "pressed";
+
+        /// <summary>
+        /// Has a priority of 0.
+        /// </summary>
+        public const string PSEUDO_CLASS_NORMAL = "";
+
+        /// <summary>
+        /// Has a priority of 150.
+        /// </summary>
+        public const string PSEUDO_CLASS_HOVER = "hover";
+
+        /// <summary>
+        /// Has a priority of 200.
+        /// </summary>
+        public const string PSEUDO_CLASS_PRESSED = "pressed";
 
         public DrawEventHandler? OnDraw
         {
@@ -151,6 +167,12 @@ namespace CatUI.Elements
             SetLocalValue(nameof(State), value);
             ApplyThemeStateChanges();
         }
+
+        /// <summary>
+        /// Contains all the pseudo-classes. Never modify this directly, use the pseudo-class manipulation methods like
+        /// <see cref="AddPseudoClass"/> and <see cref="RemovePseudoClass"/>.
+        /// </summary>
+        internal List<string> InternalPseudoClasses { get; private set; } = [];
 
         /// <summary>
         /// Represents the top-left corner's position relative to the parent's top-left corner. When the element is
@@ -932,21 +954,25 @@ namespace CatUI.Elements
         private void InternalOnPointerEnter(object sender, PointerEnterEventArgs e)
         {
             State = STATE_HOVER;
+            AddPseudoClass(PSEUDO_CLASS_HOVER);
         }
 
         private void InternalOnPointerExit(object sender, PointerExitEventArgs e)
         {
             State = STATE_NORMAL;
+            RemovePseudoClass(PSEUDO_CLASS_HOVER);
         }
 
         private void InternalOnPointerDown(object sender, PointerDownEventArgs e)
         {
             State = STATE_PRESSED;
+            AddPseudoClass(PSEUDO_CLASS_PRESSED);
         }
 
         private void InternalOnPointerUp(object sender, PointerUpEventArgs e)
         {
             State = Rect.IsPointInside(Bounds, e.AbsolutePosition) ? STATE_HOVER : STATE_NORMAL;
+            RemovePseudoClass(PSEUDO_CLASS_PRESSED);
         }
 
         #endregion //Internal event handlers
@@ -963,16 +989,38 @@ namespace CatUI.Elements
         protected virtual void Loaded(object sender) { }
 
         /// <summary>
-        /// Deep clones the element. The element will not belong to the document, but will have all the original properties
-        /// cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like <see cref="ImageAsset"/>).
+        /// Deep clones the element and all its descendants. The element will not belong to the document, but will
+        /// have all the original properties cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like
+        /// <see cref="ImageAsset"/>).
         /// </summary>
+        /// <remarks>
+        /// To aid development, use utilities such as <see cref="DuplicateThisElementUtil"/> or
+        /// <see cref="DuplicateChildrenUtil"/>.
+        /// </remarks>
         /// <returns>
         /// A new deep clone of the object that is not attached to the document but has the properties of the original.
         /// </returns>
         public virtual Element Duplicate()
         {
-            Element el = new()
+            Element el = DuplicateThisElementUtil();
+            DuplicateChildrenUtil(el);
+            return el;
+        }
+
+        /// <summary>
+        /// Deep clones only this element, without descendants. Use this in overrides of <see cref="Duplicate"/>;
+        /// you should only override this when the element has other properties that the base class does not, so you
+        /// can add them.
+        /// </summary>
+        /// <returns>A deep clone of this element.</returns>
+        protected virtual Element DuplicateThisElementUtil()
+        {
+            List<string> clonedPseudoClasses = new(InternalPseudoClasses.Count);
+            clonedPseudoClasses.AddRange(InternalPseudoClasses);
+
+            return new Element
             {
+                InternalPseudoClasses = clonedPseudoClasses,
                 State = _state,
                 Position = _position,
                 Background = _background.Duplicate(),
@@ -983,9 +1031,6 @@ namespace CatUI.Elements
                 ElementContainerSizing = (ContainerSizing?)_elementContainerSizing?.Duplicate(),
                 Layout = _layout
             };
-
-            DuplicateChildrenUtil(el);
-            return el;
         }
 
         /// <summary>
@@ -1026,6 +1071,40 @@ namespace CatUI.Elements
         public Element? GetParent()
         {
             return _parent;
+        }
+
+        public bool AddPseudoClass(string pseudoClassName)
+        {
+            bool success = Document?.PseudoClassesManager.AddPseudoClassToElement(this, pseudoClassName) ?? false;
+            if (!success)
+            {
+                return false;
+            }
+
+            ApplyThemeStateChanges();
+            return true;
+        }
+
+        public bool RemovePseudoClass(string pseudoClassName)
+        {
+            bool success = InternalPseudoClasses.Remove(pseudoClassName);
+            if (!success)
+            {
+                return false;
+            }
+
+            ApplyThemeStateChanges();
+            return true;
+        }
+
+        public bool ContainsPseudoClass(string pseudoClassName)
+        {
+            return InternalPseudoClasses.Contains(pseudoClassName);
+        }
+
+        public int GetPseudoClassCount()
+        {
+            return InternalPseudoClasses.Count;
         }
 
         /// <summary>

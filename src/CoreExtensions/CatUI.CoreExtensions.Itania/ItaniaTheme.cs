@@ -37,6 +37,19 @@ namespace CatUI.CoreExtensions.Itania
                         }
 
                         el.RequestRedraw();
+                    },
+                    onPseudoClassesChanged: (el, pseudoClasses) =>
+                    {
+                        if (pseudoClasses.Contains(IFocusable.PSEUDO_CLASS_FOCUSED))
+                        {
+                            el.DrawEvent += OnFocusableDraw;
+                        }
+                        else
+                        {
+                            el.DrawEvent -= OnFocusableDraw;
+                        }
+
+                        el.RequestRedraw();
                     }));
 
             //text

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -57,6 +59,24 @@ namespace CatUI.Elements
 
         private Action<Element, string?>? _onStateChanged;
 
+        /// <summary>
+        /// It is called for the element that changed its state (NOT for descendants) whenever it modified its
+        /// pseudo-classes (added or removed). The second argument is the pseudo-classes list, in order from the
+        /// lowest priority to the highest one, so you should apply the changes from the start of the list to the end,
+        /// like you normally would.
+        /// </summary>
+        public Action<Element, ReadOnlyCollection<string>>? OnPseudoClassesChanged
+        {
+            get => _onPseudoClassesChanged;
+            set
+            {
+                _onPseudoClassesChanged = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private Action<Element, ReadOnlyCollection<string>>? _onPseudoClassesChanged;
+
         internal Type? ElementType { get; set; }
         internal string? StyleClass { get; set; }
 
@@ -64,10 +84,20 @@ namespace CatUI.Elements
 
         public ThemeDefinition() { }
 
-        public ThemeDefinition(Action<Element>? onThemeChanged = null, Action<Element, string?>? onStateChanged = null)
+        /// <summary>
+        /// Creates a new theme definition with the specified callbacks.
+        /// </summary>
+        /// <param name="onThemeChanged">See <see cref="OnThemeChanged"/>.</param>
+        /// <param name="onStateChanged"></param>
+        /// <param name="onPseudoClassesChanged">See <see cref="OnPseudoClassesChanged"/>.</param>
+        public ThemeDefinition(
+            Action<Element>? onThemeChanged = null,
+            Action<Element, string?>? onStateChanged = null,
+            Action<Element, ReadOnlyCollection<string>>? onPseudoClassesChanged = null)
         {
             OnThemeChanged = onThemeChanged;
             OnStateChanged = onStateChanged;
+            OnPseudoClassesChanged = onPseudoClassesChanged;
         }
 
         internal void InvokeOnThemeChanged(Element element)
@@ -78,6 +108,17 @@ namespace CatUI.Elements
         internal void InvokeOnStateChanged(Element element, string? state)
         {
             OnStateChanged?.Invoke(element, state);
+        }
+
+        internal void InvokeOnPseudoClassesChanged(Element element)
+        {
+            List<string> reversedList = new(element.InternalPseudoClasses.Count);
+            for (int i = element.InternalPseudoClasses.Count - 1; i >= 0; i--)
+            {
+                reversedList.Add(element.InternalPseudoClasses[i]);
+            }
+
+            OnPseudoClassesChanged?.Invoke(element, reversedList.AsReadOnly());
         }
 
         protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "")

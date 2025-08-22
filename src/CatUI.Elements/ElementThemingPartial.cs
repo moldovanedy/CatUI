@@ -139,6 +139,8 @@ namespace CatUI.Elements
 
 
         private readonly Dictionary<string, object?> _localValues = [];
+
+        //NOTE: this does NOT act as a Mutex, but rather to avoid unwanted internal changes on the local values
         private bool _isLocalValueDictionaryLocked;
 
         /// <summary>
@@ -308,12 +310,12 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Applies the changes to the current element hierarhically, from the most abstract (<see cref="Element"/>) to
+        /// Applies the changes to the current element hierarchically, from the most abstract (<see cref="Element"/>) to
         /// the most specific.
         /// </summary>
         /// <param name="currentElement">The element to apply theming for.</param>
         /// <param name="isStateChange">
-        /// If true, it will apply the change as a "state" change, if false it will apply the change as a "theme"
+        /// If true, it will apply the change as a "state" change, if false, it will apply the change as a "theme"
         /// change.
         /// </param>
         private void ApplyBaseThemingFromElement(Element currentElement, bool isStateChange = false)
@@ -358,6 +360,10 @@ namespace CatUI.Elements
                         .ThemeOverride
                         ?.GetElementTypeDefinition(baseClasses[i])
                         ?.InvokeOnStateChanged(this, State);
+                    currentElement
+                        .ThemeOverride
+                        ?.GetElementTypeDefinition(baseClasses[i])
+                        ?.InvokeOnPseudoClassesChanged(this);
                 }
                 else
                 {
@@ -449,6 +455,11 @@ namespace CatUI.Elements
                         .ThemeOverride
                         ?.GetClassDefinition(StyleClass)
                         ?.InvokeOnStateChanged(this, State);
+                    currentElement
+                        .ThemeOverride
+                        ?.GetClassDefinition(StyleClass)
+                        ?.InvokeOnPseudoClassesChanged(this);
+
                     currentElement = currentElement.Children[indices[i]];
                 }
 
@@ -458,6 +469,10 @@ namespace CatUI.Elements
                     .ThemeOverride
                     ?.GetClassDefinition(StyleClass)
                     ?.InvokeOnStateChanged(this, State);
+                currentElement
+                    .ThemeOverride
+                    ?.GetClassDefinition(StyleClass)
+                    ?.InvokeOnPseudoClassesChanged(this);
             }
             finally
             {

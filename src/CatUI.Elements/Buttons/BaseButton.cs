@@ -66,7 +66,19 @@ namespace CatUI.Elements.Buttons
 
         public void OnFocusStateChanged(bool hasEnteredFocus)
         {
-            (this as IFocusable).SetFocusedStateUtility(hasEnteredFocus);
+            if (this is IFocusable focusable)
+            {
+                focusable.SetFocusedStateUtility(hasEnteredFocus);
+                if (hasEnteredFocus)
+                {
+                    AddPseudoClass(IFocusable.PSEUDO_CLASS_FOCUSED);
+                }
+                else
+                {
+                    RemovePseudoClass(IFocusable.PSEUDO_CLASS_FOCUSED);
+                }
+            }
+
             FocusChangedEvent?.Invoke(this, hasEnteredFocus);
         }
 
