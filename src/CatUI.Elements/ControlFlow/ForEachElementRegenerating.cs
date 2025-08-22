@@ -1,5 +1,3 @@
-using CatUI.Data.Containers;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.ControlFlow
@@ -35,6 +33,10 @@ namespace CatUI.Elements.ControlFlow
         {
         }
 
+        public ForEachElementRegenerating(ForEachElementRegenerating<T> other) : base(other)
+        {
+        }
+
         protected sealed override void OnItemRemoved(object? sender, ObservableListRemoveEventArgs<T> e)
         {
             RegenerateElements();
@@ -61,26 +63,7 @@ namespace CatUI.Elements.ControlFlow
 
         public override ForEachElementRegenerating<T> Duplicate()
         {
-            ObservableList<T> items = [];
-            foreach (T item in Items)
-            {
-                items.Add(item);
-            }
-
-            ForEachElementRegenerating<T> el = new(GeneratorParent.Duplicate(), items, GeneratorFunction)
-            {
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            ForEachElementRegenerating<T> el = new(this);
             DuplicateChildrenUtil(el);
             return el;
         }

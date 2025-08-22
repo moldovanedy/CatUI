@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
-using CatUI.Data.Shapes;
 using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
 using SkiaSharp;
@@ -206,6 +204,18 @@ namespace CatUI.Elements.Text
             InitPropertiesEvents();
         }
 
+        public Label(Label other) : base(other)
+        {
+            InitPropertiesEvents();
+
+            WordWrap = other.WordWrap;
+            BreakMode = other.BreakMode;
+            HyphenCharacter = other.HyphenCharacter;
+            TextBrush = other.TextBrush.Duplicate();
+            OutlineTextBrush = other.OutlineTextBrush.Duplicate();
+            LineHeight = other.LineHeight;
+        }
+
         private void InitPropertiesEvents()
         {
             TextProperty.ValueChangedEvent += OnTextChanged;
@@ -311,32 +321,7 @@ namespace CatUI.Elements.Text
 
         public override Label Duplicate()
         {
-            Label el = new()
-            {
-                WordWrap = _wordWrap,
-                BreakMode = _breakMode,
-                HyphenCharacter = _hyphenCharacter,
-                TextBrush = _textBrush.Duplicate(),
-                OutlineTextBrush = _outlineTextBrush.Duplicate(),
-                LineHeight = _lineHeight,
-                //TextElement
-                Text = Text,
-                FontSize = FontSize,
-                OverflowMode = OverflowMode,
-                TextAlignment = TextAlignment,
-                OverflowString = OverflowString,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new Label(this);
             DuplicateChildrenUtil(el);
             return el;
         }

@@ -1,7 +1,5 @@
 using System;
 using CatUI.Data;
-using CatUI.Data.Containers;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.ControlFlow
@@ -110,22 +108,29 @@ namespace CatUI.Elements.ControlFlow
             ObservableList<T> items,
             GeneratorFunctionCallback generatorFunction)
         {
-            GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
-            GeneratorFunctionProperty.ValueChangedEvent += SetGeneratorFunction;
-
-            GeneratorParent = generatorParent;
             //silence compiler
-            _generatorParent = generatorParent;
+            _generatorParent = null!;
+            _generatorFunction = null!;
 
-            GeneratorFunction = generatorFunction;
+            Init(generatorParent, items, generatorFunction);
+        }
+
+        /// <remarks>
+        /// The <see cref="GeneratorParent"/> and <see cref="GeneratorFunction"/> are not cloned.
+        /// </remarks>
+        public ForEachElement(ForEachElement<T> other) : base(other)
+        {
             //silence compiler
-            _generatorFunction = generatorFunction;
+            _generatorParent = null!;
+            _generatorFunction = null!;
 
-            Items = items;
-            for (int i = 0; i < Items.Count; i++)
+            ObservableList<T> items = [];
+            foreach (T item in other.Items)
             {
-                GeneratorParent.Children.Insert(i, _generatorFunction.Invoke(i, Items[i]));
+                items.Add(item);
             }
+
+            Init(other.GeneratorParent, items, other.GeneratorFunction);
         }
 
         protected virtual void OnItemRemoved(object? sender, ObservableListRemoveEventArgs<T> e)
@@ -148,30 +153,32 @@ namespace CatUI.Elements.ControlFlow
             GeneratorParent.Children.Clear();
         }
 
+        /// <remarks>
+        /// <see cref="GeneratorFunction"/> is not cloned.
+        /// </remarks>
         public override ForEachElement<T> Duplicate()
         {
-            ObservableList<T> items = [];
-            foreach (T item in Items)
-            {
-                items.Add(item);
-            }
-
-            ForEachElement<T> el = new(_generatorParent, items, _generatorFunction)
-            {
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            ForEachElement<T> el = new(this);
             DuplicateChildrenUtil(el);
             return el;
+        }
+
+        private void Init(
+            Element generatorParent,
+            ObservableList<T> items,
+            GeneratorFunctionCallback generatorFunction)
+        {
+            GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
+            GeneratorFunctionProperty.ValueChangedEvent += SetGeneratorFunction;
+
+            GeneratorParent = generatorParent;
+            GeneratorFunction = generatorFunction;
+
+            Items = items;
+            for (int i = 0; i < Items.Count; i++)
+            {
+                GeneratorParent.Children.Insert(i, _generatorFunction.Invoke(i, Items[i]));
+            }
         }
 
 

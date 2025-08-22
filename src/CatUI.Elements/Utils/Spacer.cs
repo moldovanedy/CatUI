@@ -1,8 +1,6 @@
 using CatUI.Data;
-using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Utils
@@ -30,8 +28,6 @@ namespace CatUI.Elements.Utils
 
         private ObjectRef<Spacer>? _ref;
 
-        private Spacer() { }
-
         public Spacer(Dimension space, Orientation orientation)
         {
             Layout =
@@ -40,21 +36,13 @@ namespace CatUI.Elements.Utils
                     : new ElementLayout().SetFixedHeight(space);
         }
 
+        public Spacer(Spacer other) : base(other)
+        {
+        }
+
         public override Spacer Duplicate()
         {
-            Spacer el = new()
-            {
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new Spacer(this);
             DuplicateChildrenUtil(el);
             return el;
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Shapes;
 using CatUI.Utils;
@@ -66,6 +65,11 @@ namespace CatUI.Elements.Shapes
             CorrespondingClipShape = new EllipseClipShape();
         }
 
+        public EllipseElement(EllipseElement other) : base(other)
+        {
+            CorrespondingClipShape = new EllipseClipShape();
+        }
+
         protected override void DrawBackground()
         {
             if (!IsCurrentlyVisible)
@@ -101,23 +105,7 @@ namespace CatUI.Elements.Shapes
 
         public override EllipseElement Duplicate()
         {
-            EllipseElement el = new()
-            {
-                FillBrush = FillBrush.Duplicate(),
-                OutlineBrush = OutlineBrush.Duplicate(),
-                OutlineParameters = OutlineParameters,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new EllipseElement(this);
             DuplicateChildrenUtil(el);
             return el;
         }

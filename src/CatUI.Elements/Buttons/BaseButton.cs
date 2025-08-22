@@ -1,8 +1,6 @@
 using CatUI.Data;
-using CatUI.Data.Containers;
 using CatUI.Data.Events.Input.Gestures;
 using CatUI.Data.Events.Input.Pointer;
-using CatUI.Data.Shapes;
 using CatUI.Elements.Behaviors;
 using CatUI.Utils;
 
@@ -66,17 +64,13 @@ namespace CatUI.Elements.Buttons
 
         public void OnFocusStateChanged(bool hasEnteredFocus)
         {
-            if (this is IFocusable focusable)
+            if (hasEnteredFocus)
             {
-                focusable.SetFocusedStateUtility(hasEnteredFocus);
-                if (hasEnteredFocus)
-                {
-                    AddPseudoClass(IFocusable.PSEUDO_CLASS_FOCUSED);
-                }
-                else
-                {
-                    RemovePseudoClass(IFocusable.PSEUDO_CLASS_FOCUSED);
-                }
+                AddPseudoClass(IFocusable.PSEUDO_CLASS_FOCUSED);
+            }
+            else
+            {
+                RemovePseudoClass(IFocusable.PSEUDO_CLASS_FOCUSED);
             }
 
             FocusChangedEvent?.Invoke(this, hasEnteredFocus);
@@ -118,6 +112,17 @@ namespace CatUI.Elements.Buttons
 
         public BaseButton()
         {
+            Init();
+        }
+
+        public BaseButton(BaseButton other) : base(other)
+        {
+            Init();
+            CanUserCancelClick = other.CanUserCancelClick;
+        }
+
+        private void Init()
+        {
             CanUserCancelClickProperty.ValueChangedEvent += SetCanUserCancelClick;
             IsFocusEnabledProperty.ValueChangedEvent += SetIsFocusEnabled;
             PointerDownEvent += PrivatePointerDown;
@@ -141,23 +146,9 @@ namespace CatUI.Elements.Buttons
                 new ClickEventArgs(Point2D.Zero, new Point2D(Bounds.X, Bounds.Y)));
         }
 
-        public override Element Duplicate()
+        public override BaseButton Duplicate()
         {
-            BaseButton el = new()
-            {
-                CanUserCancelClick = CanUserCancelClick,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new BaseButton(this);
             DuplicateChildrenUtil(el);
             return el;
         }

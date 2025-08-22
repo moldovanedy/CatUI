@@ -1,8 +1,6 @@
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.Enums;
-using CatUI.Data.Shapes;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Utils;
 
@@ -121,6 +119,21 @@ namespace CatUI.Elements.Utils
 
         public HorizontalDivider(float thickness = 2, IBrush? brush = null) : base(Orientation.Horizontal)
         {
+            Init(thickness, brush);
+        }
+
+        public HorizontalDivider(HorizontalDivider other) : base(other)
+        {
+            Init(other.LineThickness, other.LineBrush);
+
+            TopSpacing = other.TopSpacing;
+            BottomSpacing = other.BottomSpacing;
+            LeftLinePadding = other.LeftLinePadding;
+            RightLinePadding = other.RightLinePadding;
+        }
+
+        private void Init(float thickness = 2, IBrush? brush = null)
+        {
             TopSpacingProperty.ValueChangedEvent += SetTopSpacing;
             BottomSpacingProperty.ValueChangedEvent += SetBottomSpacing;
             LeftLinePaddingProperty.ValueChangedEvent += SetLeftLinePadding;
@@ -133,39 +146,9 @@ namespace CatUI.Elements.Utils
             }
         }
 
-        //~HorizontalDivider()
-        //{
-        //    TopSpacingProperty = null!;
-        //    BottomSpacingProperty = null!;
-        //    LeftLinePaddingProperty = null!;
-        //    RightLinePaddingProperty = null!;
-        //}
-
         public override HorizontalDivider Duplicate()
         {
-            HorizontalDivider el = new()
-            {
-                TopSpacing = TopSpacing,
-                BottomSpacing = BottomSpacing,
-                LeftLinePadding = LeftLinePadding,
-                RightLinePadding = RightLinePadding,
-                //Divider
-                LineOrientation = LineOrientation,
-                LineThickness = LineThickness,
-                LineBrush = LineBrush,
-                LineCap = LineCap,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new HorizontalDivider(this);
             DuplicateChildrenUtil(el);
             return el;
         }

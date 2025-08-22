@@ -1,8 +1,6 @@
 using CatUI.Data;
-using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.Enums;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Containers.Linear
@@ -54,29 +52,15 @@ namespace CatUI.Elements.Containers.Linear
             VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
         }
 
-        //~RowContainer()
-        //{
-        //    VerticalAlignmentProperty = null!;
-        //}
+        public RowContainer(RowContainer other) : base(other)
+        {
+            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+            VerticalAlignment = other.VerticalAlignment;
+        }
 
         public override RowContainer Duplicate()
         {
-            RowContainer el = new()
-            {
-                Arrangement = Arrangement,
-                VerticalAlignment = VerticalAlignment,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new RowContainer(this);
             DuplicateChildrenUtil(el);
             return el;
         }

@@ -147,14 +147,15 @@ namespace CatUI.Elements.Text
             TextAlignment = textAlignment;
         }
 
-        //~TextElement()
-        //{
-        //    TextProperty = null!;
-        //    FontSizeProperty = null!;
-        //    OverflowModeProperty = null!;
-        //    TextAlignmentProperty = null!;
-        //    OverflowStringProperty = null!;
-        //}
+        public TextElement(TextElement other) : base(other)
+        {
+            InitPropertiesEvents();
+            Text = other.Text;
+            FontSize = other.FontSize;
+            OverflowMode = other.OverflowMode;
+            TextAlignment = other.TextAlignment;
+            OverflowString = other.OverflowString;
+        }
 
         private void InitPropertiesEvents()
         {

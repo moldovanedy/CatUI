@@ -1,7 +1,5 @@
 using System;
 using CatUI.Data;
-using CatUI.Data.Containers;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.ControlFlow
@@ -67,8 +65,7 @@ namespace CatUI.Elements.ControlFlow
 
         public ForElement(int start, int end, int step, Element generatorParent, Func<int, Element> callback)
         {
-            GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
-
+            Init();
             _start = start;
             _end = end;
             _step = step;
@@ -79,6 +76,27 @@ namespace CatUI.Elements.ControlFlow
             _generatorParent = generatorParent;
 
             Reevaluate();
+        }
+
+        /// <remarks>Does not clone <see cref="GeneratorParent"/>.</remarks>
+        public ForElement(ForElement other) : base(other)
+        {
+            Init();
+            _start = other._start;
+            _end = other._end;
+            _step = other._step;
+            _callback = other._callback;
+
+            GeneratorParent = other._generatorParent;
+            //silence compiler
+            _generatorParent = other._generatorParent;
+
+            Reevaluate();
+        }
+
+        private void Init()
+        {
+            GeneratorParentProperty.ValueChangedEvent += SetGeneratorParent;
         }
 
         private void Reevaluate()
@@ -96,20 +114,7 @@ namespace CatUI.Elements.ControlFlow
 
         public override ForElement Duplicate()
         {
-            ForElement el = new(_start, _end, _step, _generatorParent.Duplicate(), _callback)
-            {
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new ForElement(this);
             DuplicateChildrenUtil(el);
             return el;
         }

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using CatUI.Data.Containers;
 using CatUI.Data.Events.Navigation;
 using CatUI.Data.Navigator;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Helpers.Navigation
@@ -156,29 +154,25 @@ namespace CatUI.Elements.Helpers.Navigation
             Navigate(initialPath, initialArgs);
         }
 
+        /// <remarks>
+        /// The routes are shallowly copied and <see cref="CurrentRoute"/> is duplicated as described in
+        /// <see cref="NavRoute.Duplicate"/>.
+        /// </remarks>
+        public Navigator(Navigator other) : base(other)
+        {
+            Routes = new Dictionary<string, Func<NavArgs?, NavRoute>>(other.Routes);
+            CurrentPath = other.CurrentPath;
+            CurrentRoute = other.CurrentRoute?.Duplicate();
+        }
+
         /// <inheritdoc cref="Element.Duplicate"/>
         /// <remarks>
-        /// The routes are shallow copied and <see cref="CurrentRoute"/> is duplicated as described in <see cref="NavRoute.Duplicate"/>.
+        /// The routes are shallowly copied and <see cref="CurrentRoute"/> is duplicated as described in
+        /// <see cref="NavRoute.Duplicate"/>.
         /// </remarks>
-        public override Element Duplicate()
+        public override Navigator Duplicate()
         {
-            Navigator el = new()
-            {
-                Routes = new Dictionary<string, Func<NavArgs?, NavRoute>>(Routes),
-                CurrentPath = CurrentPath,
-                CurrentRoute = CurrentRoute?.Duplicate(),
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new Navigator(this);
             DuplicateChildrenUtil(el);
             return el;
         }

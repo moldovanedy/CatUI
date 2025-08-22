@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using CatUI.Data;
-using CatUI.Data.Containers;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.ControlFlow
@@ -62,7 +60,7 @@ namespace CatUI.Elements.ControlFlow
         /// <see cref="EvaluationCaseLabel"/>. The cases are evaluated in order. After any modification, call
         /// <see cref="Reevaluate"/> to see any changes, as by default nothing is changed when these cases are modified.
         /// </summary>
-        public List<SwitchLabel> CaseLabels { get; } = [];
+        public List<SwitchLabel> CaseLabels { get; private set; } = [];
 
         /// <summary>
         /// Set the Element that will be attached to the document when no case from <see cref="CaseLabels"/> is matched.
@@ -85,20 +83,18 @@ namespace CatUI.Elements.ControlFlow
         /// </param>
         public SwitchElement(T value, List<SwitchLabel>? caseLabels = null, Element? defaultElement = null)
         {
-            ValueProperty.ValueChangedEvent += SetValue;
-
-            if (caseLabels != null)
-            {
-                CaseLabels = caseLabels;
-            }
-
-            DefaultElement = defaultElement;
-            Value = value;
+            Init(value, caseLabels, defaultElement);
             //silence compiler
             _value = value;
+        }
 
-            //force reevaluation when the value is the default one and no evaluation is made
-            Reevaluate();
+        /// <remarks>Does not clone <see cref="Value"/> and <see cref="CaseLabels"/>.</remarks>
+        public SwitchElement(SwitchElement<T> other) : base(other)
+        {
+            //silence compiler
+            _value = default!;
+
+            Init(other.Value, other.CaseLabels, other.DefaultElement?.Duplicate());
         }
 
         /// <summary>
@@ -137,24 +133,29 @@ namespace CatUI.Elements.ControlFlow
             Children.Clear();
         }
 
+        /// <inheritdoc cref="Element.Duplicate"/>
+        /// <remarks>Does not clone <see cref="Value"/> and <see cref="CaseLabels"/>.</remarks>
         public override SwitchElement<T> Duplicate()
         {
-            SwitchElement<T> el = new(Value)
-            {
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            SwitchElement<T> el = new(this);
             DuplicateChildrenUtil(el);
             return el;
+        }
+
+        private void Init(T value, List<SwitchLabel>? caseLabels = null, Element? defaultElement = null)
+        {
+            ValueProperty.ValueChangedEvent += SetValue;
+
+            if (caseLabels != null)
+            {
+                CaseLabels = caseLabels;
+            }
+
+            DefaultElement = defaultElement;
+            Value = value;
+
+            //force reevaluation when the value is the default one and no evaluation is made
+            Reevaluate();
         }
 
 

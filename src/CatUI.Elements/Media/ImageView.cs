@@ -1,9 +1,7 @@
 using System;
 using CatUI.Data;
 using CatUI.Data.Assets;
-using CatUI.Data.Containers;
 using CatUI.Data.Enums;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 using SkiaSharp;
 
@@ -168,6 +166,17 @@ namespace CatUI.Elements.Media
             Source = source;
         }
 
+        public ImageView(ImageView other) : base(other)
+        {
+            InitPropertiesEvents();
+            Source = other.Source;
+            HorizontalAlignment = other.HorizontalAlignment;
+            VerticalAlignment = other.VerticalAlignment;
+            ShouldKeepAspectRatio = other.ShouldKeepAspectRatio;
+            ImageFit = other.ImageFit;
+            ResizeQuality = other.ResizeQuality;
+        }
+
         private void InitPropertiesEvents()
         {
             SourceProperty.ValueChangedEvent += SetSource;
@@ -177,16 +186,6 @@ namespace CatUI.Elements.Media
             ImageFitProperty.ValueChangedEvent += SetImageFit;
             ResizeQualityProperty.ValueChangedEvent += SetResizeQuality;
         }
-
-        //~ImageView()
-        //{
-        //    SourceProperty = null!;
-        //    HorizontalAlignmentProperty = null!;
-        //    VerticalAlignmentProperty = null!;
-        //    ShouldKeepAspectRatioProperty = null!;
-        //    ImageFitProperty = null!;
-        //    ResizeQualityProperty = null!;
-        //}
 
         protected override void Draw(object sender)
         {
@@ -375,26 +374,7 @@ namespace CatUI.Elements.Media
 
         public override ImageView Duplicate()
         {
-            ImageView el = new()
-            {
-                Source = _source,
-                HorizontalAlignment = _horizontalAlignment,
-                VerticalAlignment = _verticalAlignment,
-                ShouldKeepAspectRatio = _shouldKeepAspectRatio,
-                ImageFit = _imageFit,
-                ResizeQuality = _resizeQuality,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new ImageView(this);
             DuplicateChildrenUtil(el);
             return el;
         }

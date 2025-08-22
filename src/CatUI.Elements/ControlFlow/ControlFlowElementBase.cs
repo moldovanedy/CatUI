@@ -17,5 +17,8 @@ namespace CatUI.Elements.ControlFlow
         //     Bounds = GetFinalBoundsUtil(parentAbsolutePosition, parentSize);
         //     return parentSize;
         // }
+
+        public ControlFlowElementBase() { }
+        public ControlFlowElementBase(ControlFlowElementBase other) : base(other) { }
     }
 }

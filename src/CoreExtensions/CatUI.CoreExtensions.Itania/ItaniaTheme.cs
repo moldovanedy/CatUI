@@ -25,28 +25,12 @@ namespace CatUI.CoreExtensions.Itania
             //IFocusable
             theme.AddOrUpdateElementTypeDefinition<IFocusable>(
                 new ThemeDefinition(
-                    onStateChanged: (el, newState) =>
-                    {
-                        if (newState == IFocusable.STATE_FOCUSED)
-                        {
-                            el.DrawEvent += OnFocusableDraw;
-                        }
-                        else
-                        {
-                            el.DrawEvent -= OnFocusableDraw;
-                        }
-
-                        el.RequestRedraw();
-                    },
                     onPseudoClassesChanged: (el, pseudoClasses) =>
                     {
+                        el.DrawEvent -= OnFocusableDraw;
                         if (pseudoClasses.Contains(IFocusable.PSEUDO_CLASS_FOCUSED))
                         {
                             el.DrawEvent += OnFocusableDraw;
-                        }
-                        else
-                        {
-                            el.DrawEvent -= OnFocusableDraw;
                         }
 
                         el.RequestRedraw();

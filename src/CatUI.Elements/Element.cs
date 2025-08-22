@@ -25,10 +25,6 @@ namespace CatUI.Elements
         DynamicallyAccessedMemberTypes.Interfaces)]
     public partial class Element
     {
-        public const string? STATE_NORMAL = null;
-        public const string? STATE_HOVER = "hover";
-        public const string? STATE_PRESSED = "pressed";
-
         /// <summary>
         /// Has a priority of 0.
         /// </summary>
@@ -142,31 +138,6 @@ namespace CatUI.Elements
         }
 
         private readonly ObservableList<Element> _children = [];
-
-        /// <summary>
-        /// Represents the current state the element is in (normal, hover, pressed, disabled, error, etc.). There are no
-        /// limits on how many states an element can transition to, but it can only be in one state at a time.
-        /// Null means the normal state (this is the default value).
-        /// </summary>
-        /// <remarks>
-        /// There are some states that are reserved by CatUI elements directly (usually accessible by a static STATE_*
-        /// constant on the given element, such as STATE_NORMAL or STATE_HOVER), but you can also create custom states.
-        /// </remarks>
-        public string? State
-        {
-            get => _state;
-            set => StateProperty.Value = value;
-        }
-
-        private string? _state;
-        public ObservableProperty<string> StateProperty { get; } = new(null);
-
-        private void SetState(string? value)
-        {
-            _state = value;
-            SetLocalValue(nameof(State), value);
-            ApplyThemeStateChanges();
-        }
 
         /// <summary>
         /// Contains all the pseudo-classes. Never modify this directly, use the pseudo-class manipulation methods like
@@ -628,7 +599,6 @@ namespace CatUI.Elements
 
             ChildLayoutChangedEvent += OnChildLayoutChanged;
 
-            StateProperty.ValueChangedEvent += SetState;
             PositionProperty.ValueChangedEvent += SetPosition;
             BackgroundProperty.ValueChangedEvent += SetBackground;
             ClipPathProperty.ValueChangedEvent += SetClipPath;
@@ -650,40 +620,24 @@ namespace CatUI.Elements
             Children.ListClearingEvent += OnChildrenListClearing;
         }
 
-        //~Element()
-        //{
-        //    DrawEvent = null;
-        //    EnterDocumentEvent = null;
-        //    ExitDocumentEvent = null;
-        //    LoadEvent = null;
+        /// <summary>
+        /// A copy constructor that deep clones only this element, without its descendants.
+        /// </summary>
+        public Element(Element other) : this()
+        {
+            List<string> clonedPseudoClasses = new(InternalPseudoClasses.Count);
+            clonedPseudoClasses.AddRange(InternalPseudoClasses);
 
-        //    //see ElementInputPartial
-        //    PointerEnterEvent = null;
-        //    PointerExitEvent = null;
-        //    PointerMoveEvent = null;
-        //    PointerDownEvent = null;
-        //    PointerUpEvent = null;
-        //    MouseButtonEvent = null;
-        //    MouseWheelEvent = null;
-
-        //    ChildLayoutChangedEvent = null;
-
-        //    StateProperty = null!;
-        //    PositionProperty = null!;
-        //    BackgroundProperty = null!;
-        //    ClipPathProperty = null!;
-        //    ClipTypeProperty = null!;
-        //    IdProperty = null!;
-        //    VisibleProperty = null!;
-        //    EnabledProperty = null!;
-        //    ElementContainerSizingProperty = null!;
-
-        //    LayoutProperty = null!;
-
-        //    //remove from the document, along with all children
-        //    Document = null;
-        //    Children = null!;
-        //}
+            InternalPseudoClasses = clonedPseudoClasses;
+            Position = other.Position;
+            Background = other.Background.Duplicate();
+            ClipPath = (ClipShape?)other.ClipPath?.Duplicate();
+            ClipType = other.ClipType;
+            LocallyVisible = other.LocallyVisible;
+            LocallyEnabled = other.LocallyEnabled;
+            ElementContainerSizing = (ContainerSizing?)other.ElementContainerSizing?.Duplicate();
+            Layout = other.Layout;
+        }
 
         #region Visual
 
@@ -953,25 +907,21 @@ namespace CatUI.Elements
 
         private void InternalOnPointerEnter(object sender, PointerEnterEventArgs e)
         {
-            State = STATE_HOVER;
             AddPseudoClass(PSEUDO_CLASS_HOVER);
         }
 
         private void InternalOnPointerExit(object sender, PointerExitEventArgs e)
         {
-            State = STATE_NORMAL;
             RemovePseudoClass(PSEUDO_CLASS_HOVER);
         }
 
         private void InternalOnPointerDown(object sender, PointerDownEventArgs e)
         {
-            State = STATE_PRESSED;
             AddPseudoClass(PSEUDO_CLASS_PRESSED);
         }
 
         private void InternalOnPointerUp(object sender, PointerUpEventArgs e)
         {
-            State = Rect.IsPointInside(Bounds, e.AbsolutePosition) ? STATE_HOVER : STATE_NORMAL;
             RemovePseudoClass(PSEUDO_CLASS_PRESSED);
         }
 
@@ -994,43 +944,16 @@ namespace CatUI.Elements
         /// <see cref="ImageAsset"/>).
         /// </summary>
         /// <remarks>
-        /// To aid development, use utilities such as <see cref="DuplicateThisElementUtil"/> or
-        /// <see cref="DuplicateChildrenUtil"/>.
+        /// To simplify descendant duplications, use <see cref="DuplicateChildrenUtil"/>.
         /// </remarks>
         /// <returns>
         /// A new deep clone of the object that is not attached to the document but has the properties of the original.
         /// </returns>
         public virtual Element Duplicate()
         {
-            Element el = DuplicateThisElementUtil();
+            var el = new Element(this);
             DuplicateChildrenUtil(el);
             return el;
-        }
-
-        /// <summary>
-        /// Deep clones only this element, without descendants. Use this in overrides of <see cref="Duplicate"/>;
-        /// you should only override this when the element has other properties that the base class does not, so you
-        /// can add them.
-        /// </summary>
-        /// <returns>A deep clone of this element.</returns>
-        protected virtual Element DuplicateThisElementUtil()
-        {
-            List<string> clonedPseudoClasses = new(InternalPseudoClasses.Count);
-            clonedPseudoClasses.AddRange(InternalPseudoClasses);
-
-            return new Element
-            {
-                InternalPseudoClasses = clonedPseudoClasses,
-                State = _state,
-                Position = _position,
-                Background = _background.Duplicate(),
-                ClipPath = (ClipShape?)_clipPath?.Duplicate(),
-                ClipType = _clipType,
-                LocallyVisible = _locallyVisible,
-                LocallyEnabled = _locallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)_elementContainerSizing?.Duplicate(),
-                Layout = _layout
-            };
         }
 
         /// <summary>
@@ -1081,7 +1004,7 @@ namespace CatUI.Elements
                 return false;
             }
 
-            ApplyThemeStateChanges();
+            ApplyThemePseudoClassChanges();
             return true;
         }
 
@@ -1093,7 +1016,7 @@ namespace CatUI.Elements
                 return false;
             }
 
-            ApplyThemeStateChanges();
+            ApplyThemePseudoClassChanges();
             return true;
         }
 

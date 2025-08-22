@@ -1,8 +1,6 @@
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.Enums;
-using CatUI.Data.Shapes;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Utils;
 
@@ -121,6 +119,21 @@ namespace CatUI.Elements.Utils
 
         public VerticalDivider(float thickness = 2, IBrush? brush = null) : base(Orientation.Vertical)
         {
+            Init(thickness, brush);
+        }
+
+        public VerticalDivider(VerticalDivider other) : base(other)
+        {
+            Init(other.LineThickness, other.LineBrush);
+
+            LeftSpacing = other.LeftSpacing;
+            RightSpacing = other.RightSpacing;
+            TopLinePadding = other.TopLinePadding;
+            BottomLinePadding = other.BottomLinePadding;
+        }
+
+        private void Init(float thickness = 2, IBrush? brush = null)
+        {
             LeftSpacingProperty.ValueChangedEvent += SetLeftSpacing;
             RightSpacingProperty.ValueChangedEvent += SetRightSpacing;
             TopLinePaddingProperty.ValueChangedEvent += SetTopLinePadding;
@@ -133,39 +146,9 @@ namespace CatUI.Elements.Utils
             }
         }
 
-        //~VerticalDivider()
-        //{
-        //    LeftSpacingProperty = null!;
-        //    RightSpacingProperty = null!;
-        //    TopLinePaddingProperty = null!;
-        //    BottomLinePaddingProperty = null!;
-        //}
-
         public override VerticalDivider Duplicate()
         {
-            VerticalDivider el = new()
-            {
-                LeftSpacing = LeftSpacing,
-                RightSpacing = RightSpacing,
-                TopLinePadding = TopLinePadding,
-                BottomLinePadding = BottomLinePadding,
-                //Divider
-                LineOrientation = LineOrientation,
-                LineThickness = LineThickness,
-                LineBrush = LineBrush,
-                LineCap = LineCap,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new VerticalDivider(this);
             DuplicateChildrenUtil(el);
             return el;
         }

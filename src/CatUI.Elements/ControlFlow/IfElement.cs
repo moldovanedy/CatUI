@@ -1,6 +1,4 @@
 using CatUI.Data;
-using CatUI.Data.Containers;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.ControlFlow
@@ -128,12 +126,7 @@ namespace CatUI.Elements.ControlFlow
 
         public IfElement(ObservableProperty<bool> condition, Element trueBranchElement)
         {
-            ConditionProperty.ValueChangedEvent += SetCondition;
-            TrueBranchElementProperty.ValueChangedEvent += SetTrueBranchElement;
-            FalseBranchElementProperty.ValueChangedEvent += SetFalseBranchElement;
-
-            Condition = condition;
-            TrueBranchElement = trueBranchElement;
+            Init(condition, trueBranchElement);
             //silence compiler
             _trueBranchElement = trueBranchElement;
         }
@@ -142,6 +135,15 @@ namespace CatUI.Elements.ControlFlow
             : this(condition, trueBranchElement)
         {
             FalseBranchElement = falseBranchElement;
+        }
+
+        public IfElement(IfElement other) : base(other)
+        {
+            //silence compiler
+            _trueBranchElement = null!;
+
+            Init(new ObservableProperty<bool>(other.Condition.Value), other.TrueBranchElement.Duplicate());
+            FalseBranchElement = other.FalseBranchElement.Duplicate();
         }
 
         private void EvaluateCondition(bool condition)
@@ -158,25 +160,19 @@ namespace CatUI.Elements.ControlFlow
 
         public override IfElement Duplicate()
         {
-            IfElement el = new(
-                new ObservableProperty<bool>(Condition.Value),
-                TrueBranchElement.Duplicate(),
-                FalseBranchElement.Duplicate())
-            {
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new IfElement(this);
             DuplicateChildrenUtil(el);
             return el;
+        }
+
+        private void Init(ObservableProperty<bool> condition, Element trueBranchElement)
+        {
+            ConditionProperty.ValueChangedEvent += SetCondition;
+            TrueBranchElementProperty.ValueChangedEvent += SetTrueBranchElement;
+            FalseBranchElementProperty.ValueChangedEvent += SetFalseBranchElement;
+
+            Condition = condition;
+            TrueBranchElement = trueBranchElement;
         }
     }
 }
