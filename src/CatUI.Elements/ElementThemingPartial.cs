@@ -7,22 +7,15 @@ namespace CatUI.Elements
     public partial class Element
     {
         /// <summary>
-        /// A lambda function that has as a parameter the new state the element is in and this element. You should
-        /// set the properties directly depending on the state (i.e. use a switch statement or something).
-        /// </summary>
-        public delegate void LocalThemeLambda(string? newState, Element element);
-
-        /// <summary>
         /// The local theming function that is called:
         /// <list type="bullet">
         /// <item>
-        /// directly when set (always with the default state of null and, if the current state is other than null,
-        /// called again with the current state)
+        /// directly when set (always with all the pseudo-classes the element currently has)
         /// </item>
-        /// <item>whenever the element enters a new state (with the current state)</item>
+        /// <item>whenever the element's pseudo-classes change (with all the updated pseudo-classes)</item>
         /// <item>
         /// whenever the global theme is applied for this element (generally when there is a change in the global theme)
-        /// with the current state
+        /// with the current pseudo-classes
         /// </item>
         /// </list>
         /// </summary>
@@ -32,24 +25,24 @@ namespace CatUI.Elements
         /// that value will have precedence over the global theme and this local theme). Refer to the manual for more
         /// information about theming.
         /// </remarks>
-        public LocalThemeLambda? LocalThemingFunction
+        public ThemeDefinition.PseudoClassesChanged? LocalThemingFunction
         {
             get => _localThemingFunction;
             set
             {
                 _localThemingFunction = value;
-                //always call for the default state
-                _localThemingFunction?.Invoke(null, this);
 
-                //then, call for the current state if it's other than default
-                if (State != null)
+                List<string> reversedList = new(InternalPseudoClasses.Count);
+                for (int i = InternalPseudoClasses.Count - 1; i >= 0; i--)
                 {
-                    _localThemingFunction?.Invoke(State, this);
+                    reversedList.Add(InternalPseudoClasses[i]);
                 }
+
+                _localThemingFunction?.Invoke(this, reversedList.AsReadOnly());
             }
         }
 
-        private LocalThemeLambda? _localThemingFunction;
+        private ThemeDefinition.PseudoClassesChanged? _localThemingFunction;
 
         public Theme? ThemeOverride
         {
@@ -139,6 +132,8 @@ namespace CatUI.Elements
 
 
         private readonly Dictionary<string, object?> _localValues = [];
+
+        //NOTE: this does NOT act as a Mutex, but rather to avoid unwanted internal changes on the local values
         private bool _isLocalValueDictionaryLocked;
 
         /// <summary>
@@ -197,7 +192,13 @@ namespace CatUI.Elements
         /// </summary>
         private void ApplyLocalTheme()
         {
-            LocalThemingFunction?.Invoke(State, this);
+            List<string> reversedList = new(InternalPseudoClasses.Count);
+            for (int i = InternalPseudoClasses.Count - 1; i >= 0; i--)
+            {
+                reversedList.Add(InternalPseudoClasses[i]);
+            }
+
+            LocalThemingFunction?.Invoke(this, reversedList.AsReadOnly());
 
             foreach (KeyValuePair<string, object?> localValue in _localValues)
             {
@@ -308,12 +309,12 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Applies the changes to the current element hierarhically, from the most abstract (<see cref="Element"/>) to
+        /// Applies the changes to the current element hierarchically, from the most abstract (<see cref="Element"/>) to
         /// the most specific.
         /// </summary>
         /// <param name="currentElement">The element to apply theming for.</param>
         /// <param name="isStateChange">
-        /// If true, it will apply the change as a "state" change, if false it will apply the change as a "theme"
+        /// If true, it will apply the change as a "state" change, if false, it will apply the change as a "theme"
         /// change.
         /// </param>
         private void ApplyBaseThemingFromElement(Element currentElement, bool isStateChange = false)
@@ -357,7 +358,7 @@ namespace CatUI.Elements
                     currentElement
                         .ThemeOverride
                         ?.GetElementTypeDefinition(baseClasses[i])
-                        ?.InvokeOnStateChanged(this, State);
+                        ?.InvokeOnPseudoClassesChanged(this);
                 }
                 else
                 {
@@ -422,7 +423,7 @@ namespace CatUI.Elements
             }
         }
 
-        private void ApplyThemeStateChanges()
+        private void ApplyThemePseudoClassChanges()
         {
             if (Document == null)
             {
@@ -448,7 +449,8 @@ namespace CatUI.Elements
                     currentElement
                         .ThemeOverride
                         ?.GetClassDefinition(StyleClass)
-                        ?.InvokeOnStateChanged(this, State);
+                        ?.InvokeOnPseudoClassesChanged(this);
+
                     currentElement = currentElement.Children[indices[i]];
                 }
 
@@ -457,7 +459,7 @@ namespace CatUI.Elements
                 currentElement
                     .ThemeOverride
                     ?.GetClassDefinition(StyleClass)
-                    ?.InvokeOnStateChanged(this, State);
+                    ?.InvokeOnPseudoClassesChanged(this);
             }
             finally
             {

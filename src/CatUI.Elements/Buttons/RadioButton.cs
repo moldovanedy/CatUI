@@ -1,11 +1,9 @@
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Input.Gestures;
-using CatUI.Data.Shapes;
 using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.ControlFlow;
@@ -182,7 +180,7 @@ namespace CatUI.Elements.Buttons
         /// <see cref="HorizontalArrangement"/>, that's why you should always use the RadioButton properties instead of
         /// manually modifying this RowContainer where possible.
         /// </remarks>
-        public RowContainer InternalRowContainer { get; }
+        public RowContainer InternalRowContainer { get; private set; }
 
         private readonly IfElement _defaultIndicatorElement =
             new(
@@ -230,31 +228,10 @@ namespace CatUI.Elements.Buttons
             Element textElement,
             IfElement? indicatorElement = null)
         {
-            OnClick += PrivateOnClick;
+            //silence compiler
+            InternalRowContainer = null!;
 
-            ValueProperty.ValueChangedEvent += SetValue;
-            SpacingProperty.ValueChangedEvent += SetSpacing;
-            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
-            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
-
-            InternalRowContainer = new RowContainer
-            {
-                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
-                Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
-                VerticalAlignment = VerticalAlignmentType.Center,
-                //we need to have at least one child, as IndicatorElement will access index 0 (this will be replaced
-                //when IndicatorElement are set, immediately in this constructor)
-                Children = [new Element()]
-            };
-
-            InternalRowContainer.VerticalAlignmentProperty.BindBidirectional(VerticalAlignmentProperty);
-            Children.Add(InternalRowContainer);
-
-            indicatorElement ??= _defaultIndicatorElement;
-            IndicatorElement = indicatorElement;
-
-            TextElement = textElement;
-            Value = initialValue;
+            Init(initialValue, textElement, indicatorElement);
         }
 
         /// <summary>
@@ -289,29 +266,54 @@ namespace CatUI.Elements.Buttons
         {
         }
 
+        public RadioButton(RadioButton other) : base(other)
+        {
+            //silence compiler
+            InternalRowContainer = null!;
+
+            Init(other.Value, other.TextElement?.Duplicate() ?? new Label(), other.IndicatorElement.Duplicate());
+            Spacing = other.Spacing;
+            HorizontalArrangement = other.HorizontalArrangement;
+            VerticalAlignment = other.VerticalAlignment;
+        }
+
         public override RadioButton Duplicate()
         {
-            RadioButton el = new(Value, _textElement!, _indicatorElement)
-            {
-                Spacing = Spacing,
-                HorizontalArrangement = HorizontalArrangement,
-                VerticalAlignment = VerticalAlignment,
-                //BaseButton
-                CanUserCancelClick = CanUserCancelClick,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new RadioButton(this);
             DuplicateChildrenUtil(el);
             return el;
+        }
+
+        private void Init(
+            bool initialValue,
+            Element textElement,
+            IfElement? indicatorElement = null)
+        {
+            OnClick += PrivateOnClick;
+
+            ValueProperty.ValueChangedEvent += SetValue;
+            SpacingProperty.ValueChangedEvent += SetSpacing;
+            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
+            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+
+            InternalRowContainer = new RowContainer
+            {
+                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
+                Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
+                VerticalAlignment = VerticalAlignmentType.Center,
+                //we need to have at least one child, as IndicatorElement will access index 0 (this will be replaced
+                //when IndicatorElement are set, immediately in this constructor)
+                Children = [new Element()]
+            };
+
+            InternalRowContainer.VerticalAlignmentProperty.BindBidirectional(VerticalAlignmentProperty);
+            Children.Add(InternalRowContainer);
+
+            indicatorElement ??= _defaultIndicatorElement;
+            IndicatorElement = indicatorElement;
+
+            TextElement = textElement;
+            Value = initialValue;
         }
 
         private void PrivateOnClick(object sender, ClickEventArgs e)

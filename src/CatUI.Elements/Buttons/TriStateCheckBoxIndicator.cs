@@ -1,5 +1,3 @@
-using CatUI.Data.Containers;
-using CatUI.Data.Shapes;
 using CatUI.Elements.ControlFlow;
 using CatUI.Utils;
 
@@ -79,6 +77,30 @@ namespace CatUI.Elements.Buttons
             Element? indeterminateElement = null)
             : base(initialValue)
         {
+            Init(checkedElement, uncheckedElement, indeterminateElement);
+        }
+
+        public TriStateCheckBoxIndicator(TriStateCheckBoxIndicator other) : base(other)
+        {
+            Value = other.Value;
+            Init(
+                other.CheckedElement.Duplicate(),
+                other.UncheckedElement.Duplicate(),
+                other.IndeterminateElement?.Duplicate());
+        }
+
+        public override TriStateCheckBoxIndicator Duplicate()
+        {
+            var el = new TriStateCheckBoxIndicator(this);
+            DuplicateChildrenUtil(el);
+            return el;
+        }
+
+        private void Init(
+            Element checkedElement,
+            Element uncheckedElement,
+            Element? indeterminateElement = null)
+        {
             CaseLabels.Add(new ExactCaseLabel(CheckBox.CheckBoxState.Checked, _ => checkedElement));
             CaseLabels.Add(new ExactCaseLabel(CheckBox.CheckBoxState.Unchecked, _ => uncheckedElement));
             CaseLabels.Add(new ExactCaseLabel(CheckBox.CheckBoxState.Indeterminate,
@@ -86,26 +108,6 @@ namespace CatUI.Elements.Buttons
 
             _isIndeterminateSet = indeterminateElement != null;
             Reevaluate();
-        }
-
-        public override TriStateCheckBoxIndicator Duplicate()
-        {
-            TriStateCheckBoxIndicator el = new(Value, CheckedElement, UncheckedElement, IndeterminateElement)
-            {
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
-            DuplicateChildrenUtil(el);
-            return el;
         }
     }
 }

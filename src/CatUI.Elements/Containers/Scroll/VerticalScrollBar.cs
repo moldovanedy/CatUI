@@ -1,9 +1,7 @@
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
-using CatUI.Data.Shapes;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Shapes;
@@ -63,25 +61,16 @@ namespace CatUI.Elements.Containers.Scroll
             };
         }
 
+        public VerticalScrollBar(VerticalScrollBar other) : base(other)
+        {
+            //no need to duplicate plus/minus buttons, the base implementation will do it
+            InternalContainer = (LinearContainerBase)other.InternalContainer.Duplicate();
+        }
+
         /// <inheritdoc cref="Element.Duplicate"/>
         public override VerticalScrollBar Duplicate()
         {
-            VerticalScrollBar el = new()
-            {
-                ShouldDisplayButtons = ShouldDisplayButtons,
-                RepositionBehavior = RepositionBehavior,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new VerticalScrollBar(this);
             DuplicateChildrenUtil(el);
             return el;
         }

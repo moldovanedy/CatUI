@@ -18,17 +18,23 @@ namespace CatUISample.UI.Theming
                         el.ClipPath = null;
                         el.Background = new ColorBrush(CatTheme.Colors.Primary);
                     },
-                    (el, state) =>
+                    onPseudoClassesChanged: (el, pseudoClasses) =>
                     {
-                        switch (state)
+                        var background = new ColorBrush(CatTheme.Colors.Primary);
+                        foreach (string pseudoClass in pseudoClasses)
                         {
-                            case Element.STATE_NORMAL:
-                                el.Background = new ColorBrush(CatTheme.Colors.Primary);
-                                break;
-                            case Element.STATE_HOVER:
-                                el.Background = new ColorBrush(CatTheme.Colors.Tertiary);
-                                break;
+                            switch (pseudoClass)
+                            {
+                                case Element.PSEUDO_CLASS_NORMAL:
+                                    background = new ColorBrush(CatTheme.Colors.Primary);
+                                    break;
+                                case Element.PSEUDO_CLASS_HOVER:
+                                    background = new ColorBrush(CatTheme.Colors.Tertiary);
+                                    break;
+                            }
                         }
+
+                        el.Background = background;
                     }));
             return theme;
         }

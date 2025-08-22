@@ -253,13 +253,31 @@ namespace CatUI.Elements.Containers.Scroll
         /// but never remove the original ones. If you want modifications to the elements, use properties like
         /// <see cref="InternalScrollTrackElement"/> instead of directly modifying from here.
         /// </summary>
-        public ObservableList<Element> InternalContent { get; }
+        public ObservableList<Element> InternalContent { get; private set; }
 
         #endregion
 
-        private readonly Orientation _scrollOrientation;
+        private Orientation _scrollOrientation;
 
         protected ScrollBarBase(Orientation scrollOrientation, Button minusButtonElement, Button plusButtonElement)
+        {
+            //silence compiler
+            InternalContent = [];
+
+            Init(scrollOrientation, minusButtonElement, plusButtonElement);
+        }
+
+        protected ScrollBarBase(ScrollBarBase other) : base(other)
+        {
+            //silence compiler
+            InternalContent = [];
+
+            Init(_scrollOrientation, other.MinusButtonElement.Duplicate(), other.PlusButtonElement.Duplicate());
+            ShouldDisplayButtons = other.ShouldDisplayButtons;
+            RepositionBehavior = other.RepositionBehavior;
+        }
+
+        private void Init(Orientation scrollOrientation, Button minusButtonElement, Button plusButtonElement)
         {
             ShouldDisplayButtonsProperty.ValueChangedEvent += SetShouldDisplayButtons;
             RepositionBehaviorProperty.ValueChangedEvent += SetRepositionBehavior;
@@ -296,14 +314,6 @@ namespace CatUI.Elements.Containers.Scroll
                 plusButtonElement
             ];
         }
-
-        //~ScrollBarBase()
-        //{
-        //    InternalContent = null!;
-
-        //    ShouldDisplayButtonsProperty = null!;
-        //    RepositionBehaviorProperty = null!;
-        //}
 
         private void RecalculateThumbSizeAndPosition()
         {

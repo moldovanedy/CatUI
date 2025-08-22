@@ -1,10 +1,8 @@
 using System;
 using CatUI.Data;
-using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Events.Input.Pointer;
-using CatUI.Data.Shapes;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Utils;
 
@@ -300,7 +298,7 @@ namespace CatUI.Elements.Containers.Scroll
         /// <see cref="RowContainer"/>, it's the vertical scroll bar (or a 0-size <see cref="Element"/> when the scroll
         /// bar is not visible).
         /// </remarks>
-        public RowContainer InternalRowContainer { get; }
+        public RowContainer InternalRowContainer { get; private set; }
 
         /// <summary>
         /// Returns the internal content wrapper. This will be the parent of <see cref="Content"/>, so modifying its
@@ -313,13 +311,13 @@ namespace CatUI.Elements.Containers.Scroll
         /// actually overflows (so scrolling is actually used), it is larger than the ScrollContainer (it can stretch to
         /// infinity).
         /// </remarks>
-        public Element InternalContentWrapper { get; }
+        public Element InternalContentWrapper { get; private set; }
 
         /// <summary>
         /// Represents the element that displays <see cref="InternalContentWrapper"/>. Do NOT remove this from the
         /// document. This is generally the size of the scroll container without the scroll bars.
         /// </summary>
-        public Element InternalVisibleContentWrapper { get; }
+        public Element InternalVisibleContentWrapper { get; private set; }
 
         /// <summary>
         /// Represents the internal horizontal scroll bar. DO NOT remove this from the document. You can modify it,
@@ -348,6 +346,45 @@ namespace CatUI.Elements.Containers.Scroll
         };
 
         public ScrollContainer(bool isHorizontalScrollEnabled = true, bool isVerticalScrollEnabled = true)
+        {
+            //silence compiler
+            InternalRowContainer = null!;
+            InternalContentWrapper = null!;
+            InternalVisibleContentWrapper = null!;
+
+            Init(isHorizontalScrollEnabled, isVerticalScrollEnabled);
+        }
+
+        public ScrollContainer(ScrollContainer other) : base(other)
+        {
+            //silence compiler
+            InternalRowContainer = null!;
+            InternalContentWrapper = null!;
+            InternalVisibleContentWrapper = null!;
+
+            //IsHorizontalScrollEnabled and IsVerticalScrollEnabled are already handled in Init()
+            Init(other.IsHorizontalScrollEnabled, other.IsVerticalScrollEnabled);
+
+            ScrollPosition = other.ScrollPosition;
+            ScrollBarsRepositionBehavior = other.ScrollBarsRepositionBehavior;
+            HorizontalScrollBarVisibility = other.HorizontalScrollBarVisibility;
+            VerticalScrollBarVisibility = other.VerticalScrollBarVisibility;
+            IsUserScrollable = other.IsUserScrollable;
+            ScrollPastLimits = other.ScrollPastLimits;
+            Content = other.Content?.Duplicate();
+        }
+
+        protected override void MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            base.MouseWheel(sender, e);
+
+            if (IsUserScrollable)
+            {
+                ScrollPosition = new Point2D(ScrollPosition.X + e.DeltaX, ScrollPosition.Y + e.DeltaY);
+            }
+        }
+
+        private void Init(bool isHorizontalScrollEnabled = true, bool isVerticalScrollEnabled = true)
         {
             ScrollPositionProperty.ValueChangedEvent += SetScrollPosition;
             IsHorizontalScrollEnabledProperty.ValueChangedEvent += SetIsHorizontalScrollEnabled;
@@ -417,28 +454,6 @@ namespace CatUI.Elements.Containers.Scroll
             Children.Add(InternalRowContainer);
             IsHorizontalScrollEnabled = isHorizontalScrollEnabled;
             IsVerticalScrollEnabled = isVerticalScrollEnabled;
-        }
-
-        //~ScrollContainer()
-        //{
-        //    ScrollPositionProperty = null!;
-        //    IsHorizontalScrollEnabledProperty = null!;
-        //    IsVerticalScrollEnabledProperty = null!;
-        //    ScrollBarsRepositionBehaviorProperty = null!;
-        //    HorizontalScrollBarVisibilityProperty = null!;
-        //    VerticalScrollBarVisibilityProperty = null!;
-        //    IsUserScrollableProperty = null!;
-        //    ScrollPastLimitsProperty = null!;
-        //}
-
-        protected override void MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            base.MouseWheel(sender, e);
-
-            if (IsUserScrollable)
-            {
-                ScrollPosition = new Point2D(ScrollPosition.X + e.DeltaX, ScrollPosition.Y + e.DeltaY);
-            }
         }
 
         public override Size RecomputeLayout(
@@ -560,29 +575,7 @@ namespace CatUI.Elements.Containers.Scroll
         /// <remarks>Will also duplicate the <see cref="Content"/> if one is given.</remarks>
         public override ScrollContainer Duplicate()
         {
-            ScrollContainer el = new()
-            {
-                ScrollPosition = ScrollPosition,
-                IsHorizontalScrollEnabled = IsHorizontalScrollEnabled,
-                IsVerticalScrollEnabled = IsVerticalScrollEnabled,
-                ScrollBarsRepositionBehavior = ScrollBarsRepositionBehavior,
-                HorizontalScrollBarVisibility = HorizontalScrollBarVisibility,
-                VerticalScrollBarVisibility = VerticalScrollBarVisibility,
-                IsUserScrollable = IsUserScrollable,
-                ScrollPastLimits = ScrollPastLimits,
-                Content = Content?.Duplicate(),
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new ScrollContainer(this);
             DuplicateChildrenUtil(el);
             return el;
         }

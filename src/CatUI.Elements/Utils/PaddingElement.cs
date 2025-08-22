@@ -1,8 +1,6 @@
 using System;
 using CatUI.Data;
-using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
-using CatUI.Data.Shapes;
 using CatUI.Utils;
 
 namespace CatUI.Elements.Utils
@@ -61,13 +59,24 @@ namespace CatUI.Elements.Utils
 
         public PaddingElement()
         {
-            PaddingProperty.ValueChangedEvent += SetPadding;
+            Init();
         }
 
         public PaddingElement(EdgeInset padding)
         {
-            PaddingProperty.ValueChangedEvent += SetPadding;
+            Init();
             Padding = padding;
+        }
+
+        public PaddingElement(PaddingElement other) : base(other)
+        {
+            Init();
+            Padding = other.Padding;
+        }
+
+        private void Init()
+        {
+            PaddingProperty.ValueChangedEvent += SetPadding;
         }
 
         public override Size RecomputeLayout(
@@ -196,21 +205,7 @@ namespace CatUI.Elements.Utils
 
         public override PaddingElement Duplicate()
         {
-            PaddingElement el = new()
-            {
-                Padding = _padding,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new PaddingElement(this);
             DuplicateChildrenUtil(el);
             return el;
         }

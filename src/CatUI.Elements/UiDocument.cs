@@ -188,6 +188,7 @@ namespace CatUI.Elements
 
         public Renderer Renderer { get; }
         public FocusManager FocusManager { get; }
+        public PseudoClassesManager PseudoClassesManager { get; }
 
         public Color BackgroundColor
         {
@@ -313,6 +314,7 @@ namespace CatUI.Elements
             _window = window;
             Renderer = new Renderer();
             FocusManager = new FocusManager(this);
+            PseudoClassesManager = new PseudoClassesManager();
             ContentScale = initialContentScale;
             ViewportSize = new Size(
                 initialViewportSize.Width * initialContentScale,

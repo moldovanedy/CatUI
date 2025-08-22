@@ -1,10 +1,8 @@
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
-using CatUI.Data.Shapes;
 using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Media;
@@ -125,12 +123,12 @@ namespace CatUI.Elements.Buttons
         }
 
         /// <summary>
-        /// Represents the text content of the button, but it's optional, as you can have this, an <see cref="IconElement"/>
+        /// Represents the text content of the button, but it's optional, as you can have this, an <see cref="IconElement"/>,
         /// or both. Contrary to the name, this can be any kind of element, but it's much more common for it to be a
         /// <see cref="Label"/>.
         /// </summary>
         /// <remarks>
-        /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
+        /// To see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
         /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
         /// <see cref="InternalRowContainer"/>.
         /// </remarks>
@@ -165,12 +163,12 @@ namespace CatUI.Elements.Buttons
         private Element? _textElement;
 
         /// <summary>
-        /// Represents content of the icon, but it's optional, as you can have this, an <see cref="TextElement"/> or both.
+        /// Represents content of the icon, but it's optional, as you can have this, an <see cref="TextElement"/>, or both.
         /// Contrary to the name, this can be any kind of element, but it's generally used as an icon, like a
         /// <see cref="GeometricPathElement"/> or <see cref="ImageView"/>.
         /// </summary>
         /// <remarks>
-        /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
+        /// To see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
         /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
         /// <see cref="InternalRowContainer"/>.
         /// </remarks>
@@ -208,7 +206,7 @@ namespace CatUI.Elements.Buttons
         /// Gives direct access to the button's <see cref="PaddingElement"/>. You should generally not modify this
         /// and certainly not remove it from the document, but you have access to it just in case you need it.
         /// </summary>
-        public PaddingElement InternalPaddingElement { get; }
+        public PaddingElement InternalPaddingElement { get; private set; }
 
         /// <summary>
         /// Gives direct access to the button's <see cref="RowContainer"/>, which holds <see cref="TextElement"/> and
@@ -220,7 +218,7 @@ namespace CatUI.Elements.Buttons
         /// that's why you should always modify everything that's possible from Button properties, not from this container
         /// directly.
         /// </remarks>
-        public RowContainer InternalRowContainer { get; }
+        public RowContainer InternalRowContainer { get; private set; }
 
         /// <summary>
         /// A constructor that creates a Button based on the given text element and icon element. Both are optional
@@ -231,44 +229,16 @@ namespace CatUI.Elements.Buttons
         /// <param name="iconElement">The value of <see cref="IconElement"/>.</param>
         public Button(Element? textElement = null, Element? iconElement = null)
         {
-            PaddingProperty.ValueChangedEvent += SetPadding;
-            SpacingProperty.ValueChangedEvent += SetSpacing;
-            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
-            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+            //silence compiler
+            InternalRowContainer = null!;
+            InternalPaddingElement = null!;
 
-            _textElement = textElement;
-            _iconElement = iconElement;
-
-            InternalRowContainer = new RowContainer
-            {
-                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
-                Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
-                VerticalAlignment = VerticalAlignmentType.Center
-            };
-
-            if (_iconElement != null)
-            {
-                InternalRowContainer.Children.Add(_iconElement);
-            }
-
-            if (_textElement != null)
-            {
-                InternalRowContainer.Children.Add(_textElement);
-            }
-
-            InternalPaddingElement = new PaddingElement
-            {
-                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
-                Children = [InternalRowContainer]
-            };
-            Children.Add(InternalPaddingElement);
-
-            InternalPaddingElement.PaddingProperty.BindBidirectional(PaddingProperty);
+            Init(textElement, iconElement);
         }
 
         /// <summary>
         /// A helper constructor that will set the <see cref="TextElement"/> as a default <see cref="Label"/> with
-        /// the given text, font size and text brush and will give it a padding.
+        /// the given text, font size and text brush and will give it some padding.
         /// </summary>
         /// <param name="text">
         /// The text that a <see cref="Label"/> will have when set as the value of <see cref="TextElement"/>.
@@ -318,36 +288,59 @@ namespace CatUI.Elements.Buttons
             }
         }
 
-        //~Button()
-        //{
-        //    PaddingProperty = null!;
-        //    SpacingProperty = null!;
-        //    HorizontalArrangementProperty = null!;
-        //    VerticalAlignmentProperty = null!;
-        //}
+        public Button(Button other) : base(other)
+        {
+            //silence compiler
+            InternalRowContainer = null!;
+            InternalPaddingElement = null!;
+
+            Init(other.TextElement, other.IconElement);
+            Padding = other.Padding;
+            Spacing = other.Spacing;
+            HorizontalArrangement = other.HorizontalArrangement;
+            VerticalAlignment = other.VerticalAlignment;
+        }
+
+        private void Init(Element? textElement = null, Element? iconElement = null)
+        {
+            PaddingProperty.ValueChangedEvent += SetPadding;
+            SpacingProperty.ValueChangedEvent += SetSpacing;
+            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
+            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+
+            _textElement = textElement;
+            _iconElement = iconElement;
+
+            InternalRowContainer = new RowContainer
+            {
+                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
+                Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
+                VerticalAlignment = VerticalAlignmentType.Center
+            };
+
+            if (_iconElement != null)
+            {
+                InternalRowContainer.Children.Add(_iconElement);
+            }
+
+            if (_textElement != null)
+            {
+                InternalRowContainer.Children.Add(_textElement);
+            }
+
+            InternalPaddingElement = new PaddingElement
+            {
+                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
+                Children = [InternalRowContainer]
+            };
+            Children.Add(InternalPaddingElement);
+
+            InternalPaddingElement.PaddingProperty.BindBidirectional(PaddingProperty);
+        }
 
         public override Button Duplicate()
         {
-            Button el = new(_textElement, _iconElement)
-            {
-                Padding = Padding,
-                Spacing = Spacing,
-                HorizontalArrangement = HorizontalArrangement,
-                VerticalAlignment = VerticalAlignment,
-                //BaseButton
-                CanUserCancelClick = CanUserCancelClick,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new Button(this);
             DuplicateChildrenUtil(el);
             return el;
         }

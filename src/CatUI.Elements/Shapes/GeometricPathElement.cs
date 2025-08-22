@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.Shapes;
 using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
@@ -140,21 +139,23 @@ namespace CatUI.Elements.Shapes
         public GeometricPathElement(string svgPath = "", IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
-            ShouldApplyScalingProperty.ValueChangedEvent += SetShouldApplyScaling;
-            SvgPathProperty.ValueChangedEvent += SetSvgPath;
-
+            Init();
             SvgPath = svgPath;
             _clipShape = new PathClipShape();
         }
 
-        //~GeometricPathElement()
-        //{
-        //    //this causes crashes
-        //    //PathCache.RemovePath(_scaledCachedPath);
+        public GeometricPathElement(GeometricPathElement other) : base(other)
+        {
+            Init();
+            SvgPath = other.SvgPath;
+            _clipShape = new PathClipShape();
+        }
 
-        //    ShouldApplyScalingProperty = null!;
-        //    SvgPathProperty = null!;
-        //}
+        private void Init()
+        {
+            ShouldApplyScalingProperty.ValueChangedEvent += SetShouldApplyScaling;
+            SvgPathProperty.ValueChangedEvent += SetSvgPath;
+        }
 
         /// <summary>
         /// Returns a clone of the internal SKPath object (unscaled even when <see cref="ShouldApplyScaling"/> is true).
@@ -278,26 +279,7 @@ namespace CatUI.Elements.Shapes
 
         public override GeometricPathElement Duplicate()
         {
-            GeometricPathElement el = new()
-            {
-                SvgPath = _svgPath,
-                ShouldApplyScaling = _shouldApplyScaling,
-                //AbstractShapeElement
-                FillBrush = FillBrush.Duplicate(),
-                OutlineBrush = OutlineBrush.Duplicate(),
-                OutlineParameters = OutlineParameters,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new GeometricPathElement(this);
             DuplicateChildrenUtil(el);
             return el;
         }

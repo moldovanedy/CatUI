@@ -2,5 +2,7 @@
 {
     public abstract class Container : Element
     {
+        public Container() { }
+        public Container(Container other) : base(other) { }
     }
 }

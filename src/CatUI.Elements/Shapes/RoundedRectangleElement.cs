@@ -1,7 +1,6 @@
 using System;
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Shapes;
 using CatUI.RenderingEngine;
@@ -58,7 +57,7 @@ namespace CatUI.Elements.Shapes
         public RoundedRectangleElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
-            RoundCornersDescriptorProperty.ValueChangedEvent += SetRoundCornersDescriptor;
+            Init();
             _clipShape = new RoundedRectangleClipShape();
         }
 
@@ -75,7 +74,7 @@ namespace CatUI.Elements.Shapes
             IBrush? outlineBrush = null)
             : base(fillBrush, outlineBrush)
         {
-            RoundCornersDescriptorProperty.ValueChangedEvent += SetRoundCornersDescriptor;
+            Init();
             _clipShape = new RoundedRectangleClipShape();
 
             Position = new Dimension2(rectDescriptor.X, rectDescriptor.Y);
@@ -83,6 +82,18 @@ namespace CatUI.Elements.Shapes
                 new ElementLayout()
                     .SetFixedWidth(Math.Abs(rectDescriptor.Width))
                     .SetFixedHeight(Math.Abs(rectDescriptor.Height));
+        }
+
+        public RoundedRectangleElement(RoundedRectangleElement other) : base(other)
+        {
+            Init();
+            RoundCornersDescriptor = other.RoundCornersDescriptor.Duplicate();
+            _clipShape = new RoundedRectangleClipShape();
+        }
+
+        private void Init()
+        {
+            RoundCornersDescriptorProperty.ValueChangedEvent += SetRoundCornersDescriptor;
         }
 
         protected override void DrawBackground()
@@ -119,25 +130,7 @@ namespace CatUI.Elements.Shapes
 
         public override RoundedRectangleElement Duplicate()
         {
-            RoundedRectangleElement el = new()
-            {
-                RoundCornersDescriptor = RoundCornersDescriptor.Duplicate(),
-                //AbstractShapeElement
-                FillBrush = FillBrush.Duplicate(),
-                OutlineBrush = OutlineBrush.Duplicate(),
-                OutlineParameters = OutlineParameters,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new RoundedRectangleElement(this);
             DuplicateChildrenUtil(el);
             return el;
         }

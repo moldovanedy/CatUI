@@ -118,10 +118,22 @@ namespace CatUI.Elements.Utils
 
         protected Divider(Orientation orientation)
         {
+            Init(orientation);
+        }
+
+        protected Divider(Divider other) : base(other)
+        {
+            Init(other.LineOrientation);
+            LineThickness = other.LineThickness;
+            LineBrush = other.LineBrush;
+            LineCap = other.LineCap;
+        }
+
+        private void Init(Orientation orientation)
+        {
             LineThicknessProperty.ValueChangedEvent += SetLineThickness;
             LineBrushProperty.ValueChangedEvent += SetLineBrush;
             LineCapProperty.ValueChangedEvent += SetLineCap;
-
             LineOrientation = orientation;
 
             Layout ??= new ElementLayout();
@@ -134,13 +146,6 @@ namespace CatUI.Elements.Utils
                 Layout.SetFixedHeight("100%");
             }
         }
-
-        //~Divider()
-        //{
-        //    LineThicknessProperty = null!;
-        //    LineBrushProperty = null!;
-        //    LineCapProperty = null!;
-        //}
 
         protected override void DrawBackground()
         {

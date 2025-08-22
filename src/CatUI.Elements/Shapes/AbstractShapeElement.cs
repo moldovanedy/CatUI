@@ -85,10 +85,7 @@ namespace CatUI.Elements.Shapes
 
         public AbstractShapeElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
         {
-            FillBrushProperty.ValueChangedEvent += SetFillBrush;
-            OutlineBrushProperty.ValueChangedEvent += SetOutlineBrush;
-            OutlineParametersProperty.ValueChangedEvent += SetOutlineParameters;
-
+            Init();
             if (fillBrush != null)
             {
                 FillBrush = fillBrush;
@@ -100,11 +97,20 @@ namespace CatUI.Elements.Shapes
             }
         }
 
-        //~AbstractShapeElement()
-        //{
-        //    FillBrushProperty = null!;
-        //    OutlineBrushProperty = null!;
-        //    OutlineParametersProperty = null!;
-        //}
+        public AbstractShapeElement(AbstractShapeElement other) : base(other)
+        {
+            Init();
+
+            FillBrush = other.FillBrush.Duplicate();
+            OutlineBrush = other.OutlineBrush.Duplicate();
+            OutlineParameters = other.OutlineParameters;
+        }
+
+        private void Init()
+        {
+            FillBrushProperty.ValueChangedEvent += SetFillBrush;
+            OutlineBrushProperty.ValueChangedEvent += SetOutlineBrush;
+            OutlineParametersProperty.ValueChangedEvent += SetOutlineParameters;
+        }
     }
 }

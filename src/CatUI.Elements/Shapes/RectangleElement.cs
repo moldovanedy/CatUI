@@ -1,7 +1,6 @@
 ﻿using System;
 using CatUI.Data;
 using CatUI.Data.Brushes;
-using CatUI.Data.Containers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Shapes;
 using CatUI.Utils;
@@ -62,6 +61,11 @@ namespace CatUI.Elements.Shapes
             CorrespondingClipShape = new RectangleClipShape();
         }
 
+        public RectangleElement(RectangleElement other) : base(other)
+        {
+            CorrespondingClipShape = new RectangleClipShape();
+        }
+
         protected override void DrawBackground()
         {
             if (!IsCurrentlyVisible)
@@ -81,23 +85,7 @@ namespace CatUI.Elements.Shapes
 
         public override RectangleElement Duplicate()
         {
-            RectangleElement el = new()
-            {
-                FillBrush = FillBrush.Duplicate(),
-                OutlineBrush = OutlineBrush.Duplicate(),
-                OutlineParameters = OutlineParameters,
-                //
-                State = State,
-                Position = Position,
-                Background = Background.Duplicate(),
-                ClipPath = (ClipShape?)ClipPath?.Duplicate(),
-                ClipType = ClipType,
-                LocallyVisible = LocallyVisible,
-                LocallyEnabled = LocallyEnabled,
-                ElementContainerSizing = (ContainerSizing?)ElementContainerSizing?.Duplicate(),
-                Layout = Layout
-            };
-
+            var el = new RectangleElement(this);
             DuplicateChildrenUtil(el);
             return el;
         }

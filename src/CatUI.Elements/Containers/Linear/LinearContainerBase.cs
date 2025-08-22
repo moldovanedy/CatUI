@@ -49,10 +49,11 @@ namespace CatUI.Elements.Containers.Linear
             ArrangementProperty.ValueChangedEvent += SetArrangement;
         }
 
-        //~LinearContainerBase()
-        //{
-        //    ArrangementProperty = null!;
-        //}
+        public LinearContainerBase(LinearContainerBase other) : base(other)
+        {
+            ArrangementProperty.ValueChangedEvent += SetArrangement;
+            Arrangement = other.Arrangement;
+        }
 
         public override Size RecomputeLayout(
             Size parentSize,
