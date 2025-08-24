@@ -35,12 +35,16 @@ namespace CatUI.Platform.Essentials
         /// An object reference to the alert ID. Its value will be set directly when the function is called, so you can
         /// use the value directly after this call.
         /// </param>
+        /// <param name="windowHandle">
+        /// On supporting platforms, it will make the alert a popup window for the specified window, thus making the
+        /// behavior more consistent with the runtime platform. Currently only used on Windows.
+        /// </param>
         /// <returns>The button selected by the user or null if the dialog was timed out or forcefully closed by the
         /// user without selecting a button.
         /// </returns>
         Task<Button?> ShowAlertAsync(
             string title, string message, Icon icon = Icon.Info, Button buttons = Button.Ok,
-            ObjectRef<Guid>? alertId = null);
+            ObjectRef<Guid>? alertId = null, IntPtr windowHandle = 0);
 
         /// <summary>
         /// A more advanced alert showing function, supporting more customization like a custom icon and custom buttons
@@ -66,6 +70,10 @@ namespace CatUI.Platform.Essentials
         /// An object reference to the alert ID. Its value will be set directly when the function is called, so you can
         /// use the value directly after this call.
         /// </param>
+        /// <param name="windowHandle">
+        /// On supporting platforms, it will make the alert a popup window for the specified window, thus making the
+        /// behavior more consistent with the runtime platform. Currently only used on Windows.
+        /// </param>
         /// <returns>
         /// The 0-based index of the pressed button (first, second, or third) or null if the dialog was
         /// timed out or forcefully closed by the user without selecting a button. 
@@ -73,7 +81,7 @@ namespace CatUI.Platform.Essentials
         Task<int?> ShowAlertAsync(
             string title, string message,
             string btn1Text, string? btn2Text = null, string? btn3Text = null,
-            Icon icon = Icon.Info, ObjectRef<Guid>? alertId = null);
+            Icon icon = Icon.Info, ObjectRef<Guid>? alertId = null, IntPtr windowHandle = 0);
 
         /// <summary>
         /// Tries to close the alert using the given ID.

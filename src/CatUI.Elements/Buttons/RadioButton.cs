@@ -289,7 +289,7 @@ namespace CatUI.Elements.Buttons
             Element textElement,
             IfElement? indicatorElement = null)
         {
-            OnClick += PrivateOnClick;
+            ClickEvent += PrivateOnClick;
 
             ValueProperty.ValueChangedEvent += SetValue;
             SpacingProperty.ValueChangedEvent += SetSpacing;

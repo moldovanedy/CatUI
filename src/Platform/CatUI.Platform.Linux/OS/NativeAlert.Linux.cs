@@ -63,7 +63,8 @@ namespace CatUI.Platform.Linux.OS
             string message,
             INativeAlert.Icon icon = INativeAlert.Icon.Info,
             INativeAlert.Button buttons = INativeAlert.Button.Ok,
-            ObjectRef<Guid>? alertId = null)
+            ObjectRef<Guid>? alertId = null,
+            IntPtr windowHandle = 0)
         {
             if (alertId != null)
             {
@@ -171,7 +172,8 @@ namespace CatUI.Platform.Linux.OS
             string? btn2Text = null,
             string? btn3Text = null,
             INativeAlert.Icon icon = INativeAlert.Icon.Info,
-            ObjectRef<Guid>? alertId = null)
+            ObjectRef<Guid>? alertId = null,
+            IntPtr windowHandle = 0)
         {
             if (alertId != null)
             {

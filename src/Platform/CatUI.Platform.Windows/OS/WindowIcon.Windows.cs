@@ -4,7 +4,7 @@ using CatUI.Platform.Essentials;
 using CatUI.Platform.Windows.PInvoke;
 using SkiaSharp;
 
-namespace CatUI.Platform.Windows
+namespace CatUI.Platform.Windows.OS
 {
     public class WindowIconWindows : IWindowIcon
     {
