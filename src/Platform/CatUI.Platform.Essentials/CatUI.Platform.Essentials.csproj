@@ -10,7 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SkiaSharp" Version="2.88.8"/>
+        <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\CatUI.Utils\CatUI.Utils.csproj" />
     </ItemGroup>
 
 </Project>

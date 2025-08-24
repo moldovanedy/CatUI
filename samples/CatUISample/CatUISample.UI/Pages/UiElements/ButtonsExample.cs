@@ -1,3 +1,5 @@
+using System;
+using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
@@ -8,8 +10,10 @@ using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Containers.Scroll;
 using CatUI.Elements.Media;
+using CatUI.Elements.NativeUI;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
+using CatUI.Platform.Essentials;
 using CatUI.Windowing.DesktopApp;
 
 namespace CatUISample.UI.Pages.UiElements
@@ -57,7 +61,26 @@ namespace CatUISample.UI.Pages.UiElements
                                 Layout =
                                     new ElementLayout()
                                         .SetMinMaxAndPreferredWidth("100%", 100, "100%")
-                                        .SetFixedHeight(20)
+                                        .SetFixedHeight(20),
+                                //TESTING: native alerts
+                                OnClick = async void (_, _) =>
+                                {
+                                    try
+                                    {
+                                        var alert = new NativeAlert(
+                                            "Alert title",
+                                            "Alert message: this can be a slightly longer string, giving more details, but avoid very long strings.");
+
+                                        INativeAlert.Button? result =
+                                            await alert.OpenAsync(
+                                                INativeAlert.Button.Ok);
+                                        CatLogger.LogDebug(result?.ToString() ?? "NO RESULT");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        CatLogger.LogException(ex);
+                                    }
+                                }
                             },
                             new SwitchButton(
                                 true,

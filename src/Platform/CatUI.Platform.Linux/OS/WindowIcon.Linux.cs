@@ -4,7 +4,7 @@ using CatUI.Platform.Linux.PInvoke;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
-namespace CatUI.Platform.Linux
+namespace CatUI.Platform.Linux.OS
 {
     public class WindowIconLinux : IWindowIcon
     {

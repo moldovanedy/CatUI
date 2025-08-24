@@ -9,9 +9,14 @@
         <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
+    <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Linux')) And !$([MSBuild]::IsOSPlatform('FreeBSD')) And !$(RuntimeIdentifier.StartsWith('linux')) And !$(RuntimeIdentifier.StartsWith('unix'))">
+        <Compile Remove="**/*" />
+    </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
     </ItemGroup>
+
     <ItemGroup>
         <!-- 
         we need conditions because net8.0-linux is not defined and we don't want to include this with every platform 
