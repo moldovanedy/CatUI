@@ -7,6 +7,7 @@ using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Exceptions;
 using CatUI.Elements;
+using CatUI.Elements.NativeUI;
 using CatUI.Platform.Essentials;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.GraphicsBackends;
@@ -530,7 +531,20 @@ namespace CatUI.Windowing.DesktopApp
             if (!GLFW.Init())
             {
                 ErrorCode errorCode = GLFW.GetError(out string description);
-                CatLogger.LogError("GLFW: could not initialize. UI failed to render.");
+                CatLogger.Log("GLFW: could not initialize. UI failed to render.", CatLogger.LogLevel.Critical);
+                var alert = new NativeAlert(
+                    "Can't initialize windowing",
+                    "The internal windowing system could not be initialized.",
+                    INativeAlert.Icon.Error);
+
+                try
+                {
+                    _ = alert.OpenAsync(INativeAlert.Button.Ok);
+                }
+                catch (PlatformNotSupportedException)
+                {
+                }
+
                 throw new InternalPlatformException($"Internal GLFW error ({errorCode}): {description}");
             }
 
@@ -614,6 +628,19 @@ namespace CatUI.Windowing.DesktopApp
                 if (GlfwWindow == null)
                 {
                     CatLogger.Log("GLFW: no window opened. UI failed to render.", CatLogger.LogLevel.Critical);
+                    var alert = new NativeAlert(
+                        "Failed to open window",
+                        "The window could be created and opened.",
+                        INativeAlert.Icon.Error);
+
+                    try
+                    {
+                        _ = alert.OpenAsync(INativeAlert.Button.Ok);
+                    }
+                    catch (PlatformNotSupportedException)
+                    {
+                    }
+
                     throw new NullReferenceException(
                         "Window pointer was null. Did you forget to open the window using Open()?");
                 }
@@ -649,6 +676,20 @@ namespace CatUI.Windowing.DesktopApp
                 CatLogger.Log(
                     "GLFW: Could not create window. UI failed to render.",
                     CatLogger.LogLevel.Critical);
+
+                var alert = new NativeAlert(
+                    "Failed to open window",
+                    "The window could be created and opened.",
+                    INativeAlert.Icon.Error);
+
+                try
+                {
+                    _ = alert.OpenAsync(INativeAlert.Button.Ok);
+                }
+                catch (PlatformNotSupportedException)
+                {
+                }
+
                 throw new InternalPlatformException("GLFW: Could not create window");
             }
 
