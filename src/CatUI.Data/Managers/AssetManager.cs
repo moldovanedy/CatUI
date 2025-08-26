@@ -105,6 +105,7 @@ namespace CatUI.Data.Managers
             }
 
             _assemblies.Add(assembly);
+            CatLogger.LogVerbose($"Added asset assembly \"{assembly.FullName}\".");
             return true;
         }
 

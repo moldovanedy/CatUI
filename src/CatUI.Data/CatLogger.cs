@@ -31,6 +31,11 @@ namespace CatUI.Data
 #endif
         }
 
+        public static void LogVerbose(object message, bool showTimestamp = true)
+        {
+            Log(message, LogLevel.Verbose, showTimestamp);
+        }
+
         public static void LogDebug(object message, bool showTimestamp = true)
         {
             Log(message, LogLevel.Debug, showTimestamp);
@@ -123,7 +128,7 @@ namespace CatUI.Data
             Warning = 4,
 
             /// <summary>
-            /// Something went wrong and these messages might help you to diagnose the problem.
+            /// Something went wrong, and these messages might help you to diagnose the problem.
             /// It is strongly encouraged to enable this level (or a lower one) in production.
             /// </summary>
             Error = 5,
@@ -131,8 +136,8 @@ namespace CatUI.Data
             /// <summary>
             /// Something happened that makes the application unusable and cannot continue normal operation,
             /// generally something wrong on the client machine. Use this to present an error message, gather data and
-            /// quit the application. This is very rarely (if at all) triggered.
-            /// It is strongly encouraged to enable this level (or a lower one) in production.
+            /// quit the application. This is very rarely triggered. It is strongly encouraged to enable this level
+            /// (or a lower one) in production.
             /// </summary>
             Critical = 6
         }

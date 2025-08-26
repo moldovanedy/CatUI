@@ -385,12 +385,6 @@ namespace CatUI.Windowing.DesktopApp
         #region Events
 
         /// <summary>
-        /// Fired when an internal GLFW error occurred. GLFW is the windowing library that CatUI uses on desktop to
-        /// create windows, manage input, and handle hardware graphics context (OpenGL).
-        /// </summary>
-        public event Action<ErrorCode, string>? ErrorOccurred;
-
-        /// <summary>
         /// Fired when the window is resized, either by the user, by the platform, or by your code.
         /// </summary>
         public event WindowResizedEventHandler? ResizedEvent;
@@ -543,16 +537,17 @@ namespace CatUI.Windowing.DesktopApp
                 }
                 catch (PlatformNotSupportedException)
                 {
+                    CatLogger.LogInfo(
+                        "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
+                }
+                catch (Exception ex)
+                {
+                    CatLogger.LogInfo(
+                        $"Could not show native alert (UI failed). Exception: {ex}");
                 }
 
                 throw new InternalPlatformException($"Internal GLFW error ({errorCode}): {description}");
             }
-
-            //TODO: this is wrong, as this callback is per application, not per window; fix this
-            GLFW.SetErrorCallback((code, desc) =>
-            {
-                ErrorOccurred?.Invoke(code, desc);
-            });
 
             GLFW.WindowHint(WindowHintBool.Resizable, (_flags & WindowFlags.Resizable) != 0);
             GLFW.WindowHint(WindowHintBool.Visible, (_flags & WindowFlags.Visible) != 0);
@@ -630,7 +625,7 @@ namespace CatUI.Windowing.DesktopApp
                     CatLogger.Log("GLFW: no window opened. UI failed to render.", CatLogger.LogLevel.Critical);
                     var alert = new NativeAlert(
                         "Failed to open window",
-                        "The window could be created and opened.",
+                        "The window could not be created and opened.",
                         INativeAlert.Icon.Error);
 
                     try
@@ -639,6 +634,13 @@ namespace CatUI.Windowing.DesktopApp
                     }
                     catch (PlatformNotSupportedException)
                     {
+                        CatLogger.LogInfo(
+                            "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
+                    }
+                    catch (Exception ex)
+                    {
+                        CatLogger.LogInfo(
+                            $"Could not show native alert (UI failed). Exception: {ex}");
                     }
 
                     throw new NullReferenceException(
@@ -688,6 +690,13 @@ namespace CatUI.Windowing.DesktopApp
                 }
                 catch (PlatformNotSupportedException)
                 {
+                    CatLogger.LogInfo(
+                        "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
+                }
+                catch (Exception ex)
+                {
+                    CatLogger.LogInfo(
+                        $"Could not show native alert (UI failed). Exception: {ex}");
                 }
 
                 throw new InternalPlatformException("GLFW: Could not create window");
@@ -707,14 +716,15 @@ namespace CatUI.Windowing.DesktopApp
             if (GraphicsBackend is OpenGlGraphicsBackend)
             {
                 string versionString = GraphicsBackendInfo.GetGraphicsApiVersion();
-                if (
-                    int.Parse(versionString.AsSpan(0, 1)) <= 3
-                 && int.Parse(versionString.AsSpan(2, 1)) < 2)
+                int majorVer = int.Parse(versionString.AsSpan(0, 1));
+                int minorVer = int.Parse(versionString.AsSpan(2, 1));
+
+                if (majorVer <= 3 && minorVer < 2)
                 {
                     CatLogger.LogWarning("Graphics: OpenGL version is lower than 3.2. Some features might not work.");
                 }
 
-                if (int.Parse(versionString.AsSpan(0, 1)) < 2)
+                if (majorVer < 2)
                 {
                     //TODO: fallback to software rendering
                     CatLogger.Log(
@@ -725,6 +735,8 @@ namespace CatUI.Windowing.DesktopApp
                     Terminate();
                     throw new InternalPlatformException("GLFW: Could not create window; OpenGL version too old");
                 }
+
+                CatLogger.LogVerbose($"Rendering using OpenGL version {majorVer}.{minorVer}");
             }
 
             if (
@@ -1128,6 +1140,7 @@ namespace CatUI.Windowing.DesktopApp
                 Marshal.FreeHGlobal(pointer);
             }
 
+            CatLogger.LogVerbose("Successfully set window icon.");
             return true;
         }
 
@@ -1193,6 +1206,8 @@ namespace CatUI.Windowing.DesktopApp
 
         private void Terminate()
         {
+            CatLogger.LogVerbose("Terminating window...");
+
             if (Document.CurrentAppState == UiDocument.AppState.Active)
             {
                 DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
@@ -1218,6 +1233,8 @@ namespace CatUI.Windowing.DesktopApp
                 GLFW.DestroyWindow(GlfwWindow);
                 GlfwWindow = (Window*)0;
             }
+
+            CatLogger.LogVerbose("Window terminated.");
         }
 
         private void FullyRedraw()
