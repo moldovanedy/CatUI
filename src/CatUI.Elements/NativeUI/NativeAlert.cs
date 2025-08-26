@@ -53,7 +53,7 @@ namespace CatUI.Elements.NativeUI
         /// <summary>
         /// Opens the alert with the specified buttons and waits for user action, returning the pressed button or null
         /// if the alert was closed, either by the user or by <see cref="Close"/>. This is just a convenient wrapper for
-        /// <see cref="INativeAlert.ShowAlertAsync(string,string,INativeAlert.Icon,INativeAlert.Button,CatUI.Utils.ObjectRef{System.Guid}?)"/>,
+        /// <see cref="INativeAlert.ShowAlertAsync(string,string,INativeAlert.Icon,INativeAlert.Button,CatUI.Utils.ObjectRef{System.Guid}?,IntPtr)"/>,
         /// so also check that function for more info.
         /// </summary>
         /// <remarks>
@@ -70,7 +70,7 @@ namespace CatUI.Elements.NativeUI
         /// The pressed button or null if the user dismissed the alert (in can happen on some platforms) or it was
         /// closed by <see cref="Close"/>.
         /// </returns>
-        /// <seealso cref="INativeAlert.ShowAlertAsync(string,string,INativeAlert.Icon,INativeAlert.Button,CatUI.Utils.ObjectRef{System.Guid}?)"/>
+        /// <seealso cref="INativeAlert.ShowAlertAsync(string,string,INativeAlert.Icon,INativeAlert.Button,CatUI.Utils.ObjectRef{System.Guid}?,IntPtr)"/>
         public async Task<INativeAlert.Button?> OpenAsync(INativeAlert.Button buttons)
         {
             if (_usedId != Guid.Empty)
@@ -94,7 +94,7 @@ namespace CatUI.Elements.NativeUI
         /// Opens the alert with the specified buttons and waits for user action, returning the index of the pressed
         /// button or null if the alert was closed, either by the user or by <see cref="Close"/>. This is just a
         /// convenient wrapper for
-        /// <see cref="INativeAlert.ShowAlertAsync(string,string,string,string?,string?,INativeAlert.Icon,CatUI.Utils.ObjectRef{System.Guid}?)"/>,
+        /// <see cref="INativeAlert.ShowAlertAsync(string,string,string,string?,string?,INativeAlert.Icon,CatUI.Utils.ObjectRef{System.Guid}?,IntPtr)"/>,
         /// so also check that function for more info.
         /// </summary>
         /// <remarks>
@@ -118,7 +118,7 @@ namespace CatUI.Elements.NativeUI
         /// The pressed button index (0-based) or null if the user dismissed the alert (in can happen on some platforms)
         /// or it was closed by <see cref="Close"/>.
         /// </returns>
-        /// <seealso cref="INativeAlert.ShowAlertAsync(string,string,string,string?,string?,INativeAlert.Icon,CatUI.Utils.ObjectRef{System.Guid}?)"/>
+        /// <seealso cref="INativeAlert.ShowAlertAsync(string,string,string,string?,string?,INativeAlert.Icon,CatUI.Utils.ObjectRef{System.Guid}?,IntPtr)"/>
         public async Task<int?> OpenAsync(string button1, string? button2 = null, string? button3 = null)
         {
             if (_usedId != Guid.Empty)
