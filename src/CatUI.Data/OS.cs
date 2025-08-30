@@ -1,7 +1,6 @@
 ﻿using CatUI.Platform.Essentials;
 #if CAT_LOCAL_WINDOWS
 using CatUI.Platform.Windows.OS;
-
 #else
 using CatUI.Platform.Linux.OS;
 #endif
@@ -40,6 +39,14 @@ namespace CatUI.Data
         /// </remarks>
         public static INativeAlert? NativeAlert { get; private set; }
 
+        /// <summary>
+        /// Shows a native file picker dialog. The user can pick any file from their device, you can allow
+        /// multiple files, directory, and even additional options on the dialog on supporting platforms. This is very
+        /// convenient, as the UI is familiar for the users, and you generally don't need storage permissions on
+        /// sandboxed platforms.
+        /// </summary>
+        public static IFilePicker? FilePicker { get; private set; }
+
         private static bool _isInitialized;
 
         internal static void Init()
@@ -62,6 +69,11 @@ namespace CatUI.Data
             NativeAlert = new NativeAlertWindows();
 #elif CAT_LOCAL_LINUX
             NativeAlert = new NativeAlertLinux();
+#endif
+
+
+#if CAT_LOCAL_LINUX
+            FilePicker = new FilePickerLinux();
 #endif
         }
     }

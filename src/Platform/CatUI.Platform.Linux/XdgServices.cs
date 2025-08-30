@@ -28,11 +28,12 @@ namespace CatUI.Platform.Linux
                     return;
                 }
 
-                Connection connection = new(Address.Session!);
-                await connection.ConnectAsync();
+                var conn = new Connection(Address.Session!);
+                await conn.ConnectAsync();
 
-                DesktopService xdgService = new(connection, "org.freedesktop.portal.Desktop");
+                DesktopService xdgService = new(conn, "org.freedesktop.portal.Desktop");
                 await SetupSettingsService(xdgService);
+                SetupFilePickerService(xdgService);
 
                 Status = ServiceStatus.Operational;
 
@@ -118,6 +119,17 @@ namespace CatUI.Platform.Linux
                         break;
                 }
             });
+        }
+
+        #endregion
+
+        #region File picker
+
+        internal static FileChooser? FilePickerService { get; private set; }
+
+        internal static void SetupFilePickerService(DesktopService xdgService)
+        {
+            FilePickerService = xdgService.CreateFileChooser(XDG_PORTAL_PATH);
         }
 
         #endregion

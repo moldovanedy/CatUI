@@ -473,13 +473,6 @@ namespace CatUI.Platform.Linux.OS
                 }
 
                 Process? proc = Process.Start(startInfo);
-                // ReSharper disable once ConvertIfStatementToReturnStatement
-                // ReSharper disable once UseNullPropagation
-                if (proc == null)
-                {
-                    return null;
-                }
-
                 return proc;
             }
         }
