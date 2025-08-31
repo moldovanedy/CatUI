@@ -61,8 +61,8 @@ namespace CatUISample.UI.Pages.NativeUi
                                                     "Image files",
                                                     new FileGlobPattern(["*.png", "*.jpg"]))
                                             ], 1),
-                                            //null,
-                                            new Uri("/bin"),
+                                            //new Uri("/bin"),
+                                            null,
                                             "Get file");
 
                                         if (task == null)

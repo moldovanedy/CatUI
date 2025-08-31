@@ -1,6 +1,7 @@
 ﻿using CatUI.Platform.Essentials;
 #if CAT_LOCAL_WINDOWS
 using CatUI.Platform.Windows.OS;
+
 #else
 using CatUI.Platform.Linux.OS;
 #endif
@@ -72,7 +73,9 @@ namespace CatUI.Data
 #endif
 
 
-#if CAT_LOCAL_LINUX
+#if CAT_LOCAL_WINDOWS
+            FilePicker = new FilePickerWindows();
+#elif CAT_LOCAL_LINUX
             FilePicker = new FilePickerLinux();
 #endif
         }

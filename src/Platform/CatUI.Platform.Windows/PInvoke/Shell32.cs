@@ -17,6 +17,18 @@ namespace CatUI.Platform.Windows.PInvoke
         internal static partial uint ExtractIconExW(string lpszFile, int nIconIndex,
             IntPtr[] phiconLarge, IntPtr[] phiconSmall, uint nIcons);
 
+        [DllImport(shell32, CharSet = CharSet.Auto, EntryPoint = "SHBrowseForFolderW")]
+        internal static extern IntPtr SHBrowseForFolder(ref BROWSEINFO lpbi);
+
+        [LibraryImport(shell32, EntryPoint = "SHGetPathFromIDListW")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool SHGetPathFromIDList(IntPtr pidl, IntPtr pszPath);
+
+        public const uint BIF_RETURNONLYFSDIRS = 0x0001;
+        public const uint BIF_NEWDIALOGSTYLE = 0x0040;
+        public const uint BIF_EDITBOX = 0x0010;
+
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct SHFILEINFO
         {
@@ -29,6 +41,19 @@ namespace CatUI.Platform.Windows.PInvoke
 
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
             public string szTypeName;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct BROWSEINFO
+        {
+            public IntPtr hwndOwner;
+            public IntPtr pidlRoot;
+            public IntPtr pszDisplayName;
+            [MarshalAs(UnmanagedType.LPTStr)] public string lpszTitle;
+            public uint ulFlags;
+            public IntPtr lpfn;
+            public IntPtr lParam;
+            public int iImage;
         }
     }
 }
