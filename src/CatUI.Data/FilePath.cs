@@ -97,7 +97,8 @@ namespace CatUI.Data
                         $"{nameof(nativePath)} is not a string. On Windows, the path must be a string.");
                 }
 
-                if (isDirectory && !pathAsString.EndsWith('\\') && !pathAsString.EndsWith('/'))
+                pathAsString = pathAsString.Replace('\\', '/');
+                if (isDirectory && !pathAsString.EndsWith('/'))
                 {
                     pathAsString += '/';
                 }
