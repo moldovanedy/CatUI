@@ -10,10 +10,10 @@ using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Containers.Scroll;
 using CatUI.Elements.Media;
-using CatUI.Elements.NativeUI;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
-using CatUI.Platform.Essentials;
+using CatUI.Platform.CommonInterface;
+using CatUI.Platform.NativeUI;
 using CatUI.Windowing.DesktopApp;
 
 namespace CatUISample.UI.Pages.UiElements

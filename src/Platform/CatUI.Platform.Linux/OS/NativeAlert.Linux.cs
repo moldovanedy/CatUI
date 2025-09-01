@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using CatUI.Platform.Essentials;
+using CatUI.Platform.CommonInterface;
 using CatUI.Utils;
 
 namespace CatUI.Platform.Linux.OS
@@ -473,13 +473,6 @@ namespace CatUI.Platform.Linux.OS
                 }
 
                 Process? proc = Process.Start(startInfo);
-                // ReSharper disable once ConvertIfStatementToReturnStatement
-                // ReSharper disable once UseNullPropagation
-                if (proc == null)
-                {
-                    return null;
-                }
-
                 return proc;
             }
         }

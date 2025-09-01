@@ -1,5 +1,5 @@
 using System;
-using CatUI.Platform.Essentials;
+using CatUI.Platform.CommonInterface;
 using CatUI.Platform.Linux.PInvoke;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;

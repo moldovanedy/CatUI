@@ -22,6 +22,7 @@
     <ItemGroup>
         <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj" />
         <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj" />
+        <ProjectReference Include="..\Platform\CatUI.Platform\CatUI.Platform.csproj" />
     </ItemGroup>
 
 </Project>

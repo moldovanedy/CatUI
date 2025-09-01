@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CatUI.Platform.Essentials;
+using CatUI.Platform.CommonInterface;
 using CatUI.Platform.Windows.PInvoke;
 using CatUI.Utils;
 

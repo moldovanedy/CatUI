@@ -1,7 +1,7 @@
 ﻿using System;
 using SkiaSharp;
 
-namespace CatUI.Platform.Essentials
+namespace CatUI.Platform.CommonInterface
 {
     public interface IWindowIcon
     {

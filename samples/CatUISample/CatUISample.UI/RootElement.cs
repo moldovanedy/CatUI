@@ -10,6 +10,7 @@ using CatUI.Elements.Helpers.Navigation;
 using CatUI.Utils;
 using CatUISample.UI.Pages;
 using CatUISample.UI.Pages.Layout;
+using CatUISample.UI.Pages.NativeUi;
 using CatUISample.UI.Pages.UiElements;
 using CatUISample.UI.Theming;
 
@@ -32,7 +33,8 @@ namespace CatUISample.UI
                         { "/", _ => new NavRoute(new MainPage()) },
                         { "/Layout/RowContainer", _ => new NavRoute(new RowContainerExamples()) },
                         { "/Layout/ScrollContainer", _ => new NavRoute(new ScrollContainerExamples()) },
-                        { "/UiElements/Buttons", _ => new NavRoute(new ButtonsExample()) }
+                        { "/UiElements/Buttons", _ => new NavRoute(new ButtonsExample()) },
+                        { "/NativeUi/FilePicking", _ => new NavRoute(new FilePickingExamples()) }
                     },
                     "/")
                 {

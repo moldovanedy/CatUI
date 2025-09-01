@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <Version>0.1.0</Version>
+        <Title>CatUI.Platform</Title>
+        <Description>
+            Contains the unified API for accessing different platform-specific APIs, like native alerts, file pickers,
+            notifications, and more. This can be used in non-CatUI applications, even the ones built in other UI
+            frameworks.
+        </Description>
+        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
+        <PackageTags>UI;User Interface;fast</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Authors>Moldovan Eduard</Authors>
+
+        <IsAotCompatible>True</IsAotCompatible>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))">
+        <DefineConstants>$(DefineConstants);CAT_LOCAL_WINDOWS</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $(RuntimeIdentifier.StartsWith('osx'))">
+        <DefineConstants>$(DefineConstants);CAT_LOCAL_MACOS</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))">
+        <DefineConstants>$(DefineConstants);CAT_LOCAL_LINUX</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
+
+        <!-- we cannot use the defined symbols like CAT_LOCAL_WINDOWS as they don't work here... -->
+        <ProjectReference Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))" Include="..\CatUI.Platform.Linux\CatUI.Platform.Linux.csproj" />
+        <ProjectReference Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))" Include="..\CatUI.Platform.Windows\CatUI.Platform.Windows.csproj" />
+    </ItemGroup>
+
+</Project>

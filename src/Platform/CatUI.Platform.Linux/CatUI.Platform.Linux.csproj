@@ -14,7 +14,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
+        <ProjectReference Include="..\CatUI.Platform.CommonInterface\CatUI.Platform.CommonInterface.csproj" />
+        <ProjectReference Include="..\..\CatUI.Data\CatUI.Data.csproj" />
     </ItemGroup>
 
     <ItemGroup>
