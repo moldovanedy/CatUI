@@ -1,10 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using CatUI.Data;
-using CatUI.Platform.Essentials;
+using CatUI.Platform.CommonInterface;
 using CatUI.Utils;
 
-namespace CatUI.Elements.NativeUI
+namespace CatUI.Platform.NativeUI
 {
     /// <summary>
     /// A native alert (or message box), specific to the runtime platform and using its native look and feel. It's

@@ -1,4 +1,5 @@
 using CatUI.Data;
+using CatUI.Platform;
 using CatUI.Windowing.Android.PlatformImplementations;
 
 namespace CatUI.Windowing.Android
@@ -8,6 +9,9 @@ namespace CatUI.Windowing.Android
         public override CatApplicationInitializer AppInitializer => new(
             new AndroidDispatcher(),
             new AndroidPlatformUiOptions(),
-            () => { });
+            () =>
+            {
+                OS.Init();
+            });
     }
 }

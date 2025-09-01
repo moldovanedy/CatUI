@@ -1,12 +1,11 @@
-﻿using CatUI.Platform.Essentials;
+﻿using CatUI.Platform.CommonInterface;
 #if CAT_LOCAL_WINDOWS
 using CatUI.Platform.Windows.OS;
-
 #else
 using CatUI.Platform.Linux.OS;
 #endif
 
-namespace CatUI.Data
+namespace CatUI.Platform
 {
     /// <summary>
     /// Provides access to some common functions on the runtime platform (e.g. opening the file picker, showing alerts,
@@ -50,7 +49,11 @@ namespace CatUI.Data
 
         private static bool _isInitialized;
 
-        internal static void Init()
+        /// <summary>
+        /// This initializes the platform-specific APIs. Calling this more than once does not have any effect, unless
+        /// this method threw an exception at the first call, which is highly unlikely.
+        /// </summary>
+        public static void Init()
         {
             if (_isInitialized)
             {

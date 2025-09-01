@@ -2,11 +2,10 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace CatUI.Platform.Windows.PInvoke
 {
-    internal static partial class Comdlg32
+    internal static class Comdlg32
     {
         private const string comdlg32 = "comdlg32.dll";
 

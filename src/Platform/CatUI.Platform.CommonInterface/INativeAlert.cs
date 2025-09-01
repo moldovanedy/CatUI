@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CatUI.Utils;
 
-namespace CatUI.Platform.Essentials
+namespace CatUI.Platform.CommonInterface
 {
     /// <summary>
     /// Describes the interface for native platform alerts (message boxes) that might also display multiple buttons

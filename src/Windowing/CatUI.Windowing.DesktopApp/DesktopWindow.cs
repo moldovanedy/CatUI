@@ -7,8 +7,9 @@ using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Exceptions;
 using CatUI.Elements;
-using CatUI.Elements.NativeUI;
-using CatUI.Platform.Essentials;
+using CatUI.Platform.NativeUI;
+using CatUI.Platform;
+using CatUI.Platform.CommonInterface;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.GraphicsBackends;
 using CatUI.Windowing.DesktopApp.PlatformImplementations;
@@ -1026,7 +1027,7 @@ namespace CatUI.Windowing.DesktopApp
         /// <para>
         /// NOTE: If you set the window icon without using <see cref="SetWindowIcon"/> (e.g. using native methods),
         /// this will return outdated results. In that case, you must rely on <see cref="IWindowIcon.GetWindowIcon"/>
-        /// from <see cref="OS.WindowIcon"/> instead.
+        /// from <see cref="WindowIcon"/> instead.
         /// </para>
         /// </remarks>
         public WindowIcon? GetWindowIcon()

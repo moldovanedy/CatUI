@@ -20,18 +20,6 @@
         <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_WINDOWS</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $(RuntimeIdentifier.StartsWith('osx'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_MACOS</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_LINUX</DefineConstants>
-    </PropertyGroup>
-
     <ItemGroup>
         <PackageReference Include="SkiaSharp" Version="2.88.8" />
     </ItemGroup>
@@ -39,10 +27,6 @@
     <ItemGroup>
         <ProjectReference Include="..\Platform\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
         <ProjectReference Include="..\CatUI.Utils\CatUI.Utils.csproj" />
-
-        <!-- we cannot use the defined symbols like CAT_LOCAL_WINDOWS as they don't work here... -->
-        <ProjectReference Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))" Include="..\Platform\CatUI.Platform.Linux\CatUI.Platform.Linux.csproj" />
-        <ProjectReference Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))" Include="..\Platform\CatUI.Platform.Windows\CatUI.Platform.Windows.csproj" />
     </ItemGroup>
 
 </Project>

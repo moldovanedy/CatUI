@@ -1,5 +1,6 @@
 using System;
 using CatUI.Data;
+using CatUI.Platform;
 using CatUI.Platform.Essentials;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.PlatformImplementations;
@@ -56,6 +57,7 @@ namespace CatUI.Windowing.DesktopApp
                 }
 #endif
 
+                OS.Init();
                 GLFW.Init();
 
 #if CAT_LOCAL_LINUX

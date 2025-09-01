@@ -54,7 +54,6 @@ namespace CatUI.Data
 
             _initializationGuard = true;
             PostInitializationAction?.Invoke();
-            OS.Init();
             CatTheme.Initialize();
         }
     }

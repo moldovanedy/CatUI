@@ -5,7 +5,9 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CatUI.Platform.Essentials;
+using CatUI.Data;
+using CatUI.Data.Exceptions;
+using CatUI.Platform.CommonInterface;
 using CatUI.Utils;
 using Tmds.DBus.Protocol;
 
@@ -21,7 +23,7 @@ namespace CatUI.Platform.Linux.OS
             string dialogTitle,
             bool canSelectMultiple,
             IFilePicker.FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             IFilePicker.PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -61,7 +63,7 @@ namespace CatUI.Platform.Linux.OS
         public async Task<IFilePicker.OpenDirectoriesResponse?> OpenDirectoriesAsync(
             string dialogTitle,
             bool canSelectMultiple,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             IFilePicker.PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -97,7 +99,7 @@ namespace CatUI.Platform.Linux.OS
 
             return
                 result != null
-                    ? new IFilePicker.OpenDirectoriesResponse(result.FileUris, result.PickerChoicesResponse)
+                    ? new IFilePicker.OpenDirectoriesResponse(result.FilePaths, result.PickerChoicesResponse)
                     : null;
         }
 
@@ -105,7 +107,7 @@ namespace CatUI.Platform.Linux.OS
             string dialogTitle,
             string fileName,
             IFilePicker.FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             IFilePicker.PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -116,7 +118,6 @@ namespace CatUI.Platform.Linux.OS
             {
                 result =
                     await XdgGetSaveResponseAsync(
-                        false,
                         dialogTitle,
                         [fileName],
                         filterPattern,
@@ -143,38 +144,9 @@ namespace CatUI.Platform.Linux.OS
             }
 
             return new IFilePicker.SaveFileResponse(
-                result.MainResponse.FileUris.Length >= 1 ? result.MainResponse.FileUris[0] : new Uri(""),
+                result.MainResponse.FilePaths.Length >= 1 ? result.MainResponse.FilePaths[0] : new FilePath(""),
                 result.FileFilter,
                 result.MainResponse.PickerChoicesResponse);
-        }
-
-        public async Task<IFilePicker.SaveFilesInDirectoryResponse?> SaveFilesInDirectoryAsync(
-            string dialogTitle,
-            string[] fileNames,
-            Uri? initialLocation = null,
-            string? customSubmitButtonText = null,
-            IFilePicker.PickerChoicesRequest[]? choices = null,
-            object? windowIdentifier = null,
-            CancellationToken? cancellationToken = null)
-        {
-            if (XdgServices.FilePickerService != null)
-            {
-                CommonSaveFilesResponse result =
-                    await XdgGetSaveResponseAsync(
-                        true,
-                        dialogTitle,
-                        fileNames,
-                        null,
-                        initialLocation,
-                        customSubmitButtonText,
-                        choices,
-                        windowIdentifier,
-                        cancellationToken);
-
-                return result.MainResponse;
-            }
-
-            return null;
         }
 
         #region XDG
@@ -184,7 +156,7 @@ namespace CatUI.Platform.Linux.OS
             string dialogTitle,
             bool canSelectMultiple,
             IFilePicker.FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             IFilePicker.PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -213,7 +185,7 @@ namespace CatUI.Platform.Linux.OS
 
             if (initialLocation != null)
             {
-                options.Add("current_folder", GetNullTerminatedString(initialLocation.AbsolutePath));
+                options.Add("current_folder", GetNullTerminatedString(initialLocation.NormalizedPath));
             }
 
             if (filterPattern != null)
@@ -264,13 +236,7 @@ namespace CatUI.Platform.Linux.OS
                 {
                     if (ex != null)
                     {
-#if DEBUG
-                        Console.WriteLine(
-                            $"[ERROR ({DateTime.Now:HH:mm:ss.fff})]: Exception (at open file): {ex}");
-#elif TRACE
-                                Trace.WriteLine(
-                                    $"[ERROR ({DateTime.Now:HH:mm:ss.fff})]: Exception (at open file): {ex}");
-#endif
+                        CatLogger.LogException(ex);
                         tcs.TrySetResult(null);
                         return;
                     }
@@ -290,15 +256,19 @@ namespace CatUI.Platform.Linux.OS
 
                     Dictionary<string, VariantValue> results = data.Results;
 
-                    // Read URIs
-                    List<Uri> selectedUris = [];
+                    // Read paths
+                    List<FilePath> selectedPaths = [];
                     if (results.TryGetValue("uris", out VariantValue urisValue))
                     {
                         foreach (string uriString in urisValue.GetArray<string>())
                         {
-                            if (Uri.TryCreate(uriString, UriKind.Absolute, out Uri? uri))
+                            if (uriString.StartsWith("file://"))
                             {
-                                selectedUris.Add(uri);
+                                selectedPaths.Add(new FilePath(uriString.Substring(7)));
+                            }
+                            else
+                            {
+                                throw new InternalPlatformException("XDG gave invalid URI.");
                             }
                         }
                     }
@@ -336,7 +306,7 @@ namespace CatUI.Platform.Linux.OS
                     }
 
                     IFilePicker.OpenFilesResponse catResponse = new(
-                        selectedUris.ToArray(),
+                        selectedPaths.ToArray(),
                         new IFilePicker.FileFilter(
                             selectedFilterLabel,
                             new FileGlobPattern(selectedFilterPatterns.ToArray())),
@@ -359,7 +329,7 @@ namespace CatUI.Platform.Linux.OS
 
                 if (isInErrorState)
                 {
-                    throw new PlatformNotSupportedException("File picker failed.");
+                    throw new InternalPlatformException("File picker failed.");
                 }
 
                 return result;
@@ -377,11 +347,10 @@ namespace CatUI.Platform.Linux.OS
         }
 
         private static async Task<CommonSaveFilesResponse> XdgGetSaveResponseAsync(
-            bool isSaveDirectoryPicker,
             string dialogTitle,
             string[] fileNames,
             IFilePicker.FileFiltersArgument? singleFileFilterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             IFilePicker.PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -400,10 +369,10 @@ namespace CatUI.Platform.Linux.OS
 
             if (initialLocation != null)
             {
-                options.Add("current_folder", GetNullTerminatedString(initialLocation.AbsolutePath));
+                options.Add("current_folder", GetNullTerminatedString(initialLocation.NormalizedPath));
             }
 
-            if (singleFileFilterPattern != null && !isSaveDirectoryPicker)
+            if (singleFileFilterPattern != null)
             {
                 options.Add("filters", GetFilters(singleFileFilterPattern, out VariantValue? defaultFilter));
                 if (defaultFilter != null)
@@ -441,15 +410,11 @@ namespace CatUI.Platform.Linux.OS
             }
 
 
-            ObjectPath responsePath;
-            if (isSaveDirectoryPicker)
-            {
-                responsePath = await XdgServices.FilePickerService.SaveFilesAsync(windowId, dialogTitle, options);
-            }
-            else
-            {
-                responsePath = await XdgServices.FilePickerService.SaveFileAsync(windowId, dialogTitle, options);
-            }
+            ObjectPath responsePath = await XdgServices.FilePickerService.SaveFileAsync(windowId, dialogTitle, options);
+            // if (isSaveDirectoryPicker)
+            // {
+            //     responsePath = await XdgServices.FilePickerService.SaveFilesAsync(windowId, dialogTitle, options);
+            // }
 
             CancellationToken token = cancellationToken ?? CancellationToken.None;
             TaskCompletionSource<CommonSaveFilesResponse?>
@@ -476,13 +441,7 @@ namespace CatUI.Platform.Linux.OS
                 {
                     if (ex != null)
                     {
-#if DEBUG
-                        Console.WriteLine(
-                            $"[ERROR ({DateTime.Now:HH:mm:ss.fff})]: Exception (at save file): {ex}");
-#elif TRACE
-                        Trace.WriteLine(
-                            $"[ERROR ({DateTime.Now:HH:mm:ss.fff})]: Exception (at save file): {ex}");
-#endif
+                        CatLogger.LogException(ex);
                         tcs.TrySetResult(new CommonSaveFilesResponse(null, null));
                         return;
                     }
@@ -501,15 +460,19 @@ namespace CatUI.Platform.Linux.OS
 
                     Dictionary<string, VariantValue> results = data.Results;
 
-                    // Read URIs
-                    List<Uri> selectedUris = [];
+                    // Read paths
+                    List<FilePath> selectedPaths = [];
                     if (results.TryGetValue("uris", out VariantValue urisValue))
                     {
                         foreach (string uriString in urisValue.GetArray<string>())
                         {
-                            if (Uri.TryCreate(uriString, UriKind.Absolute, out Uri? uri))
+                            if (uriString.StartsWith("file://"))
                             {
-                                selectedUris.Add(uri);
+                                selectedPaths.Add(new FilePath(uriString.Substring(7)));
+                            }
+                            else
+                            {
+                                throw new InternalPlatformException("XDG gave invalid URI.");
                             }
                         }
                     }
@@ -547,7 +510,7 @@ namespace CatUI.Platform.Linux.OS
                     }
 
                     IFilePicker.SaveFilesInDirectoryResponse catResponse = new(
-                        selectedUris.ToArray(),
+                        selectedPaths.ToArray(),
                         selectedChoices);
 
                     var catFiltersResponse = new IFilePicker.FileFilter(
@@ -565,7 +528,7 @@ namespace CatUI.Platform.Linux.OS
 
                 if (result == null)
                 {
-                    throw new PlatformNotSupportedException("File picker failed.");
+                    throw new InternalPlatformException("File picker failed.");
                 }
 
                 if (watcher is IAsyncDisposable ad)
@@ -657,7 +620,7 @@ namespace CatUI.Platform.Linux.OS
 
                 xdgChoices.Add(
                     Struct.Create(
-                        choice.ID,
+                        choice.Id,
                         choice.Label,
                         selectableOptions,
                         defaultOption));
@@ -676,7 +639,7 @@ namespace CatUI.Platform.Linux.OS
             bool canSelectMultiple,
             bool hasZenityPriority = false,
             IFilePicker.FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             CancellationToken? cancellationToken = null)
         {
             cancellationToken?.ThrowIfCancellationRequested();
@@ -703,7 +666,7 @@ namespace CatUI.Platform.Linux.OS
                             }
 
                             args.Add(isDirectoryPicker ? "--getexistingdirectory" : "--getopenfilename");
-                            args.Add(initialLocation?.AbsolutePath ?? "");
+                            args.Add(initialLocation?.NormalizedPath ?? "");
 
                             if (!isDirectoryPicker && filterPattern != null)
                             {
@@ -738,23 +701,23 @@ namespace CatUI.Platform.Linux.OS
 
                 if (string.IsNullOrWhiteSpace(response.Item2))
                 {
-                    throw new PlatformNotSupportedException("The executable path is missing (dialog systems).");
+                    throw new InternalPlatformException("The executable path is missing (dialog systems).");
                 }
 
                 Process? proc = StartProcess(response.Item2, args);
                 if (proc == null)
                 {
-                    throw new PlatformNotSupportedException("The process could not be started.");
+                    throw new InternalPlatformException("The process could not be started.");
                 }
 
-                List<Uri> files = [];
+                List<FilePath> files = [];
                 char[] buffer = new char[4096];
                 while (!proc.HasExited)
                 {
                     int bytesRead = await proc.StandardOutput.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead > 0 && buffer[0] == '/')
                     {
-                        files.Add(new Uri(new string(buffer, 0, bytesRead)));
+                        files.Add(new FilePath(new string(buffer, 0, bytesRead)));
                     }
                 }
 
@@ -770,7 +733,7 @@ namespace CatUI.Platform.Linux.OS
             string dialogTitle,
             bool hasZenityPriority = false,
             IFilePicker.FileFiltersArgument? singleFileFilterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             CancellationToken? cancellationToken = null)
         {
             cancellationToken?.ThrowIfCancellationRequested();
@@ -792,7 +755,7 @@ namespace CatUI.Platform.Linux.OS
                             args.Add("--separate-output");
 
                             args.Add("--getsavefilename");
-                            args.Add(initialLocation?.AbsolutePath ?? "");
+                            args.Add(initialLocation?.NormalizedPath ?? "");
 
                             if (singleFileFilterPattern != null)
                             {
@@ -816,23 +779,23 @@ namespace CatUI.Platform.Linux.OS
 
                 if (string.IsNullOrWhiteSpace(response.Item2))
                 {
-                    throw new PlatformNotSupportedException("The executable path is missing (dialog systems).");
+                    throw new InternalPlatformException("The executable path is missing (dialog systems).");
                 }
 
                 Process? proc = StartProcess(response.Item2, args);
                 if (proc == null)
                 {
-                    throw new PlatformNotSupportedException("The process could not be started.");
+                    throw new InternalPlatformException("The process could not be started.");
                 }
 
-                Uri? file = null;
+                FilePath? file = null;
                 char[] buffer = new char[4096];
                 while (!proc.HasExited)
                 {
                     int bytesRead = await proc.StandardOutput.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead > 0 && buffer[0] == '/')
                     {
-                        file = new Uri(new string(buffer, 0, bytesRead));
+                        file = new FilePath(new string(buffer, 0, bytesRead));
                     }
                 }
 

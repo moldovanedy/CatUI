@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
@@ -11,7 +11,8 @@ using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Containers.Scroll;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
-using CatUI.Platform.Essentials;
+using CatUI.Platform.CommonInterface;
+using CatUI.Platform.NativeUI;
 using CatUI.Utils;
 
 namespace CatUISample.UI.Pages.NativeUi
@@ -20,7 +21,7 @@ namespace CatUISample.UI.Pages.NativeUi
     {
         public FilePickingExamples()
         {
-            ElementLayout _buttonsLayout = new ElementLayout().SetFixedWidth(200).SetFixedHeight(32);
+            ElementLayout buttonsLayout = new ElementLayout().SetFixedWidth(200).SetFixedHeight(32);
 
             Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
 
@@ -43,16 +44,18 @@ namespace CatUISample.UI.Pages.NativeUi
                             },
                             new Button("Open file", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                             {
-                                Layout = _buttonsLayout,
+                                Layout = buttonsLayout,
                                 Background = new ColorBrush(CatTheme.Colors.Primary),
                                 OnClick = async void (_, _) =>
                                 {
                                     try
                                     {
-                                        Task<IFilePicker.OpenFilesResponse?>? task = OS.FilePicker?.OpenFilesAsync(
-                                            "Open files (custom title)",
-                                            true,
-                                            new IFilePicker.FileFiltersArgument(
+                                        NativeOpenFileDialog openFileDialog = new()
+                                        {
+                                            DialogTitle = "Open files",
+                                            CanSelectMultipleItems = true,
+                                            CustomSubmitButtonText = "Get file",
+                                            FilterPattern = new IFilePicker.FileFiltersArgument(
                                             [
                                                 new IFilePicker.FileFilter(
                                                     "All files",
@@ -60,28 +63,27 @@ namespace CatUISample.UI.Pages.NativeUi
                                                 new IFilePicker.FileFilter(
                                                     "Image files",
                                                     new FileGlobPattern(["*.png", "*.jpg"]))
-                                            ], 1),
-                                            //new Uri("/bin"),
-                                            null,
-                                            "Get file");
+                                            ], 1)
+                                        };
 
-                                        if (task == null)
+                                        try
                                         {
-                                            CatLogger.LogError("Failed to open file picker.");
-                                            return;
+                                            IFilePicker.OpenFilesResponse? result = await openFileDialog.OpenAsync();
+                                            if (result == null)
+                                            {
+                                                CatLogger.LogDebug("Picking aborted.");
+                                                return;
+                                            }
+
+                                            CatLogger.LogDebug("Success! Files:");
+                                            foreach (FilePath filePath in result.FilePaths)
+                                            {
+                                                CatLogger.LogDebug(filePath.ToString());
+                                            }
                                         }
-
-                                        IFilePicker.OpenFilesResponse? result = await task;
-                                        if (result == null)
+                                        catch (Exception ex)
                                         {
-                                            CatLogger.LogError("Picking aborted.");
-                                            return;
-                                        }
-
-                                        CatLogger.LogDebug("Success! Files:");
-                                        foreach (Uri fileUri in result.FileUris)
-                                        {
-                                            CatLogger.LogDebug(fileUri.ToString());
+                                            CatLogger.LogError($"Failed to open file picker. Exception: {ex}");
                                         }
                                     }
                                     catch (Exception ex)
@@ -92,34 +94,36 @@ namespace CatUISample.UI.Pages.NativeUi
                             },
                             new Button("Open directory", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                             {
-                                Layout = _buttonsLayout,
+                                Layout = buttonsLayout,
                                 Background = new ColorBrush(CatTheme.Colors.Primary),
                                 OnClick = async void (_, _) =>
                                 {
                                     try
                                     {
-                                        Task<IFilePicker.OpenDirectoriesResponse?>? task =
-                                            OS.FilePicker?.OpenDirectoriesAsync(
-                                                "Open directory (custom title)",
-                                                true);
-
-                                        if (task == null)
+                                        NativeOpenDirectoryDialog openDirectoryDialog = new()
                                         {
-                                            CatLogger.LogError("Failed to open file picker.");
-                                            return;
+                                            DialogTitle = "Open directory", CanSelectMultipleItems = true
+                                        };
+
+                                        try
+                                        {
+                                            IFilePicker.OpenDirectoriesResponse? result =
+                                                await openDirectoryDialog.OpenAsync();
+                                            if (result == null)
+                                            {
+                                                CatLogger.LogDebug("Picking aborted.");
+                                                return;
+                                            }
+
+                                            CatLogger.LogDebug("Success! Directories:");
+                                            foreach (FilePath filePath in result.DirectoryPaths)
+                                            {
+                                                CatLogger.LogDebug(filePath.ToString());
+                                            }
                                         }
-
-                                        IFilePicker.OpenDirectoriesResponse? result = await task;
-                                        if (result == null)
+                                        catch (Exception ex)
                                         {
-                                            CatLogger.LogError("Picking aborted.");
-                                            return;
-                                        }
-
-                                        CatLogger.LogDebug("Success! Directories:");
-                                        foreach (Uri fileUri in result.DirectoryUris)
-                                        {
-                                            CatLogger.LogDebug(fileUri.ToString());
+                                            CatLogger.LogError($"Failed to open file picker. Exception: {ex}");
                                         }
                                     }
                                     catch (Exception ex)
@@ -130,18 +134,17 @@ namespace CatUISample.UI.Pages.NativeUi
                             },
                             new Button("Open files with choices", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                             {
-                                Layout = _buttonsLayout,
+                                Layout = buttonsLayout,
                                 Background = new ColorBrush(CatTheme.Colors.Primary),
                                 OnClick = async void (_, _) =>
                                 {
                                     try
                                     {
-                                        Task<IFilePicker.OpenFilesResponse?>? task = OS.FilePicker?.OpenFilesAsync(
-                                            "File picker with choices (custom title)",
-                                            true,
-                                            null,
-                                            null,
-                                            "Get file",
+                                        NativeOpenFileDialog openFileDialog = new()
+                                        {
+                                            DialogTitle = "Open files (with choices)",
+                                            CanSelectMultipleItems = true,
+                                            PickerChoices =
                                             [
                                                 new IFilePicker.PickerChoicesRequest(
                                                     "opt1",
@@ -158,25 +161,39 @@ namespace CatUISample.UI.Pages.NativeUi
                                                     [],
                                                     0)
                                             ]
-                                        );
+                                        };
 
-                                        if (task == null)
+                                        try
                                         {
-                                            CatLogger.LogError("Failed to open file picker.");
-                                            return;
+                                            IFilePicker.OpenFilesResponse? result = await openFileDialog.OpenAsync();
+                                            if (result == null)
+                                            {
+                                                CatLogger.LogDebug("Picking aborted.");
+                                                return;
+                                            }
+
+                                            CatLogger.LogDebug("Success! Files:");
+                                            foreach (FilePath filePath in result.FilePaths)
+                                            {
+                                                CatLogger.LogDebug(filePath.ToString());
+                                            }
+
+                                            if (result.PickerChoicesResponse == null)
+                                            {
+                                                CatLogger.LogDebug("This platform does not support choices.");
+                                                return;
+                                            }
+
+                                            CatLogger.LogDebug("Success! Choices:");
+                                            foreach (KeyValuePair<string, string> choice in
+                                                     result.PickerChoicesResponse)
+                                            {
+                                                CatLogger.LogDebug($"{choice.Key}: {choice.Value}");
+                                            }
                                         }
-
-                                        IFilePicker.OpenFilesResponse? result = await task;
-                                        if (result == null)
+                                        catch (Exception ex)
                                         {
-                                            CatLogger.LogError("Picking aborted.");
-                                            return;
-                                        }
-
-                                        CatLogger.LogDebug("Success! Files:");
-                                        foreach (Uri fileUri in result.FileUris)
-                                        {
-                                            CatLogger.LogDebug(fileUri.ToString());
+                                            CatLogger.LogError($"Failed to open file picker. Exception: {ex}");
                                         }
                                     }
                                     catch (Exception ex)
@@ -187,67 +204,31 @@ namespace CatUISample.UI.Pages.NativeUi
                             },
                             new Button("Save file", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                             {
-                                Layout = _buttonsLayout,
+                                Layout = buttonsLayout,
                                 Background = new ColorBrush(CatTheme.Colors.Primary),
                                 OnClick = async void (_, _) =>
                                 {
                                     try
                                     {
-                                        Task<IFilePicker.SaveFileResponse?>? task = OS.FilePicker?.SaveFileAsync(
-                                            "Save file (custom title)",
-                                            "file1.png");
-
-                                        if (task == null)
+                                        NativeSaveFileDialog saveFileDialog = new()
                                         {
-                                            CatLogger.LogError("Failed to open file picker.");
-                                            return;
+                                            DialogTitle = "Save file", SuggestedFileName = "file1.png"
+                                        };
+
+                                        try
+                                        {
+                                            IFilePicker.SaveFileResponse? result = await saveFileDialog.OpenAsync();
+                                            if (result == null)
+                                            {
+                                                CatLogger.LogDebug("Picking aborted.");
+                                                return;
+                                            }
+
+                                            CatLogger.LogDebug($"Success! File: {result.FilePath}");
                                         }
-
-                                        IFilePicker.SaveFileResponse? result = await task;
-                                        if (result == null)
+                                        catch (Exception ex)
                                         {
-                                            CatLogger.LogError("Picking aborted.");
-                                            return;
-                                        }
-
-                                        CatLogger.LogDebug($"Success! File: {result.FileUri}");
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        CatLogger.LogException(ex);
-                                    }
-                                }
-                            },
-                            new Button("Save multiple files", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
-                            {
-                                Layout = _buttonsLayout,
-                                Background = new ColorBrush(CatTheme.Colors.Primary),
-                                OnClick = async void (_, _) =>
-                                {
-                                    try
-                                    {
-                                        Task<IFilePicker.SaveFilesInDirectoryResponse?>? task =
-                                            OS.FilePicker?.SaveFilesInDirectoryAsync(
-                                                "Save multiple files (custom title)",
-                                                ["file1.png", "file2.png", "file3.png"]);
-
-                                        if (task == null)
-                                        {
-                                            CatLogger.LogError("Failed to open file picker.");
-                                            return;
-                                        }
-
-                                        IFilePicker.SaveFilesInDirectoryResponse? result = await task;
-                                        if (result == null)
-                                        {
-                                            CatLogger.LogError("Picking aborted.");
-                                            return;
-                                        }
-
-                                        CatLogger.LogDebug("Success! Files:");
-                                        foreach (Uri fileUri in result.FileUris)
-                                        {
-                                            CatLogger.LogDebug(fileUri.ToString());
+                                            CatLogger.LogError($"Failed to open file picker. Exception: {ex}");
                                         }
                                     }
                                     catch (Exception ex)

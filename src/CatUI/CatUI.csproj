@@ -21,6 +21,7 @@
         <ProjectReference Include="..\CatUI.Data\CatUI.Data.csproj" />
         <ProjectReference Include="..\CatUI.NativeAssets\CatUI.NativeAssets.csproj" />
         <ProjectReference Include="..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj" />
+        <ProjectReference Include="..\Platform\CatUI.Platform\CatUI.Platform.csproj" />
         <ProjectReference Include="..\Windowing\CatUI.Windowing.DesktopApp\CatUI.Windowing.DesktopApp.csproj" />
     </ItemGroup>
 

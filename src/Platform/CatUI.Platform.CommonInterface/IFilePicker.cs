@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CatUI.Data;
 using CatUI.Utils;
 
-namespace CatUI.Platform.Essentials
+namespace CatUI.Platform.CommonInterface
 {
     /// <summary>
     /// Describes the interface for presenting the user with a native file picker for opening files, saving files,
@@ -40,7 +40,7 @@ namespace CatUI.Platform.Essentials
             string dialogTitle,
             bool canSelectMultiple,
             FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -74,7 +74,7 @@ namespace CatUI.Platform.Essentials
         Task<OpenDirectoriesResponse?> OpenDirectoriesAsync(
             string dialogTitle,
             bool canSelectMultiple,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -108,36 +108,7 @@ namespace CatUI.Platform.Essentials
             string dialogTitle,
             string fileName,
             FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
-            string? customSubmitButtonText = null,
-            PickerChoicesRequest[]? choices = null,
-            object? windowIdentifier = null,
-            CancellationToken? cancellationToken = null);
-
-        /// <summary>
-        /// Will return the necessary info for writing into the user-selected directory (the files are write-only, but
-        /// you might need to create them if they don't exist).
-        /// </summary>
-        /// <param name="dialogTitle">The title of the dialog.</param>
-        /// <param name="fileNames">The file names for all the files you want to be saved.</param>
-        /// <param name="initialLocation">The initial location the picker will open in. This might get ignored.</param>
-        /// <param name="customSubmitButtonText">
-        /// If supported by the platform, sets a custom label for the "Submit" (or Open) button.
-        /// </param>
-        /// <param name="choices">
-        /// If supported by the platform, uses additional "options" so the user can further customize what your
-        /// application should do to the file they selected. See <see cref="PickerChoicesRequest"/> for more info.
-        /// </param>
-        /// <param name="windowIdentifier">
-        /// The platform-specific window ID for which the picker will be a modal. This is different for each platform,
-        /// consult the manual for more info.
-        /// </param>
-        /// <param name="cancellationToken">The cancellation token that will abort this operation if triggered.</param>
-        /// <returns>A response if the user selected a file, null if the user dismissed the dialog.</returns>
-        Task<SaveFilesInDirectoryResponse?> SaveFilesInDirectoryAsync(
-            string dialogTitle,
-            string[] fileNames,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -146,12 +117,11 @@ namespace CatUI.Platform.Essentials
         class OpenFilesResponse : PickerResponse
         {
             /// <summary>
-            /// The URIs for all the files selected by the user. The URI is used to access the files; it is
-            /// platform-dependent, so don't make assumptions about its format, and instead use `FUNCTION` to access
-            /// the file or `FUNCTION` to convert it to a regular path.
+            /// The paths for all the files selected by the user. This is used to access the files; it's
+            /// platform-agnostic, so no conversions are necessary.
             /// </summary>
             /// <remarks>If the user couldn't have chosen multiple files, this will have a single element.</remarks>
-            public Uri[] FileUris { get; }
+            public FilePath[] FilePaths => InodePaths;
 
             /// <summary>
             /// If the runtime platform supports it, returns the file filter selected by the user. It is different from
@@ -160,11 +130,11 @@ namespace CatUI.Platform.Essentials
             public FileFilter? SelectedFileFilter { get; }
 
             public OpenFilesResponse(
-                Uri[] fileUris,
+                FilePath[] filePaths,
                 FileFilter? selectedFileFilter = null,
                 Dictionary<string, string>? pickerChoicesResponse = null) : base(pickerChoicesResponse)
             {
-                FileUris = fileUris;
+                InodePaths = filePaths;
                 SelectedFileFilter = selectedFileFilter;
             }
         }
@@ -172,38 +142,36 @@ namespace CatUI.Platform.Essentials
         class OpenDirectoriesResponse : PickerResponse
         {
             /// <summary>
-            /// See <see cref="OpenFilesResponse.FileUris"/>. It's exactly the same, but for directories instead of
+            /// See <see cref="OpenFilesResponse.FilePaths"/>. It's exactly the same, but for directories instead of
             /// files. Note that selecting multiple directories is not widely supported (only Windows, macOS,
             /// and possibly Linux), so you'll generally get only one directory.
             /// </summary>
-            public Uri[] DirectoryUris => InodeUris;
+            public FilePath[] DirectoryPaths => InodePaths;
 
             public OpenDirectoriesResponse(
-                Uri[] directoryUris,
+                FilePath[] directoryPaths,
                 Dictionary<string, string>? pickerChoicesResponse = null) : base(pickerChoicesResponse)
             {
-                InodeUris = directoryUris;
+                InodePaths = directoryPaths;
             }
         }
 
         class SaveFileResponse : PickerResponse
         {
             /// <summary>
-            /// The URI for the file selected by the user (you will write into it). The URI is used to create the file;
-            /// it is platform-dependent, so don't make assumptions about its format, and instead use `FUNCTION` to
-            /// access the file or `FUNCTION` to convert it to a regular path.
+            /// The path for the file selected by the user (you will write into it).
             /// </summary>
-            public Uri FileUri => InodeUris[0];
+            public FilePath FilePath => InodePaths[0];
 
             /// <inheritdoc cref="OpenFilesResponse.SelectedFileFilter"/>
             public FileFilter? SelectedFileFilter { get; }
 
             public SaveFileResponse(
-                Uri fileUri,
+                FilePath filePath,
                 FileFilter? selectedFileFilter = null,
                 Dictionary<string, string>? pickerChoicesResponse = null) : base(pickerChoicesResponse)
             {
-                InodeUris = [fileUri];
+                InodePaths = [filePath];
                 SelectedFileFilter = selectedFileFilter;
             }
         }
@@ -211,17 +179,15 @@ namespace CatUI.Platform.Essentials
         class SaveFilesInDirectoryResponse : PickerResponse
         {
             /// <summary>
-            /// The URIs for all the files selected by the user (you will write into them). The URIs are used to create
-            /// the files; it is platform-dependent, so don't make assumptions about its format, and instead use
-            /// `FUNCTION` to access the file or `FUNCTION` to convert it to a regular path.
+            /// The paths for all the files selected by the user (you will write into them).
             /// </summary>
-            public Uri[] FileUris => InodeUris;
+            public FilePath[] FilePaths => InodePaths;
 
             public SaveFilesInDirectoryResponse(
-                Uri[] fileUris,
+                FilePath[] filePaths,
                 Dictionary<string, string>? pickerChoicesResponse = null) : base(pickerChoicesResponse)
             {
-                InodeUris = fileUris;
+                InodePaths = filePaths;
             }
         }
 
@@ -239,7 +205,7 @@ namespace CatUI.Platform.Essentials
             /// </remarks>
             public Dictionary<string, string>? PickerChoicesResponse { get; }
 
-            protected Uri[] InodeUris { get; set; } = [];
+            protected FilePath[] InodePaths { get; set; } = [];
 
             public PickerResponse(Dictionary<string, string>? pickerChoicesResponse = null)
             {
@@ -276,7 +242,7 @@ namespace CatUI.Platform.Essentials
         /// Represents additional options to be shown in the picker if supported by the runtime platform (this is only
         /// supported on Windows and most Linux systems).
         /// </summary>
-        /// <param name="ID">
+        /// <param name="Id">
         /// The ID for this option, used in code. It can be any valid string, except an empty string.
         /// </param>
         /// <param name="Label">The human-readable label that appears for this option (e.g. "Encoding").</param>
@@ -291,7 +257,7 @@ namespace CatUI.Platform.Essentials
         /// (on true/false it will be false).
         /// </param>
         record PickerChoicesRequest(
-            string ID,
+            string Id,
             string Label,
             (string, string)[] Options,
             int DefaultOptionIndex);

@@ -6,7 +6,8 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CatUI.Platform.Essentials;
+using CatUI.Data;
+using CatUI.Platform.CommonInterface;
 using CatUI.Platform.Windows.PInvoke;
 
 namespace CatUI.Platform.Windows.OS
@@ -28,7 +29,7 @@ namespace CatUI.Platform.Windows.OS
             string dialogTitle,
             bool canSelectMultiple,
             IFilePicker.FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             IFilePicker.PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -61,7 +62,7 @@ namespace CatUI.Platform.Windows.OS
                     {
                         byte* rawPaths = (byte*)ofn.lpstrFile.ToPointer();
 
-                        Uri[] paths;
+                        FilePath[] paths;
                         //a memory guard so we don't have buffer overflows and, implicitly, AccessViolationException
                         int parsedBytes = 0;
 
@@ -96,15 +97,15 @@ namespace CatUI.Platform.Windows.OS
 
                             if (files.Count == 0)
                             {
-                                //this means that the dir is the actual path
-                                paths = [new Uri(new Uri("file://"), dir)];
+                                //this means that dir is the actual path
+                                paths = [new FilePath(dir, false)];
                             }
                             else
                             {
-                                paths = new Uri[files.Count];
+                                paths = new FilePath[files.Count];
                                 for (int i = 0; i < files.Count; i++)
                                 {
-                                    paths[i] = new Uri(new Uri("file://"), Path.Combine(dir, files[i]));
+                                    paths[i] = new FilePath(Path.Combine(dir, files[i]), false);
                                 }
                             }
                         }
@@ -117,7 +118,7 @@ namespace CatUI.Platform.Windows.OS
                                     "OpenFilesAsync: result buffer was overflown; memory guard stopped a segfault.");
                             }
 
-                            paths = [new Uri(Encoding.UTF8.GetString(rawPaths, pathLen))];
+                            paths = [new FilePath(Encoding.UTF8.GetString(rawPaths, pathLen), false)];
                         }
 
                         IFilePicker.FileFilter? selectedFilter = null;
@@ -154,7 +155,7 @@ namespace CatUI.Platform.Windows.OS
         public async Task<IFilePicker.OpenDirectoriesResponse?> OpenDirectoriesAsync(
             string dialogTitle,
             bool canSelectMultiple,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             IFilePicker.PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -220,7 +221,7 @@ namespace CatUI.Platform.Windows.OS
                 return
                     string.IsNullOrWhiteSpace(finalPath)
                         ? null
-                        : new IFilePicker.OpenDirectoriesResponse([new Uri(new Uri("file://"), finalPath)]);
+                        : new IFilePicker.OpenDirectoriesResponse([new FilePath(finalPath, true)]);
             }
             catch (OperationCanceledException)
             {
@@ -240,7 +241,7 @@ namespace CatUI.Platform.Windows.OS
             string dialogTitle,
             string fileName,
             IFilePicker.FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             string? customSubmitButtonText = null,
             IFilePicker.PickerChoicesRequest[]? choices = null,
             object? windowIdentifier = null,
@@ -288,7 +289,7 @@ namespace CatUI.Platform.Windows.OS
                         }
 
                         return new IFilePicker.SaveFileResponse(
-                            new Uri(new Uri("file://"), Encoding.UTF8.GetString(rawPath, pathLen)),
+                            new FilePath(Encoding.UTF8.GetString(rawPath, pathLen), false),
                             selectedFilter);
                     }
                 }
@@ -303,61 +304,11 @@ namespace CatUI.Platform.Windows.OS
             }
         }
 
-        /// <inheritdoc />
-        /// <remarks>
-        /// <para>
-        /// On Windows: <c>initialLocation</c>, <c>customSubmitButtonText</c>, and <c>choices</c> are ignored,
-        /// as those are not supported by the win32 dialogs.
-        /// </para>
-        /// <para><inheritdoc/></para>
-        /// </remarks>
-        [SupportedOSPlatform("windows")]
-        public async Task<IFilePicker.SaveFilesInDirectoryResponse?> SaveFilesInDirectoryAsync(
-            string dialogTitle,
-            string[] fileNames,
-            Uri? initialLocation = null,
-            string? customSubmitButtonText = null,
-            IFilePicker.PickerChoicesRequest[]? choices = null,
-            object? windowIdentifier = null,
-            CancellationToken? cancellationToken = null)
-        {
-            cancellationToken?.ThrowIfCancellationRequested();
-            try
-            {
-                IFilePicker.OpenDirectoriesResponse? response = await OpenDirectoriesAsync(
-                    dialogTitle,
-                    false,
-                    initialLocation,
-                    customSubmitButtonText,
-                    choices,
-                    cancellationToken);
-
-                if (response == null || response.DirectoryUris.Length == 0)
-                {
-                    return null;
-                }
-
-                Uri[] fileUris = new Uri[fileNames.Length];
-                for (int i = 0; i < fileNames.Length; i++)
-                {
-                    fileUris[i] = new Uri(
-                        new Uri("file://"),
-                        Path.Combine(response.DirectoryUris[0].LocalPath, fileNames[i]));
-                }
-
-                return new IFilePicker.SaveFilesInDirectoryResponse(fileUris);
-            }
-            catch (OperationCanceledException)
-            {
-                return null;
-            }
-        }
-
         private static Comdlg32.OPENFILENAME GetFileCommonStruct(
             string dialogTitle,
             bool canSelectMultiple,
             IFilePicker.FileFiltersArgument? filterPattern = null,
-            Uri? initialLocation = null,
+            FilePath? initialLocation = null,
             object? windowIdentifier = null)
         {
             var ofn = new Comdlg32.OPENFILENAME();
@@ -381,7 +332,7 @@ namespace CatUI.Platform.Windows.OS
 
             if (initialLocation != null)
             {
-                ofn.lpstrInitialDir = initialLocation.AbsolutePath;
+                ofn.lpstrInitialDir = initialLocation.NativePath as string ?? "";
             }
 
             ofn.lpstrTitle = dialogTitle;

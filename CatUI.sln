@@ -69,6 +69,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.NativeAssets", "src\C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform.Windows", "src\Platform\CatUI.Platform.Windows\CatUI.Platform.Windows.csproj", "{192D8181-29D4-4EC9-80DE-C6FE347047AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform", "src\Platform\CatUI.Platform\CatUI.Platform.csproj", "{3E7360B3-3E3A-4A21-9EDE-F9988F475289}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform.CommonInterface", "src\Platform\CatUI.Platform.CommonInterface\CatUI.Platform.CommonInterface.csproj", "{E587C176-146A-4000-8A67-6B3A1E00664E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +163,14 @@ Global
 		{192D8181-29D4-4EC9-80DE-C6FE347047AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{192D8181-29D4-4EC9-80DE-C6FE347047AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{192D8181-29D4-4EC9-80DE-C6FE347047AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E7360B3-3E3A-4A21-9EDE-F9988F475289}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E7360B3-3E3A-4A21-9EDE-F9988F475289}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E7360B3-3E3A-4A21-9EDE-F9988F475289}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E7360B3-3E3A-4A21-9EDE-F9988F475289}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E587C176-146A-4000-8A67-6B3A1E00664E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E587C176-146A-4000-8A67-6B3A1E00664E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E587C176-146A-4000-8A67-6B3A1E00664E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E587C176-146A-4000-8A67-6B3A1E00664E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -192,5 +204,7 @@ Global
 		{56F21D7E-8528-4CF0-80AC-868DC902D5E9} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
 		{065D28C1-0D49-42E3-AF53-EE59F356A54D} = {6A741393-490B-4A59-99B7-21E40CB53DBC}
 		{192D8181-29D4-4EC9-80DE-C6FE347047AB} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
+		{3E7360B3-3E3A-4A21-9EDE-F9988F475289} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
+		{E587C176-146A-4000-8A67-6B3A1E00664E} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
 	EndGlobalSection
 EndGlobal
