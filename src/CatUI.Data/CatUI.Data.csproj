@@ -2,22 +2,13 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <Nullable>enable</Nullable>
 
-        <Version>0.1.0</Version>
         <Title>CatUI.Data</Title>
         <Description>
             Contains most of the data containers for almost every aspect of CatUI, including brushes, event arguments,
             colors and geometry descriptors. It is closely tied to CatUI and SkiaSharp, so using it in a non-CatUI project
             doesn't have much sense, except for some classes that are simply data containers.
         </Description>
-        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
-        <PackageTags>UI;User Interface;fast</PackageTags>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Authors>Moldovan Eduard</Authors>
-
-        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>

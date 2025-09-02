@@ -2,21 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <Nullable>enable</Nullable>
 
-        <Version>0.1.0</Version>
         <Title>CatUI.Elements</Title>
         <Description>
             Contains all the UI elements for CatUI, as well as other utilities for creating beautiful user interfaces.
             It can't be used on non-CatUI projects (or it is useless that way).
         </Description>
-        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
-        <PackageTags>UI;User Interface;fast</PackageTags>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Authors>Moldovan Eduard</Authors>
-
-        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>

@@ -2,10 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0-android</TargetFramework>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-
-        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,23 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <TargetFrameworks>net8.0;</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))">$(TargetFrameworks);net8.0-windows</TargetFrameworks>
 
-        <Version>0.1.0</Version>
         <Title>CatUI.Platform</Title>
         <Description>
             Contains the unified API for accessing different platform-specific APIs, like native alerts, file pickers,
             notifications, and more. This can be used in non-CatUI applications, even the ones built in other UI
             frameworks.
         </Description>
-        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
-        <PackageTags>UI;User Interface;fast</PackageTags>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Authors>Moldovan Eduard</Authors>
-
-        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))">

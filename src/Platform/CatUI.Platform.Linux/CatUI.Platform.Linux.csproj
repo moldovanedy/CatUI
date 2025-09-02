@@ -2,11 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-
-        <IsAotCompatible>True</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Linux')) And !$([MSBuild]::IsOSPlatform('FreeBSD')) And !$(RuntimeIdentifier.StartsWith('linux')) And !$(RuntimeIdentifier.StartsWith('unix'))">

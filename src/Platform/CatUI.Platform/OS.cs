@@ -1,7 +1,7 @@
 ﻿using CatUI.Platform.CommonInterface;
 #if CAT_LOCAL_WINDOWS
 using CatUI.Platform.Windows.OS;
-#else
+#elif CAT_LOCAL_LINUX
 using CatUI.Platform.Linux.OS;
 #endif
 
@@ -50,7 +50,7 @@ namespace CatUI.Platform
         private static bool _isInitialized;
 
         /// <summary>
-        /// This initializes the platform-specific APIs. Calling this more than once does not have any effect, unless
+        /// This initializes the platform-specific APIs. Calling this more than once does not have any effect unless
         /// this method threw an exception at the first call, which is highly unlikely.
         /// </summary>
         public static void Init()
