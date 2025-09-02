@@ -165,7 +165,8 @@ namespace CatUI.Elements
             //be that exact percentage, so it's "not a bug, it's a feature" which should be stated clearly in the docs
             Bounds = GetFinalBoundsUtil(absolutePosition, thisSize);
 
-            return thisSize;
+            //return thisSize;
+            return new Size(Bounds.Width, Bounds.Height);
         }
 
         /// <summary>

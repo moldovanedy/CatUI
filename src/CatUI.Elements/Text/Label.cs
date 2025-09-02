@@ -168,6 +168,28 @@ namespace CatUI.Elements.Text
         }
 
         /// <summary>
+        /// If true (default value), the label can expand without having a <see cref="Element.Layout"/>, only respecting
+        /// the maximum parent size and the maximum size of its own <see cref="Element.Layout"/> if it's set. This is
+        /// very useful for avoiding to always set a <see cref="Element.Layout"/> for each label and instead leave it
+        /// to the layout system to handle it automatically.
+        /// </summary>
+        public bool CanExpand
+        {
+            get => _canExpand;
+            set => CanExpandProperty.Value = value;
+        }
+
+        private bool _canExpand = true;
+        public ObservableProperty<bool> CanExpandProperty { get; } = new(true);
+
+        private void SetCanExpand(bool value)
+        {
+            _canExpand = value;
+            SetLocalValue(nameof(CanExpand), value);
+            MarkLayoutDirty();
+        }
+
+        /// <summary>
         /// Represents the rows given by the user. These are not affected by word wrap or expansion, they are purely data.
         /// The <see cref="RowInformation.Width"/> and <see cref="RowInformation.WidthWithoutLastBreakPoint"/>
         /// fields are irrelevant here and always have the default value.
@@ -227,6 +249,7 @@ namespace CatUI.Elements.Text
             TextBrushProperty.ValueChangedEvent += SetTextBrush;
             OutlineTextBrushProperty.ValueChangedEvent += SetOutlineTextBrush;
             LineHeightProperty.ValueChangedEvent += SetLineHeight;
+            CanExpandProperty.ValueChangedEvent += SetCanExpand;
         }
 
         public override Size RecomputeLayout(
@@ -685,8 +708,11 @@ namespace CatUI.Elements.Text
         End:
             Size finalSize = new(
                 //if there are breaks, set the maximum between the preferred width and the actual max row width;
-                //if no breaks, set the preferred width
-                usedBreakPoints ? Math.Max(preferredSize.Width, _maxRowWidth) : preferredSize.Width,
+                usedBreakPoints
+                    ? Math.Max(preferredSize.Width, _maxRowWidth)
+                    : CanExpand
+                        ? Math.Max(_maxRowWidth, preferredSize.Width)
+                        : preferredSize.Width,
                 //the height minus the last row (because it is added even when there are no more characters left)
                 currentHeight - ((rowHeight / 2f) + (fontSize / 2f)));
 
@@ -706,7 +732,7 @@ namespace CatUI.Elements.Text
                     _drawableRows[^1] = new RowInformation
                     {
                         Text = string.Concat(_drawableRows[^1].Text, OverflowString),
-                        PossibleBreakPoints = new List<int>(),
+                        PossibleBreakPoints = [],
                         Width = _drawableRows[^1].Width + overflowStringWidth,
                         WidthWithoutLastBreakPoint = 0
                     };
