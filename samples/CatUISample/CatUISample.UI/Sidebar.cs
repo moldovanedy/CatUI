@@ -19,7 +19,8 @@ namespace CatUISample.UI
             ("Layout - RowContainer", "/Layout/RowContainer"),
             ("Layout - ScrollContainer", "/Layout/ScrollContainer"),
             ("UI Elements - Buttons", "/UiElements/Buttons"),
-            ("Native UI - File picking", "/NativeUi/FilePicking")
+            ("Native UI - File picking", "/NativeUi/FilePicking"),
+            ("Misc - Cursors", "/Misc/Cursors")
         ];
 
         public Sidebar(ObjectRef<Navigator> navigatorRef)

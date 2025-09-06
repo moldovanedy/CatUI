@@ -71,6 +71,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform", "src\Platf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform.CommonInterface", "src\Platform\CatUI.Platform.CommonInterface\CatUI.Platform.CommonInterface.csproj", "{E587C176-146A-4000-8A67-6B3A1E00664E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatUI.Platform.DesktopCommon", "src\Platform\CatUI.Platform.DesktopCommon\CatUI.Platform.DesktopCommon.csproj", "{D78242AE-1078-4904-875D-1229736558AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +167,10 @@ Global
 		{E587C176-146A-4000-8A67-6B3A1E00664E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E587C176-146A-4000-8A67-6B3A1E00664E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E587C176-146A-4000-8A67-6B3A1E00664E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D78242AE-1078-4904-875D-1229736558AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D78242AE-1078-4904-875D-1229736558AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D78242AE-1078-4904-875D-1229736558AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D78242AE-1078-4904-875D-1229736558AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -199,5 +205,6 @@ Global
 		{192D8181-29D4-4EC9-80DE-C6FE347047AB} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
 		{3E7360B3-3E3A-4A21-9EDE-F9988F475289} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
 		{E587C176-146A-4000-8A67-6B3A1E00664E} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
+		{D78242AE-1078-4904-875D-1229736558AA} = {56BB37EB-1709-41C4-83E2-D12F4BF6F5DE}
 	EndGlobalSection
 EndGlobal

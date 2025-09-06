@@ -188,6 +188,12 @@ namespace CatUI.Elements
 
         public Renderer Renderer { get; }
         public FocusManager FocusManager { get; }
+
+        /// <summary>
+        /// The cursor manager. Null until the window has opened.
+        /// </summary>
+        public CursorManager? CursorManager { get; private set; }
+
         public PseudoClassesManager PseudoClassesManager { get; }
 
         public Color BackgroundColor
@@ -298,23 +304,21 @@ namespace CatUI.Elements
         #endregion //App lifecycle
 
         private readonly Dictionary<string, Element> _elementCache = [];
-        private readonly object _window;
+        private WindowData? _windowData;
 
         /// <summary>
         /// Creates a new document.
         /// </summary>
-        /// <param name="window">The IApplicationWindow instance that owns this document.</param>
         /// <param name="initialViewportSize"></param>
         /// <param name="initialContentScale"></param>
         public UiDocument(
-            object window,
             Size initialViewportSize = default,
             float initialContentScale = 1f)
         {
-            _window = window;
             Renderer = new Renderer();
             FocusManager = new FocusManager(this);
             PseudoClassesManager = new PseudoClassesManager();
+
             ContentScale = initialContentScale;
             ViewportSize = new Size(
                 initialViewportSize.Width * initialContentScale,
@@ -356,13 +360,26 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Get the IApplicationWindow that owns this document.
+        /// Get the information about the window that owns this document. This might be null until you open the window!
         /// </summary>
-        /// <typeparam name="T">The window type. Must be of type IApplicationWindow or derived.</typeparam>
         /// <returns>The window that owns this document.</returns>
-        public T GetWindow<T>()
+        public WindowData? GetWindowData()
         {
-            return (T)_window;
+            return _windowData;
+        }
+
+        /// <summary>
+        /// This should only be called by window implementations. Sets new window data, usually called when opening
+        /// a window.
+        /// </summary>
+        /// <param name="windowData"></param>
+        public void SetWindowData(WindowData windowData)
+        {
+            _windowData = windowData;
+
+            //TODO: this is not flexible and very hacky: it tries to put the GLFW window handle before the native
+            // ones on desktop; this is another consequence of using GLFW...
+            CursorManager ??= new CursorManager(windowData.FrameworkWindowHandle ?? windowData.NativeWindowHandle);
         }
 
         /// <summary>

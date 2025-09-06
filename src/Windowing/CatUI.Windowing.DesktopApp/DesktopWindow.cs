@@ -25,49 +25,6 @@ namespace CatUI.Windowing.DesktopApp
     public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycle
     {
         /// <summary>
-        /// Represents the pointer to the platform's window representation. You can use this to implement platform-specific
-        /// functionality which almost always requires a window handle. If you use this, you are responsible for the
-        /// functionality you use it for; misusing this might cause random crashes. 
-        /// </summary>
-        /// <remarks>
-        /// On Windows, it returns the Win32 HWND. On macOS, it will return the Cocoa window handle. On Linux,
-        /// it returns the X11 or Wayland window pointer, depending on which platform it runs on.
-        /// </remarks>
-        public nint NativeHandle
-        {
-            get
-            {
-                if (GlfwWindow == null)
-                {
-                    return 0;
-                }
-
-                if (OperatingSystem.IsWindows())
-                {
-                    return GLFW.GetWin32Window(GlfwWindow);
-                }
-
-                if (OperatingSystem.IsLinux())
-                {
-                    if (GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11)
-                    {
-                        return (nint)GLFW.GetX11Window(GlfwWindow);
-                    }
-
-                    return GLFW.GetWaylandWindow(GlfwWindow);
-                }
-
-                // ReSharper disable once ConvertIfStatementToReturnStatement
-                if (OperatingSystem.IsMacOS())
-                {
-                    return GLFW.GetCocoaWindow(GlfwWindow);
-                }
-
-                return 0;
-            }
-        }
-
-        /// <summary>
         /// Represents the window's document. All elements that will appear on this window must be part of this document.
         /// </summary>
         public UiDocument Document { get; }
@@ -573,7 +530,7 @@ namespace CatUI.Windowing.DesktopApp
                 }
             }
 
-            Document = new UiDocument(this, new Size(_width, _height), contentScale);
+            Document = new UiDocument(new Size(_width, _height), contentScale);
         }
 
         // ~DesktopWindow()
@@ -709,6 +666,30 @@ namespace CatUI.Windowing.DesktopApp
             {
                 openGlGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
             }
+
+            nint nativeHandle = 0;
+            if (OperatingSystem.IsWindows())
+            {
+                nativeHandle = GLFW.GetWin32Window(GlfwWindow);
+            }
+            else if (OperatingSystem.IsLinux())
+            {
+                if (GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11)
+                {
+                    nativeHandle = (nint)GLFW.GetX11Window(GlfwWindow);
+                }
+                else
+                {
+                    nativeHandle = GLFW.GetWaylandWindow(GlfwWindow);
+                }
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                nativeHandle = GLFW.GetCocoaWindow(GlfwWindow);
+            }
+
+            var windowData = new WindowData(this, nativeHandle, (nint)GlfwWindow);
+            Document.SetWindowData(windowData);
 
             GraphicsBackend?.PostWindowCreation();
             GraphicsBackend?.SwapIntervalChanged(SwapInterval);
@@ -1037,7 +1018,7 @@ namespace CatUI.Windowing.DesktopApp
                 return _windowIcon;
             }
 
-            SKImage? icon = OS.WindowIcon?.GetWindowIcon(NativeHandle);
+            SKImage? icon = OS.WindowIcon?.GetWindowIcon((nint)(Document.GetWindowData()?.NativeWindowHandle ?? 0));
             if (icon == null)
             {
                 return null;
