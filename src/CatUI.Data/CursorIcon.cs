@@ -7,6 +7,12 @@ namespace CatUI.Data
     /// </summary>
     public class CursorIcon
     {
+        /// <summary>
+        /// If this is set, it means the cursor will not be affected when it enters/leaves an element. This is the
+        /// default value.
+        /// </summary>
+        public const int CURSOR_AUTO = -1;
+
         public const int CURSOR_ARROW = 0;
 
         //win32 needs custom and everything needs non-GLFW implementation
@@ -62,7 +68,14 @@ namespace CatUI.Data
 
         public const int CURSOR_NOT_ALLOWED = 23;
 
-        public const int CURSOR_DEFAULT = CURSOR_ARROW;
+        /// <summary>
+        /// Equivalent to <see cref="CURSOR_AUTO"/>.
+        /// </summary>
+        public const int CURSOR_DEFAULT = CURSOR_AUTO;
+
+        /// <summary>
+        /// The length of the built-in cursors array; it doesn't include <see cref="CURSOR_AUTO"/>. 
+        /// </summary>
         public const int BUILT_IN_CURSOR_LENGTH = 24;
 
         /// <summary>

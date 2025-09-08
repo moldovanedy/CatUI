@@ -53,7 +53,7 @@ namespace CatUISample.UI.Pages.Misc
                                 Layout = new ElementLayout().SetFixedWidth(150).SetFixedHeight(32),
                                 OnClick = (_, _) =>
                                 {
-                                    Document?.CursorManager?.SetCursor(
+                                    Document?.CursorManager?.SetPersistentCursor(
                                         _cursors[Random.Shared.Next(0, _cursors.Count)]);
                                 }
                             }

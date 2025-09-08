@@ -35,7 +35,8 @@ namespace CatUISample.UI
                     {
                         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
                         StyleClass = "MenuButtons",
-                        OnClick = (_, _) => navigatorRef.Value?.Navigate(entry.Item2)
+                        OnClick = (_, _) => navigatorRef.Value?.Navigate(entry.Item2),
+                        Cursor = CursorIcon.CURSOR_POINTING_HAND
                     });
                 Children.Add(new HorizontalDivider(1, new ColorBrush(Color.Default)));
             }
