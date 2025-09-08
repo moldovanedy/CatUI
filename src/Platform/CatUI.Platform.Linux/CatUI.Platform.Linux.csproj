@@ -5,7 +5,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Linux')) And !$([MSBuild]::IsOSPlatform('FreeBSD')) And !$(RuntimeIdentifier.StartsWith('linux')) And !$(RuntimeIdentifier.StartsWith('unix'))">
+    <ItemGroup Condition="!$(DefineConstants.Contains('CAT_LOCAL_LINUX'))">
         <Compile Remove="**/*" />
     </ItemGroup>
 
@@ -20,7 +20,7 @@
         (it's net8.0, so it would get included otherwise) 
         -->
         <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4" />
-        <PackageReference Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))" Include="Tmds.DBus.Protocol" Version="0.21.2" />
+        <PackageReference Condition="$(DefineConstants.Contains('CAT_LOCAL_LINUX'))" Include="Tmds.DBus.Protocol" Version="0.21.2" />
     </ItemGroup>
 
 </Project>

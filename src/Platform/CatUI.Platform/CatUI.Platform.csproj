@@ -11,24 +11,12 @@
         </Description>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_WINDOWS</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $(RuntimeIdentifier.StartsWith('osx'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_MACOS</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_LINUX</DefineConstants>
-    </PropertyGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
 
-        <!-- we cannot use the defined symbols like CAT_LOCAL_WINDOWS as they don't work here... -->
-        <ProjectReference Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))" Include="..\CatUI.Platform.Linux\CatUI.Platform.Linux.csproj" />
-        <ProjectReference Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))" Include="..\CatUI.Platform.Windows\CatUI.Platform.Windows.csproj" />
+        <ProjectReference Condition="$(DefineConstants.Contains('CAT_LOCAL_LINUX'))" Include="..\CatUI.Platform.Linux\CatUI.Platform.Linux.csproj" />
+        <ProjectReference Condition="$(DefineConstants.Contains('CAT_LOCAL_WINDOWS'))" Include="..\CatUI.Platform.Windows\CatUI.Platform.Windows.csproj" />
+        <ProjectReference Condition="$(DefineConstants.Contains('CAT_LOCAL_WINDOWS')) Or $(DefineConstants.Contains('CAT_LOCAL_MACOS')) Or $(DefineConstants.Contains('CAT_LOCAL_LINUX'))" Include="..\CatUI.Platform.DesktopCommon\CatUI.Platform.DesktopCommon.csproj" />
     </ItemGroup>
 
 </Project>

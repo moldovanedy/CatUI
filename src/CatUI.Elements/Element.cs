@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
@@ -14,6 +16,7 @@ using CatUI.Data.Exceptions;
 using CatUI.Data.Shapes;
 using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers.Linear;
+using CatUI.Elements.DocumentManagers;
 using CatUI.RenderingEngine;
 using CatUI.Utils;
 using Container = CatUI.Elements.Containers.Container;
@@ -395,6 +398,39 @@ namespace CatUI.Elements
         }
 
         /// <summary>
+        /// The ID of the pointer cursor (from <see cref="CursorManager"/>) to be shown when the pointer is over this
+        /// element. If you change this while the pointer is over, this element will change it directly. In other words,
+        /// this sets the pointer cursor while it is over this element. If -1 (the default value), the cursor will
+        /// not be affected be enter/leave events on this element.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// For common IDs, see the constants from <see cref="CursorIcon"/>. If you want multiple types of cursor
+        /// depending on pseudo-classes, set this in the theme definitions, in pseudo-classes changed functions.
+        /// </para>
+        /// <para>
+        /// Calling <see cref="CursorManager.SetPersistentCursor"/> will disable cursor changing from this property.
+        /// See <see cref="CursorManager.SetPersistentCursor"/> for more info.
+        /// </para>
+        /// </remarks>
+        public int Cursor
+        {
+            get => _cursor;
+            set => CursorProperty.Value = value;
+        }
+
+        private int _cursor = CursorIcon.CURSOR_AUTO;
+        public ObservableProperty<int> CursorProperty { get; } = new(CursorIcon.CURSOR_AUTO);
+
+        private void SetCursor(int value)
+        {
+            _cursor = value;
+            SetLocalValue(nameof(Cursor), value);
+            SetCursorOnEnter(value, true);
+            RequestRedraw();
+        }
+
+        /// <summary>
         /// Gives information on how to work with this element inside a container. The value is dependent on each
         /// type of container. If the given value is incompatible with what the container expects, the container will
         /// simply ignore the value and act as if it was null (see remarks). The default value is null.
@@ -583,7 +619,7 @@ namespace CatUI.Elements
             ExitDocumentEvent += ExitDocument;
             LoadEvent += Loaded;
 
-            //see ElementInputPartial
+            //see ElementEventCheckingPartial
             PointerEnterEvent += PointerEnter;
             PointerExitEvent += PointerExit;
             PointerMoveEvent += PointerMove;
@@ -605,6 +641,7 @@ namespace CatUI.Elements
             ClipTypeProperty.ValueChangedEvent += SetClipType;
             LocallyVisibleProperty.ValueChangedEvent += SetLocallyVisible;
             LocallyEnabledProperty.ValueChangedEvent += SetLocallyEnabled;
+            CursorProperty.ValueChangedEvent += SetCursor;
             ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
 
             LayoutProperty.ValueChangedEvent += SetLayout;
@@ -908,11 +945,13 @@ namespace CatUI.Elements
         private void InternalOnPointerEnter(object sender, PointerEnterEventArgs e)
         {
             AddPseudoClass(PSEUDO_CLASS_HOVER);
+            SetCursorOnEnter(Cursor, false);
         }
 
         private void InternalOnPointerExit(object sender, PointerExitEventArgs e)
         {
             RemovePseudoClass(PSEUDO_CLASS_HOVER);
+            RestoreCursorOnExit();
         }
 
         private void InternalOnPointerDown(object sender, PointerDownEventArgs e)
@@ -1178,5 +1217,48 @@ namespace CatUI.Elements
         #endregion //Refresh requests
 
         #endregion //Public API
+
+        private int _lastCursorId = CursorIcon.CURSOR_ARROW;
+
+        /// <summary>
+        /// We need to synchronize calls to SetCursor, so we use different threads with semaphore (Mutex does not seem
+        /// to work here). This is very useful when the cursor rapidly moves between multiple elements, as the functions
+        /// below don't get called in order, so it results in the cursor not changing its shape like it should.
+        /// It starts unlocked.
+        /// </summary>
+        private static readonly SemaphoreSlim _cursorSemaphore = new(1, 1);
+
+        private void SetCursorOnEnter(int id, bool wasSetByCursorProperty)
+        {
+            if (Cursor == CursorIcon.CURSOR_AUTO)
+            {
+                return;
+            }
+
+            Task.Run(() =>
+            {
+                if (!wasSetByCursorProperty)
+                {
+                    _cursorSemaphore.Wait();
+                }
+
+                _lastCursorId = Document?.CursorManager?.CurrentCursorIcon?.Id ?? CursorIcon.CURSOR_ARROW;
+                Document?.CursorManager?.SetCursor(id);
+            });
+        }
+
+        private void RestoreCursorOnExit()
+        {
+            if (Cursor == CursorIcon.CURSOR_AUTO)
+            {
+                return;
+            }
+
+            Task.Run(() =>
+            {
+                Document?.CursorManager?.SetCursor(_lastCursorId);
+                _cursorSemaphore.Release();
+            });
+        }
     }
 }

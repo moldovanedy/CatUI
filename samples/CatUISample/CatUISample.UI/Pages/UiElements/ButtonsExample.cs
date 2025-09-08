@@ -106,7 +106,9 @@ namespace CatUISample.UI.Pages.UiElements
                                     }
 
                                     ImageAsset? imgAsset =
-                                        imgView.Document?.GetWindow<DesktopWindow>().GetWindowIcon()?.Icon512X512;
+                                        (imgView.Document?.GetWindowData()?.CatWindow as DesktopWindow)
+                                        ?.GetWindowIcon()
+                                        ?.Icon512X512;
                                     imgView.Source = imgAsset;
                                 }
                             }

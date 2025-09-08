@@ -921,7 +921,7 @@ namespace CatUI.Platform.Linux.OS
 
         #endregion
 
-        private record CommonSaveFilesResponse(
+        private sealed record CommonSaveFilesResponse(
             IFilePicker.SaveFilesInDirectoryResponse? MainResponse,
             IFilePicker.FileFilter? FileFilter);
     }

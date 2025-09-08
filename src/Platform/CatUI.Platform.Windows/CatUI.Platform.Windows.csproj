@@ -5,8 +5,8 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Windows')) And !$(RuntimeIdentifier.StartsWith('win'))">
-        <Compile Remove="**/*"/>
+    <ItemGroup Condition="!$(DefineConstants.Contains('CAT_LOCAL_WINDOWS'))">
+        <Compile Remove="**/*" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using CatUI.Platform.CommonInterface;
+using CatUI.Platform.DesktopCommon.OS;
 #if CAT_LOCAL_WINDOWS
 using CatUI.Platform.Windows.OS;
 #elif CAT_LOCAL_LINUX
@@ -18,6 +19,8 @@ namespace CatUI.Platform
     /// </remarks>
     public static class OS
     {
+        public static ICursorProvider? CursorProvider { get; private set; }
+
         /// <summary>
         /// Provides access to the window icon. IApplicationWindow.GetWindowIcon provides more sizes and also caches the
         /// result, so it's the preferred method to get the window icon instead of this.
@@ -80,6 +83,10 @@ namespace CatUI.Platform
             FilePicker = new FilePickerWindows();
 #elif CAT_LOCAL_LINUX
             FilePicker = new FilePickerLinux();
+#endif
+
+#if CAT_LOCAL_WINDOWS || CAT_LOCAL_MACOS || CAT_LOCAL_LINUX
+            CursorProvider = new CursorProviderDesktop();
 #endif
         }
     }

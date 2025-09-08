@@ -19,7 +19,8 @@ namespace CatUISample.UI
             ("Layout - RowContainer", "/Layout/RowContainer"),
             ("Layout - ScrollContainer", "/Layout/ScrollContainer"),
             ("UI Elements - Buttons", "/UiElements/Buttons"),
-            ("Native UI - File picking", "/NativeUi/FilePicking")
+            ("Native UI - File picking", "/NativeUi/FilePicking"),
+            ("Misc - Cursors", "/Misc/Cursors")
         ];
 
         public Sidebar(ObjectRef<Navigator> navigatorRef)
@@ -34,7 +35,8 @@ namespace CatUISample.UI
                     {
                         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
                         StyleClass = "MenuButtons",
-                        OnClick = (_, _) => navigatorRef.Value?.Navigate(entry.Item2)
+                        OnClick = (_, _) => navigatorRef.Value?.Navigate(entry.Item2),
+                        Cursor = CursorIcon.CURSOR_POINTING_HAND
                     });
                 Children.Add(new HorizontalDivider(1, new ColorBrush(Color.Default)));
             }
