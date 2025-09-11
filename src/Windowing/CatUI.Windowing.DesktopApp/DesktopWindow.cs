@@ -633,31 +633,11 @@ namespace CatUI.Windowing.DesktopApp
             Window* windowPtr = TryCreateOpenGlWindow();
             if (windowPtr == null)
             {
-                CatLogger.Log(
-                    "GLFW: Could not create window. UI failed to render.",
-                    CatLogger.LogLevel.Critical);
-
-                var alert = new NativeAlert(
-                    "Failed to open window",
-                    "The window could be created and opened.",
-                    INativeAlert.Icon.Error);
-
-                try
+                windowPtr = TryCreateSoftwareRenderedWindow();
+                if (windowPtr == null)
                 {
-                    _ = alert.OpenAsync(INativeAlert.Button.Ok);
+                    ShowErrorMessageAndExit();
                 }
-                catch (PlatformNotSupportedException)
-                {
-                    CatLogger.LogInfo(
-                        "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
-                }
-                catch (Exception ex)
-                {
-                    CatLogger.LogInfo(
-                        $"Could not show native alert (UI failed). Exception: {ex}");
-                }
-
-                throw new InternalPlatformException("GLFW: Could not create window");
             }
 
             GlfwWindow = windowPtr;
@@ -739,7 +719,18 @@ namespace CatUI.Windowing.DesktopApp
         private Window* TryCreateOpenGlWindow(int major = 0, int minor = 0)
         {
             GraphicsBackend = new OpenGlGraphicsBackend(major, minor);
-            GraphicsBackend.PrepareWindowCreation();
+            return TryCreateWindowCommon();
+        }
+        
+        private Window* TryCreateSoftwareRenderedWindow()
+        {
+            GraphicsBackend = new SoftwareGraphicsBackend();
+            return TryCreateWindowCommon();
+        }
+
+        private Window* TryCreateWindowCommon()
+        {
+            GraphicsBackend!.PrepareWindowCreation();
 
         RetryCreation:
             Window* ptr;
@@ -823,6 +814,35 @@ namespace CatUI.Windowing.DesktopApp
             }
 
             return ptr;
+        }
+
+        private static void ShowErrorMessageAndExit()
+        {
+            CatLogger.Log(
+                "GLFW: Could not create window. UI failed to render.",
+                CatLogger.LogLevel.Critical);
+
+            var alert = new NativeAlert(
+                "Failed to open window",
+                "The window could be created and opened.",
+                INativeAlert.Icon.Error);
+
+            try
+            {
+                _ = alert.OpenAsync(INativeAlert.Button.Ok);
+            }
+            catch (PlatformNotSupportedException)
+            {
+                CatLogger.LogInfo(
+                    "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
+            }
+            catch (Exception ex)
+            {
+                CatLogger.LogInfo(
+                    $"Could not show native alert (UI failed). Exception: {ex}");
+            }
+
+            throw new InternalPlatformException("GLFW: Could not create window");
         }
 
         /// <summary>

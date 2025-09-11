@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net8.0-macos</TargetFrameworks>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup Condition="!$(DefineConstants.Contains('CAT_LOCAL_MACOS'))">
+        <Compile Remove="**/*" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.Platform.CommonInterface\CatUI.Platform.CommonInterface.csproj" />
+    </ItemGroup>
+</Project>
