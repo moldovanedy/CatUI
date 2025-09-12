@@ -400,8 +400,8 @@ namespace CatUI.Windowing.DesktopApp
             /// <summary>
             /// Makes the window float above other windows even if it's not focused or that other windows are maximized.
             /// This should generally be a setting controlled by the user, as enabling this without the user to be able
-            /// to disable this behavior might result in a bad UX (note that some window managers might be able to
-            /// override this behavior). 
+            /// to disable this behavior might result in a bad UX. Note that some window managers might be able to
+            /// override this behavior.
             /// </summary>
             AlwaysOnTop = 32,
 
@@ -725,7 +725,7 @@ namespace CatUI.Windowing.DesktopApp
             GraphicsBackend = new OpenGlGraphicsBackend(major, minor);
             return TryCreateWindowCommon();
         }
-        
+
         private Window* TryCreateSoftwareRenderedWindow()
         {
             GraphicsBackend = new SoftwareGraphicsBackend();

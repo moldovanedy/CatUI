@@ -1,9 +1,10 @@
 ﻿using CatUI.Platform.CommonInterface;
 using CatUI.Platform.DesktopCommon.OS;
-using CatUI.Platform.MacOS.OS;
 
 #if CAT_LOCAL_WINDOWS
 using CatUI.Platform.Windows.OS;
+#elif CAT_LOCAL_MACOS
+using CatUI.Platform.MacOS.OS;
 #elif CAT_LOCAL_LINUX
 using CatUI.Platform.Linux.OS;
 #endif
@@ -51,7 +52,7 @@ namespace CatUI.Platform
         /// sandboxed platforms.
         /// </summary>
         public static IFilePicker? FilePicker { get; private set; }
-        
+
         public static ISoftwareRenderer? SoftwareRenderer { get; private set; }
 
         private static bool _isInitialized;
@@ -92,9 +93,11 @@ namespace CatUI.Platform
 #if CAT_LOCAL_WINDOWS || CAT_LOCAL_MACOS || CAT_LOCAL_LINUX
             CursorProvider = new CursorProviderDesktop();
 #endif
-            
+
 #if CAT_LOCAL_MACOS
             SoftwareRenderer = new SoftwareRendererMacOS();
+#elif CAT_LOCAL_LINUX
+            SoftwareRenderer = new SoftwareRendererLinux();
 #endif
         }
     }
