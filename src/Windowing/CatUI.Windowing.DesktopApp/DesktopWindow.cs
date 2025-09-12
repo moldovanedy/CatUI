@@ -646,6 +646,10 @@ namespace CatUI.Windowing.DesktopApp
             {
                 openGlGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
             }
+            else if (GraphicsBackend is SoftwareGraphicsBackend softwareGraphicsBackend)
+            {
+                softwareGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
+            }
 
             nint nativeHandle = 0;
             if (OperatingSystem.IsWindows())

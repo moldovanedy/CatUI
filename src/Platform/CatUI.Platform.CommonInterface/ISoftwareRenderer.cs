@@ -7,6 +7,7 @@ namespace CatUI.Platform.CommonInterface
             nint pixelBuffer, 
             int framebufferWidth,
             int framebufferHeight,
+            int bytesPerRow,
             int windowWidth,
             int windowHeight);
         

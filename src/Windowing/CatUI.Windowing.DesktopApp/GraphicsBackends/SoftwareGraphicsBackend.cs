@@ -16,6 +16,7 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends
         private SKSize _lastSize;
         private int _width;
         private int _height;
+        private int _bytesPerRow;
         
         internal void SetGlfwWindowPointer(Window* windowPtr)
         {
@@ -44,9 +45,10 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends
             }
 
             _lastSize = newSize;
-            Marshal.FreeHGlobal(_pixelDataPtr);
-            SKImageInfo info = new(_width, _height, SKColorType.Rgba8888);
-            _pixelDataPtr = Marshal.AllocHGlobal(info.BytesSize);
+            Marshal.FreeCoTaskMem(_pixelDataPtr);
+            SKImageInfo info = new(_width, _height, SKColorType.Rgba8888, SKAlphaType.Premul);
+            _pixelDataPtr = Marshal.AllocCoTaskMem(info.BytesSize);
+            _bytesPerRow = info.RowBytes;
             
             var surface = SKSurface.Create(info, _pixelDataPtr, info.RowBytes);
             if (surface == null)
@@ -71,13 +73,14 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends
                 _pixelDataPtr,
                 _width,
                 _height,
+                _bytesPerRow,
                 windowWidth, 
                 windowHeight);
         }
 
         public void DestroyAndTerminate()
         {
-            Marshal.FreeHGlobal(_pixelDataPtr);
+            Marshal.FreeCoTaskMem(_pixelDataPtr);
         }
 
         public void Resized(int width, int height)

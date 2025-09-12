@@ -41,25 +41,10 @@ namespace CatUI.Platform.MacOS.OS
         }
     
         [LibraryImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
-        private static partial IntPtr CGDataProviderCreateWithData(IntPtr info, IntPtr data, nint size, IntPtr releaseCallback);
+        private static partial IntPtr CGDataProviderCreateWithData(IntPtr info, IntPtr data, int size, IntPtr releaseCallback);
     
         [LibraryImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
         private static partial void CGDataProviderRelease(IntPtr provider);
-    
-        [LibraryImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
-        private static partial IntPtr CGImageCreate(
-            nint width, 
-            nint height,
-            nint bitsPerComponent, 
-            nint bitsPerPixel, 
-            nint bytesPerRow,
-            IntPtr colorSpace, 
-            CGBitmapInfo bitmapInfo,
-            IntPtr provider, 
-            IntPtr decode /* null */,
-            [MarshalAs(UnmanagedType.Bool)]
-            bool shouldInterpolate, 
-            int renderingIntent /* kCGRenderingIntentDefault = 0 */);
     
         [LibraryImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
         private static partial void CGImageRelease(IntPtr image);
@@ -70,6 +55,19 @@ namespace CatUI.Platform.MacOS.OS
         [LibraryImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
         private static partial void CGContextDrawImage(IntPtr ctx, CGRect rect, IntPtr image);
     
+        
+        [LibraryImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
+        private static partial IntPtr CGBitmapContextCreate(
+            IntPtr data,
+            int width, 
+            int height,
+            int bitsPerComponent,
+            int bytesPerRow,
+            IntPtr colorspace,
+            CGBitmapInfo bitmapInfo);
+
+        [LibraryImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
+        private static partial IntPtr CGBitmapContextCreateImage(IntPtr context);
         #endregion
         
         
@@ -114,61 +112,52 @@ namespace CatUI.Platform.MacOS.OS
             nint pixelBuffer, 
             int framebufferWidth,
             int framebufferHeight,
+            int bytesPerRow,
             int windowWidth,
             int windowHeight)
         {
-            int rowBytes = framebufferWidth + 4;
             if (nativeWindow == IntPtr.Zero || pixelBuffer == IntPtr.Zero)
             {
                 return;
             }
 
-            // 1) Wrap pixels into a CGImage (no copy)
             IntPtr cs = CGColorSpaceCreateDeviceRGB();
+            IntPtr provider = CGDataProviderCreateWithData(
+                IntPtr.Zero, 
+                pixelBuffer,
+                bytesPerRow * framebufferHeight,
+                IntPtr.Zero);
     
-            // Data provider does NOT own the memory (no release callback)
-            IntPtr provider = CGDataProviderCreateWithData(IntPtr.Zero, pixelBuffer,
-                (nint)(rowBytes * framebufferHeight), IntPtr.Zero);
-    
-            // Match Skia: RGBA8888 premultiplied -> little-endian, premul last
+            //match Skia: RGBA8888 premultiplied -> big-endian, premul last
             const int BitsPerComponent = 8;
-            const int BitsPerPixel = 32;
-    
             const CGBitmapInfo bitmapInfo = 
-                CGBitmapInfo.kCGBitmapByteOrder32Little 
+                CGBitmapInfo.kCGBitmapByteOrder32Big
               | CGBitmapInfo.kCGImageAlphaPremultipliedLast;
-    
-            IntPtr cgImage = CGImageCreate(
+            
+            //TODO: fix this, as this does not work; it returns null every time
+            IntPtr ctx = CGBitmapContextCreate(
+                pixelBuffer,
                 framebufferWidth, 
                 framebufferHeight,
                 BitsPerComponent, 
-                BitsPerPixel, 
-                rowBytes,
+                bytesPerRow,
                 cs, 
-                bitmapInfo,
-                provider, 
-                IntPtr.Zero, 
-                true, 
-                0);
+                bitmapInfo);
+            Console.WriteLine($"ctx: {ctx != nint.Zero}");
+            IntPtr cgImage = CGBitmapContextCreateImage(ctx);
     
-            // 2) Get CGContext from the window's contentView and draw
+            //get CGContext from the window's contentView and draw
             IntPtr view = GetContentView(nativeWindow);
             if (view != IntPtr.Zero && cgImage != IntPtr.Zero)
             {
-                // Ensure there is a graphics context; this pairs with unlockFocus
                 ViewLockFocus(view);
                 try
                 {
                     IntPtr nsGc = NSGraphicsContext_CurrentContext();
                     IntPtr cg = NSGraphicsContext_GetCGContext(nsGc);
     
-                    // Draw to a rect in *points* (CoreGraphics auto-scales the image)
+                    // draw to a rect in *points* (CoreGraphics auto-scales the image)
                     var rect = new CGRect { x = 0, y = 0, width = windowWidth, height = windowHeight };
-    
-                    // CoreGraphics' default origin is bottom-left in a flipped coord space.
-                    // Most NSViews are flipped top-left; if your view isn't flipped you may
-                    // want to handle y-flip or use an NSView subclass. For a simple blit,
-                    // this usually "just works" because NSGraphicsContext handles the flip.
                     CGContextDrawImage(cg, rect, cgImage);
                 }
                 finally
@@ -176,8 +165,13 @@ namespace CatUI.Platform.MacOS.OS
                     ViewUnlockFocus(view);
                 }
             }
+            else
+            {
+                //ERROR
+                Console.WriteLine($"view: {view != nint.Zero}, cgImage: {cgImage != nint.Zero}");
+            }
     
-            // 3) Cleanup temporary CG objects (we didn't own pixel memory)
+            //cleanup
             if (cgImage != IntPtr.Zero)
             {
                 CGImageRelease(cgImage);
