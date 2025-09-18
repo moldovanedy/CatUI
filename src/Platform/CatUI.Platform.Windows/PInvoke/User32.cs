@@ -26,6 +26,12 @@ namespace CatUI.Platform.Windows.PInvoke
         }
 
 
+        [LibraryImport(user32)]
+        internal static partial IntPtr GetDC(IntPtr hWnd);
+
+        [LibraryImport(user32)]
+        internal static partial int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
         [LibraryImport(user32, SetLastError = true)]
         internal static partial IntPtr CreateIconFromResourceEx(
             IntPtr presbits,
