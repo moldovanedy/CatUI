@@ -90,11 +90,15 @@ namespace CatUI.Platform
             FilePicker = new FilePickerLinux();
 #endif
 
+
 #if CAT_LOCAL_WINDOWS || CAT_LOCAL_MACOS || CAT_LOCAL_LINUX
             CursorProvider = new CursorProviderDesktop();
 #endif
 
-#if CAT_LOCAL_MACOS
+
+#if CAT_LOCAL_WINDOWS
+            SoftwareRenderer = new SoftwareRendererWindows();
+#elif CAT_LOCAL_MACOS
             SoftwareRenderer = new SoftwareRendererMacOS();
 #elif CAT_LOCAL_LINUX
             SoftwareRenderer = new SoftwareRendererLinux();

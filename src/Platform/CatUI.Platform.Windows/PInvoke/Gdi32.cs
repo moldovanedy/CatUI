@@ -10,6 +10,8 @@ namespace CatUI.Platform.Windows.PInvoke
         private const string gdi32 = "gdi32.dll";
 
         public const int DIB_RGB_COLORS = 0;
+        public const uint SRCCOPY = 0x00CC0020;
+        public const uint BI_BITFIELDS = 3;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct BITMAP
@@ -24,7 +26,7 @@ namespace CatUI.Platform.Windows.PInvoke
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct BITMAPINFO
+        public struct BITMAPINFOHEADER
         {
             public int biSize;
             public int biWidth;
@@ -38,6 +40,17 @@ namespace CatUI.Platform.Windows.PInvoke
             public int biClrUsed;
             public int biClrImportant;
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct BITMAPINFO
+        {
+            public BITMAPINFOHEADER bmiHeader;
+            public uint redMask;
+            public uint greenMask;
+            public uint blueMask;
+            public uint alphaMask;
+        }
+
 
         [LibraryImport(gdi32)]
         internal static partial IntPtr SelectObject(IntPtr hdc, IntPtr hObject);
@@ -53,11 +66,24 @@ namespace CatUI.Platform.Windows.PInvoke
         internal static partial IntPtr CreateCompatibleDC(IntPtr hdc);
 
         [LibraryImport(gdi32)]
-        internal static partial IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO bmi, uint usage, out IntPtr bits,
+        internal static partial IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFOHEADER bmi, uint usage,
+            out IntPtr bits,
             IntPtr hSection, uint offset);
-        
-        [LibraryImport("gdi32.dll")]
+
+        [LibraryImport(gdi32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool DeleteDC(IntPtr hdc);
+
+        [LibraryImport(gdi32, SetLastError = true)]
+        internal static partial int StretchDIBits(
+            IntPtr hdc,
+            int xDest, int yDest,
+            int DestWidth, int DestHeight,
+            int xSrc, int ySrc,
+            int SrcWidth, int SrcHeight,
+            IntPtr lpBits,
+            ref BITMAPINFO lpBitsInfo,
+            uint iUsage,
+            uint rop);
     }
 }

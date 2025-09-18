@@ -177,9 +177,9 @@ namespace CatUI.Platform.Windows.OS
         {
             //we need to create a compatible device context
             IntPtr hdc = Gdi32.CreateCompatibleDC(IntPtr.Zero);
-            var bmi = new Gdi32.BITMAPINFO
+            var bmi = new Gdi32.BITMAPINFOHEADER
             {
-                biSize = Marshal.SizeOf<Gdi32.BITMAPINFO>(),
+                biSize = Marshal.SizeOf<Gdi32.BITMAPINFOHEADER>(),
                 biWidth = size,
                 biHeight = -size, //negative height for top-down bitmap
                 biPlanes = 1,
