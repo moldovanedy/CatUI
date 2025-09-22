@@ -1,3 +1,4 @@
+using CatUI.Data.Enums;
 using CatUI.Windowing.Common;
 
 namespace CatUI.Windowing.Android
@@ -7,9 +8,9 @@ namespace CatUI.Windowing.Android
     /// </summary>
     internal class AndroidGraphicsBackendInfo : IGraphicsBackendInfo
     {
-        public IGraphicsBackendInfo.GraphicsApi GetUsedGraphicsApi()
+        public GraphicsApi GetUsedGraphicsApi()
         {
-            return IGraphicsBackendInfo.GraphicsApi.OpenGlEs;
+            return GraphicsApi.OpenGlEs;
         }
 
         public string GetGraphicsApiVersion()

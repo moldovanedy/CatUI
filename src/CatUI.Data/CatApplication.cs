@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using CatUI.Data.Enums;
 using CatUI.Data.Exceptions;
 using CatUI.Platform.Essentials;
 
@@ -63,6 +65,27 @@ namespace CatUI.Data
         public bool UseReleaseStdoutLogging { get; private set; } = true;
 
         /// <summary>
+        /// Specifies the order in which graphics APIs are tried at window creation. If an API is not available, the
+        /// next one will be tried, so always the first API found will be used. This is currently only relevant on
+        /// desktop platforms. Setting this after a window was created has no effect, but it will have effect on the
+        /// next windows that you will open.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// While it's generally wise to include several APIs, don't include all of them, since some of them are
+        /// platform-specific (e.g. Metal is only for Apple devices, while Vulkan is available on most non-Apple
+        /// (and modern enough) platforms). Also, some of them are known to offer lower performance compared to others,
+        /// like ANGLE, for example.
+        /// </para>
+        /// <para>
+        /// <see cref="GraphicsApi.OpenGlCore"/> and <see cref="GraphicsApi.OpenGlCompatibility"/> is the same here, as
+        /// the OpenGL driver always selects the highest available version.
+        /// </para>
+        /// </remarks>
+        public ImmutableArray<GraphicsApi> GraphicsApisTryingOrder { get; set; } =
+            [GraphicsApi.OpenGlCore, GraphicsApi.Software];
+
+        /// <summary>
         /// The platform dispatcher. See <see cref="DispatcherBase"/> for more info.
         /// </summary>
         /// <exception cref="NotImplementedException">
@@ -117,6 +140,9 @@ namespace CatUI.Data
             private CatLogger.LogLevel _releaseLogLevel = CatLogger.LogLevel.Warning;
             private bool _useReleaseStdoutLogging = true;
             private PlatformInfo? _platformInfo;
+
+            private ImmutableArray<GraphicsApi> _graphicsApisTryingOrder =
+                [GraphicsApi.OpenGlCore, GraphicsApi.Software];
 
             /// <summary>
             /// Sets the application name.
@@ -202,6 +228,17 @@ namespace CatUI.Data
             }
 
             /// <summary>
+            /// Sets <see cref="CatApplication.GraphicsApisTryingOrder"/>, refer to its documentation for more info.
+            /// </summary>
+            /// <param name="graphicsApis">The graphics APIs trying order.</param>
+            /// <returns>This builder.</returns>
+            public AppBuilder SetGraphicsApisTryingOrder(ImmutableArray<GraphicsApi> graphicsApis)
+            {
+                _graphicsApisTryingOrder = graphicsApis;
+                return this;
+            }
+
+            /// <summary>
             /// Sets up the <see cref="CatApplication"/> object using the given parameters or their default value.
             /// </summary>
             /// <returns><see cref="CatApplication.Instance"/>.</returns>
@@ -221,6 +258,7 @@ namespace CatUI.Data
                 Instance.DebugLogLevel = _debugLogLevel;
                 Instance.ReleaseLogLevel = _releaseLogLevel;
                 Instance.PlatformInformation = _platformInfo;
+                Instance.GraphicsApisTryingOrder = _graphicsApisTryingOrder;
 
                 Instance.UseReleaseStdoutLogging = _useReleaseStdoutLogging;
                 if (_useReleaseStdoutLogging)

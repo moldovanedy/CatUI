@@ -3,16 +3,20 @@ using CatUI.Windowing.Common;
 
 namespace CatUI.Windowing.DesktopApp.GraphicsBackends
 {
-    public class AngleGraphicsBackendInfo : IGraphicsBackendInfo
+    public class SoftwareGraphicsBackendInfo : IGraphicsBackendInfo
     {
         public GraphicsApi GetUsedGraphicsApi()
         {
-            return GraphicsApi.OpenGlCoreAngle;
+            return GraphicsApi.Software;
         }
 
+        /// <summary>
+        /// Will always return "1.0".
+        /// </summary>
+        /// <returns></returns>
         public string GetGraphicsApiVersion()
         {
-            return "";
+            return "1.0";
         }
     }
 }
