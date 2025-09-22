@@ -1,4 +1,5 @@
 using System;
+using CatUI.Data.Enums;
 using CatUI.Windowing.Common;
 using OpenTK.Graphics.OpenGL;
 
@@ -9,7 +10,7 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends
         private int? _majorVersion;
         private int? _minorVersion;
 
-        public IGraphicsBackendInfo.GraphicsApi GetUsedGraphicsApi()
+        public GraphicsApi GetUsedGraphicsApi()
         {
             if (_majorVersion == null || _minorVersion == null)
             {
@@ -26,8 +27,8 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends
             }
 
             return _majorVersion >= 3 && _minorVersion >= 2
-                ? IGraphicsBackendInfo.GraphicsApi.OpenGlCore
-                : IGraphicsBackendInfo.GraphicsApi.OpenGlCompatibility;
+                ? GraphicsApi.OpenGlCore
+                : GraphicsApi.OpenGlCompatibility;
         }
 
         /// <summary>

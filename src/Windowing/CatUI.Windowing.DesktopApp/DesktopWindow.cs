@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using CatUI.Data;
 using CatUI.Data.Assets;
+using CatUI.Data.Enums;
 using CatUI.Data.Exceptions;
 using CatUI.Elements;
 using CatUI.Platform.NativeUI;
@@ -29,7 +30,11 @@ namespace CatUI.Windowing.DesktopApp
         /// </summary>
         public UiDocument Document { get; }
 
-        public IGraphicsBackendInfo GraphicsBackendInfo { get; } = new OpenGlGraphicsBackendInfo();
+        /// <remarks>
+        /// Before calling <see cref="Open"/>, this will be a <see cref="SoftwareGraphicsBackendInfo"/> regardless of
+        /// the actual backend that will be used.
+        /// </remarks>
+        public IGraphicsBackendInfo GraphicsBackendInfo { get; private set; } = new SoftwareGraphicsBackendInfo();
 
         /// <summary>
         /// Represents the pointer to the GLFW window representation. Use this if you want to implement something using
@@ -630,25 +635,52 @@ namespace CatUI.Windowing.DesktopApp
         /// <exception cref="InternalPlatformException">Thrown when GLFW couldn't create or show the window.</exception>
         public void Open()
         {
-            Window* windowPtr = TryCreateOpenGlWindow();
+            Window* windowPtr = null;
+            foreach (GraphicsApi api in CatApplication.Instance.GraphicsApisTryingOrder)
+            {
+                IGraphicsBackendInfo info;
+                IGraphicsBackend backend;
+
+                switch (api)
+                {
+                    case GraphicsApi.OpenGlCore:
+                    case GraphicsApi.OpenGlCompatibility:
+                        windowPtr = TryCreateOpenGlWindow();
+                        backend = new OpenGlGraphicsBackend();
+                        info = new OpenGlGraphicsBackendInfo();
+                        break;
+                    default:
+                    case GraphicsApi.Software:
+                        windowPtr = TryCreateSoftwareRenderedWindow();
+                        backend = new SoftwareGraphicsBackend();
+                        info = new SoftwareGraphicsBackendInfo();
+                        break;
+                }
+
+                if (windowPtr != null)
+                {
+                    GraphicsBackend = backend;
+                    GraphicsBackendInfo = info;
+                    break;
+                }
+            }
+
             if (windowPtr == null)
             {
-                windowPtr = TryCreateSoftwareRenderedWindow();
-                if (windowPtr == null)
-                {
-                    ShowErrorMessageAndExit();
-                }
+                ShowErrorMessageAndExit();
             }
 
             GlfwWindow = windowPtr;
             GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
-            if (GraphicsBackend is OpenGlGraphicsBackend openGlGraphicsBackend)
+
+            switch (GraphicsBackend)
             {
-                openGlGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
-            }
-            else if (GraphicsBackend is SoftwareGraphicsBackend softwareGraphicsBackend)
-            {
-                softwareGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
+                case OpenGlGraphicsBackend openGlGraphicsBackend:
+                    openGlGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
+                    break;
+                case SoftwareGraphicsBackend softwareGraphicsBackend:
+                    softwareGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
+                    break;
             }
 
             nint nativeHandle = 0;
@@ -679,30 +711,41 @@ namespace CatUI.Windowing.DesktopApp
             GraphicsBackend?.SwapIntervalChanged(SwapInterval);
             GraphicsBackend?.Resized(_width, _height);
 
-            if (GraphicsBackend is OpenGlGraphicsBackend)
+            switch (GraphicsBackend)
             {
-                string versionString = GraphicsBackendInfo.GetGraphicsApiVersion();
-                int majorVer = int.Parse(versionString.AsSpan(0, 1));
-                int minorVer = int.Parse(versionString.AsSpan(2, 1));
+                case OpenGlGraphicsBackend:
+                    {
+                        string versionString = GraphicsBackendInfo.GetGraphicsApiVersion();
+                        int majorVer = int.Parse(versionString.AsSpan(0, 1));
+                        int minorVer = int.Parse(versionString.AsSpan(2, 1));
 
-                if (majorVer <= 3 && minorVer < 2)
-                {
-                    CatLogger.LogWarning("Graphics: OpenGL version is lower than 3.2. Some features might not work.");
-                }
+                        if (majorVer <= 3 && minorVer < 2)
+                        {
+                            CatLogger.LogWarning(
+                                "Graphics: OpenGL version is lower than 3.2. Some features might not work.");
+                        }
 
-                if (majorVer < 2)
-                {
-                    //TODO: fallback to software rendering
-                    CatLogger.Log(
-                        "Graphics: OpenGL version is lower than 2.0. You need at least OpenGL 2.0 to run this app. UI failed to render.",
-                        CatLogger.LogLevel.Critical);
-                    Trace.Flush();
+                        if (majorVer < 2)
+                        {
+                            //TODO: fallback to software rendering
+                            CatLogger.Log(
+                                "Graphics: OpenGL version is lower than 2.0. You need at least OpenGL 2.0 to run this app. UI failed to render.",
+                                CatLogger.LogLevel.Critical);
+                            Trace.Flush();
 
-                    Terminate();
-                    throw new InternalPlatformException("GLFW: Could not create window; OpenGL version too old");
-                }
+                            Terminate();
+                            throw new InternalPlatformException(
+                                "GLFW: Could not create window; OpenGL version too old");
+                        }
 
-                CatLogger.LogVerbose($"Rendering using OpenGL version {majorVer}.{minorVer}");
+                        CatLogger.LogVerbose($"Rendering using OpenGL version {majorVer}.{minorVer}");
+                        break;
+                    }
+                case SoftwareGraphicsBackend:
+                    {
+                        CatLogger.LogVerbose("Rendering using software rendering");
+                        break;
+                    }
             }
 
             if (
