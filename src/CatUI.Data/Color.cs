@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using SkiaSharp;
 
 namespace CatUI.Data
 {
-    public readonly struct Color : ICloneable
+    public readonly struct Color : ICloneable, IEquatable<Color>
     {
         public byte A { get; } = 0;
 
@@ -103,8 +104,14 @@ namespace CatUI.Data
         /// A value between 0 and 1 (0 is completely transparent, 1 is completely opaque). Will be clamped if it
         /// goes beyond limits.
         /// </param>
-        public Color(float hue, float saturation, float value, float alpha = 1)
+        /// <param name="isHsv">
+        /// Ignored, it's just to avoid confusion with the <see cref="Color(byte, byte, byte, byte)"/> overload.
+        /// </param>
+        public Color(float hue, float saturation, float value, float alpha, bool isHsv)
         {
+            //silence the compiler
+            _ = isHsv;
+
             hue = Math.Clamp(hue, 0, 360);
             saturation = Math.Clamp(saturation, 0, 100);
             value = Math.Clamp(value, 0, 100);
@@ -178,29 +185,149 @@ namespace CatUI.Data
             Lightness = l;
         }
 
+        #region Implicit and explicit conversions
+
+        /// <summary>
+        /// Returns an equivalent <see cref="SKColor"/>.
+        /// </summary>
         public static implicit operator SKColor(Color color)
         {
             return new SKColor(color.R, color.G, color.B, color.A);
         }
 
+        /// <summary>
+        /// Creates a new color from an <see cref="SKColor"/>.
+        /// </summary>
         public static implicit operator Color(SKColor color)
         {
             return new Color(color.Red, color.Green, color.Blue, color.Alpha);
         }
 
+        /// <summary>
+        /// Creates a new color from a hex string literal
+        /// </summary>
         public static implicit operator Color(string literal)
         {
             return new Color(literal);
         }
+
+        /// <summary>
+        /// Creates a new color from an ARGB 32-bit uint.
+        /// </summary>
+        public static implicit operator Color(uint argb)
+        {
+            return new Color(argb, ColorType.ARGB);
+        }
+
+        /// <summary>
+        /// Allows casting a color to an RGBA 32-bit uint.
+        /// </summary>
+        public static explicit operator uint(Color color)
+        {
+            return
+                ((uint)color.R << 24) |
+                ((uint)color.G << 16) |
+                ((uint)color.B << 8) |
+                color.A;
+        }
+
+        #endregion
+
+        #region Arithmetic and relational operators
+
+        public static bool operator ==(Color left, Color right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Color left, Color right)
+        {
+            return !left.Equals(right);
+        }
+
+        /// <summary>
+        /// Returns a new color where each of the R, G, B, and A components is the sum of the corresponding components
+        /// from the two given colors. If a value exceeds <see cref="byte.MaxValue"/>, it will be clamped to it.
+        /// </summary>
+        /// <returns>A new color with its components being the sum of the other two colors.</returns>
+        public static Color operator +(Color left, Color right)
+        {
+            return new Color(
+                (byte)Math.Min(left.R + right.R, byte.MaxValue),
+                (byte)Math.Min(left.G + right.G, byte.MaxValue),
+                (byte)Math.Min(left.B + right.B, byte.MaxValue),
+                (byte)Math.Min(left.A + right.A, byte.MaxValue));
+        }
+
+        /// <summary>
+        /// Returns a new color where each of the R, G, B, and A components is the difference of the corresponding
+        /// components from the two given colors. If a value goes below <see cref="byte.MinValue"/>, it will be clamped to it.
+        /// </summary>
+        /// <returns>A new color with its components being the difference of the first color and the second one.</returns>
+        public static Color operator -(Color left, Color right)
+        {
+            return new Color(
+                (byte)Math.Max(left.R - right.R, byte.MinValue),
+                (byte)Math.Max(left.G - right.G, byte.MinValue),
+                (byte)Math.Max(left.B - right.B, byte.MinValue),
+                (byte)Math.Max(left.A - right.A, byte.MinValue));
+        }
+
+        #endregion
 
         public override string ToString()
         {
             return $"#{R:X2}{G:X2}{B:X2}{A:X2}";
         }
 
+        public bool Equals(Color other)
+        {
+            return A == other.A && R == other.R && G == other.G && B == other.B;
+        }
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            return obj is Color color && Equals(color);
+        }
+
+        public override int GetHashCode()
+        {
+            return ((uint)this).GetHashCode();
+        }
+
         public object Clone()
         {
             return new Color(R, G, B, A);
+        }
+
+        /// <summary>
+        /// Returns a weighted average of red, green, and blue components based on how the human eye perceives
+        /// brightness. Does not take <see cref="A"/> into account!
+        /// </summary>
+        /// <returns>The color luminance.</returns>
+        public double CalculateLuminance()
+        {
+            //adapted from https://stackoverflow.com/a/9733420/23361865
+            const double RED = 0.2126;
+            const double GREEN = 0.7152;
+            const double BLUE = 0.0722;
+            const double GAMMA = 2.4;
+
+            double[] components = [R, G, B];
+            for (int i = 0; i < components.Length; i++)
+            {
+                components[i] /= 255.0;
+                if (components[i] <= 0.03928)
+                {
+                    components[i] /= 12.92;
+                }
+                else
+                {
+                    components[i] = Math.Pow((components[i] + 0.055) / 1.055, GAMMA);
+                }
+            }
+
+            return (components[0] * RED) + (components[1] * GREEN) + (components[2] * BLUE);
         }
 
         /// <summary>
@@ -244,29 +371,51 @@ namespace CatUI.Data
         }
 
         /// <summary>
-        /// Describes how will the bytes of a value (generally uint) be used to create the color.
+        /// Calculates the contrast ratio between two colors. Ranges between 1 and 21. Does not take <see cref="A"/>
+        /// into account!
+        /// </summary>
+        /// <param name="col1"></param>
+        /// <param name="col2"></param>
+        /// <returns>The contrast ratio.</returns>
+        public static double CalculateContrastRatio(Color col1, Color col2)
+        {
+            //adapted from https://stackoverflow.com/a/9733420/23361865
+            double lum1 = col1.CalculateLuminance();
+            double lum2 = col2.CalculateLuminance();
+            double brightest = Math.Max(lum1, lum2);
+            double darkest = Math.Min(lum1, lum2);
+            return (brightest + 0.05) / (darkest + 0.05);
+        }
+
+        /// <summary>
+        /// Describes how the bytes of a value (generally uint) will be used to create the color.
         /// </summary>
         public enum ColorType
         {
             // ReSharper disable InconsistentNaming
             /// <summary>
-            /// Will use the less significant 24 bits to create a solid (opaque) color. The format is big-endian,
-            /// meaning that in 0x24_12_a2, 0x24 is red, 0x12 is green, 0xa2 is blue.
+            /// Will use the less significant 24 bits to create a solid (opaque) color.
             /// </summary>
+            /// <example>
+            /// In 0x24_12_a2, 0x24 is red, 0x12 is green, 0xa2 is blue.
+            /// </example>
             RGB = 0,
 
             /// <summary>
-            /// Will use all 32 bits to create a color that can have transparency. The format is big-endian,
-            /// meaning that in 0x24_12_a2_40, 0x24 is red, 0x12 is green, 0xa2 is blue, 0x40 is alpha
-            /// (so 75% transparent, as in 0x40 / 0xff).
+            /// Will use all 32 bits to create a color that can have transparency.
             /// </summary>
+            /// <example>
+            /// In 0x24_12_a2_40, 0x24 is red, 0x12 is green, 0xa2 is blue, 0x40 is alpha (so 75% transparent,
+            /// as in 0x40 / 0xff).
+            /// </example>
             RGBA = 1,
 
             /// <summary>
-            /// Will use all 32 bits to create a color that can have transparency. The format is big-endian,
-            /// but alpha is the most significant, meaning that in 0x24_12_a2_40, 0x24 is alpha, 0x12 is red,
-            /// 0xa2 is green, 0x40 is blue.
+            /// Will use all 32 bits to create a color that can have transparency.
             /// </summary>
+            /// <example>
+            /// In 0x24_12_a2_40, 0x24 is alpha, 0x12 is red, 0xa2 is green, 0x40 is blue.
+            /// </example>
             ARGB = 2
             // ReSharper restore InconsistentNaming
         }
