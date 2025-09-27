@@ -810,13 +810,14 @@ namespace CatUI.Elements
             _elementCache.Remove(oldId);
         }
 
-        //Private access for implementations of windowing. This is to avoid having public setters as it's not OK.
-        //There might be better ways of doing this without reflection
+        //Internal access for implementations of windowing. This is to avoid having public setters as it's not OK.
+        //There might be better ways of doing this without reflection.
 
         #region Set by window
 
         /// <summary>
-        /// Will be used by window implementation to set the viewport's size. Do NOT modify its signature.
+        /// Will be used by window implementation to set the viewport's size. Do NOT modify its signature unless
+        /// modifying it across all windowing heads.
         /// </summary>
         /// <param name="viewportSize">The new viewport size.</param>
         internal void WndSetViewportSize(Size viewportSize)
@@ -825,7 +826,8 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Will be used by window implementation to set the app content scale. Do NOT modify its signature.
+        /// Will be used by window implementation to set the app content scale. Do NOT modify its signature unless
+        /// modifying it across all windowing heads.
         /// </summary>
         /// <param name="scale">The new scale.</param>
         internal void WndSetContentScale(float scale)
@@ -834,7 +836,8 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Will be used by window implementation to set the current app state. Do NOT modify its signature.
+        /// Will be used by window implementation to set the current app state. Do NOT modify its signature unless
+        /// modifying it across all windowing heads.
         /// </summary>
         /// <param name="state">
         /// The new state. If it's the same as the <see cref="CurrentAppState"/> or describing an invalid transition,
@@ -919,11 +922,11 @@ namespace CatUI.Elements
         }
 
         /// <summary>
-        /// Will be used by window implementation to add a pointer in the internal dictionary. Do NOT modify its
-        /// signature.
+        /// Will be used by window implementation to add a pointer in the internal dictionary or update an existing one.
+        /// Do NOT modify its signature unless modifying it across all windowing heads.
         /// </summary>
-        /// <param name="pointer">The pointer to add. Must have all parameters set.</param>
-        internal void WndAddPointer(InputPointer pointer)
+        /// <param name="pointer">The pointer to add (or update). Must have all parameters set.</param>
+        internal void WndAddOrUpdatePointer(InputPointer pointer)
         {
             _activePointers[pointer.PointerId] = pointer;
 
@@ -935,7 +938,7 @@ namespace CatUI.Elements
 
         /// <summary>
         /// Will be used by window implementation to remove a pointer from the internal dictionary. Do NOT modify its
-        /// signature.
+        /// signature unless modifying it across all windowing heads.
         /// </summary>
         /// <param name="pointerId">The pointer ID.</param>
         internal void WndRemovePointer(int pointerId)

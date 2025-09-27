@@ -213,7 +213,7 @@ namespace CatUI.Windowing.Android
                         //TODO: check if we should use a normalized pointerId, not the Android one (if the ID assignment
                         //is too random
                         DocumentInvoke(
-                            "WndAddPointer",
+                            "WndAddOrUpdatePointer",
                             new InputPointer(pos, false, pointerId, InputPointer.InputDeviceType.Touch));
 
                         Document.SimulatePointerEnter(
@@ -241,7 +241,7 @@ namespace CatUI.Windowing.Android
                                 e.Event.GetHistoricalPointerCoords(ptr, i, coords);
                                 Point2D pos = new(coords.X, coords.Y);
                                 DocumentInvoke(
-                                    "WndAddPointer",
+                                    "WndAddOrUpdatePointer",
                                     new InputPointer(
                                         pos,
                                         pointer.IsConsideredPressed,
@@ -273,7 +273,7 @@ namespace CatUI.Windowing.Android
                             e.Event.GetPointerCoords(ptr, coords);
                             Point2D pos = new(coords.X, coords.Y);
                             DocumentInvoke(
-                                "WndAddPointer",
+                                "WndAddOrUpdatePointer",
                                 new InputPointer(
                                     pos,
                                     pointer.IsConsideredPressed,

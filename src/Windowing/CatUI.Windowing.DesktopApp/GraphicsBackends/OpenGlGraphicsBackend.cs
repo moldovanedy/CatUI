@@ -93,8 +93,8 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends
                 {
                     glInterface = GRGlInterface.Create(name =>
                     {
-                        IntPtr fnPointer = GLFW.GetProcAddress(name);
-                        return fnPointer;
+                        // ReSharper disable once ConvertClosureToMethodGroup
+                        return GLFW.GetProcAddress(name);
                     });
                 }
 
@@ -153,12 +153,9 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends
                 }
 
                 SKCanvas canvas = surface.Canvas;
-                if (canvas == null)
-                {
-                    throw new NullReferenceException("Canvas is null. This is probably an internal graphics error.");
-                }
-
-                return surface;
+                return canvas == null
+                    ? throw new NullReferenceException("Canvas is null. This is probably an internal graphics error.")
+                    : surface;
             }
 
             return

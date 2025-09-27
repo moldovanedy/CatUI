@@ -21,7 +21,7 @@ namespace CatUISample.DesktopApp
                 .NewBuilder()
                 .SetPlatformInfo(
                     new DesktopPlatformInfo()
-                        //.SetLinuxUseWayland(false)
+                        // .SetLinuxUseWayland(false)
                         .SetDefaultWindowIcon(icon == null ? null : new WindowIcon(icon, false)))
                 .Build();
 

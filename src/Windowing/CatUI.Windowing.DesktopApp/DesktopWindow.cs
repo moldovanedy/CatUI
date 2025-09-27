@@ -553,32 +553,23 @@ namespace CatUI.Windowing.DesktopApp
         #endregion
 
         /// <summary>
-        /// Runs through the whole application lifetime. When this function returns,
-        /// the window is destroyed, and any later calls or properties setting on this window object will fail.
-        /// This will block the main thread when waiting for the next frame.
+        /// Runs through the whole application lifetime. When this function returns by normal window closing (not by an
+        /// unhandled exception), the window is destroyed, and any later calls or properties setting on this window
+        /// object will fail. This will block the main thread when waiting for the next frame.
         /// </summary>
         /// <remarks>
         /// If an unhandled exception is thrown, the method will return, but without closing the window, so you can 
-        /// call this in a try/catch inside a loop because running this function multiple times is ok unless the window
-        /// was terminated.
+        /// call this in a try/catch inside a loop; this is because running this function multiple times is OK, unless
+        /// the window was terminated.
         /// </remarks>
         public void Run()
         {
-            //this.Document.Renderer.SetBgColor(Document.BackgroundColor);
             Document.Renderer.SetCanvasDirty();
+            bool isFirstFrame = true;
 
-            Monitor* monitor = GLFW.GetPrimaryMonitor();
-            float contentScale = 1f;
-            if (monitor == null)
-            {
-                CatLogger.LogWarning("GLFW: could not detect any display. Using a content scale factor of 1.");
-            }
-            else
-            {
-                GLFW.GetMonitorContentScale(monitor, out contentScale, out float _);
-            }
-
-            DocumentInvoke("WndSetContentScale", contentScale);
+            //TODO: (HACK) find out why does Wayland need this and how to solve this more elegantly
+            bool needsFirstFrameForcedRedraw =
+                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland;
 
             //don't use Glfw.WindowShouldClose because that is handled by OnCloseRequested
             while (!_shouldCloseWindow)
@@ -623,6 +614,13 @@ namespace CatUI.Windowing.DesktopApp
                 DoFrameActions();
                 GLFW.WaitEventsTimeout(0.02);
                 _canInvokeMaximize = true;
+
+                if (isFirstFrame && needsFirstFrameForcedRedraw)
+                {
+                    Document.Renderer.SetCanvasDirty();
+                }
+
+                isFirstFrame = false;
             }
 
             Terminate();
@@ -707,9 +705,20 @@ namespace CatUI.Windowing.DesktopApp
             var windowData = new WindowData(this, nativeHandle, (nint)GlfwWindow);
             Document.SetWindowData(windowData);
 
+            //recompute the content scale using the window now, very important on Wayland, as it seems GLFW returns the
+            //monitor scale wrong on Wayland
+            float contentScale = 1f;
+            if ((_flags & WindowFlags.DpiAware) != 0 && GlfwWindow != null)
+            {
+                GLFW.GetWindowContentScale(GlfwWindow, out contentScale, out float _);
+            }
+
+            DocumentInvoke("WndSetContentScale", contentScale);
+
             GraphicsBackend?.PostWindowCreation();
             GraphicsBackend?.SwapIntervalChanged(SwapInterval);
-            GraphicsBackend?.Resized(_width, _height);
+            GraphicsBackend?.Resized(
+                (int)(_width * Document.ContentScale), (int)(_height * Document.ContentScale));
 
             switch (GraphicsBackend)
             {
@@ -727,7 +736,6 @@ namespace CatUI.Windowing.DesktopApp
 
                         if (majorVer < 2)
                         {
-                            //TODO: fallback to software rendering
                             CatLogger.Log(
                                 "Graphics: OpenGL version is lower than 2.0. You need at least OpenGL 2.0 to run this app. UI failed to render.",
                                 CatLogger.LogLevel.Critical);
