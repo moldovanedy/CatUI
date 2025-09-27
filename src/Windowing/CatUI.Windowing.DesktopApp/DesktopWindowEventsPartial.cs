@@ -34,7 +34,7 @@ namespace CatUI.Windowing.DesktopApp
             _contentScaleCallback = (_, xScale, _) =>
             {
                 DocumentInvoke("WndSetContentScale", xScale);
-                GLFW.PostEmptyEvent();
+                Document.Renderer.SetCanvasDirty();
             };
             GLFW.SetWindowContentScaleCallback(GlfwWindow, _contentScaleCallback);
 
