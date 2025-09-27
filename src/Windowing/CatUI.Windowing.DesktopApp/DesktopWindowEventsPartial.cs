@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.CompilerServices;
 using CatUI.Data;
 using CatUI.Data.Enums;
 using CatUI.Data.Events.Input;
@@ -18,6 +20,9 @@ namespace CatUI.Windowing.DesktopApp
 
             _resizeCallback = (_, newWidth, newHeight) =>
             {
+                newWidth = UtilNormalizeGlfwWm(newWidth);
+                newHeight = UtilNormalizeGlfwWm(newHeight);
+
                 ResizedEvent?.Invoke(
                     this,
                     new WindowResizedEventArgs(Width, Height, newWidth, newHeight)
@@ -29,6 +34,7 @@ namespace CatUI.Windowing.DesktopApp
             _contentScaleCallback = (_, xScale, _) =>
             {
                 DocumentInvoke("WndSetContentScale", xScale);
+                GLFW.PostEmptyEvent();
             };
             GLFW.SetWindowContentScaleCallback(GlfwWindow, _contentScaleCallback);
 
@@ -93,8 +99,8 @@ namespace CatUI.Windowing.DesktopApp
 
             _cursorMoveCallback = (_, posX, posY) =>
             {
-                float positionX = (float)posX;
-                float positionY = (float)posY;
+                float positionX = (float)UtilDenormalizeGlfwWm(posX);
+                float positionY = (float)UtilDenormalizeGlfwWm(posY);
                 Point2D pos = new(positionX, positionY);
                 bool pressed = (Document.PressedMouseButtons & MouseButtonType.Primary) != 0;
 
@@ -105,7 +111,7 @@ namespace CatUI.Windowing.DesktopApp
                 }
 
                 DocumentInvoke(
-                    "WndAddPointer",
+                    "WndAddOrUpdatePointer",
                     new InputPointer(pos, pressed, pointer.PointerId, InputPointer.InputDeviceType.Mouse));
 
                 Document.SimulatePointerMove(
@@ -125,19 +131,58 @@ namespace CatUI.Windowing.DesktopApp
             _cursorEnterOrExitCallback = (_, entered) =>
             {
                 GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
+                x = UtilDenormalizeGlfwWm(x);
+                y = UtilDenormalizeGlfwWm(y);
+
                 Point2D pos = new((float)x, (float)y);
                 bool pressed = (Document.PressedMouseButtons & MouseButtonType.Primary) != 0;
 
                 if (entered)
                 {
                     DocumentInvoke(
-                        "WndAddPointer",
+                        "WndAddOrUpdatePointer",
                         new InputPointer(pos, pressed, 0, InputPointer.InputDeviceType.Mouse));
+
                     Document.SimulatePointerEnter(
                         new PointerEnterEventArgs(pos, pos, pressed, 0));
                 }
                 else
                 {
+                    //the cursor position when exiting the window is very different from platform to platform,
+                    // so we try to standardize it by setting the "exiting edge" to 1 unit outside the window area;
+                    // this doesn't do the trick for Wayland, though
+                    bool wasModified = false;
+                    if (x <= 0 || Math.Abs(x) <= 0.5)
+                    {
+                        x = -1;
+                        wasModified = true;
+                    }
+
+                    if (y <= 0 || Math.Abs(y) <= 0.5)
+                    {
+                        y = -1;
+                        wasModified = true;
+                    }
+
+                    GLFW.GetWindowSize(GlfwWindow, out int windowWidth, out int windowHeight);
+
+                    if (x >= windowWidth || Math.Abs(windowWidth - x) <= 0.5)
+                    {
+                        x = windowWidth + 1;
+                        wasModified = true;
+                    }
+
+                    if (y >= windowHeight || Math.Abs(windowHeight - y) <= 0.5)
+                    {
+                        y = windowHeight + 1;
+                        wasModified = true;
+                    }
+
+                    if (wasModified)
+                    {
+                        pos = new Point2D((float)x, (float)y);
+                    }
+
                     InputPointer? pointer = Document.GetPointerByDeviceType(InputPointer.InputDeviceType.Mouse);
                     Document.SimulatePointerExit(
                         new PointerExitEventArgs(pos, pos, pressed, pointer?.PointerId ?? -1));
@@ -152,6 +197,9 @@ namespace CatUI.Windowing.DesktopApp
                 //there's a 1:1 correspondence between GLFW button index and our MouseButtonType
                 var button = (MouseButtonType)(1 << (int)glfwMouseBtn);
                 GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
+                x = UtilDenormalizeGlfwWm(x);
+                y = UtilDenormalizeGlfwWm(y);
+
                 Point2D pos = new((float)x, (float)y);
 
                 Document.SimulateMouseButton(
@@ -186,6 +234,9 @@ namespace CatUI.Windowing.DesktopApp
                 // APIs fail for some reason, except on Wayland, where this interface works properly
 
                 GLFW.GetCursorPos(GlfwWindow, out double x, out double y);
+                x = UtilDenormalizeGlfwWm(x);
+                y = UtilDenormalizeGlfwWm(y);
+
                 Point2D pos = new((float)x, (float)y);
 
                 Document.SimulateMouseWheel(
@@ -423,11 +474,16 @@ namespace CatUI.Windowing.DesktopApp
 
         private void OnResize(object sender, WindowResizedEventArgs e)
         {
+            //set window size
             _width = e.NewWidth;
             _height = e.NewHeight;
 
-            DocumentInvoke("WndSetViewportSize", new Size(e.NewWidth, e.NewHeight));
-            GraphicsBackend?.Resized(e.NewWidth, e.NewHeight);
+            DocumentInvoke(
+                "WndSetViewportSize",
+                new Size((int)(_width * Document.ContentScale), (int)(_height * Document.ContentScale)));
+            GraphicsBackend?.Resized(
+                (int)(_width * Document.ContentScale), (int)(_height * Document.ContentScale));
+
             Document.Renderer.SetCanvasDirty();
             DoFrameActions();
         }
@@ -489,5 +545,74 @@ namespace CatUI.Windowing.DesktopApp
         }
 
         #endregion
+
+        /// <summary>
+        /// Normalizes the data from the GLFW window manager depending on the runtime platform. On some platforms, GLFW
+        /// returns data as direct pixels, so it doesn't take into account scaling, while on others, the data is
+        /// already taking scale into account. This makes all data take scale into account.
+        /// </summary>
+        /// <remarks>Use this when you always want normalized/scaled dimensions.</remarks>
+        /// <param name="data">The input data to normalize.</param>
+        /// <returns>The result.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int UtilNormalizeGlfwWm(int data)
+        {
+            if (
+                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11
+             || GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Win32)
+            {
+                return (int)(data / Document.ContentScale);
+            }
+
+            return data;
+        }
+
+        /// <inheritdoc cref="UtilNormalizeGlfwWm(int)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal double UtilNormalizeGlfwWm(double data)
+        {
+            if (
+                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11
+             || GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Win32)
+            {
+                return data / Document.ContentScale;
+            }
+
+            return data;
+        }
+
+        /// <summary>
+        /// De-normalizes the data from the GLFW window manager depending on the runtime platform. It's the exact
+        /// opposite of <see cref="UtilNormalizeGlfwWm(int)"/>, as this converts anything by removing scaling, therefore
+        /// making data indicate pixels instead of normalized coordinates.
+        /// </summary>
+        /// <remarks>Use this when you always want direct pixel dimensions.</remarks>
+        /// <param name="data">The input data to de-normalize.</param>
+        /// <returns>The result.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int UtilDenormalizeGlfwWm(int data)
+        {
+            if (
+                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11
+             || GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Win32)
+            {
+                return data;
+            }
+
+            return (int)(data * Document.ContentScale);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal double UtilDenormalizeGlfwWm(double data)
+        {
+            if (
+                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11
+             || GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Win32)
+            {
+                return data;
+            }
+
+            return data * Document.ContentScale;
+        }
     }
 }
