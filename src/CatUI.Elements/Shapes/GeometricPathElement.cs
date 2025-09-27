@@ -16,7 +16,7 @@ namespace CatUI.Elements.Shapes
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This is the most complex shape element: it can draw polygons, straight lines, curves (quadratic and cubic Bezier)
+    /// This is the most complex shape element: it can draw polygons, straight lines, curves (quadratic and cubic Bezier),
     /// etc. You can combine multiple paths, and it's not necessary for the path to be continuous. However, remember that
     /// this element can affect performance if overused, especially GPU usage. To set a path, you use the SVG's
     /// &lt;path&gt; syntax or <see cref="SetNewSkiaPath"/> with the methods of <see cref="SKPath"/>.
@@ -26,7 +26,7 @@ namespace CatUI.Elements.Shapes
     /// For the best results, try to avoid having lots of these elements visible on the screen at once, or better on the
     /// entire app's lifetime. Any modification to the path is similar to creating a new path, so avoid modifying paths
     /// as well. If you have small objects with a lot of details, consider using images, as images are generally faster
-    /// to draw when the images are small.
+    /// to draw when they are small.
     /// </para>
     /// </remarks>
     public class GeometricPathElement : AbstractShapeElement
@@ -60,17 +60,10 @@ namespace CatUI.Elements.Shapes
         public bool ShouldApplyScaling
         {
             get => _shouldApplyScaling;
-            set
-            {
-                if (value != _shouldApplyScaling)
-                {
-                    ShouldApplyScalingProperty.Value = value;
-                }
-            }
+            set => ShouldApplyScalingProperty.Value = value;
         }
 
         private bool _shouldApplyScaling;
-
         public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new(false);
 
         private void SetShouldApplyScaling(bool value)
@@ -82,6 +75,27 @@ namespace CatUI.Elements.Shapes
             }
 
             SetLocalValue(nameof(ShouldApplyScaling), value);
+            MarkLayoutDirty();
+        }
+
+        /// <summary>
+        /// If true, all coordinates will be scaled (or rather transformed from pixels to dp) when the path is drawn.
+        /// This is highly recommended, as otherwise the path will not respect <see cref="UiDocument.ContentScale"/>
+        /// and will look too small on some devices (especially mobile). The default value is true.
+        /// </summary>
+        public bool ShouldRespectContentScaling
+        {
+            get => _shouldRespectContentScaling;
+            set => ShouldRespectContentScalingProperty.Value = value;
+        }
+
+        private bool _shouldRespectContentScaling = true;
+        public ObservableProperty<bool> ShouldRespectContentScalingProperty { get; } = new(true);
+
+        private void SetShouldRespectContentScaling(bool value)
+        {
+            _shouldRespectContentScaling = value;
+            SetLocalValue(nameof(ShouldRespectContentScaling), value);
             MarkLayoutDirty();
         }
 
@@ -154,6 +168,7 @@ namespace CatUI.Elements.Shapes
         private void Init()
         {
             ShouldApplyScalingProperty.ValueChangedEvent += SetShouldApplyScaling;
+            ShouldRespectContentScalingProperty.ValueChangedEvent += SetShouldRespectContentScaling;
             SvgPathProperty.ValueChangedEvent += SetSvgPath;
         }
 
@@ -207,8 +222,12 @@ namespace CatUI.Elements.Shapes
             }
 
             base.DrawBackground();
-            Point2D topLeftPoint;
+            Point2D topLeftPoint = new(Bounds.X, Bounds.Y);
             SKMatrix transformMatrix;
+            float contentScale =
+                ShouldRespectContentScaling
+                    ? Document?.ContentScale ?? 1f
+                    : 1f;
 
             if (ShouldApplyScaling)
             {
@@ -216,14 +235,13 @@ namespace CatUI.Elements.Shapes
                     Bounds.Width / _skiaPath.TightBounds.Width,
                     Bounds.Height / _skiaPath.TightBounds.Height);
 
-                topLeftPoint = new Point2D(Bounds.X, Bounds.Y);
                 transformMatrix = SKMatrix.CreateScaleTranslation(
-                    scale.X, scale.Y, topLeftPoint.X, topLeftPoint.Y);
+                    scale.X * contentScale, scale.Y * contentScale, topLeftPoint.X, topLeftPoint.Y);
             }
             else
             {
-                topLeftPoint = new Point2D(Bounds.X, Bounds.Y);
-                transformMatrix = SKMatrix.CreateTranslation(topLeftPoint.X, topLeftPoint.Y);
+                transformMatrix = SKMatrix.CreateScaleTranslation(
+                    contentScale, contentScale, topLeftPoint.X, topLeftPoint.Y);
             }
 
             int? stateCount = Document?.Renderer.SaveCanvasState();
