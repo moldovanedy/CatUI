@@ -36,7 +36,8 @@ namespace CatUISample.UI
                         { "/Layout/ScrollContainer", _ => new NavRoute(new ScrollContainerExamples()) },
                         { "/UiElements/Buttons", _ => new NavRoute(new ButtonsExample()) },
                         { "/NativeUi/FilePicking", _ => new NavRoute(new FilePickingExamples()) },
-                        { "/Misc/Cursors", _ => new NavRoute(new CursorExamples()) }
+                        { "/Misc/Cursors", _ => new NavRoute(new CursorExamples()) },
+                        { "/Misc/Animation", _ => new NavRoute(new AnimationExamples()) }
                     },
                     "/")
                 {
