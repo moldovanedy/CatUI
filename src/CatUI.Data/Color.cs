@@ -388,6 +388,28 @@ namespace CatUI.Data
         }
 
         /// <summary>
+        /// Performs a linear interpolation between two colors by using <see cref="double.Lerp"/> on each component
+        /// (R, G, B, and A) individually.
+        /// </summary>
+        /// <remarks>
+        /// The weight can also go outside the range [0,1]. If a value exceeds the RGBA limits (i.e. lower than 0 or
+        /// higher than 255), <see cref="Math.Clamp(double, double, double)"/> will be used to keep colors in the range.
+        /// </remarks>
+        /// <param name="from">The start color ("lower bound").</param>
+        /// <param name="to">The end color ("upper bound").</param>
+        /// <param name="t">The interpolation "weight", generally between 0 and 1.</param>
+        /// <returns>The value of the linear interpolation as a color.</returns>
+        public static Color Lerp(Color from, Color to, float t)
+        {
+            return new Color(
+                (byte)Math.Clamp(double.Lerp(from.R, to.R, t), 0, 255),
+                (byte)Math.Clamp(double.Lerp(from.G, to.G, t), 0, 255),
+                (byte)Math.Clamp(double.Lerp(from.B, to.B, t), 0, 255),
+                (byte)Math.Clamp(double.Lerp(from.A, to.A, t), 0, 255)
+            );
+        }
+
+        /// <summary>
         /// Describes how the bytes of a value (generally uint) will be used to create the color.
         /// </summary>
         public enum ColorType

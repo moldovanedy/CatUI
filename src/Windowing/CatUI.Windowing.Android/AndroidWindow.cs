@@ -86,6 +86,7 @@ namespace CatUI.Windowing.Android
             WindowData data = new(this, this);
             Document = new UiDocument(new Data.Size(0, 0));
             Document.SetWindowData(data);
+            Document.SetAnimationFrameAdder(RequestAnimationFrame);
 
             ResizedEvent += OnResize;
         }

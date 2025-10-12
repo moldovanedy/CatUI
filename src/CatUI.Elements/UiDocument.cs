@@ -305,6 +305,7 @@ namespace CatUI.Elements
 
         private readonly Dictionary<string, Element> _elementCache = [];
         private WindowData? _windowData;
+        private Action<Action<double>>? _animationFrameAdder;
 
         /// <summary>
         /// Creates a new document.
@@ -359,6 +360,11 @@ namespace CatUI.Elements
             return Root == null ? null : _elementCache.GetValueOrDefault(id);
         }
 
+        public void RequestAnimationFrame(Action<double> frameCallback)
+        {
+            _animationFrameAdder?.Invoke(frameCallback);
+        }
+
         /// <summary>
         /// Get the information about the window that owns this document. This might be null until you open the window!
         /// </summary>
@@ -368,6 +374,7 @@ namespace CatUI.Elements
             return _windowData;
         }
 
+        //TODO: add this to the constructor
         /// <summary>
         /// This should only be called by window implementations. Sets new window data, usually called when opening
         /// a window.
@@ -380,6 +387,16 @@ namespace CatUI.Elements
             //TODO: this is not flexible and very hacky: it tries to put the GLFW window handle before the native
             // ones on desktop; this is another consequence of using GLFW...
             CursorManager ??= new CursorManager(windowData.FrameworkWindowHandle ?? windowData.NativeWindowHandle);
+        }
+
+        //TODO: add this to the constructor
+        /// <summary>
+        /// This should only be called by window implementations. Sets the animation frame adder callback.
+        /// </summary>
+        /// <param name="animationFrameAdder"></param>
+        public void SetAnimationFrameAdder(Action<Action<double>> animationFrameAdder)
+        {
+            _animationFrameAdder = animationFrameAdder;
         }
 
         /// <summary>

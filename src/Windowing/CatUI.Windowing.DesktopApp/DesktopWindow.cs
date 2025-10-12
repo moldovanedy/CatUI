@@ -536,6 +536,7 @@ namespace CatUI.Windowing.DesktopApp
             }
 
             Document = new UiDocument(new Size(_width, _height), contentScale);
+            Document.SetAnimationFrameAdder(RequestAnimationFrame);
         }
 
         // ~DesktopWindow()
@@ -636,8 +637,9 @@ namespace CatUI.Windowing.DesktopApp
             Window* windowPtr = null;
             foreach (GraphicsApi api in CatApplication.Instance.GraphicsApisTryingOrder)
             {
-                IGraphicsBackendInfo info;
-                IGraphicsBackend backend;
+                //if the window pointer is null, these won't be accessed, so we can safely circumvent nullability
+                IGraphicsBackendInfo info = null!;
+                IGraphicsBackend backend = null!;
 
                 switch (api)
                 {
@@ -647,7 +649,6 @@ namespace CatUI.Windowing.DesktopApp
                         backend = new OpenGlGraphicsBackend();
                         info = new OpenGlGraphicsBackendInfo();
                         break;
-                    default:
                     case GraphicsApi.Software:
                         windowPtr = TryCreateSoftwareRenderedWindow();
                         backend = new SoftwareGraphicsBackend();
