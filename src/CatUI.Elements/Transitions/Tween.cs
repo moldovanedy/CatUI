@@ -51,6 +51,11 @@ namespace CatUI.Elements.Transitions
         /// </param>
         public delegate void TweenerCallback(double value, double elapsedSeconds);
 
+        /// <summary>
+        /// A function that sets an <see cref="ObservableProperty{T}"/> repeatedly as part of an animation. This is
+        /// the "animation function".
+        /// </summary>
+        /// <typeparam name="T">The type of the value inside the <see cref="ObservableProperty{T}"/>.</typeparam>
         public delegate void PropertyAnimator<T>(
             ObservableProperty<T> property,
             double interpolationValue,
