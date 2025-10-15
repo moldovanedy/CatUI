@@ -4,153 +4,152 @@ using CatUI.Data.Enums;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Utils;
 
-namespace CatUI.Elements.Utils
+namespace CatUI.Elements.Utils;
+
+/// <inheritdoc cref="Divider"/>
+/// <remarks>
+/// This will display a vertical line, so it's generally used inside layouts that work like a row
+/// (like <see cref="RowContainer"/>).
+/// </remarks>
+public class VerticalDivider : Divider
 {
-    /// <inheritdoc cref="Divider"/>
-    /// <remarks>
-    /// This will display a vertical line, so it's generally used inside layouts that work like a row
-    /// (like <see cref="RowContainer"/>).
-    /// </remarks>
-    public class VerticalDivider : Divider
+    /// <inheritdoc cref="Element.Ref"/>
+    public new ObjectRef<VerticalDivider>? Ref
     {
-        /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<VerticalDivider>? Ref
+        get => _ref;
+        set
         {
-            get => _ref;
-            set
+            _ref = value;
+            if (_ref != null)
             {
-                _ref = value;
-                if (_ref != null)
-                {
-                    _ref.Value = this;
-                }
+                _ref.Value = this;
             }
         }
+    }
 
-        private ObjectRef<VerticalDivider>? _ref;
+    private ObjectRef<VerticalDivider>? _ref;
 
-        /// <summary>
-        /// Represents the spacing between the line and the element on the left. The value is in <see cref="Unit.Dp"/>.
-        /// The default value is 0.
-        /// </summary>
-        public float LeftSpacing
+    /// <summary>
+    /// Represents the spacing between the line and the element on the left. The value is in <see cref="Unit.Dp"/>.
+    /// The default value is 0.
+    /// </summary>
+    public float LeftSpacing
+    {
+        get => Spacing.Item1;
+        set
         {
-            get => Spacing.Item1;
-            set
-            {
-                SetLeftSpacing(value);
-                LeftSpacingProperty.Value = value;
-            }
+            SetLeftSpacing(value);
+            LeftSpacingProperty.Value = value;
         }
+    }
 
-        public ObservableProperty<float> LeftSpacingProperty { get; } = new(0);
+    public ObservableProperty<float> LeftSpacingProperty { get; } = new(0);
 
-        private void SetLeftSpacing(float value)
+    private void SetLeftSpacing(float value)
+    {
+        //will mark the layout dirty automatically
+        Spacing = (value, Spacing.Item2);
+    }
+
+    /// <summary>
+    /// Represents the spacing between the line and the element on the right. The value is in <see cref="Unit.Dp"/>.
+    /// The default value is 0.
+    /// </summary>
+    public float RightSpacing
+    {
+        get => Spacing.Item2;
+        set
         {
-            //will mark the layout dirty automatically
-            Spacing = (value, Spacing.Item2);
+            SetRightSpacing(value);
+            RightSpacingProperty.Value = value;
         }
+    }
 
-        /// <summary>
-        /// Represents the spacing between the line and the element on the right. The value is in <see cref="Unit.Dp"/>.
-        /// The default value is 0.
-        /// </summary>
-        public float RightSpacing
+    public ObservableProperty<float> RightSpacingProperty { get; } = new(0);
+
+    private void SetRightSpacing(float value)
+    {
+        //will mark the layout dirty automatically
+        Spacing = (Spacing.Item1, value);
+    }
+
+    /// <summary>
+    /// Represents the padding (or space) between the top end of the line (line cap) and the element bounds.
+    /// The percentage will represent the height of the element. The default value is 0.
+    /// </summary>
+    public Dimension TopLinePadding
+    {
+        get => LinePadding.Item1;
+        set
         {
-            get => Spacing.Item2;
-            set
-            {
-                SetRightSpacing(value);
-                RightSpacingProperty.Value = value;
-            }
+            SetTopLinePadding(value);
+            TopLinePaddingProperty.Value = value;
         }
+    }
 
-        public ObservableProperty<float> RightSpacingProperty { get; } = new(0);
+    public ObservableProperty<Dimension> TopLinePaddingProperty { get; } = new(0);
 
-        private void SetRightSpacing(float value)
+    private void SetTopLinePadding(Dimension value)
+    {
+        //will mark the document dirty automatically
+        LinePadding = (value, LinePadding.Item2);
+    }
+
+    /// <summary>
+    /// Represents the padding (or space) between the bottom end of the line (line cap) and the element bounds.
+    /// The percentage will represent the height of the element. The default value is 0.
+    /// </summary>
+    public Dimension BottomLinePadding
+    {
+        get => LinePadding.Item1;
+        set
         {
-            //will mark the layout dirty automatically
-            Spacing = (Spacing.Item1, value);
+            SetBottomLinePadding(value);
+            BottomLinePaddingProperty.Value = value;
         }
+    }
 
-        /// <summary>
-        /// Represents the padding (or space) between the top end of the line (line cap) and the element bounds.
-        /// The percentage will represent the height of the element. The default value is 0.
-        /// </summary>
-        public Dimension TopLinePadding
+    public ObservableProperty<Dimension> BottomLinePaddingProperty { get; } = new(0);
+
+    private void SetBottomLinePadding(Dimension value)
+    {
+        //will mark the document dirty automatically
+        LinePadding = (LinePadding.Item1, value);
+    }
+
+    public VerticalDivider(float thickness = 2, IBrush? brush = null) : base(Orientation.Vertical)
+    {
+        Init(thickness, brush);
+    }
+
+    public VerticalDivider(VerticalDivider other) : base(other)
+    {
+        Init(other.LineThickness, other.LineBrush);
+
+        LeftSpacing = other.LeftSpacing;
+        RightSpacing = other.RightSpacing;
+        TopLinePadding = other.TopLinePadding;
+        BottomLinePadding = other.BottomLinePadding;
+    }
+
+    private void Init(float thickness = 2, IBrush? brush = null)
+    {
+        LeftSpacingProperty.ValueChangedEvent += SetLeftSpacing;
+        RightSpacingProperty.ValueChangedEvent += SetRightSpacing;
+        TopLinePaddingProperty.ValueChangedEvent += SetTopLinePadding;
+        BottomLinePaddingProperty.ValueChangedEvent += SetBottomLinePadding;
+
+        LineThickness = thickness;
+        if (brush != null)
         {
-            get => LinePadding.Item1;
-            set
-            {
-                SetTopLinePadding(value);
-                TopLinePaddingProperty.Value = value;
-            }
+            LineBrush = brush;
         }
+    }
 
-        public ObservableProperty<Dimension> TopLinePaddingProperty { get; } = new(0);
-
-        private void SetTopLinePadding(Dimension value)
-        {
-            //will mark the document dirty automatically
-            LinePadding = (value, LinePadding.Item2);
-        }
-
-        /// <summary>
-        /// Represents the padding (or space) between the bottom end of the line (line cap) and the element bounds.
-        /// The percentage will represent the height of the element. The default value is 0.
-        /// </summary>
-        public Dimension BottomLinePadding
-        {
-            get => LinePadding.Item1;
-            set
-            {
-                SetBottomLinePadding(value);
-                BottomLinePaddingProperty.Value = value;
-            }
-        }
-
-        public ObservableProperty<Dimension> BottomLinePaddingProperty { get; } = new(0);
-
-        private void SetBottomLinePadding(Dimension value)
-        {
-            //will mark the document dirty automatically
-            LinePadding = (LinePadding.Item1, value);
-        }
-
-        public VerticalDivider(float thickness = 2, IBrush? brush = null) : base(Orientation.Vertical)
-        {
-            Init(thickness, brush);
-        }
-
-        public VerticalDivider(VerticalDivider other) : base(other)
-        {
-            Init(other.LineThickness, other.LineBrush);
-
-            LeftSpacing = other.LeftSpacing;
-            RightSpacing = other.RightSpacing;
-            TopLinePadding = other.TopLinePadding;
-            BottomLinePadding = other.BottomLinePadding;
-        }
-
-        private void Init(float thickness = 2, IBrush? brush = null)
-        {
-            LeftSpacingProperty.ValueChangedEvent += SetLeftSpacing;
-            RightSpacingProperty.ValueChangedEvent += SetRightSpacing;
-            TopLinePaddingProperty.ValueChangedEvent += SetTopLinePadding;
-            BottomLinePaddingProperty.ValueChangedEvent += SetBottomLinePadding;
-
-            LineThickness = thickness;
-            if (brush != null)
-            {
-                LineBrush = brush;
-            }
-        }
-
-        public override VerticalDivider Duplicate()
-        {
-            var el = new VerticalDivider(this);
-            DuplicateChildrenUtil(el);
-            return el;
-        }
+    public override VerticalDivider Duplicate()
+    {
+        var el = new VerticalDivider(this);
+        DuplicateChildrenUtil(el);
+        return el;
     }
 }

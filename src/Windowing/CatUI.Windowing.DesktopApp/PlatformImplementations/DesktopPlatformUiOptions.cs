@@ -1,8 +1,7 @@
 using CatUI.Platform.Essentials;
 
-namespace CatUI.Windowing.DesktopApp.PlatformImplementations
+namespace CatUI.Windowing.DesktopApp.PlatformImplementations;
+
+public class DesktopPlatformUiOptions : PlatformUiOptionsBase
 {
-    public class DesktopPlatformUiOptions : PlatformUiOptionsBase
-    {
-    }
 }

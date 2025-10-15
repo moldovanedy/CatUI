@@ -5,89 +5,88 @@ using CatUI.Data.ElementData;
 using CatUI.Data.Shapes;
 using CatUI.Utils;
 
-namespace CatUI.Elements.Shapes
+namespace CatUI.Elements.Shapes;
+
+/// <summary>
+/// Draws a rectangle, either filled, outlined or both. If the rectangle is both filled and outlined, the filled
+/// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
+/// on each side. The outline will also overlap with the filled area by half of the outline width on each side.
+/// </summary>
+public class RectangleElement : AbstractShapeElement
 {
-    /// <summary>
-    /// Draws a rectangle, either filled, outlined or both. If the rectangle is both filled and outlined, the filled
-    /// area will have the size of the element and the outline will exceed the element bounds by half of the outline width
-    /// on each side. The outline will also overlap with the filled area by half of the outline width on each side.
-    /// </summary>
-    public class RectangleElement : AbstractShapeElement
+    /// <inheritdoc cref="Element.Ref"/>
+    public new ObjectRef<RectangleElement>? Ref
     {
-        /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<RectangleElement>? Ref
+        get => _ref;
+        set
         {
-            get => _ref;
-            set
+            _ref = value;
+            if (_ref != null)
             {
-                _ref = value;
-                if (_ref != null)
-                {
-                    _ref.Value = this;
-                }
+                _ref.Value = this;
             }
         }
+    }
 
-        private ObjectRef<RectangleElement>? _ref;
+    private ObjectRef<RectangleElement>? _ref;
 
-        public override ClipShape CorrespondingClipShape { get; }
+    public override ClipShape CorrespondingClipShape { get; }
 
-        public RectangleElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
-            : base(fillBrush, outlineBrush)
+    public RectangleElement(IBrush? fillBrush = null, IBrush? outlineBrush = null)
+        : base(fillBrush, outlineBrush)
+    {
+        CorrespondingClipShape = new RectangleClipShape();
+    }
+
+    /// <summary>
+    /// Creates a new rectangle from the given <see cref="Rect"/> object. The coordinates are fixed and are
+    /// represented as <see cref="Element.Position"/> and for <see cref="Element.Layout"/> it sets
+    /// <see cref="ElementLayout.SetFixedWidth"/> and <see cref="ElementLayout.SetFixedHeight"/> respectively.
+    /// </summary>
+    /// <param name="rectDescriptor">Serves as the basis upon which the element's position and size are set.</param>
+    /// <param name="fillBrush">Sets <see cref="AbstractShapeElement.FillBrush"/>.</param>
+    /// <param name="outlineBrush">Sets <see cref="AbstractShapeElement.OutlineBrush"/>.</param>
+    public RectangleElement(
+        Rect rectDescriptor,
+        IBrush? fillBrush = null,
+        IBrush? outlineBrush = null)
+        : base(fillBrush, outlineBrush)
+    {
+        Position = new Dimension2(rectDescriptor.X, rectDescriptor.Y);
+        Layout =
+            new ElementLayout()
+                .SetFixedWidth(Math.Abs(rectDescriptor.Width))
+                .SetFixedHeight(Math.Abs(rectDescriptor.Height));
+
+        CorrespondingClipShape = new RectangleClipShape();
+    }
+
+    public RectangleElement(RectangleElement other) : base(other)
+    {
+        CorrespondingClipShape = new RectangleClipShape();
+    }
+
+    protected override void DrawBackground()
+    {
+        if (!IsCurrentlyVisible)
         {
-            CorrespondingClipShape = new RectangleClipShape();
+            return;
         }
 
-        /// <summary>
-        /// Creates a new rectangle from the given <see cref="Rect"/> object. The coordinates are fixed and are
-        /// represented as <see cref="Element.Position"/> and for <see cref="Element.Layout"/> it sets
-        /// <see cref="ElementLayout.SetFixedWidth"/> and <see cref="ElementLayout.SetFixedHeight"/> respectively.
-        /// </summary>
-        /// <param name="rectDescriptor">Serves as the basis upon which the element's position and size are set.</param>
-        /// <param name="fillBrush">Sets <see cref="AbstractShapeElement.FillBrush"/>.</param>
-        /// <param name="outlineBrush">Sets <see cref="AbstractShapeElement.OutlineBrush"/>.</param>
-        public RectangleElement(
-            Rect rectDescriptor,
-            IBrush? fillBrush = null,
-            IBrush? outlineBrush = null)
-            : base(fillBrush, outlineBrush)
-        {
-            Position = new Dimension2(rectDescriptor.X, rectDescriptor.Y);
-            Layout =
-                new ElementLayout()
-                    .SetFixedWidth(Math.Abs(rectDescriptor.Width))
-                    .SetFixedHeight(Math.Abs(rectDescriptor.Height));
+        Document?.Renderer.DrawRect(Bounds, FillBrush);
 
-            CorrespondingClipShape = new RectangleClipShape();
+        if (OutlineBrush.IsSkippable || OutlineParameters.OutlineWidth == 0)
+        {
+            return;
         }
 
-        public RectangleElement(RectangleElement other) : base(other)
-        {
-            CorrespondingClipShape = new RectangleClipShape();
-        }
+        Document?.Renderer.DrawRectOutline(Bounds, OutlineBrush, OutlineParameters);
+    }
 
-        protected override void DrawBackground()
-        {
-            if (!IsCurrentlyVisible)
-            {
-                return;
-            }
-
-            Document?.Renderer.DrawRect(Bounds, FillBrush);
-
-            if (OutlineBrush.IsSkippable || OutlineParameters.OutlineWidth == 0)
-            {
-                return;
-            }
-
-            Document?.Renderer.DrawRectOutline(Bounds, OutlineBrush, OutlineParameters);
-        }
-
-        public override RectangleElement Duplicate()
-        {
-            var el = new RectangleElement(this);
-            DuplicateChildrenUtil(el);
-            return el;
-        }
+    public override RectangleElement Duplicate()
+    {
+        var el = new RectangleElement(this);
+        DuplicateChildrenUtil(el);
+        return el;
     }
 }

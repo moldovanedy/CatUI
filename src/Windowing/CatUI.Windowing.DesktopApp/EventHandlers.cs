@@ -1,28 +1,27 @@
 using System;
 
-namespace CatUI.Windowing.DesktopApp
+namespace CatUI.Windowing.DesktopApp;
+
+/// <summary>
+/// The sender is the window and the arguments describe the changes.
+/// </summary>
+public delegate void WindowModeChangedEventHandler(object sender, WindowModeChangedEventArgs e);
+
+public class WindowModeChangedEventArgs : EventArgs
 {
     /// <summary>
-    /// The sender is the window and the arguments describe the changes.
+    /// The new mode in which the window just entered.
     /// </summary>
-    public delegate void WindowModeChangedEventHandler(object sender, WindowModeChangedEventArgs e);
+    public DesktopWindow.WindowMode NewMode { get; }
 
-    public class WindowModeChangedEventArgs : EventArgs
+    /// <summary>
+    /// The old window mode.
+    /// </summary>
+    public DesktopWindow.WindowMode OldMode { get; }
+
+    public WindowModeChangedEventArgs(DesktopWindow.WindowMode newMode, DesktopWindow.WindowMode oldMode)
     {
-        /// <summary>
-        /// The new mode in which the window just entered.
-        /// </summary>
-        public DesktopWindow.WindowMode NewMode { get; }
-
-        /// <summary>
-        /// The old window mode.
-        /// </summary>
-        public DesktopWindow.WindowMode OldMode { get; }
-
-        public WindowModeChangedEventArgs(DesktopWindow.WindowMode newMode, DesktopWindow.WindowMode oldMode)
-        {
-            NewMode = newMode;
-            OldMode = oldMode;
-        }
+        NewMode = newMode;
+        OldMode = oldMode;
     }
 }

@@ -1,10 +1,9 @@
 ﻿using System;
 using SkiaSharp;
 
-namespace CatUI.Platform.CommonInterface
+namespace CatUI.Platform.CommonInterface;
+
+public interface IWindowIcon
 {
-    public interface IWindowIcon
-    {
-        SKImage? GetWindowIcon(IntPtr windowHandle);
-    }
+    SKImage? GetWindowIcon(IntPtr windowHandle);
 }

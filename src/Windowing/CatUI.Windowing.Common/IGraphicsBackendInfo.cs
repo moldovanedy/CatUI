@@ -1,10 +1,9 @@
 using CatUI.Data.Enums;
 
-namespace CatUI.Windowing.Common
+namespace CatUI.Windowing.Common;
+
+public interface IGraphicsBackendInfo
 {
-    public interface IGraphicsBackendInfo
-    {
-        GraphicsApi GetUsedGraphicsApi();
-        string GetGraphicsApiVersion();
-    }
+    GraphicsApi GetUsedGraphicsApi();
+    string GetGraphicsApiVersion();
 }

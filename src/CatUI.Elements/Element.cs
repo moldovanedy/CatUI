@@ -21,737 +21,115 @@ using CatUI.RenderingEngine;
 using CatUI.Utils;
 using Container = CatUI.Elements.Containers.Container;
 
-namespace CatUI.Elements
+namespace CatUI.Elements;
+
+[DynamicallyAccessedMembers(
+    DynamicallyAccessedMemberTypes.PublicProperties |
+    DynamicallyAccessedMemberTypes.Interfaces)]
+public partial class Element
 {
-    [DynamicallyAccessedMembers(
-        DynamicallyAccessedMemberTypes.PublicProperties |
-        DynamicallyAccessedMemberTypes.Interfaces)]
-    public partial class Element
+    /// <summary>
+    /// Has a priority of 0.
+    /// </summary>
+    public const string PSEUDO_CLASS_NORMAL = "";
+
+    /// <summary>
+    /// Has a priority of 150.
+    /// </summary>
+    public const string PSEUDO_CLASS_HOVER = "hover";
+
+    /// <summary>
+    /// Has a priority of 200.
+    /// </summary>
+    public const string PSEUDO_CLASS_PRESSED = "pressed";
+
+    public DrawEventHandler? OnDraw
     {
-        /// <summary>
-        /// Has a priority of 0.
-        /// </summary>
-        public const string PSEUDO_CLASS_NORMAL = "";
-
-        /// <summary>
-        /// Has a priority of 150.
-        /// </summary>
-        public const string PSEUDO_CLASS_HOVER = "hover";
-
-        /// <summary>
-        /// Has a priority of 200.
-        /// </summary>
-        public const string PSEUDO_CLASS_PRESSED = "pressed";
-
-        public DrawEventHandler? OnDraw
+        get => _onDraw;
+        set
         {
-            get => _onDraw;
-            set
+            DrawEvent -= _onDraw;
+            _onDraw = value;
+            DrawEvent += _onDraw;
+        }
+    }
+
+    private DrawEventHandler? _onDraw;
+
+    public EnterDocumentEventHandler? OnEnterDocument
+    {
+        get => _onEnterDocument;
+        set
+        {
+            EnterDocumentEvent -= _onEnterDocument;
+            _onEnterDocument = value;
+            EnterDocumentEvent += _onEnterDocument;
+        }
+    }
+
+    private EnterDocumentEventHandler? _onEnterDocument;
+
+    public ExitDocumentEventHandler? OnExitDocument
+    {
+        get => _onExitDocument;
+        set
+        {
+            ExitDocumentEvent -= _onExitDocument;
+            _onExitDocument = value;
+            ExitDocumentEvent += _onExitDocument;
+        }
+    }
+
+    private ExitDocumentEventHandler? _onExitDocument;
+
+    public LoadEventHandler? OnLoad
+    {
+        get => _onLoad;
+        set
+        {
+            LoadEvent -= _onLoad;
+            _onLoad = value;
+            LoadEvent += _onLoad;
+        }
+    }
+
+    private LoadEventHandler? _onLoad;
+
+    private Element? _parent;
+
+    /// <summary>
+    /// Set this to another <see cref="ObjectRef{T}"/> variable to be able to use this element using
+    /// <see cref="ObjectRef{T}.Value"/> (which will be this element). Very useful for accessing this element
+    /// outside the scope of a single method.
+    /// </summary>
+    public ObjectRef<Element>? Ref
+    {
+        get => _ref;
+        set
+        {
+            _ref = value;
+            if (_ref != null)
             {
-                DrawEvent -= _onDraw;
-                _onDraw = value;
-                DrawEvent += _onDraw;
+                _ref.Value = this;
             }
         }
+    }
 
-        private DrawEventHandler? _onDraw;
+    private ObjectRef<Element>? _ref;
 
-        public EnterDocumentEventHandler? OnEnterDocument
+    public ObservableList<Element> Children
+    {
+        get => _children;
+        set
         {
-            get => _onEnterDocument;
-            set
-            {
-                EnterDocumentEvent -= _onEnterDocument;
-                _onEnterDocument = value;
-                EnterDocumentEvent += _onEnterDocument;
-            }
-        }
+            _children.Clear();
 
-        private EnterDocumentEventHandler? _onEnterDocument;
-
-        public ExitDocumentEventHandler? OnExitDocument
-        {
-            get => _onExitDocument;
-            set
-            {
-                ExitDocumentEvent -= _onExitDocument;
-                _onExitDocument = value;
-                ExitDocumentEvent += _onExitDocument;
-            }
-        }
-
-        private ExitDocumentEventHandler? _onExitDocument;
-
-        public LoadEventHandler? OnLoad
-        {
-            get => _onLoad;
-            set
-            {
-                LoadEvent -= _onLoad;
-                _onLoad = value;
-                LoadEvent += _onLoad;
-            }
-        }
-
-        private LoadEventHandler? _onLoad;
-
-        private Element? _parent;
-
-        /// <summary>
-        /// Set this to another <see cref="ObjectRef{T}"/> variable to be able to use this element using
-        /// <see cref="ObjectRef{T}.Value"/> (which will be this element). Very useful for accessing this element
-        /// outside the scope of a single method.
-        /// </summary>
-        public ObjectRef<Element>? Ref
-        {
-            get => _ref;
-            set
-            {
-                _ref = value;
-                if (_ref != null)
-                {
-                    _ref.Value = this;
-                }
-            }
-        }
-
-        private ObjectRef<Element>? _ref;
-
-        public ObservableList<Element> Children
-        {
-            get => _children;
-            set
-            {
-                _children.Clear();
-
-                try
-                {
-                    EnterLayoutFreezeRecursively();
-                    foreach (Element child in value)
-                    {
-                        _children.Add(child);
-                    }
-                }
-                finally
-                {
-                    ExitLayoutFreezeRecursively();
-                    MarkLayoutDirty();
-                }
-            }
-        }
-
-        private readonly ObservableList<Element> _children = [];
-
-        /// <summary>
-        /// Contains all the pseudo-classes. Never modify this directly, use the pseudo-class manipulation methods like
-        /// <see cref="AddPseudoClass"/> and <see cref="RemovePseudoClass"/>.
-        /// </summary>
-        internal List<string> InternalPseudoClasses { get; private set; } = [];
-
-        /// <summary>
-        /// Represents the top-left corner's position relative to the parent's top-left corner. When the element is
-        /// inside a container, this value generally won't get considered. Default is (0, 0). 
-        /// </summary>
-        public Dimension2 Position
-        {
-            get => _position;
-            set => PositionProperty.Value = value;
-        }
-
-        private Dimension2 _position = new(0, 0);
-        public ObservableProperty<Dimension2> PositionProperty { get; } = new(new Dimension2(0, 0));
-
-        private void SetPosition(Dimension2 value)
-        {
-            _position = value;
-            SetLocalValue(nameof(Position), value);
-            MarkLayoutDirty();
-        }
-
-        /// <summary>
-        /// Specifies the brush to use to draw the element's background. By default, it's completely transparent,
-        /// so no drawing of the background happens.
-        /// </summary>
-        public IBrush Background
-        {
-            get => _background;
-            set => BackgroundProperty.Value = value;
-        }
-
-        private IBrush _background = new ColorBrush(Color.Default);
-        public ObservableProperty<IBrush> BackgroundProperty { get; } = new(new ColorBrush(Color.Default));
-
-        private void SetBackground(IBrush? value)
-        {
-            _background = value ?? new ColorBrush(Color.Default);
-            SetLocalValue(nameof(Background), value);
-            Document?.MarkVisualDirty();
-        }
-
-        /// <summary>
-        /// Sets the clipping path of the element. This is used for clipping the element's content and drawing (if
-        /// <see cref="ClipType"/> has at least set <see cref="ClipApplicability.Drawing"/>) and for hit testing
-        /// (i.e. check if the user pointer is inside the element or touching it), so consider if you really need to set it
-        /// because it can be computationally expensive if you set it to a <see cref="PathClipShape"/>.
-        /// Default value is null, so the hit testing will be just like a rectangle with values from <see cref="Bounds"/>
-        /// and no drawing clipping will happen.
-        /// </summary>
-        /// <remarks>
-        /// It can be computationally expensive to check if the pointer is inside because sometimes the check will
-        /// happen every frame for several tenths of seconds or entire seconds, but for any kind of shape other than
-        /// <see cref="PathClipShape"/>, the performance impact is very low to negligible. However, for maximum performance,
-        /// you should leave this as null and only set it when necessary.
-        /// </remarks>
-        public ClipShape? ClipPath
-        {
-            get => _clipPath;
-            set => ClipPathProperty.Value = value;
-        }
-
-        private ClipShape? _clipPath;
-        public ObservableProperty<ClipShape> ClipPathProperty { get; } = new(null);
-
-        private void SetClipPath(ClipShape? value)
-        {
-            _clipPath = value;
-            SetLocalValue(nameof(ClipPath), value);
-        }
-
-        /// <summary>
-        /// Represents how the <see cref="ClipPath"/> will be used. Even if <see cref="ClipApplicability.HitTesting"/>
-        /// is not set, the hit testing will still happen, just that it will happen on <see cref="Bounds"/> instead of
-        /// <see cref="ClipPath"/>. The default value is <see cref="ClipApplicability.All"/>.
-        /// </summary>
-        /// <remarks>
-        /// If <see cref="ClipPath"/> is null, this property is ignored (but hit testing will still apply as specified).
-        /// </remarks>
-        public ClipApplicability ClipType
-        {
-            get => _clipType;
-            set => ClipTypeProperty.Value = value;
-        }
-
-        private ClipApplicability _clipType = ClipApplicability.All;
-
-        public ObservableProperty<ClipApplicability> ClipTypeProperty { get; } =
-            new(ClipApplicability.All);
-
-        private void SetClipType(ClipApplicability value)
-        {
-            _clipType = value;
-            SetLocalValue(nameof(ClipType), value);
-        }
-
-        /// <summary>
-        /// Represents the ID of this element. This is useful for finding the element inside a hierarchy.
-        /// The default value is null. This ID must be unique to all the elements in the document, otherwise setting
-        /// this will result in a <see cref="DuplicateIdException"/> to be thrown.
-        /// </summary>
-        /// <remarks>
-        /// Each time that you add or update the ID, the entry in the document element cache (i.e. the one that's used
-        /// for <see cref="UiDocument.GetElementById"/>) will be updated. Similarly, when you set this to null,
-        /// the entry is removed. The entries are automatically removed when the element is removed from the
-        /// document or added when the element is added to the document if needed. 
-        /// </remarks>
-        public string? Id
-        {
-            get => _id;
-            set => SetId(value);
-        }
-
-        private string? _id;
-
-        private void SetId(string? value)
-        {
-            if (_id != null)
-            {
-                Document?.RemoveFromIdCache(_id);
-            }
-
-            _id = value;
-
-            if (_id != null)
-            {
-                Document?.AddToIdCache(this);
-            }
-        }
-
-        /// <summary>
-        /// Controls whether this element is visible or not in the application. An invisible element will still occupy
-        /// space in the layout and be moved in a container, just that it is not visible (it is hidden).
-        /// The default value is true.
-        /// </summary>
-        /// <remarks>
-        /// This only dictates the currently set value for this element, not propagating to descendants (however,
-        /// it makes all descendants invisible, as in <see cref="IsCurrentlyVisible"/> will be modified). To really
-        /// check if the element is visible or not at a certain moment, see <see cref="IsCurrentlyVisible"/>.
-        /// </remarks>
-        /// <seealso cref="LocallyEnabled" />
-        /// <seealso cref="IsCurrentlyVisible"/>
-        public bool LocallyVisible
-        {
-            get => _locallyVisible;
-            set => LocallyVisibleProperty.Value = value;
-        }
-
-        private bool _locallyVisible = true;
-        public ObservableProperty<bool> LocallyVisibleProperty { get; } = new(true);
-
-        private void SetLocallyVisible(bool value)
-        {
-            _locallyVisible = value;
-            SetLocalValue(nameof(LocallyVisible), value);
-
-            SetCurrentVisibleRecursive(value);
-            RequestRedraw();
-        }
-
-        /// <summary>
-        /// Returns true if the element is visible in the hierarchy, false otherwise. This is influenced by this
-        /// element's and ascendants' <see cref="LocallyVisible"/> property. This is used to check if the element really
-        /// is visible in the hierarchy at a certain moment.
-        /// </summary>
-        public bool IsCurrentlyVisible { get; private set; } = true;
-
-        private void SetCurrentVisibleRecursive(bool visibleMessage)
-        {
-            if (visibleMessage)
-            {
-                if (!_locallyVisible)
-                {
-                    IsCurrentlyVisible = false;
-                    return;
-                }
-
-                IsCurrentlyVisible = true;
-            }
-            else
-            {
-                IsCurrentlyVisible = false;
-            }
-
-            foreach (Element child in Children)
-            {
-                child.SetCurrentVisibleRecursive(visibleMessage);
-            }
-        }
-
-        /// <summary>
-        /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
-        /// a layout and will generally give misleading values on properties that are related to layout in any way
-        /// such as <see cref="Bounds" />. The default value is true.
-        /// </summary>
-        /// <remarks>
-        /// This only dictates the currently set value for this element, not propagating to descendants (however,
-        /// it enables/disabled all descendants, as in <see cref="IsCurrentlyEnabled"/> will be modified). To really
-        /// check if the element is enabled or not at a certain moment, see <see cref="IsCurrentlyEnabled"/>.
-        /// </remarks>
-        /// <seealso cref="LocallyVisible" />
-        /// <seealso cref="IsCurrentlyEnabled"/>
-        public bool LocallyEnabled
-        {
-            get => _locallyEnabled;
-            set => LocallyEnabledProperty.Value = value;
-        }
-
-        private bool _locallyEnabled = true;
-        public ObservableProperty<bool> LocallyEnabledProperty { get; } = new(true);
-
-        private void SetLocallyEnabled(bool value)
-        {
-            _locallyEnabled = value;
-            SetLocalValue(nameof(LocallyEnabled), value);
-
-            SetCurrentEnabledRecursive(value);
-            RequestRedraw();
-        }
-
-        /// <summary>
-        /// Returns true if the element is enabled in the hierarchy, false otherwise. This is influenced by this
-        /// element's and ascendants' <see cref="LocallyEnabled"/> property. This is used to check if the element really
-        /// is enabled in the hierarchy at a certain moment.
-        /// </summary>
-        public bool IsCurrentlyEnabled { get; private set; } = true;
-
-        private void SetCurrentEnabledRecursive(bool enableMessage)
-        {
-            if (enableMessage)
-            {
-                if (!_locallyEnabled)
-                {
-                    IsCurrentlyEnabled = false;
-                    return;
-                }
-
-                IsCurrentlyEnabled = true;
-            }
-            else
-            {
-                IsCurrentlyEnabled = false;
-                Bounds = new Rect();
-            }
-
-            foreach (Element child in Children)
-            {
-                child.SetCurrentEnabledRecursive(enableMessage);
-            }
-        }
-
-        /// <summary>
-        /// The ID of the pointer cursor (from <see cref="CursorManager"/>) to be shown when the pointer is over this
-        /// element. If you change this while the pointer is over, this element will change it directly. In other words,
-        /// this sets the pointer cursor while it is over this element. If -1 (the default value), the cursor will
-        /// not be affected be enter/leave events on this element.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// For common IDs, see the constants from <see cref="CursorIcon"/>. If you want multiple types of cursor
-        /// depending on pseudo-classes, set this in the theme definitions, in pseudo-classes changed functions.
-        /// </para>
-        /// <para>
-        /// Calling <see cref="CursorManager.SetPersistentCursor"/> will disable cursor changing from this property.
-        /// See <see cref="CursorManager.SetPersistentCursor"/> for more info.
-        /// </para>
-        /// </remarks>
-        public int Cursor
-        {
-            get => _cursor;
-            set => CursorProperty.Value = value;
-        }
-
-        private int _cursor = CursorIcon.CURSOR_AUTO;
-        public ObservableProperty<int> CursorProperty { get; } = new(CursorIcon.CURSOR_AUTO);
-
-        private void SetCursor(int value)
-        {
-            _cursor = value;
-            SetLocalValue(nameof(Cursor), value);
-            SetCursorOnEnter(value, true);
-            RequestRedraw();
-        }
-
-        /// <summary>
-        /// Gives information on how to work with this element inside a container. The value is dependent on each
-        /// type of container. If the given value is incompatible with what the container expects, the container will
-        /// simply ignore the value and act as if it was null (see remarks). The default value is null.
-        /// </summary>
-        /// <remarks>
-        /// If this is null (the default value), the container will interpret this element as stated in the documentation
-        /// corresponding to that type of container from <see cref="ContainerSizing"/> for the default value
-        /// (e.g. for a <see cref="RowContainer"/> the documentation will be present in <see cref="RowContainerSizing"/>).
-        /// </remarks>
-        public ContainerSizing? ElementContainerSizing
-        {
-            get => _elementContainerSizing;
-            set
-            {
-                if (value != _elementContainerSizing)
-                {
-                    ElementContainerSizingProperty.Value = value;
-                }
-            }
-        }
-
-        private ContainerSizing? _elementContainerSizing;
-        public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
-
-        private void SetElementContainerSizing(ContainerSizing? value)
-        {
-            _elementContainerSizing = value;
-            SetLocalValue(nameof(ElementContainerSizing), value);
-            MarkLayoutDirty();
-        }
-
-        /// <summary>
-        /// A function that is run directly when set. This is useful for binding properties or running any kind of logic
-        /// at object creation, but after the constructor. The parameter is the object itself (this). See the example
-        /// for more info.
-        /// </summary>
-        /// <example>
-        /// new Element <br/>
-        /// { <br/>
-        ///     Option1 = value, <br/>
-        ///     ... <br/>
-        ///     InitializationFunction = (obj) => ... <br/>
-        /// }
-        /// </example>
-        public Action<Element>? InitializationFunction
-        {
-            get => _initializationFunction;
-            set
-            {
-                _initializationFunction = value;
-                _initializationFunction?.Invoke(this);
-            }
-        }
-
-        private Action<Element>? _initializationFunction;
-
-        /// <summary>
-        /// Represents the absolute coordinates of this element relative to the viewport.
-        /// </summary>
-        public Rect Bounds { get; set; } = new();
-
-        /// <summary>
-        /// Represents the index in the parent's children list. If the element is not in the document, this will be -1.
-        /// </summary>
-        public int IndexInParent { get; private set; } = -1;
-
-        /// <summary>
-        /// Gets or sets the document of this element and all its children. Will also add the element to the document.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// If the element already belongs to a document, this will remove the element, along with all its children,
-        /// then add this element along with its previous children to the specified document. It WILL invoke the
-        /// document enter/exit events.
-        /// </para>
-        /// <para>
-        /// Order of operations when the element is added to a document:
-        /// <list type="bullet">
-        /// <item>Remove the element from its previous document (if any)</item>
-        /// <item>Add the element to the ID cache (if it has an ID).</item>
-        /// <item>Apply the theme to this element (both on element type and on style class).</item>
-        /// <item>Invoke <see cref="EnterDocumentEvent"/></item>
-        /// <item>Repeat these steps for each child recursively (so it uses preorder).</item>
-        /// <item>Call <see cref="MarkLayoutDirty"/>.</item>
-        /// </list>
-        /// </para>
-        /// </remarks>
-        public UiDocument? Document
-        {
-            get => _document;
-            set
-            {
-                //the element is not in a document and the given document is non-null
-                if (_document == null && value != null)
-                {
-                    _document = value;
-                    _document?.AddToIdCache(this);
-
-                    //apply the theme to this element
-                    ApplyElementTypeTheme(null, false);
-                    ApplyClassTheme(StyleClass, false);
-
-                    InvokeEnterDocument();
-                    //will also call MarkLayoutDirty
-                    MakeChildrenEnterDocument(Children);
-                }
-                //the element is in a document, and the given document is another document or null
-                else if (_document != value)
-                {
-                    GetParent()?.Children.Remove(this);
-                    _document = value;
-
-                    if (value != null)
-                    {
-                        GetParent()?.Children.Add(this);
-                    }
-                }
-            }
-        }
-
-        private UiDocument? _document;
-
-        /// <summary>
-        /// True when the element's parent is a container. Only the direct parent is taken into account, not the grandparent
-        /// etc.
-        /// </summary>
-        public bool IsChildOfContainer { get; private set; }
-
-        public bool IsInsideDocument => Document != null;
-
-        /// <summary>
-        /// You can set this to true using <see cref="EnterLayoutFreeze"/> or <see cref="EnterLayoutFreezeRecursively"/>
-        /// when you set multiple properties of an element at once, so that the layout will not be recalculated every
-        /// time (you should call <see cref="MarkLayoutDirty"/> after setting this to false again). This is generally
-        /// not needed but can be useful for performance reasons. The default value is false.
-        /// </summary>
-        /// <remarks>
-        /// <para>This only affects <see cref="MarkLayoutDirty"/>, not <see cref="RecomputeLayout"/>.</para>
-        /// <para>
-        /// It should work like a mutex: enter the layout freeze when entering the section where you set multiple
-        /// properties or modify the same property multiple times, especially if this creates a lot of recalculations
-        /// for children, then exit the layout freeze when you're done. You should exit the layout freeze in a "finally"
-        /// block so you can be sure that it won't remain false, breaking the UI.
-        /// </para>
-        /// </remarks>
-        /// <seealso cref="EnterLayoutFreezeRecursively"/>
-        /// <seealso cref="ExitLayoutFreezeRecursively"/>
-        /// <seealso cref="EnterLayoutFreeze"/>
-        /// <seealso cref="ExitLayoutFreeze"/>
-        public bool IsLayoutFrozen { get; private set; }
-
-        /// <summary>
-        /// If true, any child addition will be checked first to ensure there are no duplicates. See
-        /// <see cref="ToggleDuplicateChildrenCheck"/> for more info.
-        /// </summary>
-        public bool IsCheckingForDuplicateChildren { get; private set; } = true;
-
-        /// <summary>
-        /// Fired when the element needs to be redrawn. Do NOT use this as a continuous consistent source of events (like
-        /// a "game loop" that fires x times a second) because this only fires when it's necessary.
-        /// </summary>
-        public event DrawEventHandler? DrawEvent;
-
-        /// <summary>
-        /// Fired when the element is added to a document (see <see cref="Document"/>).
-        /// </summary>
-        public event EnterDocumentEventHandler? EnterDocumentEvent;
-
-        /// <summary>
-        /// Fired when the element is removed from a document (see <see cref="Document"/>).
-        /// </summary>
-        public event ExitDocumentEventHandler? ExitDocumentEvent;
-
-        /// <summary>
-        /// Fired when the element is loaded (i.e. all the resources like images or icons are loaded and can be shown).
-        /// Does NOT fire until all the children have loaded so, contrary to most of the other events, this event is
-        /// fired in post-order (to children first, then itself), not pre-order.
-        /// </summary>
-        public event LoadEventHandler? LoadEvent;
-
-
-        public Element()
-        {
-            DrawEvent += Draw;
-            EnterDocumentEvent += EnterDocument;
-            ExitDocumentEvent += ExitDocument;
-            LoadEvent += Loaded;
-
-            //see ElementEventCheckingPartial
-            PointerEnterEvent += PointerEnter;
-            PointerExitEvent += PointerExit;
-            PointerMoveEvent += PointerMove;
-            PointerDownEvent += PointerDown;
-            PointerUpEvent += PointerUp;
-            MouseButtonEvent += MouseButton;
-            MouseWheelEvent += MouseWheel;
-
-            PointerEnterEvent += InternalOnPointerEnter;
-            PointerExitEvent += InternalOnPointerExit;
-            PointerDownEvent += InternalOnPointerDown;
-            PointerUpEvent += InternalOnPointerUp;
-
-            ChildLayoutChangedEvent += OnChildLayoutChanged;
-
-            PositionProperty.ValueChangedEvent += SetPosition;
-            BackgroundProperty.ValueChangedEvent += SetBackground;
-            ClipPathProperty.ValueChangedEvent += SetClipPath;
-            ClipTypeProperty.ValueChangedEvent += SetClipType;
-            LocallyVisibleProperty.ValueChangedEvent += SetLocallyVisible;
-            LocallyEnabledProperty.ValueChangedEvent += SetLocallyEnabled;
-            CursorProperty.ValueChangedEvent += SetCursor;
-            ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
-
-            LayoutProperty.ValueChangedEvent += SetLayout;
-
-            ThemeOverrideProperty.ValueChangedEvent += SetThemeOverride;
-            StyleClassProperty.ValueChangedEvent += SetStyleClass;
-            BaseThemingCountProperty.ValueChangedEvent += SetBaseThemingCount;
-            IgnoreGlobalThemingProperty.ValueChangedEvent += SetIgnoreGlobalTheming;
-
-            Children.ItemInsertedEvent += OnChildInserted;
-            Children.ItemRemovedEvent += OnChildRemoved;
-            Children.ItemMovedEvent += OnChildMoved;
-            Children.ListClearingEvent += OnChildrenListClearing;
-        }
-
-        /// <summary>
-        /// A copy constructor that deep clones only this element, without its descendants.
-        /// </summary>
-        public Element(Element other) : this()
-        {
-            List<string> clonedPseudoClasses = new(InternalPseudoClasses.Count);
-            clonedPseudoClasses.AddRange(InternalPseudoClasses);
-
-            InternalPseudoClasses = clonedPseudoClasses;
-            Position = other.Position;
-            Background = other.Background.Duplicate();
-            ClipPath = (ClipShape?)other.ClipPath?.Duplicate();
-            ClipType = other.ClipType;
-            LocallyVisible = other.LocallyVisible;
-            LocallyEnabled = other.LocallyEnabled;
-            ElementContainerSizing = (ContainerSizing?)other.ElementContainerSizing?.Duplicate();
-            Layout = other.Layout;
-        }
-
-        #region Visual
-
-        protected virtual void DrawBackground()
-        {
-            if (!_locallyVisible || this is INonVisualElement)
-            {
-                return;
-            }
-
-            if (!Background.IsSkippable)
-            {
-                Document?.Renderer.DrawRect(Bounds, Background);
-            }
-        }
-
-        #endregion //Visual
-
-        private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
-        {
-            if (IsCheckingForDuplicateChildren && Children.Count(el => el == e.Item) > 1)
-            {
-                throw new DuplicateElementException("Duplicate children are not allowed.");
-            }
-
-            e.Item.IsChildOfContainer = this is Container;
-            e.Item._parent = this;
-            e.Item.IndexInParent = e.Index;
-
-            for (int i = e.Index + 1; i < Children.Count; i++)
-            {
-                Children[i].IndexInParent++;
-            }
-
-            if (Document != null)
-            {
-                e.Item.Document = Document;
-                MarkLayoutDirty();
-            }
-        }
-
-        private void OnChildRemoved(object? sender, ObservableListRemoveEventArgs<Element> e)
-        {
-            e.Item.IsChildOfContainer = false;
-            if (Document != null)
-            {
-                e.Item.InvokeExitDocumentRecursive();
-            }
-
-            e.Item._parent = null;
-            e.Item.IndexInParent = -1;
-            e.Item.Bounds = new Rect();
-
-            for (int i = e.Index + 1; i < Children.Count; i++)
-            {
-                Children[i].IndexInParent--;
-            }
-
-            e.Item._document = null;
-            MarkLayoutDirty();
-        }
-
-        private static void OnChildMoved(object? sender, ObservableListMoveEventArgs<Element> e)
-        {
-            e.Item.IndexInParent = e.NewIndex;
-        }
-
-        private void OnChildrenListClearing(object? sender, EventArgs e)
-        {
             try
             {
                 EnterLayoutFreezeRecursively();
-
-                //will clear all children
-                while (_children.Count > 0)
+                foreach (Element child in value)
                 {
-                    _children.RemoveAt(0);
+                    _children.Add(child);
                 }
             }
             finally
@@ -760,505 +138,1126 @@ namespace CatUI.Elements
                 MarkLayoutDirty();
             }
         }
+    }
 
-        #region Internal invoke
+    private readonly ObservableList<Element> _children = [];
 
-        /// <summary>
-        /// Invokes <see cref="DrawEvent"/> where applicable (to this element and all its children). You shouldn't call
-        /// this, but you can override it to optimize the draw calls. For example, in LinearContainerBase this is overriden
-        /// so that only a small part of the children are drawn because they are sorted, so it's already known what
-        /// children are in the viewport. Generally, elements outside of document won't receive this draw event.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// When overriding, beware that you should generally return early if <see cref="IsInsideViewport"/> returns
-        /// false, but you also need to set the clip region on the renderer (i.e. <see cref="Renderer.SetClipRect"/> or
-        /// <see cref="Renderer.SetClipPath"/>) as either the element bounds or as <see cref="ClipPath"/>, but only if
-        /// <see cref="ClipType"/> has <see cref="ClipApplicability.Drawing"/> set!
-        /// </para>
-        /// <para>
-        /// Utility functions that can be useful: <see cref="IsInsideViewport"/>, <see cref="DrawingSetClip"/> and
-        /// <see cref="DrawChildren"/>. For actual event invocation, see <see cref="FireDrawEvent"/>.
-        /// </para>
-        /// </remarks>
-        protected internal virtual void InvokeDraw()
+    /// <summary>
+    /// Contains all the pseudo-classes. Never modify this directly, use the pseudo-class manipulation methods like
+    /// <see cref="AddPseudoClass"/> and <see cref="RemovePseudoClass"/>.
+    /// </summary>
+    internal List<string> InternalPseudoClasses { get; private set; } = [];
+
+    /// <summary>
+    /// Represents the top-left corner's position relative to the parent's top-left corner. When the element is
+    /// inside a container, this value generally won't get considered. Default is (0, 0). 
+    /// </summary>
+    public Dimension2 Position
+    {
+        get => _position;
+        set => PositionProperty.Value = value;
+    }
+
+    private Dimension2 _position = new(0, 0);
+    public ObservableProperty<Dimension2> PositionProperty { get; } = new(new Dimension2(0, 0));
+
+    private void SetPosition(Dimension2 value)
+    {
+        _position = value;
+        SetLocalValue(nameof(Position), value);
+        MarkLayoutDirty();
+    }
+
+    /// <summary>
+    /// Specifies the brush to use to draw the element's background. By default, it's completely transparent,
+    /// so no drawing of the background happens.
+    /// </summary>
+    public IBrush Background
+    {
+        get => _background;
+        set => BackgroundProperty.Value = value;
+    }
+
+    private IBrush _background = new ColorBrush(Color.Default);
+    public ObservableProperty<IBrush> BackgroundProperty { get; } = new(new ColorBrush(Color.Default));
+
+    private void SetBackground(IBrush? value)
+    {
+        _background = value ?? new ColorBrush(Color.Default);
+        SetLocalValue(nameof(Background), value);
+        Document?.MarkVisualDirty();
+    }
+
+    /// <summary>
+    /// Sets the clipping path of the element. This is used for clipping the element's content and drawing (if
+    /// <see cref="ClipType"/> has at least set <see cref="ClipApplicability.Drawing"/>) and for hit testing
+    /// (i.e. check if the user pointer is inside the element or touching it), so consider if you really need to set it
+    /// because it can be computationally expensive if you set it to a <see cref="PathClipShape"/>.
+    /// Default value is null, so the hit testing will be just like a rectangle with values from <see cref="Bounds"/>
+    /// and no drawing clipping will happen.
+    /// </summary>
+    /// <remarks>
+    /// It can be computationally expensive to check if the pointer is inside because sometimes the check will
+    /// happen every frame for several tenths of seconds or entire seconds, but for any kind of shape other than
+    /// <see cref="PathClipShape"/>, the performance impact is very low to negligible. However, for maximum performance,
+    /// you should leave this as null and only set it when necessary.
+    /// </remarks>
+    public ClipShape? ClipPath
+    {
+        get => _clipPath;
+        set => ClipPathProperty.Value = value;
+    }
+
+    private ClipShape? _clipPath;
+    public ObservableProperty<ClipShape> ClipPathProperty { get; } = new(null);
+
+    private void SetClipPath(ClipShape? value)
+    {
+        _clipPath = value;
+        SetLocalValue(nameof(ClipPath), value);
+    }
+
+    /// <summary>
+    /// Represents how the <see cref="ClipPath"/> will be used. Even if <see cref="ClipApplicability.HitTesting"/>
+    /// is not set, the hit testing will still happen, just that it will happen on <see cref="Bounds"/> instead of
+    /// <see cref="ClipPath"/>. The default value is <see cref="ClipApplicability.All"/>.
+    /// </summary>
+    /// <remarks>
+    /// If <see cref="ClipPath"/> is null, this property is ignored (but hit testing will still apply as specified).
+    /// </remarks>
+    public ClipApplicability ClipType
+    {
+        get => _clipType;
+        set => ClipTypeProperty.Value = value;
+    }
+
+    private ClipApplicability _clipType = ClipApplicability.All;
+
+    public ObservableProperty<ClipApplicability> ClipTypeProperty { get; } =
+        new(ClipApplicability.All);
+
+    private void SetClipType(ClipApplicability value)
+    {
+        _clipType = value;
+        SetLocalValue(nameof(ClipType), value);
+    }
+
+    /// <summary>
+    /// Represents the ID of this element. This is useful for finding the element inside a hierarchy.
+    /// The default value is null. This ID must be unique to all the elements in the document, otherwise setting
+    /// this will result in a <see cref="DuplicateIdException"/> to be thrown.
+    /// </summary>
+    /// <remarks>
+    /// Each time that you add or update the ID, the entry in the document element cache (i.e. the one that's used
+    /// for <see cref="UiDocument.GetElementById"/>) will be updated. Similarly, when you set this to null,
+    /// the entry is removed. The entries are automatically removed when the element is removed from the
+    /// document or added when the element is added to the document if needed. 
+    /// </remarks>
+    public string? Id
+    {
+        get => _id;
+        set => SetId(value);
+    }
+
+    private string? _id;
+
+    private void SetId(string? value)
+    {
+        if (_id != null)
         {
-            //check if the element is inside the viewport
-            if (!IsInsideViewport() || Document == null || !IsCurrentlyEnabled)
-            {
-                return;
-            }
-
-            int? restoreCount = DrawingSetClip();
-            FireDrawEvent();
-            DrawChildren();
-
-            if ((ClipType & ClipApplicability.Drawing) != 0 && restoreCount != null)
-            {
-                Document.Renderer.RestoreCanvasState(restoreCount.Value);
-            }
+            Document?.RemoveFromIdCache(_id);
         }
 
-        /// <summary>
-        /// Returns true if the element is inside the viewport (according to <see cref="Bounds"/>) and can be drawn, false
-        /// otherwise.
-        /// </summary>
-        /// <returns>True if the element is inside the viewport, false otherwise.</returns>
-        protected bool IsInsideViewport()
+        _id = value;
+
+        if (_id != null)
         {
-            Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
-
-            if (Bounds.X >= viewportSize.Width)
-            {
-                return false;
-            }
-
-            if (Bounds.EndX <= 0)
-            {
-                return false;
-            }
-
-            if (Bounds.Y >= viewportSize.Height)
-            {
-                return false;
-            }
-
-            if (Bounds.EndY <= 0)
-            {
-                return false;
-            }
-
-            return true;
+            Document?.AddToIdCache(this);
         }
+    }
 
-        /// <summary>
-        /// Calls <see cref="InvokeDraw"/> on all <see cref="Children"/>. You should only call this inside overrides of
-        /// <see cref="InvokeDraw"/>.
-        /// </summary>
-        protected void DrawChildren()
+    /// <summary>
+    /// Controls whether this element is visible or not in the application. An invisible element will still occupy
+    /// space in the layout and be moved in a container, just that it is not visible (it is hidden).
+    /// The default value is true.
+    /// </summary>
+    /// <remarks>
+    /// This only dictates the currently set value for this element, not propagating to descendants (however,
+    /// it makes all descendants invisible, as in <see cref="IsCurrentlyVisible"/> will be modified). To really
+    /// check if the element is visible or not at a certain moment, see <see cref="IsCurrentlyVisible"/>.
+    /// </remarks>
+    /// <seealso cref="LocallyEnabled" />
+    /// <seealso cref="IsCurrentlyVisible"/>
+    public bool LocallyVisible
+    {
+        get => _locallyVisible;
+        set => LocallyVisibleProperty.Value = value;
+    }
+
+    private bool _locallyVisible = true;
+    public ObservableProperty<bool> LocallyVisibleProperty { get; } = new(true);
+
+    private void SetLocallyVisible(bool value)
+    {
+        _locallyVisible = value;
+        SetLocalValue(nameof(LocallyVisible), value);
+
+        SetCurrentVisibleRecursive(value);
+        RequestRedraw();
+    }
+
+    /// <summary>
+    /// Returns true if the element is visible in the hierarchy, false otherwise. This is influenced by this
+    /// element's and ascendants' <see cref="LocallyVisible"/> property. This is used to check if the element really
+    /// is visible in the hierarchy at a certain moment.
+    /// </summary>
+    public bool IsCurrentlyVisible { get; private set; } = true;
+
+    private void SetCurrentVisibleRecursive(bool visibleMessage)
+    {
+        if (visibleMessage)
         {
             if (!_locallyVisible)
             {
+                IsCurrentlyVisible = false;
                 return;
             }
 
-            foreach (Element child in Children)
+            IsCurrentlyVisible = true;
+        }
+        else
+        {
+            IsCurrentlyVisible = false;
+        }
+
+        foreach (Element child in Children)
+        {
+            child.SetCurrentVisibleRecursive(visibleMessage);
+        }
+    }
+
+    /// <summary>
+    /// If the element is not enabled, it will not be considered in layout recalculations, will not take space in
+    /// a layout and will generally give misleading values on properties that are related to layout in any way
+    /// such as <see cref="Bounds" />. The default value is true.
+    /// </summary>
+    /// <remarks>
+    /// This only dictates the currently set value for this element, not propagating to descendants (however,
+    /// it enables/disabled all descendants, as in <see cref="IsCurrentlyEnabled"/> will be modified). To really
+    /// check if the element is enabled or not at a certain moment, see <see cref="IsCurrentlyEnabled"/>.
+    /// </remarks>
+    /// <seealso cref="LocallyVisible" />
+    /// <seealso cref="IsCurrentlyEnabled"/>
+    public bool LocallyEnabled
+    {
+        get => _locallyEnabled;
+        set => LocallyEnabledProperty.Value = value;
+    }
+
+    private bool _locallyEnabled = true;
+    public ObservableProperty<bool> LocallyEnabledProperty { get; } = new(true);
+
+    private void SetLocallyEnabled(bool value)
+    {
+        _locallyEnabled = value;
+        SetLocalValue(nameof(LocallyEnabled), value);
+
+        SetCurrentEnabledRecursive(value);
+        RequestRedraw();
+    }
+
+    /// <summary>
+    /// Returns true if the element is enabled in the hierarchy, false otherwise. This is influenced by this
+    /// element's and ascendants' <see cref="LocallyEnabled"/> property. This is used to check if the element really
+    /// is enabled in the hierarchy at a certain moment.
+    /// </summary>
+    public bool IsCurrentlyEnabled { get; private set; } = true;
+
+    private void SetCurrentEnabledRecursive(bool enableMessage)
+    {
+        if (enableMessage)
+        {
+            if (!_locallyEnabled)
             {
-                child.InvokeDraw();
-            }
-        }
-
-        /// <summary>
-        /// Saves the canvas state and sets the clip region, returning the restore count, which will be passed to
-        /// <see cref="Renderer.RestoreCanvasState(int)"/> when the element is done drawing itself and all its children.
-        /// If the returned value is null, it means that the element doesn't have to be clipped (<see cref="Document"/>
-        /// is null or <see cref="ClipType"/> doesn't have <see cref="ClipApplicability.Drawing"/> set).
-        /// Always call <see cref="Renderer.RestoreCanvasState(int)"/> when the element is done drawing.
-        /// </summary>
-        /// <returns>
-        /// The restore count of <see cref="Renderer.SaveCanvasState"/> or null if no clipping should be applied.
-        /// </returns>
-        protected int? DrawingSetClip()
-        {
-            if (Document == null)
-            {
-                return null;
-            }
-
-            int? restoreCount = null;
-            if ((ClipType & ClipApplicability.Drawing) != 0)
-            {
-                restoreCount = Document.Renderer.SaveCanvasState();
-
-                if (ClipPath != null)
-                {
-                    Document.Renderer.SetClipPath(
-                        ClipPath.GetSkiaClipPath(Bounds, Document.ContentScale, Document.ViewportSize));
-                }
-                else
-                {
-                    Document.Renderer.SetClipRect(Bounds);
-                }
-            }
-
-            return restoreCount;
-        }
-
-        internal void InvokeEnterDocument()
-        {
-            EnterDocumentEvent?.Invoke(this);
-        }
-
-        internal void InvokeExitDocumentRecursive()
-        {
-            ExitDocumentEvent?.Invoke(this);
-            if (_id != null)
-            {
-                Document?.RemoveFromIdCache(_id);
-            }
-
-            foreach (Element child in Children)
-            {
-                child.InvokeExitDocumentRecursive();
-            }
-        }
-
-        internal void InvokeLoad()
-        {
-            foreach (Element child in Children)
-            {
-                child.InvokeLoad();
-            }
-
-            LoadEvent?.Invoke(this);
-        }
-
-        /// <summary>
-        /// Fires <see cref="DrawEvent"/>. You should only call this inside overrides of <see cref="InvokeDraw"/>.
-        /// </summary>
-        protected void FireDrawEvent()
-        {
-            DrawEvent?.Invoke(this);
-        }
-
-        #endregion //Internal invoke
-
-        #region Internal event handlers
-
-        private void MakeChildrenEnterDocument(ObservableList<Element> children)
-        {
-            try
-            {
-                EnterLayoutFreezeRecursively();
-                foreach (Element child in children)
-                {
-                    child.Document = Document;
-                }
-            }
-            finally
-            {
-                ExitLayoutFreezeRecursively();
-                MarkLayoutDirty();
-            }
-        }
-
-        private void InternalOnPointerEnter(object sender, PointerEnterEventArgs e)
-        {
-            AddPseudoClass(PSEUDO_CLASS_HOVER);
-            SetCursorOnEnter(Cursor, false);
-        }
-
-        private void InternalOnPointerExit(object sender, PointerExitEventArgs e)
-        {
-            RemovePseudoClass(PSEUDO_CLASS_HOVER);
-            RestoreCursorOnExit();
-        }
-
-        private void InternalOnPointerDown(object sender, PointerDownEventArgs e)
-        {
-            AddPseudoClass(PSEUDO_CLASS_PRESSED);
-        }
-
-        private void InternalOnPointerUp(object sender, PointerUpEventArgs e)
-        {
-            RemovePseudoClass(PSEUDO_CLASS_PRESSED);
-        }
-
-        #endregion //Internal event handlers
-
-        #region Public API
-
-        protected virtual void Draw(object sender)
-        {
-            DrawBackground();
-        }
-
-        protected virtual void EnterDocument(object sender) { }
-        protected virtual void ExitDocument(object sender) { }
-        protected virtual void Loaded(object sender) { }
-
-        /// <summary>
-        /// Deep clones the element and all its descendants. The element will not belong to the document, but will
-        /// have all the original properties cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like
-        /// <see cref="ImageAsset"/>).
-        /// </summary>
-        /// <remarks>
-        /// To simplify descendant duplications, use <see cref="DuplicateChildrenUtil"/>.
-        /// </remarks>
-        /// <returns>
-        /// A new deep clone of the object that is not attached to the document but has the properties of the original.
-        /// </returns>
-        public virtual Element Duplicate()
-        {
-            var el = new Element(this);
-            DuplicateChildrenUtil(el);
-            return el;
-        }
-
-        /// <summary>
-        /// Utility to use in overrides of <see cref="Duplicate"/>; it will duplicate all children (and descendants)
-        /// and add them to the given element.
-        /// </summary>
-        /// <param name="el">The element to add the children to.</param>
-        protected void DuplicateChildrenUtil(Element el)
-        {
-            el.ToggleDuplicateChildrenCheck(false);
-            foreach (Element child in Children)
-            {
-                el.Children.Add(child.Duplicate());
-            }
-
-            el.ToggleDuplicateChildrenCheck(true);
-        }
-
-        /// <summary>
-        /// This method is for special cases only! When you have to add a lot of elements at once, and you already ensured
-        /// that you have no duplicates, disable the check before adding the children and enable it immediately afterward
-        /// for performance reasons. Any element insertion will first check to see if the new element isn't already
-        /// there and, if it is, it throws an <see cref="DuplicateElementException"/>. The check is active by default,
-        /// and you should really not mess with it unless you know what you are doing. The case above is the only
-        /// reason this method exists. See <see cref="IsCheckingForDuplicateChildren"/> to see the current state of
-        /// this option.
-        /// </summary>
-        /// <remarks>
-        /// If you disable this check, and you insert duplicate children, the whole element hierarchy might get corrupted,
-        /// and you will get undefined behavior.
-        /// </remarks>
-        /// <param name="shouldEnable">If true, enables the check; if false, disables it.</param>
-        public void ToggleDuplicateChildrenCheck(bool shouldEnable)
-        {
-            IsCheckingForDuplicateChildren = shouldEnable;
-        }
-
-        public Element? GetParent()
-        {
-            return _parent;
-        }
-
-        public bool AddPseudoClass(string pseudoClassName)
-        {
-            bool success = Document?.PseudoClassesManager.AddPseudoClassToElement(this, pseudoClassName) ?? false;
-            if (!success)
-            {
-                return false;
-            }
-
-            ApplyThemePseudoClassChanges();
-            return true;
-        }
-
-        public bool RemovePseudoClass(string pseudoClassName)
-        {
-            bool success = InternalPseudoClasses.Remove(pseudoClassName);
-            if (!success)
-            {
-                return false;
-            }
-
-            ApplyThemePseudoClassChanges();
-            return true;
-        }
-
-        public bool ContainsPseudoClass(string pseudoClassName)
-        {
-            return InternalPseudoClasses.Contains(pseudoClassName);
-        }
-
-        public int GetPseudoClassCount()
-        {
-            return InternalPseudoClasses.Count;
-        }
-
-        /// <summary>
-        /// Will return the actual pixel value of the given dimension. If the element is not inside a document,
-        /// this method might give unpredictable results that are incorrect (e.g. 0 when the measuring unit is
-        /// <see cref="Unit.ViewportWidth"/> or <see cref="Unit.ViewportHeight"/>).
-        /// </summary>
-        /// <param name="dimension">The dimension to get the pixel value from.</param>
-        /// <param name="pixelDimensionForPercent">
-        /// Only applicably when dimension is in percentage, represents the dimension at 100%,
-        /// usually set as the parent's width or height.
-        /// </param>
-        /// <remarks>
-        /// If dimension is unset, this method returns 0.
-        /// </remarks>
-        /// <returns>The pixel value of the given dimension.</returns>
-        public float CalculateDimension(Dimension dimension, float pixelDimensionForPercent = 0)
-        {
-            if (dimension.IsUnset())
-            {
-                return 0;
-            }
-
-            switch (dimension.MeasuringUnit)
-            {
-                default:
-                case Unit.Dp:
-                    return dimension.Value * (Document?.ContentScale ?? 1);
-                case Unit.Pixels:
-                    return dimension.Value;
-                case Unit.Percent:
-                    return dimension.Value * pixelDimensionForPercent / 100f;
-                case Unit.ViewportWidth:
-                    {
-                        if (Document == null)
-                        {
-                            return 0;
-                        }
-
-                        return dimension.Value * Document.ViewportSize.Width / 100f;
-                    }
-                case Unit.ViewportHeight:
-                    {
-                        if (Document == null)
-                        {
-                            return 0;
-                        }
-
-                        return dimension.Value * Document.ViewportSize.Height / 100f;
-                    }
-                case Unit.Em:
-                    return dimension.Value * (Document?.ContentScale ?? 1f) * (Document?.RootEmSize ?? 16f);
-            }
-        }
-
-        #region Refresh requests
-
-        public void RequestRedraw()
-        {
-            if (this is not INonVisualElement)
-            {
-                Document?.MarkVisualDirty();
-            }
-        }
-
-        /// <summary>
-        /// It will notify the parent that this child modified its layout, and it will call <see cref="RecomputeLayout"/>
-        /// for this element if it's the root. It is generally not necessary to call this directly, as changing the
-        /// parameters will call this automatically if it's necessary.
-        /// </summary>
-        /// <remarks>
-        /// If this element is not <see cref="LocallyEnabled"/> or not inside the document, it does nothing (the same for any
-        /// child). If this element is the root, it will simply call <see cref="RecomputeLayout"/>.
-        /// </remarks>
-        public void MarkLayoutDirty()
-        {
-            if (!IsCurrentlyEnabled || !IsInsideDocument || IsLayoutFrozen)
-            {
+                IsCurrentlyEnabled = false;
                 return;
             }
 
-            if (this == Document?.Root)
+            IsCurrentlyEnabled = true;
+        }
+        else
+        {
+            IsCurrentlyEnabled = false;
+            Bounds = new Rect();
+        }
+
+        foreach (Element child in Children)
+        {
+            child.SetCurrentEnabledRecursive(enableMessage);
+        }
+    }
+
+    /// <summary>
+    /// The ID of the pointer cursor (from <see cref="CursorManager"/>) to be shown when the pointer is over this
+    /// element. If you change this while the pointer is over, this element will change it directly. In other words,
+    /// this sets the pointer cursor while it is over this element. If -1 (the default value), the cursor will
+    /// not be affected be enter/leave events on this element.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// For common IDs, see the constants from <see cref="CursorIcon"/>. If you want multiple types of cursor
+    /// depending on pseudo-classes, set this in the theme definitions, in pseudo-classes changed functions.
+    /// </para>
+    /// <para>
+    /// Calling <see cref="CursorManager.SetPersistentCursor"/> will disable cursor changing from this property.
+    /// See <see cref="CursorManager.SetPersistentCursor"/> for more info.
+    /// </para>
+    /// </remarks>
+    public int Cursor
+    {
+        get => _cursor;
+        set => CursorProperty.Value = value;
+    }
+
+    private int _cursor = CursorIcon.CURSOR_AUTO;
+    public ObservableProperty<int> CursorProperty { get; } = new(CursorIcon.CURSOR_AUTO);
+
+    private void SetCursor(int value)
+    {
+        _cursor = value;
+        SetLocalValue(nameof(Cursor), value);
+        SetCursorOnEnter(value, true);
+        RequestRedraw();
+    }
+
+    /// <summary>
+    /// Gives information on how to work with this element inside a container. The value is dependent on each
+    /// type of container. If the given value is incompatible with what the container expects, the container will
+    /// simply ignore the value and act as if it was null (see remarks). The default value is null.
+    /// </summary>
+    /// <remarks>
+    /// If this is null (the default value), the container will interpret this element as stated in the documentation
+    /// corresponding to that type of container from <see cref="ContainerSizing"/> for the default value
+    /// (e.g. for a <see cref="RowContainer"/> the documentation will be present in <see cref="RowContainerSizing"/>).
+    /// </remarks>
+    public ContainerSizing? ElementContainerSizing
+    {
+        get => _elementContainerSizing;
+        set
+        {
+            if (value != _elementContainerSizing)
             {
-                RecomputeLayout(Document.ViewportSize, Document.ViewportSize, Point2D.Zero);
+                ElementContainerSizingProperty.Value = value;
+            }
+        }
+    }
+
+    private ContainerSizing? _elementContainerSizing;
+    public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
+
+    private void SetElementContainerSizing(ContainerSizing? value)
+    {
+        _elementContainerSizing = value;
+        SetLocalValue(nameof(ElementContainerSizing), value);
+        MarkLayoutDirty();
+    }
+
+    /// <summary>
+    /// A function that is run directly when set. This is useful for binding properties or running any kind of logic
+    /// at object creation, but after the constructor. The parameter is the object itself (this). See the example
+    /// for more info.
+    /// </summary>
+    /// <example>
+    /// new Element <br/>
+    /// { <br/>
+    ///     Option1 = value, <br/>
+    ///     ... <br/>
+    ///     InitializationFunction = (obj) => ... <br/>
+    /// }
+    /// </example>
+    public Action<Element>? InitializationFunction
+    {
+        get => _initializationFunction;
+        set
+        {
+            _initializationFunction = value;
+            _initializationFunction?.Invoke(this);
+        }
+    }
+
+    private Action<Element>? _initializationFunction;
+
+    /// <summary>
+    /// Represents the absolute coordinates of this element relative to the viewport.
+    /// </summary>
+    public Rect Bounds { get; set; } = new();
+
+    /// <summary>
+    /// Represents the index in the parent's children list. If the element is not in the document, this will be -1.
+    /// </summary>
+    public int IndexInParent { get; private set; } = -1;
+
+    /// <summary>
+    /// Gets or sets the document of this element and all its children. Will also add the element to the document.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// If the element already belongs to a document, this will remove the element, along with all its children,
+    /// then add this element along with its previous children to the specified document. It WILL invoke the
+    /// document enter/exit events.
+    /// </para>
+    /// <para>
+    /// Order of operations when the element is added to a document:
+    /// <list type="bullet">
+    /// <item>Remove the element from its previous document (if any)</item>
+    /// <item>Add the element to the ID cache (if it has an ID).</item>
+    /// <item>Apply the theme to this element (both on element type and on style class).</item>
+    /// <item>Invoke <see cref="EnterDocumentEvent"/></item>
+    /// <item>Repeat these steps for each child recursively (so it uses preorder).</item>
+    /// <item>Call <see cref="MarkLayoutDirty"/>.</item>
+    /// </list>
+    /// </para>
+    /// </remarks>
+    public UiDocument? Document
+    {
+        get => _document;
+        set
+        {
+            //the element is not in a document and the given document is non-null
+            if (_document == null && value != null)
+            {
+                _document = value;
+                _document?.AddToIdCache(this);
+
+                //apply the theme to this element
+                ApplyElementTypeTheme(null, false);
+                ApplyClassTheme(StyleClass, false);
+
+                InvokeEnterDocument();
+                //will also call MarkLayoutDirty
+                MakeChildrenEnterDocument(Children);
+            }
+            //the element is in a document, and the given document is another document or null
+            else if (_document != value)
+            {
+                GetParent()?.Children.Remove(this);
+                _document = value;
+
+                if (value != null)
+                {
+                    GetParent()?.Children.Add(this);
+                }
+            }
+        }
+    }
+
+    private UiDocument? _document;
+
+    /// <summary>
+    /// True when the element's parent is a container. Only the direct parent is taken into account, not the grandparent
+    /// etc.
+    /// </summary>
+    public bool IsChildOfContainer { get; private set; }
+
+    public bool IsInsideDocument => Document != null;
+
+    /// <summary>
+    /// You can set this to true using <see cref="EnterLayoutFreeze"/> or <see cref="EnterLayoutFreezeRecursively"/>
+    /// when you set multiple properties of an element at once, so that the layout will not be recalculated every
+    /// time (you should call <see cref="MarkLayoutDirty"/> after setting this to false again). This is generally
+    /// not needed but can be useful for performance reasons. The default value is false.
+    /// </summary>
+    /// <remarks>
+    /// <para>This only affects <see cref="MarkLayoutDirty"/>, not <see cref="RecomputeLayout"/>.</para>
+    /// <para>
+    /// It should work like a mutex: enter the layout freeze when entering the section where you set multiple
+    /// properties or modify the same property multiple times, especially if this creates a lot of recalculations
+    /// for children, then exit the layout freeze when you're done. You should exit the layout freeze in a "finally"
+    /// block so you can be sure that it won't remain false, breaking the UI.
+    /// </para>
+    /// </remarks>
+    /// <seealso cref="EnterLayoutFreezeRecursively"/>
+    /// <seealso cref="ExitLayoutFreezeRecursively"/>
+    /// <seealso cref="EnterLayoutFreeze"/>
+    /// <seealso cref="ExitLayoutFreeze"/>
+    public bool IsLayoutFrozen { get; private set; }
+
+    /// <summary>
+    /// If true, any child addition will be checked first to ensure there are no duplicates. See
+    /// <see cref="ToggleDuplicateChildrenCheck"/> for more info.
+    /// </summary>
+    public bool IsCheckingForDuplicateChildren { get; private set; } = true;
+
+    /// <summary>
+    /// Fired when the element needs to be redrawn. Do NOT use this as a continuous consistent source of events (like
+    /// a "game loop" that fires x times a second) because this only fires when it's necessary.
+    /// </summary>
+    public event DrawEventHandler? DrawEvent;
+
+    /// <summary>
+    /// Fired when the element is added to a document (see <see cref="Document"/>).
+    /// </summary>
+    public event EnterDocumentEventHandler? EnterDocumentEvent;
+
+    /// <summary>
+    /// Fired when the element is removed from a document (see <see cref="Document"/>).
+    /// </summary>
+    public event ExitDocumentEventHandler? ExitDocumentEvent;
+
+    /// <summary>
+    /// Fired when the element is loaded (i.e. all the resources like images or icons are loaded and can be shown).
+    /// Does NOT fire until all the children have loaded so, contrary to most of the other events, this event is
+    /// fired in post-order (to children first, then itself), not pre-order.
+    /// </summary>
+    public event LoadEventHandler? LoadEvent;
+
+
+    public Element()
+    {
+        DrawEvent += Draw;
+        EnterDocumentEvent += EnterDocument;
+        ExitDocumentEvent += ExitDocument;
+        LoadEvent += Loaded;
+
+        //see ElementEventCheckingPartial
+        PointerEnterEvent += PointerEnter;
+        PointerExitEvent += PointerExit;
+        PointerMoveEvent += PointerMove;
+        PointerDownEvent += PointerDown;
+        PointerUpEvent += PointerUp;
+        MouseButtonEvent += MouseButton;
+        MouseWheelEvent += MouseWheel;
+
+        PointerEnterEvent += InternalOnPointerEnter;
+        PointerExitEvent += InternalOnPointerExit;
+        PointerDownEvent += InternalOnPointerDown;
+        PointerUpEvent += InternalOnPointerUp;
+
+        ChildLayoutChangedEvent += OnChildLayoutChanged;
+
+        PositionProperty.ValueChangedEvent += SetPosition;
+        BackgroundProperty.ValueChangedEvent += SetBackground;
+        ClipPathProperty.ValueChangedEvent += SetClipPath;
+        ClipTypeProperty.ValueChangedEvent += SetClipType;
+        LocallyVisibleProperty.ValueChangedEvent += SetLocallyVisible;
+        LocallyEnabledProperty.ValueChangedEvent += SetLocallyEnabled;
+        CursorProperty.ValueChangedEvent += SetCursor;
+        ElementContainerSizingProperty.ValueChangedEvent += SetElementContainerSizing;
+
+        LayoutProperty.ValueChangedEvent += SetLayout;
+
+        ThemeOverrideProperty.ValueChangedEvent += SetThemeOverride;
+        StyleClassProperty.ValueChangedEvent += SetStyleClass;
+        BaseThemingCountProperty.ValueChangedEvent += SetBaseThemingCount;
+        IgnoreGlobalThemingProperty.ValueChangedEvent += SetIgnoreGlobalTheming;
+
+        Children.ItemInsertedEvent += OnChildInserted;
+        Children.ItemRemovedEvent += OnChildRemoved;
+        Children.ItemMovedEvent += OnChildMoved;
+        Children.ListClearingEvent += OnChildrenListClearing;
+    }
+
+    /// <summary>
+    /// A copy constructor that deep clones only this element, without its descendants.
+    /// </summary>
+    public Element(Element other) : this()
+    {
+        List<string> clonedPseudoClasses = new(InternalPseudoClasses.Count);
+        clonedPseudoClasses.AddRange(InternalPseudoClasses);
+
+        InternalPseudoClasses = clonedPseudoClasses;
+        Position = other.Position;
+        Background = other.Background.Duplicate();
+        ClipPath = (ClipShape?)other.ClipPath?.Duplicate();
+        ClipType = other.ClipType;
+        LocallyVisible = other.LocallyVisible;
+        LocallyEnabled = other.LocallyEnabled;
+        ElementContainerSizing = (ContainerSizing?)other.ElementContainerSizing?.Duplicate();
+        Layout = other.Layout;
+    }
+
+    #region Visual
+
+    protected virtual void DrawBackground()
+    {
+        if (!_locallyVisible || this is INonVisualElement)
+        {
+            return;
+        }
+
+        if (!Background.IsSkippable)
+        {
+            Document?.Renderer.DrawRect(Bounds, Background);
+        }
+    }
+
+    #endregion //Visual
+
+    private void OnChildInserted(object? sender, ObservableListInsertEventArgs<Element> e)
+    {
+        if (IsCheckingForDuplicateChildren && Children.Count(el => el == e.Item) > 1)
+        {
+            throw new DuplicateElementException("Duplicate children are not allowed.");
+        }
+
+        e.Item.IsChildOfContainer = this is Container;
+        e.Item._parent = this;
+        e.Item.IndexInParent = e.Index;
+
+        for (int i = e.Index + 1; i < Children.Count; i++)
+        {
+            Children[i].IndexInParent++;
+        }
+
+        if (Document != null)
+        {
+            e.Item.Document = Document;
+            MarkLayoutDirty();
+        }
+    }
+
+    private void OnChildRemoved(object? sender, ObservableListRemoveEventArgs<Element> e)
+    {
+        e.Item.IsChildOfContainer = false;
+        if (Document != null)
+        {
+            e.Item.InvokeExitDocumentRecursive();
+        }
+
+        e.Item._parent = null;
+        e.Item.IndexInParent = -1;
+        e.Item.Bounds = new Rect();
+
+        for (int i = e.Index + 1; i < Children.Count; i++)
+        {
+            Children[i].IndexInParent--;
+        }
+
+        e.Item._document = null;
+        MarkLayoutDirty();
+    }
+
+    private static void OnChildMoved(object? sender, ObservableListMoveEventArgs<Element> e)
+    {
+        e.Item.IndexInParent = e.NewIndex;
+    }
+
+    private void OnChildrenListClearing(object? sender, EventArgs e)
+    {
+        try
+        {
+            EnterLayoutFreezeRecursively();
+
+            //will clear all children
+            while (_children.Count > 0)
+            {
+                _children.RemoveAt(0);
+            }
+        }
+        finally
+        {
+            ExitLayoutFreezeRecursively();
+            MarkLayoutDirty();
+        }
+    }
+
+    #region Internal invoke
+
+    /// <summary>
+    /// Invokes <see cref="DrawEvent"/> where applicable (to this element and all its children). You shouldn't call
+    /// this, but you can override it to optimize the draw calls. For example, in LinearContainerBase this is overriden
+    /// so that only a small part of the children are drawn because they are sorted, so it's already known what
+    /// children are in the viewport. Generally, elements outside of document won't receive this draw event.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// When overriding, beware that you should generally return early if <see cref="IsInsideViewport"/> returns
+    /// false, but you also need to set the clip region on the renderer (i.e. <see cref="Renderer.SetClipRect"/> or
+    /// <see cref="Renderer.SetClipPath"/>) as either the element bounds or as <see cref="ClipPath"/>, but only if
+    /// <see cref="ClipType"/> has <see cref="ClipApplicability.Drawing"/> set!
+    /// </para>
+    /// <para>
+    /// Utility functions that can be useful: <see cref="IsInsideViewport"/>, <see cref="DrawingSetClip"/> and
+    /// <see cref="DrawChildren"/>. For actual event invocation, see <see cref="FireDrawEvent"/>.
+    /// </para>
+    /// </remarks>
+    protected internal virtual void InvokeDraw()
+    {
+        //check if the element is inside the viewport
+        if (!IsInsideViewport() || Document == null || !IsCurrentlyEnabled)
+        {
+            return;
+        }
+
+        int? restoreCount = DrawingSetClip();
+        FireDrawEvent();
+        DrawChildren();
+
+        if ((ClipType & ClipApplicability.Drawing) != 0 && restoreCount != null)
+        {
+            Document.Renderer.RestoreCanvasState(restoreCount.Value);
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the element is inside the viewport (according to <see cref="Bounds"/>) and can be drawn, false
+    /// otherwise.
+    /// </summary>
+    /// <returns>True if the element is inside the viewport, false otherwise.</returns>
+    protected bool IsInsideViewport()
+    {
+        Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
+
+        if (Bounds.X >= viewportSize.Width)
+        {
+            return false;
+        }
+
+        if (Bounds.EndX <= 0)
+        {
+            return false;
+        }
+
+        if (Bounds.Y >= viewportSize.Height)
+        {
+            return false;
+        }
+
+        if (Bounds.EndY <= 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Calls <see cref="InvokeDraw"/> on all <see cref="Children"/>. You should only call this inside overrides of
+    /// <see cref="InvokeDraw"/>.
+    /// </summary>
+    protected void DrawChildren()
+    {
+        if (!_locallyVisible)
+        {
+            return;
+        }
+
+        foreach (Element child in Children)
+        {
+            child.InvokeDraw();
+        }
+    }
+
+    /// <summary>
+    /// Saves the canvas state and sets the clip region, returning the restore count, which will be passed to
+    /// <see cref="Renderer.RestoreCanvasState(int)"/> when the element is done drawing itself and all its children.
+    /// If the returned value is null, it means that the element doesn't have to be clipped (<see cref="Document"/>
+    /// is null or <see cref="ClipType"/> doesn't have <see cref="ClipApplicability.Drawing"/> set).
+    /// Always call <see cref="Renderer.RestoreCanvasState(int)"/> when the element is done drawing.
+    /// </summary>
+    /// <returns>
+    /// The restore count of <see cref="Renderer.SaveCanvasState"/> or null if no clipping should be applied.
+    /// </returns>
+    protected int? DrawingSetClip()
+    {
+        if (Document == null)
+        {
+            return null;
+        }
+
+        int? restoreCount = null;
+        if ((ClipType & ClipApplicability.Drawing) != 0)
+        {
+            restoreCount = Document.Renderer.SaveCanvasState();
+
+            if (ClipPath != null)
+            {
+                Document.Renderer.SetClipPath(
+                    ClipPath.GetSkiaClipPath(Bounds, Document.ContentScale, Document.ViewportSize));
             }
             else
             {
-                //notify parent
-                _parent?.ChildLayoutChangedEvent?.Invoke(this, new ChildLayoutChangedEventArgs(IndexInParent));
+                Document.Renderer.SetClipRect(Bounds);
             }
+        }
 
+        return restoreCount;
+    }
+
+    internal void InvokeEnterDocument()
+    {
+        EnterDocumentEvent?.Invoke(this);
+    }
+
+    internal void InvokeExitDocumentRecursive()
+    {
+        ExitDocumentEvent?.Invoke(this);
+        if (_id != null)
+        {
+            Document?.RemoveFromIdCache(_id);
+        }
+
+        foreach (Element child in Children)
+        {
+            child.InvokeExitDocumentRecursive();
+        }
+    }
+
+    internal void InvokeLoad()
+    {
+        foreach (Element child in Children)
+        {
+            child.InvokeLoad();
+        }
+
+        LoadEvent?.Invoke(this);
+    }
+
+    /// <summary>
+    /// Fires <see cref="DrawEvent"/>. You should only call this inside overrides of <see cref="InvokeDraw"/>.
+    /// </summary>
+    protected void FireDrawEvent()
+    {
+        DrawEvent?.Invoke(this);
+    }
+
+    #endregion //Internal invoke
+
+    #region Internal event handlers
+
+    private void MakeChildrenEnterDocument(ObservableList<Element> children)
+    {
+        try
+        {
+            EnterLayoutFreezeRecursively();
+            foreach (Element child in children)
+            {
+                child.Document = Document;
+            }
+        }
+        finally
+        {
+            ExitLayoutFreezeRecursively();
+            MarkLayoutDirty();
+        }
+    }
+
+    private void InternalOnPointerEnter(object sender, PointerEnterEventArgs e)
+    {
+        AddPseudoClass(PSEUDO_CLASS_HOVER);
+        SetCursorOnEnter(Cursor, false);
+    }
+
+    private void InternalOnPointerExit(object sender, PointerExitEventArgs e)
+    {
+        RemovePseudoClass(PSEUDO_CLASS_HOVER);
+        RestoreCursorOnExit();
+    }
+
+    private void InternalOnPointerDown(object sender, PointerDownEventArgs e)
+    {
+        AddPseudoClass(PSEUDO_CLASS_PRESSED);
+    }
+
+    private void InternalOnPointerUp(object sender, PointerUpEventArgs e)
+    {
+        RemovePseudoClass(PSEUDO_CLASS_PRESSED);
+    }
+
+    #endregion //Internal event handlers
+
+    #region Public API
+
+    protected virtual void Draw(object sender)
+    {
+        DrawBackground();
+    }
+
+    protected virtual void EnterDocument(object sender) { }
+    protected virtual void ExitDocument(object sender) { }
+    protected virtual void Loaded(object sender) { }
+
+    /// <summary>
+    /// Deep clones the element and all its descendants. The element will not belong to the document, but will
+    /// have all the original properties cloned, except callbacks (like <see cref="OnDraw"/>) and assets (like
+    /// <see cref="ImageAsset"/>).
+    /// </summary>
+    /// <remarks>
+    /// To simplify descendant duplications, use <see cref="DuplicateChildrenUtil"/>.
+    /// </remarks>
+    /// <returns>
+    /// A new deep clone of the object that is not attached to the document but has the properties of the original.
+    /// </returns>
+    public virtual Element Duplicate()
+    {
+        var el = new Element(this);
+        DuplicateChildrenUtil(el);
+        return el;
+    }
+
+    /// <summary>
+    /// Utility to use in overrides of <see cref="Duplicate"/>; it will duplicate all children (and descendants)
+    /// and add them to the given element.
+    /// </summary>
+    /// <param name="el">The element to add the children to.</param>
+    protected void DuplicateChildrenUtil(Element el)
+    {
+        el.ToggleDuplicateChildrenCheck(false);
+        foreach (Element child in Children)
+        {
+            el.Children.Add(child.Duplicate());
+        }
+
+        el.ToggleDuplicateChildrenCheck(true);
+    }
+
+    /// <summary>
+    /// This method is for special cases only! When you have to add a lot of elements at once, and you already ensured
+    /// that you have no duplicates, disable the check before adding the children and enable it immediately afterward
+    /// for performance reasons. Any element insertion will first check to see if the new element isn't already
+    /// there and, if it is, it throws an <see cref="DuplicateElementException"/>. The check is active by default,
+    /// and you should really not mess with it unless you know what you are doing. The case above is the only
+    /// reason this method exists. See <see cref="IsCheckingForDuplicateChildren"/> to see the current state of
+    /// this option.
+    /// </summary>
+    /// <remarks>
+    /// If you disable this check, and you insert duplicate children, the whole element hierarchy might get corrupted,
+    /// and you will get undefined behavior.
+    /// </remarks>
+    /// <param name="shouldEnable">If true, enables the check; if false, disables it.</param>
+    public void ToggleDuplicateChildrenCheck(bool shouldEnable)
+    {
+        IsCheckingForDuplicateChildren = shouldEnable;
+    }
+
+    public Element? GetParent()
+    {
+        return _parent;
+    }
+
+    public bool AddPseudoClass(string pseudoClassName)
+    {
+        bool success = Document?.PseudoClassesManager.AddPseudoClassToElement(this, pseudoClassName) ?? false;
+        if (!success)
+        {
+            return false;
+        }
+
+        ApplyThemePseudoClassChanges();
+        return true;
+    }
+
+    public bool RemovePseudoClass(string pseudoClassName)
+    {
+        bool success = InternalPseudoClasses.Remove(pseudoClassName);
+        if (!success)
+        {
+            return false;
+        }
+
+        ApplyThemePseudoClassChanges();
+        return true;
+    }
+
+    public bool ContainsPseudoClass(string pseudoClassName)
+    {
+        return InternalPseudoClasses.Contains(pseudoClassName);
+    }
+
+    public int GetPseudoClassCount()
+    {
+        return InternalPseudoClasses.Count;
+    }
+
+    /// <summary>
+    /// Will return the actual pixel value of the given dimension. If the element is not inside a document,
+    /// this method might give unpredictable results that are incorrect (e.g. 0 when the measuring unit is
+    /// <see cref="Unit.ViewportWidth"/> or <see cref="Unit.ViewportHeight"/>).
+    /// </summary>
+    /// <param name="dimension">The dimension to get the pixel value from.</param>
+    /// <param name="pixelDimensionForPercent">
+    /// Only applicably when dimension is in percentage, represents the dimension at 100%,
+    /// usually set as the parent's width or height.
+    /// </param>
+    /// <remarks>
+    /// If dimension is unset, this method returns 0.
+    /// </remarks>
+    /// <returns>The pixel value of the given dimension.</returns>
+    public float CalculateDimension(Dimension dimension, float pixelDimensionForPercent = 0)
+    {
+        if (dimension.IsUnset())
+        {
+            return 0;
+        }
+
+        switch (dimension.MeasuringUnit)
+        {
+            default:
+            case Unit.Dp:
+                return dimension.Value * (Document?.ContentScale ?? 1);
+            case Unit.Pixels:
+                return dimension.Value;
+            case Unit.Percent:
+                return dimension.Value * pixelDimensionForPercent / 100f;
+            case Unit.ViewportWidth:
+                {
+                    if (Document == null)
+                    {
+                        return 0;
+                    }
+
+                    return dimension.Value * Document.ViewportSize.Width / 100f;
+                }
+            case Unit.ViewportHeight:
+                {
+                    if (Document == null)
+                    {
+                        return 0;
+                    }
+
+                    return dimension.Value * Document.ViewportSize.Height / 100f;
+                }
+            case Unit.Em:
+                return dimension.Value * (Document?.ContentScale ?? 1f) * (Document?.RootEmSize ?? 16f);
+        }
+    }
+
+    #region Refresh requests
+
+    public void RequestRedraw()
+    {
+        if (this is not INonVisualElement)
+        {
             Document?.MarkVisualDirty();
         }
+    }
 
-
-        /// <summary>
-        /// Will make the element unable to recompute its layout until you call <see cref="ExitLayoutFreeze"/>. This is
-        /// only used when setting a lot of properties at once, and you want to make sure that the layout is not
-        /// recalculated after each one. To set it for all children as well <see cref="EnterLayoutFreezeRecursively"/>.
-        /// </summary>
-        /// <remarks>Remember to call <see cref="ExitLayoutFreeze"/>, preferably in a "finally" block!</remarks>
-        /// <seealso cref="IsLayoutFrozen"/>
-        public void EnterLayoutFreeze()
+    /// <summary>
+    /// It will notify the parent that this child modified its layout, and it will call <see cref="RecomputeLayout"/>
+    /// for this element if it's the root. It is generally not necessary to call this directly, as changing the
+    /// parameters will call this automatically if it's necessary.
+    /// </summary>
+    /// <remarks>
+    /// If this element is not <see cref="LocallyEnabled"/> or not inside the document, it does nothing (the same for any
+    /// child). If this element is the root, it will simply call <see cref="RecomputeLayout"/>.
+    /// </remarks>
+    public void MarkLayoutDirty()
+    {
+        if (!IsCurrentlyEnabled || !IsInsideDocument || IsLayoutFrozen)
         {
-            IsLayoutFrozen = true;
+            return;
         }
 
-        /// <summary>
-        /// The opposite of <see cref="EnterLayoutFreeze"/>. Always call this after a <see cref="EnterLayoutFreeze"/>
-        /// call when you're exiting the "critical section".
-        /// </summary>
-        /// <seealso cref="IsLayoutFrozen"/>
-        public void ExitLayoutFreeze()
+        if (this == Document?.Root)
         {
-            IsLayoutFrozen = false;
+            RecomputeLayout(Document.ViewportSize, Document.ViewportSize, Point2D.Zero);
+        }
+        else
+        {
+            //notify parent
+            _parent?.ChildLayoutChangedEvent?.Invoke(this, new ChildLayoutChangedEventArgs(IndexInParent));
         }
 
-        /// <summary>
-        /// Will make the element and all its descendants unable to recompute its layout until you call
-        /// <see cref="ExitLayoutFreezeRecursively"/>. This is only used when setting a lot of properties at once or
-        /// the ones that affect all children recursively. 
-        /// </summary>
-        /// <remarks>Remember to call <see cref="ExitLayoutFreezeRecursively"/>, preferably in a "finally" block!</remarks>
-        /// <seealso cref="IsLayoutFrozen"/>
-        public void EnterLayoutFreezeRecursively()
+        Document?.MarkVisualDirty();
+    }
+
+
+    /// <summary>
+    /// Will make the element unable to recompute its layout until you call <see cref="ExitLayoutFreeze"/>. This is
+    /// only used when setting a lot of properties at once, and you want to make sure that the layout is not
+    /// recalculated after each one. To set it for all children as well <see cref="EnterLayoutFreezeRecursively"/>.
+    /// </summary>
+    /// <remarks>Remember to call <see cref="ExitLayoutFreeze"/>, preferably in a "finally" block!</remarks>
+    /// <seealso cref="IsLayoutFrozen"/>
+    public void EnterLayoutFreeze()
+    {
+        IsLayoutFrozen = true;
+    }
+
+    /// <summary>
+    /// The opposite of <see cref="EnterLayoutFreeze"/>. Always call this after a <see cref="EnterLayoutFreeze"/>
+    /// call when you're exiting the "critical section".
+    /// </summary>
+    /// <seealso cref="IsLayoutFrozen"/>
+    public void ExitLayoutFreeze()
+    {
+        IsLayoutFrozen = false;
+    }
+
+    /// <summary>
+    /// Will make the element and all its descendants unable to recompute its layout until you call
+    /// <see cref="ExitLayoutFreezeRecursively"/>. This is only used when setting a lot of properties at once or
+    /// the ones that affect all children recursively. 
+    /// </summary>
+    /// <remarks>Remember to call <see cref="ExitLayoutFreezeRecursively"/>, preferably in a "finally" block!</remarks>
+    /// <seealso cref="IsLayoutFrozen"/>
+    public void EnterLayoutFreezeRecursively()
+    {
+        IsLayoutFrozen = true;
+        foreach (Element child in Children)
         {
-            IsLayoutFrozen = true;
-            foreach (Element child in Children)
+            child.EnterLayoutFreezeRecursively();
+        }
+    }
+
+    /// <summary>
+    /// The opposite of <see cref="EnterLayoutFreezeRecursively"/>. Always call this after a
+    /// <see cref="EnterLayoutFreezeRecursively"/> call when you're exiting the "critical section".
+    /// </summary>
+    /// <seealso cref="IsLayoutFrozen"/>
+    public void ExitLayoutFreezeRecursively()
+    {
+        IsLayoutFrozen = false;
+        foreach (Element child in Children)
+        {
+            child.ExitLayoutFreezeRecursively();
+        }
+    }
+
+    #endregion //Refresh requests
+
+    #endregion //Public API
+
+    private int _lastCursorId = CursorIcon.CURSOR_ARROW;
+
+    /// <summary>
+    /// We need to synchronize calls to SetCursor, so we use different threads with semaphore (Mutex does not seem
+    /// to work here). This is very useful when the cursor rapidly moves between multiple elements, as the functions
+    /// below don't get called in order, so it results in the cursor not changing its shape like it should.
+    /// It starts unlocked.
+    /// </summary>
+    private static readonly SemaphoreSlim _cursorSemaphore = new(1, 1);
+
+    private void SetCursorOnEnter(int id, bool wasSetByCursorProperty)
+    {
+        if (Cursor == CursorIcon.CURSOR_AUTO)
+        {
+            return;
+        }
+
+        Task.Run(() =>
+        {
+            if (!wasSetByCursorProperty)
             {
-                child.EnterLayoutFreezeRecursively();
+                _cursorSemaphore.Wait();
             }
-        }
 
-        /// <summary>
-        /// The opposite of <see cref="EnterLayoutFreezeRecursively"/>. Always call this after a
-        /// <see cref="EnterLayoutFreezeRecursively"/> call when you're exiting the "critical section".
-        /// </summary>
-        /// <seealso cref="IsLayoutFrozen"/>
-        public void ExitLayoutFreezeRecursively()
+            _lastCursorId = Document?.CursorManager?.CurrentCursorIcon?.Id ?? CursorIcon.CURSOR_ARROW;
+            Document?.CursorManager?.SetCursor(id);
+        });
+    }
+
+    private void RestoreCursorOnExit()
+    {
+        if (Cursor == CursorIcon.CURSOR_AUTO)
         {
-            IsLayoutFrozen = false;
-            foreach (Element child in Children)
-            {
-                child.ExitLayoutFreezeRecursively();
-            }
+            return;
         }
 
-        #endregion //Refresh requests
-
-        #endregion //Public API
-
-        private int _lastCursorId = CursorIcon.CURSOR_ARROW;
-
-        /// <summary>
-        /// We need to synchronize calls to SetCursor, so we use different threads with semaphore (Mutex does not seem
-        /// to work here). This is very useful when the cursor rapidly moves between multiple elements, as the functions
-        /// below don't get called in order, so it results in the cursor not changing its shape like it should.
-        /// It starts unlocked.
-        /// </summary>
-        private static readonly SemaphoreSlim _cursorSemaphore = new(1, 1);
-
-        private void SetCursorOnEnter(int id, bool wasSetByCursorProperty)
+        Task.Run(() =>
         {
-            if (Cursor == CursorIcon.CURSOR_AUTO)
-            {
-                return;
-            }
-
-            Task.Run(() =>
-            {
-                if (!wasSetByCursorProperty)
-                {
-                    _cursorSemaphore.Wait();
-                }
-
-                _lastCursorId = Document?.CursorManager?.CurrentCursorIcon?.Id ?? CursorIcon.CURSOR_ARROW;
-                Document?.CursorManager?.SetCursor(id);
-            });
-        }
-
-        private void RestoreCursorOnExit()
-        {
-            if (Cursor == CursorIcon.CURSOR_AUTO)
-            {
-                return;
-            }
-
-            Task.Run(() =>
-            {
-                Document?.CursorManager?.SetCursor(_lastCursorId);
-                _cursorSemaphore.Release();
-            });
-        }
+            Document?.CursorManager?.SetCursor(_lastCursorId);
+            _cursorSemaphore.Release();
+        });
     }
 }

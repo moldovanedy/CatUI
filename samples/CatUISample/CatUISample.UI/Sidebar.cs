@@ -9,38 +9,37 @@ using CatUI.Elements.Helpers.Navigation;
 using CatUI.Elements.Utils;
 using CatUI.Utils;
 
-namespace CatUISample.UI
+namespace CatUISample.UI;
+
+public class Sidebar : ColumnContainer
 {
-    public class Sidebar : ColumnContainer
+    private readonly List<(string, string)> _entries =
+    [
+        ("Main page", "/"),
+        ("Layout - RowContainer", "/Layout/RowContainer"),
+        ("Layout - ScrollContainer", "/Layout/ScrollContainer"),
+        ("UI Elements - Buttons", "/UiElements/Buttons"),
+        ("Native UI - File picking", "/NativeUi/FilePicking"),
+        ("Misc - Cursors", "/Misc/Cursors"),
+        ("Misc - Animation", "/Misc/Animation")
+    ];
+
+    public Sidebar(ObjectRef<Navigator> navigatorRef)
     {
-        private readonly List<(string, string)> _entries =
-        [
-            ("Main page", "/"),
-            ("Layout - RowContainer", "/Layout/RowContainer"),
-            ("Layout - ScrollContainer", "/Layout/ScrollContainer"),
-            ("UI Elements - Buttons", "/UiElements/Buttons"),
-            ("Native UI - File picking", "/NativeUi/FilePicking"),
-            ("Misc - Cursors", "/Misc/Cursors"),
-            ("Misc - Animation", "/Misc/Animation")
-        ];
+        Layout = new ElementLayout().SetFixedWidth(250).SetFixedHeight("100%");
+        Background = new ColorBrush(CatTheme.Colors.SurfaceContainer);
 
-        public Sidebar(ObjectRef<Navigator> navigatorRef)
+        foreach ((string, string) entry in _entries)
         {
-            Layout = new ElementLayout().SetFixedWidth(250).SetFixedHeight("100%");
-            Background = new ColorBrush(CatTheme.Colors.SurfaceContainer);
-
-            foreach ((string, string) entry in _entries)
-            {
-                Children.Add(
-                    new Button(entry.Item1, 16, new ColorBrush(CatTheme.Colors.OnPrimary))
-                    {
-                        Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
-                        StyleClass = "MenuButtons",
-                        OnClick = (_, _) => navigatorRef.Value?.Navigate(entry.Item2),
-                        Cursor = CursorIcon.CURSOR_POINTING_HAND
-                    });
-                Children.Add(new HorizontalDivider(1, new ColorBrush(Color.Default)));
-            }
+            Children.Add(
+                new Button(entry.Item1, 16, new ColorBrush(CatTheme.Colors.OnPrimary))
+                {
+                    Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight(40),
+                    StyleClass = "MenuButtons",
+                    OnClick = (_, _) => navigatorRef.Value?.Navigate(entry.Item2),
+                    Cursor = CursorIcon.CURSOR_POINTING_HAND
+                });
+            Children.Add(new HorizontalDivider(1, new ColorBrush(Color.Default)));
         }
     }
 }

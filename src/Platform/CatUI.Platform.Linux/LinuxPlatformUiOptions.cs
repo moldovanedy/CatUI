@@ -1,19 +1,18 @@
 using CatUI.Platform.Essentials;
 
-namespace CatUI.Platform.Linux
+namespace CatUI.Platform.Linux;
+
+public class LinuxPlatformUiOptions : PlatformUiOptionsBase
 {
-    public class LinuxPlatformUiOptions : PlatformUiOptionsBase
+    public LinuxPlatformUiOptions()
     {
-        public LinuxPlatformUiOptions()
+        XdgServices.OnDarkModePreferenceChanged += value =>
         {
-            XdgServices.OnDarkModePreferenceChanged += value =>
-            {
-                IsDarkModeEnabled = value;
-            };
-            XdgServices.OnHighContrastPreferenceChanged += value =>
-            {
-                ColorContrast = value == null ? null : value.Value ? 2 : 0;
-            };
-        }
+            IsDarkModeEnabled = value;
+        };
+        XdgServices.OnHighContrastPreferenceChanged += value =>
+        {
+            ColorContrast = value == null ? null : value.Value ? 2 : 0;
+        };
     }
 }

@@ -1,15 +1,14 @@
-namespace CatUI.Data.Events.Navigation
+namespace CatUI.Data.Events.Navigation;
+
+public delegate void NavigatedEventHandler(object sender, NavigatedEventArgs e);
+
+public class NavigatedEventArgs : AbstractNavigationEventArgs
 {
-    public delegate void NavigatedEventHandler(object sender, NavigatedEventArgs e);
+    public string NewPath { get; }
 
-    public class NavigatedEventArgs : AbstractNavigationEventArgs
+    public NavigatedEventArgs(string oldPath, string newPath)
     {
-        public string NewPath { get; }
-
-        public NavigatedEventArgs(string oldPath, string newPath)
-        {
-            OldPath = oldPath;
-            NewPath = newPath;
-        }
+        OldPath = oldPath;
+        NewPath = newPath;
     }
 }

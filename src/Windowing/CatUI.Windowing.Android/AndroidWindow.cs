@@ -15,252 +15,220 @@ using SkiaSharp.Views.Android;
 using Activity = Android.App.Activity;
 using Environment = System.Environment;
 
-namespace CatUI.Windowing.Android
+namespace CatUI.Windowing.Android;
+
+public class AndroidWindow : Activity, IApplicationWindow
 {
-    public class AndroidWindow : Activity, IApplicationWindow
+    #region Properties
+
+    public int Width
     {
-        #region Properties
+        get => (int)(FramebufferWidth / Document.ContentScale);
+        set => throw new PlatformNotSupportedException("Android does not allow programmatic window resizing.");
+    }
 
-        public int Width
+    public int Height
+    {
+        get => (int)(FramebufferHeight / Document.ContentScale);
+        set => throw new PlatformNotSupportedException("Android does not allow programmatic window resizing.");
+    }
+
+    public bool IsDpiAware => true;
+
+    public int FramebufferWidth
+    {
+        get
         {
-            get => (int)(FramebufferWidth / Document.ContentScale);
-            set => throw new PlatformNotSupportedException("Android does not allow programmatic window resizing.");
-        }
-
-        public int Height
-        {
-            get => (int)(FramebufferHeight / Document.ContentScale);
-            set => throw new PlatformNotSupportedException("Android does not allow programmatic window resizing.");
-        }
-
-        public bool IsDpiAware => true;
-
-        public int FramebufferWidth
-        {
-            get
+            if (OperatingSystem.IsAndroidVersionAtLeast(30))
             {
-                if (OperatingSystem.IsAndroidVersionAtLeast(30))
-                {
-                    return Window?.WindowManager?.CurrentWindowMetrics.Bounds.Width() ?? 0;
-                }
-
-                DisplayMetrics metrics = new();
-                Window?.WindowManager?.DefaultDisplay?.GetMetrics(metrics);
-                return metrics.WidthPixels;
-            }
-        }
-
-        public int FramebufferHeight
-        {
-            get
-            {
-                if (OperatingSystem.IsAndroidVersionAtLeast(30))
-                {
-                    return Window?.WindowManager?.CurrentWindowMetrics.Bounds.Height() ?? 0;
-                }
-
-                DisplayMetrics metrics = new();
-                Window?.WindowManager?.DefaultDisplay?.GetMetrics(metrics);
-                return metrics.HeightPixels;
-            }
-        }
-
-        public UiDocument Document { get; }
-
-        public IGraphicsBackendInfo GraphicsBackendInfo { get; } = new AndroidGraphicsBackendInfo();
-
-        #endregion
-
-        public event WindowResizedEventHandler? ResizedEvent;
-        public event Action<double>? FrameUpdatedEvent;
-
-        private readonly List<Action<double>> _animationFrameCallbacks = [];
-        private Choreographer? _choreographer;
-        private readonly Stopwatch _stopwatch = new();
-        private bool _isAlreadyCreated;
-
-        private SKCanvasView? _canvasView;
-
-        public AndroidWindow()
-        {
-            WindowData data = new(this, this);
-            Document = new UiDocument(new Data.Size(0, 0));
-            Document.SetWindowData(data);
-            Document.SetAnimationFrameAdder(RequestAnimationFrame);
-
-            ResizedEvent += OnResize;
-        }
-
-        #region Activity lifecycle
-
-        protected override void OnCreate(Bundle? savedInstanceState)
-        {
-            base.OnCreate(savedInstanceState);
-
-            Document.ContentScale = ApplicationContext?.Resources?.DisplayMetrics?.Density ?? 1f;
-
-            if (_canvasView != null)
-            {
-                _canvasView.PaintSurface -= OnCanvasRedrawRequested;
-                _canvasView.LayoutChange -= OnCanvasLayoutChange;
-
-                _canvasView.Touch -= OnTouchEvent;
+                return Window?.WindowManager?.CurrentWindowMetrics.Bounds.Width() ?? 0;
             }
 
-            RequestWindowFeature(WindowFeatures.NoTitle);
-            _canvasView = new SKCanvasView(ApplicationContext);
-            SetContentView(_canvasView);
+            DisplayMetrics metrics = new();
+            Window?.WindowManager?.DefaultDisplay?.GetMetrics(metrics);
+            return metrics.WidthPixels;
+        }
+    }
 
-            _canvasView.PaintSurface += OnCanvasRedrawRequested;
-            _canvasView.LayoutChange += OnCanvasLayoutChange;
-
-            _canvasView.Touch += OnTouchEvent;
-
-            _choreographer = Choreographer.Instance;
-            SetupCallbacks();
-
-            if (_isAlreadyCreated)
+    public int FramebufferHeight
+    {
+        get
+        {
+            if (OperatingSystem.IsAndroidVersionAtLeast(30))
             {
-                return;
+                return Window?.WindowManager?.CurrentWindowMetrics.Bounds.Height() ?? 0;
             }
 
+            DisplayMetrics metrics = new();
+            Window?.WindowManager?.DefaultDisplay?.GetMetrics(metrics);
+            return metrics.HeightPixels;
+        }
+    }
+
+    public UiDocument Document { get; }
+
+    public IGraphicsBackendInfo GraphicsBackendInfo { get; } = new AndroidGraphicsBackendInfo();
+
+    #endregion
+
+    public event WindowResizedEventHandler? ResizedEvent;
+    public event Action<double>? FrameUpdatedEvent;
+
+    private readonly List<Action<double>> _animationFrameCallbacks = [];
+    private Choreographer? _choreographer;
+    private readonly Stopwatch _stopwatch = new();
+    private bool _isAlreadyCreated;
+
+    private SKCanvasView? _canvasView;
+
+    public AndroidWindow()
+    {
+        WindowData data = new(this, this);
+        Document = new UiDocument(new Data.Size(0, 0));
+        Document.SetWindowData(data);
+        Document.SetAnimationFrameAdder(RequestAnimationFrame);
+
+        ResizedEvent += OnResize;
+    }
+
+    #region Activity lifecycle
+
+    protected override void OnCreate(Bundle? savedInstanceState)
+    {
+        base.OnCreate(savedInstanceState);
+
+        Document.ContentScale = ApplicationContext?.Resources?.DisplayMetrics?.Density ?? 1f;
+
+        if (_canvasView != null)
+        {
+            _canvasView.PaintSurface -= OnCanvasRedrawRequested;
+            _canvasView.LayoutChange -= OnCanvasLayoutChange;
+
+            _canvasView.Touch -= OnTouchEvent;
+        }
+
+        RequestWindowFeature(WindowFeatures.NoTitle);
+        _canvasView = new SKCanvasView(ApplicationContext);
+        SetContentView(_canvasView);
+
+        _canvasView.PaintSurface += OnCanvasRedrawRequested;
+        _canvasView.LayoutChange += OnCanvasLayoutChange;
+
+        _canvasView.Touch += OnTouchEvent;
+
+        _choreographer = Choreographer.Instance;
+        SetupCallbacks();
+
+        if (_isAlreadyCreated)
+        {
+            return;
+        }
+
+        DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);
+        _isAlreadyCreated = true;
+    }
+
+    protected override void OnStart()
+    {
+        base.OnStart();
+
+        //otherwise it means it is right before OnCreate; in that case we don't change the state
+        if (Document.CurrentAppState != UiDocument.AppState.Active)
+        {
+            DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
+        }
+    }
+
+    protected override void OnResume()
+    {
+        base.OnResume();
+
+        //otherwise it means it is right before OnCreate; in that case we don't change the state
+        if (Document.CurrentAppState != UiDocument.AppState.Active)
+        {
             DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);
-            _isAlreadyCreated = true;
         }
+    }
 
-        protected override void OnStart()
+    protected override void OnPause()
+    {
+        base.OnPause();
+        DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
+    }
+
+    protected override void OnStop()
+    {
+        base.OnStop();
+        DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        if (IsFinishing)
         {
-            base.OnStart();
-
-            //otherwise it means it is right before OnCreate; in that case we don't change the state
-            if (Document.CurrentAppState != UiDocument.AppState.Active)
+            if (Document.CurrentAppState == UiDocument.AppState.Active)
             {
                 DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
             }
-        }
 
-        protected override void OnResume()
-        {
-            base.OnResume();
-
-            //otherwise it means it is right before OnCreate; in that case we don't change the state
-            if (Document.CurrentAppState != UiDocument.AppState.Active)
+            if (Document.CurrentAppState == UiDocument.AppState.Inactive)
             {
-                DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);
-            }
-        }
-
-        protected override void OnPause()
-        {
-            base.OnPause();
-            DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
-        }
-
-        protected override void OnStop()
-        {
-            base.OnStop();
-            DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
-        }
-
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-
-            if (IsFinishing)
-            {
-                if (Document.CurrentAppState == UiDocument.AppState.Active)
-                {
-                    DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
-                }
-
-                if (Document.CurrentAppState == UiDocument.AppState.Inactive)
-                {
-                    DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
-                }
-
-                if (Document.CurrentAppState == UiDocument.AppState.Hidden)
-                {
-                    DocumentInvoke("WndSetAppState", UiDocument.AppState.Detached);
-                }
-
-                //remove all the elements from the document
-                Document.Root = null;
-            }
-        }
-
-        #endregion
-
-        #region Event handling
-
-        private void OnTouchEvent(object? sender, View.TouchEventArgs e)
-        {
-            if (e.Event == null)
-            {
-                return;
+                DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
             }
 
-            int pointerIndex = e.Event.ActionIndex;
-            int pointerId = e.Event.GetPointerId(pointerIndex);
-            MotionEventActions action = e.Event.ActionMasked;
-
-            switch (action)
+            if (Document.CurrentAppState == UiDocument.AppState.Hidden)
             {
-                case MotionEventActions.Down:
-                case MotionEventActions.PointerDown:
+                DocumentInvoke("WndSetAppState", UiDocument.AppState.Detached);
+            }
+
+            //remove all the elements from the document
+            Document.Root = null;
+        }
+    }
+
+    #endregion
+
+    #region Event handling
+
+    private void OnTouchEvent(object? sender, View.TouchEventArgs e)
+    {
+        if (e.Event == null)
+        {
+            return;
+        }
+
+        int pointerIndex = e.Event.ActionIndex;
+        int pointerId = e.Event.GetPointerId(pointerIndex);
+        MotionEventActions action = e.Event.ActionMasked;
+
+        switch (action)
+        {
+            case MotionEventActions.Down:
+            case MotionEventActions.PointerDown:
+                {
+                    MotionEvent.PointerCoords coords = new();
+                    e.Event.GetPointerCoords(pointerIndex, coords);
+                    Point2D pos = new(coords.X, coords.Y);
+                    //TODO: check if we should use a normalized pointerId, not the Android one (if the ID assignment
+                    //is too random
+                    DocumentInvoke(
+                        "WndAddOrUpdatePointer",
+                        new InputPointer(pos, false, pointerId, InputPointer.InputDeviceType.Touch));
+
+                    Document.SimulatePointerEnter(
+                        new PointerEnterEventArgs(pos, pos, false, pointerId));
+                    Document.SimulatePointerDown(
+                        new PointerDownEventArgs(pos, pos, pointerId));
+                    break;
+                }
+
+            case MotionEventActions.Move:
+                {
+                    //handle all batched events
+                    for (int i = 0; i < e.Event.HistorySize; i++)
                     {
-                        MotionEvent.PointerCoords coords = new();
-                        e.Event.GetPointerCoords(pointerIndex, coords);
-                        Point2D pos = new(coords.X, coords.Y);
-                        //TODO: check if we should use a normalized pointerId, not the Android one (if the ID assignment
-                        //is too random
-                        DocumentInvoke(
-                            "WndAddOrUpdatePointer",
-                            new InputPointer(pos, false, pointerId, InputPointer.InputDeviceType.Touch));
-
-                        Document.SimulatePointerEnter(
-                            new PointerEnterEventArgs(pos, pos, false, pointerId));
-                        Document.SimulatePointerDown(
-                            new PointerDownEventArgs(pos, pos, pointerId));
-                        break;
-                    }
-
-                case MotionEventActions.Move:
-                    {
-                        //handle all batched events
-                        for (int i = 0; i < e.Event.HistorySize; i++)
-                        {
-                            for (int ptr = 0; ptr < e.Event.PointerCount; ptr++)
-                            {
-                                int id = e.Event.GetPointerId(ptr);
-                                InputPointer? pointer = Document.GetActivePointerFromId(id);
-                                if (pointer == null)
-                                {
-                                    continue;
-                                }
-
-                                MotionEvent.PointerCoords coords = new();
-                                e.Event.GetHistoricalPointerCoords(ptr, i, coords);
-                                Point2D pos = new(coords.X, coords.Y);
-                                DocumentInvoke(
-                                    "WndAddOrUpdatePointer",
-                                    new InputPointer(
-                                        pos,
-                                        pointer.IsConsideredPressed,
-                                        pointer.PointerId,
-                                        pointer.DeviceType));
-
-                                Document.SimulatePointerMove(
-                                    new PointerMoveEventArgs(
-                                        pos,
-                                        pos,
-                                        pos.X - pointer.AbsolutePosition.X,
-                                        pos.Y - pointer.AbsolutePosition.Y,
-                                        true,
-                                        pointerId));
-                            }
-                        }
-
-                        //handle the latest one
                         for (int ptr = 0; ptr < e.Event.PointerCount; ptr++)
                         {
                             int id = e.Event.GetPointerId(ptr);
@@ -271,7 +239,7 @@ namespace CatUI.Windowing.Android
                             }
 
                             MotionEvent.PointerCoords coords = new();
-                            e.Event.GetPointerCoords(ptr, coords);
+                            e.Event.GetHistoricalPointerCoords(ptr, i, coords);
                             Point2D pos = new(coords.X, coords.Y);
                             DocumentInvoke(
                                 "WndAddOrUpdatePointer",
@@ -290,195 +258,226 @@ namespace CatUI.Windowing.Android
                                     true,
                                     pointerId));
                         }
-
-                        break;
                     }
 
-                case MotionEventActions.Up:
-                case MotionEventActions.PointerUp:
-                case MotionEventActions.Cancel:
+                    //handle the latest one
+                    for (int ptr = 0; ptr < e.Event.PointerCount; ptr++)
                     {
-                        InputPointer? pointer = Document.GetActivePointerFromId(pointerId);
+                        int id = e.Event.GetPointerId(ptr);
+                        InputPointer? pointer = Document.GetActivePointerFromId(id);
                         if (pointer == null)
                         {
-                            break;
+                            continue;
                         }
 
-                        Document.SimulatePointerUp(
-                            new PointerUpEventArgs(
-                                pointer.AbsolutePosition,
-                                pointer.AbsolutePosition,
-                                pointerId,
-                                action == MotionEventActions.Cancel));
-                        Document.SimulatePointerExit(
-                            new PointerExitEventArgs(
-                                pointer.AbsolutePosition,
-                                pointer.AbsolutePosition,
-                                false,
-                                pointerId));
+                        MotionEvent.PointerCoords coords = new();
+                        e.Event.GetPointerCoords(ptr, coords);
+                        Point2D pos = new(coords.X, coords.Y);
+                        DocumentInvoke(
+                            "WndAddOrUpdatePointer",
+                            new InputPointer(
+                                pos,
+                                pointer.IsConsideredPressed,
+                                pointer.PointerId,
+                                pointer.DeviceType));
 
-                        DocumentInvoke("WndRemovePointer", pointerId);
+                        Document.SimulatePointerMove(
+                            new PointerMoveEventArgs(
+                                pos,
+                                pos,
+                                pos.X - pointer.AbsolutePosition.X,
+                                pos.Y - pointer.AbsolutePosition.Y,
+                                true,
+                                pointerId));
+                    }
+
+                    break;
+                }
+
+            case MotionEventActions.Up:
+            case MotionEventActions.PointerUp:
+            case MotionEventActions.Cancel:
+                {
+                    InputPointer? pointer = Document.GetActivePointerFromId(pointerId);
+                    if (pointer == null)
+                    {
                         break;
                     }
-            }
-        }
 
-        //TODO: implement
-        //
-        // public override void OnConfigurationChanged(Configuration newConfig)
+                    Document.SimulatePointerUp(
+                        new PointerUpEventArgs(
+                            pointer.AbsolutePosition,
+                            pointer.AbsolutePosition,
+                            pointerId,
+                            action == MotionEventActions.Cancel));
+                    Document.SimulatePointerExit(
+                        new PointerExitEventArgs(
+                            pointer.AbsolutePosition,
+                            pointer.AbsolutePosition,
+                            false,
+                            pointerId));
+
+                    DocumentInvoke("WndRemovePointer", pointerId);
+                    break;
+                }
+        }
+    }
+
+    //TODO: implement
+    //
+    // public override void OnConfigurationChanged(Configuration newConfig)
+    // {
+    //     base.OnConfigurationChanged(newConfig);
+    //
+    //     //for size changes, we don't need to use this method as it's already handled by SkCanvasView
+    // }
+
+    #endregion
+
+    /// <inheritdoc cref="IApplicationWindow.Close"/>
+    /// <remarks>
+    /// This will immediately close the application (using Finish and then Environment.Exit(0)), so
+    /// running threads might not finish and be immediately destroyed. It is generally NOT recommended to close the
+    /// app this way on Android and iOS and instead let the platform figure out when to close the app. 
+    /// </remarks>
+    public void Close()
+    {
+        Finish();
+        Environment.Exit(0);
+    }
+
+    public void RequestAnimationFrame(Action<double> frameCallback)
+    {
+        _animationFrameCallbacks.Add(frameCallback);
+    }
+
+    public WindowIcon? GetWindowIcon()
+    {
+        //OR use GetApplicationIcon
+        // if (Intent == null)
         // {
-        //     base.OnConfigurationChanged(newConfig);
-        //
-        //     //for size changes, we don't need to use this method as it's already handled by SkCanvasView
+        //     return null;
         // }
+        //
+        // Drawable? androidIcon = PackageManager?.GetActivityIcon(Intent);
+        return null;
+    }
 
-        #endregion
+    private void SetupCallbacks()
+    {
+        _choreographer?.PostFrameCallback(new FrameCallback(this));
+    }
 
-        /// <inheritdoc cref="IApplicationWindow.Close"/>
-        /// <remarks>
-        /// This will immediately close the application (using Finish and then Environment.Exit(0)), so
-        /// running threads might not finish and be immediately destroyed. It is generally NOT recommended to close the
-        /// app this way on Android and iOS and instead let the platform figure out when to close the app. 
-        /// </remarks>
-        public void Close()
+    private void OnCanvasRedrawRequested(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        Document.Renderer.BeginDraw();
+        Document.Renderer.SetPlatformManagedData(e.Surface, e.Surface.Canvas);
+        DoFrameActions(_stopwatch.Elapsed.TotalSeconds);
+        Document.Renderer.EndDraw();
+
+        _stopwatch.Restart();
+    }
+
+    private void OnCanvasLayoutChange(object? sender, View.LayoutChangeEventArgs e)
+    {
+        int lastWidth = e.OldRight - e.OldLeft;
+        int lastHeight = e.OldBottom - e.OldTop;
+        int currentWidth = e.Right - e.Left;
+        int currentHeight = e.Bottom - e.Top;
+
+        if (currentWidth != lastWidth || currentHeight != lastHeight)
         {
-            Finish();
-            Environment.Exit(0);
+            ResizedEvent?.Invoke(this,
+                new WindowResizedEventArgs(lastWidth, lastHeight, currentWidth, currentHeight));
         }
+    }
 
-        public void RequestAnimationFrame(Action<double> frameCallback)
+    private void FullyRedraw()
+    {
+        Document.Renderer.ResetAndClear();
+        Document.DrawAllElements();
+        Document.Renderer.Flush();
+    }
+
+    private void DoFrameActions(double delta)
+    {
+        if (_animationFrameCallbacks.Count > 0)
         {
-            _animationFrameCallbacks.Add(frameCallback);
-        }
+            //if a callback registers another callback, this will effectively become an infinite loop,
+            //to prevent this, before executing all the callbacks, store their number
+            //and only execute that number of callbacks
+            int thisFrameCount = _animationFrameCallbacks.Count;
 
-        public WindowIcon? GetWindowIcon()
-        {
-            //OR use GetApplicationIcon
-            // if (Intent == null)
-            // {
-            //     return null;
-            // }
-            //
-            // Drawable? androidIcon = PackageManager?.GetActivityIcon(Intent);
-            return null;
-        }
-
-        private void SetupCallbacks()
-        {
-            _choreographer?.PostFrameCallback(new FrameCallback(this));
-        }
-
-        private void OnCanvasRedrawRequested(object? sender, SKPaintSurfaceEventArgs e)
-        {
-            Document.Renderer.BeginDraw();
-            Document.Renderer.SetPlatformManagedData(e.Surface, e.Surface.Canvas);
-            DoFrameActions(_stopwatch.Elapsed.TotalSeconds);
-            Document.Renderer.EndDraw();
-
-            _stopwatch.Restart();
-        }
-
-        private void OnCanvasLayoutChange(object? sender, View.LayoutChangeEventArgs e)
-        {
-            int lastWidth = e.OldRight - e.OldLeft;
-            int lastHeight = e.OldBottom - e.OldTop;
-            int currentWidth = e.Right - e.Left;
-            int currentHeight = e.Bottom - e.Top;
-
-            if (currentWidth != lastWidth || currentHeight != lastHeight)
+            for (int i = 0; i < thisFrameCount; i++)
             {
-                ResizedEvent?.Invoke(this,
-                    new WindowResizedEventArgs(lastWidth, lastHeight, currentWidth, currentHeight));
-            }
-        }
-
-        private void FullyRedraw()
-        {
-            Document.Renderer.ResetAndClear();
-            Document.DrawAllElements();
-            Document.Renderer.Flush();
-        }
-
-        private void DoFrameActions(double delta)
-        {
-            if (_animationFrameCallbacks.Count > 0)
-            {
-                //if a callback registers another callback, this will effectively become an infinite loop,
-                //to prevent this, before executing all the callbacks, store their number
-                //and only execute that number of callbacks
-                int thisFrameCount = _animationFrameCallbacks.Count;
-
-                for (int i = 0; i < thisFrameCount; i++)
-                {
-                    _animationFrameCallbacks[i].Invoke(delta);
-                }
-
-                _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
+                _animationFrameCallbacks[i].Invoke(delta);
             }
 
-            if (CatApplication.Instance.PlatformInformation != null &&
-                CatApplication.Instance.Dispatcher is AndroidDispatcher dispatcher)
-            {
-                dispatcher.CallActions();
-            }
-
-            if (Document.Renderer.IsCanvasDirty)
-            {
-                //we can only draw when the draw call is coming from OnCanvasRedrawRequested, so otherwise we request
-                //redrawing
-                if (Document.Renderer.CanDraw)
-                {
-                    FrameUpdatedEvent?.Invoke(delta);
-                    FullyRedraw();
-                    Document.Renderer.SkipCanvasPresentation();
-                }
-                else
-                {
-                    _canvasView?.Invalidate();
-                }
-            }
+            _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
         }
 
-        private void OnResize(object sender, WindowResizedEventArgs e)
+        if (CatApplication.Instance.PlatformInformation != null &&
+            CatApplication.Instance.Dispatcher is AndroidDispatcher dispatcher)
         {
-            DocumentInvoke("WndSetViewportSize", new Data.Size(e.NewWidth, e.NewHeight));
-            Document.Renderer.SetCanvasDirty();
+            dispatcher.CallActions();
         }
 
-        /// <summary>
-        /// Dangerously calls non-internal instance methods from <see cref="Document"/>. These are necessary to make
-        /// sure we don't have public access to those setters, only implementations of <see cref="IApplicationWindow"/>
-        /// should be allowed to modify those.
-        /// </summary>
-        /// <param name="methodName">The name of the method.</param>
-        /// <param name="args">The arguments to give.</param>
-        private void DocumentInvoke(string methodName, params object[] args)
+        if (Document.Renderer.IsCanvasDirty)
         {
-            MethodInfo? func = Document.GetType().GetMethod(
-                methodName, BindingFlags.NonPublic | BindingFlags.Instance);
-            if (func != null)
+            //we can only draw when the draw call is coming from OnCanvasRedrawRequested, so otherwise we request
+            //redrawing
+            if (Document.Renderer.CanDraw)
             {
-                func.Invoke(Document, args);
+                FrameUpdatedEvent?.Invoke(delta);
+                FullyRedraw();
+                Document.Renderer.SkipCanvasPresentation();
+            }
+            else
+            {
+                _canvasView?.Invalidate();
             }
         }
+    }
 
+    private void OnResize(object sender, WindowResizedEventArgs e)
+    {
+        DocumentInvoke("WndSetViewportSize", new Data.Size(e.NewWidth, e.NewHeight));
+        Document.Renderer.SetCanvasDirty();
+    }
 
-        internal class FrameCallback : Java.Lang.Object, Choreographer.IFrameCallback
+    /// <summary>
+    /// Dangerously calls non-internal instance methods from <see cref="Document"/>. These are necessary to make
+    /// sure we don't have public access to those setters, only implementations of <see cref="IApplicationWindow"/>
+    /// should be allowed to modify those.
+    /// </summary>
+    /// <param name="methodName">The name of the method.</param>
+    /// <param name="args">The arguments to give.</param>
+    private void DocumentInvoke(string methodName, params object[] args)
+    {
+        MethodInfo? func = Document.GetType().GetMethod(
+            methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+        if (func != null)
         {
-            private readonly AndroidWindow _window;
+            func.Invoke(Document, args);
+        }
+    }
 
-            internal FrameCallback(AndroidWindow window)
-            {
-                _window = window;
-            }
 
-            public void DoFrame(long currentTimestamp)
-            {
-                _window.DoFrameActions(_window._stopwatch.Elapsed.TotalSeconds);
-                _window._stopwatch.Restart();
-                //loop
-                _window._choreographer?.PostFrameCallback(this);
-            }
+    internal class FrameCallback : Java.Lang.Object, Choreographer.IFrameCallback
+    {
+        private readonly AndroidWindow _window;
+
+        internal FrameCallback(AndroidWindow window)
+        {
+            _window = window;
+        }
+
+        public void DoFrame(long currentTimestamp)
+        {
+            _window.DoFrameActions(_window._stopwatch.Elapsed.TotalSeconds);
+            _window._stopwatch.Restart();
+            //loop
+            _window._choreographer?.PostFrameCallback(this);
         }
     }
 }

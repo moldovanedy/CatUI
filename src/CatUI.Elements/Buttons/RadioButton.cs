@@ -11,314 +11,313 @@ using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 using CatUI.Utils;
 
-namespace CatUI.Elements.Buttons
+namespace CatUI.Elements.Buttons;
+
+public class RadioButton : BaseButton, IToggleable
 {
-    public class RadioButton : BaseButton, IToggleable
+    /// <inheritdoc cref="Element.Ref"/>
+    public new ObjectRef<RadioButton>? Ref
     {
-        /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<RadioButton>? Ref
+        get => _ref;
+        set
         {
-            get => _ref;
-            set
+            _ref = value;
+            if (_ref != null)
             {
-                _ref = value;
-                if (_ref != null)
-                {
-                    _ref.Value = this;
-                }
+                _ref.Value = this;
             }
         }
+    }
 
-        private ObjectRef<RadioButton>? _ref;
+    private ObjectRef<RadioButton>? _ref;
 
-        public bool Value
+    public bool Value
+    {
+        get => _value;
+        set => ValueProperty.Value = value;
+    }
+
+    private bool _value;
+
+    public ObservableProperty<bool> ValueProperty { get; } = new(false);
+
+    private void SetValue(bool value)
+    {
+        _value = value;
+        SetLocalValue(nameof(Value), value);
+        MarkLayoutDirty();
+    }
+
+    /// <summary>
+    /// Represents the spacing between <see cref="IndicatorElement"/> and <see cref="TextElement"/>.
+    /// </summary>
+    public Dimension Spacing
+    {
+        get => _spacing;
+        set => SpacingProperty.Value = value;
+    }
+
+    private Dimension _spacing = new();
+    public ObservableProperty<Dimension> SpacingProperty { get; } = new(new Dimension());
+
+    private void SetSpacing(Dimension value)
+    {
+        _spacing = value;
+        SetLocalValue(nameof(Spacing), value);
+        InternalRowContainer.Arrangement.Spacing = value;
+    }
+
+    /// <summary>
+    /// Represents the horizontal arrangement of the content. A value other than <see cref="LinearArrangement.JustificationType.Start"/>,
+    /// <see cref="LinearArrangement.JustificationType.Center"/> or <see cref="LinearArrangement.JustificationType.End"/>
+    /// will make <see cref="Spacing"/> irrelevant. By default, this is <see cref="LinearArrangement.JustificationType.Center"/>.
+    /// </summary>
+    public LinearArrangement.JustificationType HorizontalArrangement
+    {
+        get => _horizontalArrangement;
+        set => HorizontalArrangementProperty.Value = value;
+    }
+
+    private LinearArrangement.JustificationType _horizontalArrangement = LinearArrangement.JustificationType.Center;
+
+    public ObservableProperty<LinearArrangement.JustificationType> HorizontalArrangementProperty
+    {
+        get;
+    } = new(LinearArrangement.JustificationType.Center);
+
+    private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
+    {
+        _horizontalArrangement = value;
+        SetLocalValue(nameof(HorizontalArrangement), value);
+        InternalRowContainer.Arrangement.ContentJustification = value;
+    }
+
+    /// <summary>
+    /// Represents the vertical alignment of the content. By default, this is <see cref="VerticalAlignmentType.Center"/>.
+    /// </summary>
+    public VerticalAlignmentType VerticalAlignment
+    {
+        get => _verticalAlignment;
+        set => VerticalAlignmentProperty.Value = value;
+    }
+
+    private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Center;
+
+    public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
+        = new(VerticalAlignmentType.Center);
+
+    private void SetVerticalAlignment(VerticalAlignmentType value)
+    {
+        _verticalAlignment = value;
+        SetLocalValue(nameof(VerticalAlignment), value);
+        InternalRowContainer.VerticalAlignment = value;
+    }
+
+    /// <summary>
+    /// Represents the text content of the radio button. Contrary to the name, this can be any kind of element, but
+    /// it's much more common for it to be a <see cref="Label"/>.
+    /// </summary>
+    /// <remarks>
+    /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
+    /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
+    /// <see cref="InternalRowContainer"/>.
+    /// </remarks>
+    public Element? TextElement
+    {
+        get => _textElement;
+        set
         {
-            get => _value;
-            set => ValueProperty.Value = value;
-        }
-
-        private bool _value;
-
-        public ObservableProperty<bool> ValueProperty { get; } = new(false);
-
-        private void SetValue(bool value)
-        {
-            _value = value;
-            SetLocalValue(nameof(Value), value);
-            MarkLayoutDirty();
-        }
-
-        /// <summary>
-        /// Represents the spacing between <see cref="IndicatorElement"/> and <see cref="TextElement"/>.
-        /// </summary>
-        public Dimension Spacing
-        {
-            get => _spacing;
-            set => SpacingProperty.Value = value;
-        }
-
-        private Dimension _spacing = new();
-        public ObservableProperty<Dimension> SpacingProperty { get; } = new(new Dimension());
-
-        private void SetSpacing(Dimension value)
-        {
-            _spacing = value;
-            SetLocalValue(nameof(Spacing), value);
-            InternalRowContainer.Arrangement.Spacing = value;
-        }
-
-        /// <summary>
-        /// Represents the horizontal arrangement of the content. A value other than <see cref="LinearArrangement.JustificationType.Start"/>,
-        /// <see cref="LinearArrangement.JustificationType.Center"/> or <see cref="LinearArrangement.JustificationType.End"/>
-        /// will make <see cref="Spacing"/> irrelevant. By default, this is <see cref="LinearArrangement.JustificationType.Center"/>.
-        /// </summary>
-        public LinearArrangement.JustificationType HorizontalArrangement
-        {
-            get => _horizontalArrangement;
-            set => HorizontalArrangementProperty.Value = value;
-        }
-
-        private LinearArrangement.JustificationType _horizontalArrangement = LinearArrangement.JustificationType.Center;
-
-        public ObservableProperty<LinearArrangement.JustificationType> HorizontalArrangementProperty
-        {
-            get;
-        } = new(LinearArrangement.JustificationType.Center);
-
-        private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
-        {
-            _horizontalArrangement = value;
-            SetLocalValue(nameof(HorizontalArrangement), value);
-            InternalRowContainer.Arrangement.ContentJustification = value;
-        }
-
-        /// <summary>
-        /// Represents the vertical alignment of the content. By default, this is <see cref="VerticalAlignmentType.Center"/>.
-        /// </summary>
-        public VerticalAlignmentType VerticalAlignment
-        {
-            get => _verticalAlignment;
-            set => VerticalAlignmentProperty.Value = value;
-        }
-
-        private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Center;
-
-        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
-            = new(VerticalAlignmentType.Center);
-
-        private void SetVerticalAlignment(VerticalAlignmentType value)
-        {
-            _verticalAlignment = value;
-            SetLocalValue(nameof(VerticalAlignment), value);
-            InternalRowContainer.VerticalAlignment = value;
-        }
-
-        /// <summary>
-        /// Represents the text content of the radio button. Contrary to the name, this can be any kind of element, but
-        /// it's much more common for it to be a <see cref="Label"/>.
-        /// </summary>
-        /// <remarks>
-        /// In order to see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
-        /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
-        /// <see cref="InternalRowContainer"/>.
-        /// </remarks>
-        public Element? TextElement
-        {
-            get => _textElement;
-            set
+            if (_textElement == null)
             {
-                if (_textElement == null)
-                {
-                    _textElement = value;
-                    if (value != null)
-                    {
-                        InternalRowContainer.Children.Add(value);
-                    }
-
-                    return;
-                }
-
-                if (value == null)
-                {
-                    InternalRowContainer.Children.Remove(_textElement);
-                    _textElement = null;
-                    return;
-                }
-
                 _textElement = value;
-                InternalRowContainer.Children[1] = value;
-            }
-        }
-
-        private Element? _textElement;
-
-        /// <summary>
-        /// The actual visual indicator element (commonly a box with a check mark inside it). This cannot be null.
-        /// It always has to be present in the hierarchy.
-        /// </summary>
-        public IfElement IndicatorElement
-        {
-            get => _indicatorElement;
-            set
-            {
-                _indicatorElement = value;
-                InternalRowContainer.Children[0] = value;
-                //bind the indicator to the radio button value
-                value.Condition.BindBidirectional(ValueProperty);
-            }
-        }
-
-        private IfElement _indicatorElement = null!;
-
-        /// <summary>
-        /// Gives direct access to the button's <see cref="RowContainer"/>, which holds <see cref="TextElement"/> and
-        /// <see cref="IndicatorElement"/>. You should generally not modify this and certainly not remove it from the document,
-        /// but you have access to it just in case you need it.
-        /// </summary>
-        /// <remarks>
-        /// Modifying properties here directly will not reflect in some properties of the RadioButton like
-        /// <see cref="HorizontalArrangement"/>, that's why you should always use the RadioButton properties instead of
-        /// manually modifying this RowContainer where possible.
-        /// </remarks>
-        public RowContainer InternalRowContainer { get; private set; }
-
-        private readonly IfElement _defaultIndicatorElement =
-            new(
-                new ObservableProperty<bool>(false),
-                new EllipseElement(outlineBrush: new ColorBrush(new Color(0)))
+                if (value != null)
                 {
-                    StyleClass = "RadioButton::Indicator::Active::Outer",
-                    Position = new Dimension2(1, 1),
-                    Layout = new ElementLayout().SetFixedWidth(18).SetFixedHeight(18),
-                    OutlineParameters = new OutlineParams(2f),
-                    ClipType = ClipApplicability.HitTesting,
-                    Children =
-                    [
-                        new EllipseElement(new ColorBrush(new Color(0x00_80_ff)))
-                        {
-                            StyleClass = "RadioButton::Indicator::Active::Inner",
-                            Position = new Dimension2(2, 2),
-                            Layout = new ElementLayout().SetFixedWidth(14).SetFixedHeight(14),
-                            ClipType = ClipApplicability.HitTesting
-                        }
-                    ]
-                },
-                new EllipseElement(outlineBrush: new ColorBrush(new Color(0)))
-                {
-                    StyleClass = "RadioButton::Indicator::Inactive::Outer",
-                    Position = new Dimension2(1, 1),
-                    Layout = new ElementLayout().SetFixedWidth(18).SetFixedHeight(18),
-                    OutlineParameters = new OutlineParams(2f),
-                    ClipType = ClipApplicability.HitTesting
+                    InternalRowContainer.Children.Add(value);
                 }
-            ) { Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20) };
 
-        /// <summary>
-        /// The base constructor. Will create a new radio button given an Element as <see cref="TextElement"/> and
-        /// a generic Element as the <see cref="IndicatorElement"/>. If indicatorElement is not given, it will be a
-        /// default element.
-        /// </summary>
-        /// <param name="initialValue"></param>
-        /// <param name="textElement">The value of <see cref="TextElement"/>.</param>
-        /// <param name="indicatorElement">
-        /// The value of <see cref="IndicatorElement"/>, will be a default element if omitted.
-        /// </param>
-        public RadioButton(
-            bool initialValue,
-            Element textElement,
-            IfElement? indicatorElement = null)
-        {
-            //silence compiler
-            InternalRowContainer = null!;
+                return;
+            }
 
-            Init(initialValue, textElement, indicatorElement);
-        }
-
-        /// <summary>
-        /// Creates a new radio button with <see cref="TextElement"/> as a new <see cref="Label"/> with the given
-        /// properties.
-        /// </summary>
-        /// <param name="initialValue">The initial value of the radio button.</param>
-        /// <param name="text">
-        /// The text that a <see cref="Label"/> will have when set as the value of <see cref="TextElement"/>.
-        /// </param>
-        /// <param name="fontSize">The value of <see cref="Text.TextElement.FontSize"/>.</param>
-        /// <param name="textBrush">The value of <see cref="Label.TextBrush"/>.</param>
-        public RadioButton(
-            bool initialValue,
-            string text,
-            Dimension? fontSize = null,
-            ColorBrush? textBrush = null) :
-            this(
-                initialValue,
-                new Label(text, TextAlignmentType.Center)
-                {
-                    StyleClass = "RadioButton::TextElement",
-                    FontSize = fontSize ?? "1em",
-                    TextBrush = textBrush ?? new ColorBrush(new Color(0)),
-                    Layout =
-                        new ElementLayout()
-                            .SetMinMaxAndPreferredHeight(0, 0, "100%")
-                            .SetMinMaxAndPreferredWidth("100%", 0, "100%"),
-                    ElementContainerSizing = new RowContainerSizing(1f, VerticalAlignmentType.Center)
-                }
-            )
-        {
-        }
-
-        public RadioButton(RadioButton other) : base(other)
-        {
-            //silence compiler
-            InternalRowContainer = null!;
-
-            Init(other.Value, other.TextElement?.Duplicate() ?? new Label(), other.IndicatorElement.Duplicate());
-            Spacing = other.Spacing;
-            HorizontalArrangement = other.HorizontalArrangement;
-            VerticalAlignment = other.VerticalAlignment;
-        }
-
-        public override RadioButton Duplicate()
-        {
-            var el = new RadioButton(this);
-            DuplicateChildrenUtil(el);
-            return el;
-        }
-
-        private void Init(
-            bool initialValue,
-            Element textElement,
-            IfElement? indicatorElement = null)
-        {
-            ClickEvent += PrivateOnClick;
-
-            ValueProperty.ValueChangedEvent += SetValue;
-            SpacingProperty.ValueChangedEvent += SetSpacing;
-            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
-            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
-
-            InternalRowContainer = new RowContainer
+            if (value == null)
             {
-                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
-                Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
-                VerticalAlignment = VerticalAlignmentType.Center,
-                //we need to have at least one child, as IndicatorElement will access index 0 (this will be replaced
-                //when IndicatorElement are set, immediately in this constructor)
-                Children = [new Element()]
-            };
+                InternalRowContainer.Children.Remove(_textElement);
+                _textElement = null;
+                return;
+            }
 
-            InternalRowContainer.VerticalAlignmentProperty.BindBidirectional(VerticalAlignmentProperty);
-            Children.Add(InternalRowContainer);
-
-            indicatorElement ??= _defaultIndicatorElement;
-            IndicatorElement = indicatorElement;
-
-            TextElement = textElement;
-            Value = initialValue;
+            _textElement = value;
+            InternalRowContainer.Children[1] = value;
         }
+    }
 
-        private void PrivateOnClick(object sender, ClickEventArgs e)
+    private Element? _textElement;
+
+    /// <summary>
+    /// The actual visual indicator element (commonly a box with a check mark inside it). This cannot be null.
+    /// It always has to be present in the hierarchy.
+    /// </summary>
+    public IfElement IndicatorElement
+    {
+        get => _indicatorElement;
+        set
         {
-            Value = !Value;
+            _indicatorElement = value;
+            InternalRowContainer.Children[0] = value;
+            //bind the indicator to the radio button value
+            value.Condition.BindBidirectional(ValueProperty);
         }
+    }
+
+    private IfElement _indicatorElement = null!;
+
+    /// <summary>
+    /// Gives direct access to the button's <see cref="RowContainer"/>, which holds <see cref="TextElement"/> and
+    /// <see cref="IndicatorElement"/>. You should generally not modify this and certainly not remove it from the document,
+    /// but you have access to it just in case you need it.
+    /// </summary>
+    /// <remarks>
+    /// Modifying properties here directly will not reflect in some properties of the RadioButton like
+    /// <see cref="HorizontalArrangement"/>, that's why you should always use the RadioButton properties instead of
+    /// manually modifying this RowContainer where possible.
+    /// </remarks>
+    public RowContainer InternalRowContainer { get; private set; }
+
+    private readonly IfElement _defaultIndicatorElement =
+        new(
+            new ObservableProperty<bool>(false),
+            new EllipseElement(outlineBrush: new ColorBrush(new Color(0)))
+            {
+                StyleClass = "RadioButton::Indicator::Active::Outer",
+                Position = new Dimension2(1, 1),
+                Layout = new ElementLayout().SetFixedWidth(18).SetFixedHeight(18),
+                OutlineParameters = new OutlineParams(2f),
+                ClipType = ClipApplicability.HitTesting,
+                Children =
+                [
+                    new EllipseElement(new ColorBrush(new Color(0x00_80_ff)))
+                    {
+                        StyleClass = "RadioButton::Indicator::Active::Inner",
+                        Position = new Dimension2(2, 2),
+                        Layout = new ElementLayout().SetFixedWidth(14).SetFixedHeight(14),
+                        ClipType = ClipApplicability.HitTesting
+                    }
+                ]
+            },
+            new EllipseElement(outlineBrush: new ColorBrush(new Color(0)))
+            {
+                StyleClass = "RadioButton::Indicator::Inactive::Outer",
+                Position = new Dimension2(1, 1),
+                Layout = new ElementLayout().SetFixedWidth(18).SetFixedHeight(18),
+                OutlineParameters = new OutlineParams(2f),
+                ClipType = ClipApplicability.HitTesting
+            }
+        ) { Layout = new ElementLayout().SetFixedWidth(20).SetFixedHeight(20) };
+
+    /// <summary>
+    /// The base constructor. Will create a new radio button given an Element as <see cref="TextElement"/> and
+    /// a generic Element as the <see cref="IndicatorElement"/>. If indicatorElement is not given, it will be a
+    /// default element.
+    /// </summary>
+    /// <param name="initialValue"></param>
+    /// <param name="textElement">The value of <see cref="TextElement"/>.</param>
+    /// <param name="indicatorElement">
+    /// The value of <see cref="IndicatorElement"/>, will be a default element if omitted.
+    /// </param>
+    public RadioButton(
+        bool initialValue,
+        Element textElement,
+        IfElement? indicatorElement = null)
+    {
+        //silence compiler
+        InternalRowContainer = null!;
+
+        Init(initialValue, textElement, indicatorElement);
+    }
+
+    /// <summary>
+    /// Creates a new radio button with <see cref="TextElement"/> as a new <see cref="Label"/> with the given
+    /// properties.
+    /// </summary>
+    /// <param name="initialValue">The initial value of the radio button.</param>
+    /// <param name="text">
+    /// The text that a <see cref="Label"/> will have when set as the value of <see cref="TextElement"/>.
+    /// </param>
+    /// <param name="fontSize">The value of <see cref="Text.TextElement.FontSize"/>.</param>
+    /// <param name="textBrush">The value of <see cref="Label.TextBrush"/>.</param>
+    public RadioButton(
+        bool initialValue,
+        string text,
+        Dimension? fontSize = null,
+        ColorBrush? textBrush = null) :
+        this(
+            initialValue,
+            new Label(text, TextAlignmentType.Center)
+            {
+                StyleClass = "RadioButton::TextElement",
+                FontSize = fontSize ?? "1em",
+                TextBrush = textBrush ?? new ColorBrush(new Color(0)),
+                Layout =
+                    new ElementLayout()
+                        .SetMinMaxAndPreferredHeight(0, 0, "100%")
+                        .SetMinMaxAndPreferredWidth("100%", 0, "100%"),
+                ElementContainerSizing = new RowContainerSizing(1f, VerticalAlignmentType.Center)
+            }
+        )
+    {
+    }
+
+    public RadioButton(RadioButton other) : base(other)
+    {
+        //silence compiler
+        InternalRowContainer = null!;
+
+        Init(other.Value, other.TextElement?.Duplicate() ?? new Label(), other.IndicatorElement.Duplicate());
+        Spacing = other.Spacing;
+        HorizontalArrangement = other.HorizontalArrangement;
+        VerticalAlignment = other.VerticalAlignment;
+    }
+
+    public override RadioButton Duplicate()
+    {
+        var el = new RadioButton(this);
+        DuplicateChildrenUtil(el);
+        return el;
+    }
+
+    private void Init(
+        bool initialValue,
+        Element textElement,
+        IfElement? indicatorElement = null)
+    {
+        ClickEvent += PrivateOnClick;
+
+        ValueProperty.ValueChangedEvent += SetValue;
+        SpacingProperty.ValueChangedEvent += SetSpacing;
+        HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
+        VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+
+        InternalRowContainer = new RowContainer
+        {
+            Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
+            Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
+            VerticalAlignment = VerticalAlignmentType.Center,
+            //we need to have at least one child, as IndicatorElement will access index 0 (this will be replaced
+            //when IndicatorElement are set, immediately in this constructor)
+            Children = [new Element()]
+        };
+
+        InternalRowContainer.VerticalAlignmentProperty.BindBidirectional(VerticalAlignmentProperty);
+        Children.Add(InternalRowContainer);
+
+        indicatorElement ??= _defaultIndicatorElement;
+        IndicatorElement = indicatorElement;
+
+        TextElement = textElement;
+        Value = initialValue;
+    }
+
+    private void PrivateOnClick(object sender, ClickEventArgs e)
+    {
+        Value = !Value;
     }
 }

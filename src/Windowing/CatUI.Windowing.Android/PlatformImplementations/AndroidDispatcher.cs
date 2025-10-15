@@ -1,12 +1,11 @@
 using CatUI.Platform.Essentials;
 
-namespace CatUI.Windowing.Android.PlatformImplementations
+namespace CatUI.Windowing.Android.PlatformImplementations;
+
+public class AndroidDispatcher : DispatcherBase
 {
-    public class AndroidDispatcher : DispatcherBase
+    internal void CallActions()
     {
-        internal void CallActions()
-        {
-            CallOnUIThread();
-        }
+        CallOnUIThread();
     }
 }

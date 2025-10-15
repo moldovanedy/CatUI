@@ -2,16 +2,15 @@ using CatUI.Data;
 using CatUI.Platform;
 using CatUI.Windowing.Android.PlatformImplementations;
 
-namespace CatUI.Windowing.Android
+namespace CatUI.Windowing.Android;
+
+public class AndroidPlatformInfo : PlatformInfo
 {
-    public class AndroidPlatformInfo : PlatformInfo
-    {
-        public override CatApplicationInitializer AppInitializer => new(
-            new AndroidDispatcher(),
-            new AndroidPlatformUiOptions(),
-            () =>
-            {
-                OS.Init();
-            });
-    }
+    public override CatApplicationInitializer AppInitializer => new(
+        new AndroidDispatcher(),
+        new AndroidPlatformUiOptions(),
+        () =>
+        {
+            OS.Init();
+        });
 }

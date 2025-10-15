@@ -17,870 +17,481 @@ using CatUI.Windowing.DesktopApp.PlatformImplementations;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
-namespace CatUI.Windowing.DesktopApp
+namespace CatUI.Windowing.DesktopApp;
+
+/// <summary>
+/// Represents a window on a desktop platform. On desktop, your app can create multiple windows and can generally
+/// set their size, position on the display etc.
+/// </summary>
+public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycle
 {
     /// <summary>
-    /// Represents a window on a desktop platform. On desktop, your app can create multiple windows and can generally
-    /// set their size, position on the display etc.
+    /// Represents the window's document. All elements that will appear on this window must be part of this document.
     /// </summary>
-    public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycle
+    public UiDocument Document { get; }
+
+    /// <remarks>
+    /// Before calling <see cref="Open"/>, this will be a <see cref="SoftwareGraphicsBackendInfo"/> regardless of
+    /// the actual backend that will be used.
+    /// </remarks>
+    public IGraphicsBackendInfo GraphicsBackendInfo { get; private set; } = new SoftwareGraphicsBackendInfo();
+
+    /// <summary>
+    /// Represents the pointer to the GLFW window representation. Use this if you want to implement something using
+    /// GLFW (this is GLFWWindow*). This is only usable inside unsafe code.
+    /// </summary>
+    internal Window* GlfwWindow { get; private set; }
+
+    internal IGraphicsBackend? GraphicsBackend { get; private set; }
+
+    private bool _shouldCloseWindow;
+    private readonly WindowFlags _flags;
+
+    private GLFWCallbacks.WindowSizeCallback? _resizeCallback;
+    private GLFWCallbacks.WindowContentScaleCallback? _contentScaleCallback;
+    private GLFWCallbacks.WindowIconifyCallback? _iconifyCallback;
+    private GLFWCallbacks.WindowMaximizeCallback? _maximizeCallback;
+    private GLFWCallbacks.WindowFocusCallback? _focusCallback;
+    private GLFWCallbacks.WindowRefreshCallback? _refreshCallback;
+
+    private GLFWCallbacks.CursorPosCallback? _cursorMoveCallback;
+    private GLFWCallbacks.CursorEnterCallback? _cursorEnterOrExitCallback;
+    private GLFWCallbacks.MouseButtonCallback? _mouseButtonCallback;
+    private GLFWCallbacks.ScrollCallback? _mouseScrollCallback;
+
+    private GLFWCallbacks.KeyCallback? _keyCallback;
+    private GLFWCallbacks.CharCallback? _charCallback;
+
+    private float _lastMouseX;
+    private float _lastMouseY;
+    private bool _canInvokeMaximize = true;
+
+    #region Properties
+
+    /// <summary>
+    /// Represents the window's width in desktop coordinates (meaning it is scaled with the platform's display scale,
+    /// unless you didn't set <see cref="WindowFlags.DpiAware"/>, in which case all coordinates are physical pixels).
+    /// Setting this will resize the window to that value, but will be restricted to <see cref="MaxWidth"/> and
+    /// <see cref="MinWidth"/>. If you want the physical pixel width, see <see cref="FramebufferWidth"/>.
+    /// </summary>
+    /// <remarks>
+    /// When the <see cref="CurrentWindowMode"/> is <see cref="WindowMode.ExclusiveFullscreen"/>, this is not reliable
+    /// (if the window was in other mode before, this will be the width from that mode). When it's
+    /// <see cref="WindowMode.Fullscreen"/>, it is the display's width. This does NOT take into account the window
+    /// decorations.
+    /// </remarks>
+    public int Width
+    {
+        get => _width;
+        set
+        {
+            if (GlfwWindow != null)
+            {
+                GLFW.SetWindowSize(GlfwWindow, value, _height);
+            }
+
+            _width = value;
+        }
+    }
+
+    private int _width;
+
+    /// <summary>
+    /// Represents the window's height in desktop coordinates (meaning it is scaled with the platform's display scale,
+    /// unless you didn't set <see cref="WindowFlags.DpiAware"/>, in which case all coordinates are physical pixels).
+    /// Setting this will resize the window to that value, but will be restricted to <see cref="MaxHeight"/> and
+    /// <see cref="MinHeight"/>. If you want the physical pixel height, see <see cref="FramebufferHeight"/>.
+    /// </summary>
+    /// <remarks>
+    /// When the <see cref="CurrentWindowMode"/> is <see cref="WindowMode.ExclusiveFullscreen"/>, this is not reliable
+    /// (if the window was in other mode before, this will be the height from that mode). When it's
+    /// <see cref="WindowMode.Fullscreen"/>, it is the display's height. This does NOT take into account the window
+    /// decorations.
+    /// </remarks>
+    public int Height
+    {
+        get => _height;
+        set
+        {
+            if (GlfwWindow != null)
+            {
+                GLFW.SetWindowSize(GlfwWindow, _width, value);
+            }
+
+            _height = value;
+        }
+    }
+
+    private int _height;
+
+    /// <summary>
+    /// Represents the physical pixel width, meaning that this value is not scaled with the platform's display
+    /// scaling. This does NOT take into account the window decorations.
+    /// </summary>
+    public int FramebufferWidth
+    {
+        get
+        {
+            if (GlfwWindow == null)
+            {
+                return 0;
+            }
+
+            GLFW.GetFramebufferSize(GlfwWindow, out int width, out _);
+            return width;
+        }
+    }
+
+    /// <summary>
+    /// Represents the physical pixel height, meaning that this value is not scaled with the platform's display
+    /// scaling. This does NOT take into account the window decorations.
+    /// </summary>
+    public int FramebufferHeight
+    {
+        get
+        {
+            if (GlfwWindow == null)
+            {
+                return 0;
+            }
+
+            GLFW.GetFramebufferSize(GlfwWindow, out _, out int height);
+            return height;
+        }
+    }
+
+    /// <summary>
+    /// If true, it means that the <see cref="WindowFlags.DpiAware"/> was set.
+    /// </summary>
+    public bool IsDpiAware => (_flags & WindowFlags.DpiAware) != 0;
+
+
+    /// <summary>
+    /// It represents the minimum width that the window can have, either resized by the user or by your code.
+    /// Like <see cref="Width"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
+    /// If the current width is smaller than the given value, the window will be resized. This does NOT take into
+    /// account the window decorations.
+    /// </summary>
+    public int MinWidth
+    {
+        get => _minWidth;
+        set
+        {
+            if (GlfwWindow != null)
+            {
+                GLFW.SetWindowSizeLimits(GlfwWindow, value, _minHeight, _maxWidth, _maxHeight);
+            }
+
+            _minWidth = value;
+        }
+    }
+
+    private int _minWidth;
+
+    /// <summary>
+    /// It represents the minimum height that the window can have, either resized by the user or by your code.
+    /// Like <see cref="Height"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
+    /// If the current height is smaller than the given value, the window will be resized. This does NOT take into
+    /// account the window decorations.
+    /// </summary>
+    public int MinHeight
+    {
+        get => _minHeight;
+        set
+        {
+            if (GlfwWindow != null)
+            {
+                GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, value, _maxWidth, _maxHeight);
+            }
+
+            _minHeight = value;
+        }
+    }
+
+    private int _minHeight;
+
+    /// <summary>
+    /// It represents the maximum width that the window can have, either resized by the user or by your code.
+    /// Like <see cref="Width"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
+    /// If the current width is larger than the given value, the window will be resized. This does NOT take into
+    /// account the window decorations.
+    /// </summary>
+    public int MaxWidth
+    {
+        get => _maxWidth;
+        set
+        {
+            if (GlfwWindow != null)
+            {
+                GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, value, _maxHeight);
+            }
+
+            _maxWidth = value;
+        }
+    }
+
+    private int _maxWidth;
+
+    /// <summary>
+    /// It represents the maximum height that the window can have, either resized by the user or by your code.
+    /// Like <see cref="Height"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
+    /// If the current height is larger than the given value, the window will be resized. This does NOT take into
+    /// account the window decorations.
+    /// </summary>
+    public int MaxHeight
+    {
+        get => _maxHeight;
+        set
+        {
+            if (GlfwWindow != null)
+            {
+                GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxHeight, value);
+            }
+
+            _maxHeight = value;
+        }
+    }
+
+    private int _maxHeight;
+
+    /// <summary>
+    /// Represents the window title.
+    /// </summary>
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            _title = value;
+            if (GlfwWindow != null)
+            {
+                GLFW.SetWindowTitle(GlfwWindow, _title);
+            }
+        }
+    }
+
+    private string _title;
+
+    /// <summary>
+    /// Represents the current window mode. To set it, see <see cref="SetWindowMode"/>.
+    /// </summary>
+    public WindowMode CurrentWindowMode { get; private set; }
+
+    /// <summary>
+    /// Represents the window mode last set by you in <see cref="SetWindowMode"/> or at window creation.
+    /// </summary>
+    public WindowMode LastSetWindowMode { get; private set; }
+
+    /// <summary>
+    /// <para>
+    /// This is the maximum number of frames per second the application is allowed to run. Lower values (like 30) 
+    /// will make the application use less resources but will have some "lag", as the visuals will look more sluggish.
+    /// Higher values will reduce visual "lag", but will utilize more CPU and GPU, thus potentially making the system slower.
+    /// The default value is -1, which means this is ignored, and the <see cref="SwapInterval"/> will be respected.
+    /// </para>
+    /// <para>
+    /// Unless you have a good reason, you should always use <see cref="SwapInterval"/> instead of this, because this
+    /// property achieves the lower FPS by introducing artificial delays (with Thread.Sleep) which will block the
+    /// main thread for some time. <see cref="SwapInterval"/> uses the OS facilities to reduce the FPS, which is much better.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// It is NOT guaranteed that this FPS will be reached, as this depends on both the client's hardware and
+    /// on your code for creating the UI.
+    /// </para>
+    /// <para>
+    /// At any given moment, only one of <see cref="MaxFps"/> and <see cref="SwapInterval"/> will be respected,
+    /// this will be respected if and only if <see cref="SwapInterval"/> is set to -1.
+    /// </para>
+    /// </remarks>
+    public int MaxFps { get; set; } = -1;
+
+    /// <summary>
+    /// <para>
+    /// It specifies the number of display vertical "blanks" to wait for until rendering the next frame.
+    /// The default value is 1 and is essentially V-Sync enabled, which is the best setting for most apps.
+    /// A value of 0 means that the app will try to render the frames as fast as possible (when there are changes, of course),
+    /// which might cause "screen tearing".
+    /// </para>
+    /// <para>
+    /// It is highly recommended to use this instead of <see cref="MaxFps"/> because it uses the OS mechanisms for
+    /// achieving a lower frame rate (to reduce power consumption). A value over 1 effectively means the display
+    /// frame rate divided by this value (so for a 60 Hz display a value of 2 means 30 FPS, 4 means 15 FPS etc.).
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// It is NOT guaranteed that this setting will be respected, because it is entirely dependent on the
+    /// client's hardware and drivers for the GPU.
+    /// </para>
+    /// <para>
+    /// At any given moment, only one of <see cref="MaxFps"/> and <see cref="SwapInterval"/> will be respected,
+    /// this has precedence over <see cref="MaxFps"/> and will be respected regardless of <see cref="MaxFps"/>
+    /// unless this is -1.
+    /// </para>
+    /// </remarks>
+    public int SwapInterval
+    {
+        get => _swapInterval;
+        set
+        {
+            _swapInterval = value;
+            GLFW.SwapInterval(_swapInterval);
+        }
+    }
+
+    private int _swapInterval = 1;
+
+    #endregion
+
+    #region Events
+
+    /// <summary>
+    /// Fired when the window is resized, either by the user, by the platform, or by your code.
+    /// </summary>
+    public event WindowResizedEventHandler? ResizedEvent;
+
+    /// <summary>
+    /// Fired when the window mode (i.e. windowed, maximized, minimized, or full-screen) is changed either by the user,
+    /// by the platform, or by your code. To enter full-screen (simple or exclusive), only your code can trigger this
+    /// event by calling <see cref="SetWindowMode"/>.
+    /// </summary>
+    public event WindowModeChangedEventHandler? WindowModeChangedEvent;
+
+    #endregion
+
+    /// <summary>
+    /// Represents the window startup flags. These are a bitmap that must be set in the constructor, before the call
+    /// to <see cref="DesktopWindow.Open"/> and can not be modified afterward, however some properties (like
+    /// the window visibility controlled by <see cref="Visible"/> here) can still be controlled by code.
+    /// </summary>
+    [Flags]
+    public enum WindowFlags
     {
         /// <summary>
-        /// Represents the window's document. All elements that will appear on this window must be part of this document.
+        /// Represents the default value for the flags (<see cref="Resizable"/>, <see cref="Visible"/>,
+        /// <see cref="Decorated"/>, <see cref="DpiAware"/> and <see cref="Focused"/>).
         /// </summary>
-        public UiDocument Document { get; }
-
-        /// <remarks>
-        /// Before calling <see cref="Open"/>, this will be a <see cref="SoftwareGraphicsBackendInfo"/> regardless of
-        /// the actual backend that will be used.
-        /// </remarks>
-        public IGraphicsBackendInfo GraphicsBackendInfo { get; private set; } = new SoftwareGraphicsBackendInfo();
+        Default = 0b11111,
 
         /// <summary>
-        /// Represents the pointer to the GLFW window representation. Use this if you want to implement something using
-        /// GLFW (this is GLFWWindow*). This is only usable inside unsafe code.
+        /// Indicates that the window is resizable by the user. Even if this is unset, you can generally set the
+        /// size from code using <see cref="DesktopWindow.Width"/> and <see cref="DesktopWindow.Height"/>.
         /// </summary>
-        internal Window* GlfwWindow { get; private set; }
-
-        internal IGraphicsBackend? GraphicsBackend { get; private set; }
-
-        private bool _shouldCloseWindow;
-        private readonly WindowFlags _flags;
-
-        private GLFWCallbacks.WindowSizeCallback? _resizeCallback;
-        private GLFWCallbacks.WindowContentScaleCallback? _contentScaleCallback;
-        private GLFWCallbacks.WindowIconifyCallback? _iconifyCallback;
-        private GLFWCallbacks.WindowMaximizeCallback? _maximizeCallback;
-        private GLFWCallbacks.WindowFocusCallback? _focusCallback;
-        private GLFWCallbacks.WindowRefreshCallback? _refreshCallback;
-
-        private GLFWCallbacks.CursorPosCallback? _cursorMoveCallback;
-        private GLFWCallbacks.CursorEnterCallback? _cursorEnterOrExitCallback;
-        private GLFWCallbacks.MouseButtonCallback? _mouseButtonCallback;
-        private GLFWCallbacks.ScrollCallback? _mouseScrollCallback;
-
-        private GLFWCallbacks.KeyCallback? _keyCallback;
-        private GLFWCallbacks.CharCallback? _charCallback;
-
-        private float _lastMouseX;
-        private float _lastMouseY;
-        private bool _canInvokeMaximize = true;
-
-        #region Properties
+        Resizable = 1,
 
         /// <summary>
-        /// Represents the window's width in desktop coordinates (meaning it is scaled with the platform's display scale,
-        /// unless you didn't set <see cref="WindowFlags.DpiAware"/>, in which case all coordinates are physical pixels).
-        /// Setting this will resize the window to that value, but will be restricted to <see cref="MaxWidth"/> and
-        /// <see cref="MinWidth"/>. If you want the physical pixel width, see <see cref="FramebufferWidth"/>.
+        /// Sets the window to be visible. Otherwise, it will be hidden.
         /// </summary>
-        /// <remarks>
-        /// When the <see cref="CurrentWindowMode"/> is <see cref="WindowMode.ExclusiveFullscreen"/>, this is not reliable
-        /// (if the window was in other mode before, this will be the width from that mode). When it's
-        /// <see cref="WindowMode.Fullscreen"/>, it is the display's width. This does NOT take into account the window
-        /// decorations.
-        /// </remarks>
-        public int Width
+        Visible = 2,
+
+        /// <summary>
+        /// Makes the window have the platform's decorations like borders, the title bar, and the control buttons. 
+        /// </summary>
+        Decorated = 4,
+
+        /// <summary>
+        /// Indicates that the window's scale will be automatically controlled by CatUI and will correspond to
+        /// the platform preferences. It is highly recommended to set this flag. It is enabled by default.
+        /// </summary>
+        DpiAware = 8,
+
+        /// <summary>
+        /// Focuses the window so that the user can interact with it directly. 
+        /// </summary>
+        Focused = 16,
+
+        /// <summary>
+        /// Makes the window float above other windows even if it's not focused or that other windows are maximized.
+        /// This should generally be a setting controlled by the user, as enabling this without the user to be able
+        /// to disable this behavior might result in a bad UX. Note that some window managers might be able to
+        /// override this behavior.
+        /// </summary>
+        AlwaysOnTop = 32,
+
+        /// <summary>
+        /// Makes the window have a transparent background so it can allow the user to see behind this window.
+        /// This might be useful for implementing widget-like apps (like a clock) or splash screens.
+        /// </summary>
+        TransparentFramebuffer = 64
+    }
+
+    public enum WindowMode
+    {
+        /// <summary>
+        /// The window occupies a certain position and is visible.
+        /// </summary>
+        Windowed = 0,
+
+        /// <summary>
+        /// The window is minimized in the platform's taskbar. It is not visible.
+        /// </summary>
+        Minimized = 1,
+
+        /// <summary>
+        /// The window is maximized; it occupies the entire screen, except window decorations and optionally the
+        /// taskbar (depends on the platform and the user settings).
+        /// </summary>
+        Maximized = 2,
+
+        /// <summary>
+        /// The window is in full-screen, a.k.a. borderless full-screen or windowed full-screen. This is similar
+        /// to <see cref="Maximized"/>, but the window occupies the entire screen, no decorations or taskbar,
+        /// but the user can easily switch to other apps because the display's video mode is unaffected. This is
+        /// recommended if you want full-screen.
+        /// </summary>
+        Fullscreen = 3,
+
+        /// <summary>
+        /// The window is in full-screen, but it alters the display's video mode, makes switching to other apps
+        /// a bit harder and, in some rare situations, can cause GPU crashes more easily when switching. If you
+        /// want full-screen, consider using <see cref="Fullscreen"/> instead, as it's more stable and easier.
+        /// If the window loses focus in this mode, it is automatically minimized.
+        /// </summary>
+        ExclusiveFullscreen = 4
+    }
+
+    private double _lastTime;
+    private readonly List<Action<double>> _animationFrameCallbacks = [];
+
+    /// <summary>
+    /// Fired when the window is "dirty" and it needs a repaint, either partially or fully. This is fired before the
+    /// redraw.
+    /// </summary>
+    public event Action<double>? FrameUpdatedEvent;
+
+    #region Object creation
+
+    public DesktopWindow(
+        int width = 800,
+        int height = 600,
+        string title = "",
+        int minWidth = 50,
+        int maxWidth = ushort.MaxValue,
+        int minHeight = 50,
+        int maxHeight = ushort.MaxValue,
+        WindowFlags windowFlags = WindowFlags.Default,
+        WindowMode startupMode = WindowMode.Windowed)
+    {
+        _width = width;
+        _height = height;
+        _title = title;
+        _minWidth = minWidth;
+        _maxWidth = maxWidth;
+        _minHeight = minHeight;
+        _maxHeight = maxHeight;
+        _flags = windowFlags;
+        CurrentWindowMode = startupMode;
+        LastSetWindowMode = CurrentWindowMode;
+
+        if (!GLFW.Init())
         {
-            get => _width;
-            set
-            {
-                if (GlfwWindow != null)
-                {
-                    GLFW.SetWindowSize(GlfwWindow, value, _height);
-                }
-
-                _width = value;
-            }
-        }
-
-        private int _width;
-
-        /// <summary>
-        /// Represents the window's height in desktop coordinates (meaning it is scaled with the platform's display scale,
-        /// unless you didn't set <see cref="WindowFlags.DpiAware"/>, in which case all coordinates are physical pixels).
-        /// Setting this will resize the window to that value, but will be restricted to <see cref="MaxHeight"/> and
-        /// <see cref="MinHeight"/>. If you want the physical pixel height, see <see cref="FramebufferHeight"/>.
-        /// </summary>
-        /// <remarks>
-        /// When the <see cref="CurrentWindowMode"/> is <see cref="WindowMode.ExclusiveFullscreen"/>, this is not reliable
-        /// (if the window was in other mode before, this will be the height from that mode). When it's
-        /// <see cref="WindowMode.Fullscreen"/>, it is the display's height. This does NOT take into account the window
-        /// decorations.
-        /// </remarks>
-        public int Height
-        {
-            get => _height;
-            set
-            {
-                if (GlfwWindow != null)
-                {
-                    GLFW.SetWindowSize(GlfwWindow, _width, value);
-                }
-
-                _height = value;
-            }
-        }
-
-        private int _height;
-
-        /// <summary>
-        /// Represents the physical pixel width, meaning that this value is not scaled with the platform's display
-        /// scaling. This does NOT take into account the window decorations.
-        /// </summary>
-        public int FramebufferWidth
-        {
-            get
-            {
-                if (GlfwWindow == null)
-                {
-                    return 0;
-                }
-
-                GLFW.GetFramebufferSize(GlfwWindow, out int width, out _);
-                return width;
-            }
-        }
-
-        /// <summary>
-        /// Represents the physical pixel height, meaning that this value is not scaled with the platform's display
-        /// scaling. This does NOT take into account the window decorations.
-        /// </summary>
-        public int FramebufferHeight
-        {
-            get
-            {
-                if (GlfwWindow == null)
-                {
-                    return 0;
-                }
-
-                GLFW.GetFramebufferSize(GlfwWindow, out _, out int height);
-                return height;
-            }
-        }
-
-        /// <summary>
-        /// If true, it means that the <see cref="WindowFlags.DpiAware"/> was set.
-        /// </summary>
-        public bool IsDpiAware => (_flags & WindowFlags.DpiAware) != 0;
-
-
-        /// <summary>
-        /// It represents the minimum width that the window can have, either resized by the user or by your code.
-        /// Like <see cref="Width"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
-        /// If the current width is smaller than the given value, the window will be resized. This does NOT take into
-        /// account the window decorations.
-        /// </summary>
-        public int MinWidth
-        {
-            get => _minWidth;
-            set
-            {
-                if (GlfwWindow != null)
-                {
-                    GLFW.SetWindowSizeLimits(GlfwWindow, value, _minHeight, _maxWidth, _maxHeight);
-                }
-
-                _minWidth = value;
-            }
-        }
-
-        private int _minWidth;
-
-        /// <summary>
-        /// It represents the minimum height that the window can have, either resized by the user or by your code.
-        /// Like <see cref="Height"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
-        /// If the current height is smaller than the given value, the window will be resized. This does NOT take into
-        /// account the window decorations.
-        /// </summary>
-        public int MinHeight
-        {
-            get => _minHeight;
-            set
-            {
-                if (GlfwWindow != null)
-                {
-                    GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, value, _maxWidth, _maxHeight);
-                }
-
-                _minHeight = value;
-            }
-        }
-
-        private int _minHeight;
-
-        /// <summary>
-        /// It represents the maximum width that the window can have, either resized by the user or by your code.
-        /// Like <see cref="Width"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
-        /// If the current width is larger than the given value, the window will be resized. This does NOT take into
-        /// account the window decorations.
-        /// </summary>
-        public int MaxWidth
-        {
-            get => _maxWidth;
-            set
-            {
-                if (GlfwWindow != null)
-                {
-                    GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, value, _maxHeight);
-                }
-
-                _maxWidth = value;
-            }
-        }
-
-        private int _maxWidth;
-
-        /// <summary>
-        /// It represents the maximum height that the window can have, either resized by the user or by your code.
-        /// Like <see cref="Height"/> it is scaled by the platform if <see cref="WindowFlags.DpiAware"/> is set.
-        /// If the current height is larger than the given value, the window will be resized. This does NOT take into
-        /// account the window decorations.
-        /// </summary>
-        public int MaxHeight
-        {
-            get => _maxHeight;
-            set
-            {
-                if (GlfwWindow != null)
-                {
-                    GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxHeight, value);
-                }
-
-                _maxHeight = value;
-            }
-        }
-
-        private int _maxHeight;
-
-        /// <summary>
-        /// Represents the window title.
-        /// </summary>
-        public string Title
-        {
-            get => _title;
-            set
-            {
-                _title = value;
-                if (GlfwWindow != null)
-                {
-                    GLFW.SetWindowTitle(GlfwWindow, _title);
-                }
-            }
-        }
-
-        private string _title;
-
-        /// <summary>
-        /// Represents the current window mode. To set it, see <see cref="SetWindowMode"/>.
-        /// </summary>
-        public WindowMode CurrentWindowMode { get; private set; }
-
-        /// <summary>
-        /// Represents the window mode last set by you in <see cref="SetWindowMode"/> or at window creation.
-        /// </summary>
-        public WindowMode LastSetWindowMode { get; private set; }
-
-        /// <summary>
-        /// <para>
-        /// This is the maximum number of frames per second the application is allowed to run. Lower values (like 30) 
-        /// will make the application use less resources but will have some "lag", as the visuals will look more sluggish.
-        /// Higher values will reduce visual "lag", but will utilize more CPU and GPU, thus potentially making the system slower.
-        /// The default value is -1, which means this is ignored, and the <see cref="SwapInterval"/> will be respected.
-        /// </para>
-        /// <para>
-        /// Unless you have a good reason, you should always use <see cref="SwapInterval"/> instead of this, because this
-        /// property achieves the lower FPS by introducing artificial delays (with Thread.Sleep) which will block the
-        /// main thread for some time. <see cref="SwapInterval"/> uses the OS facilities to reduce the FPS, which is much better.
-        /// </para>
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// It is NOT guaranteed that this FPS will be reached, as this depends on both the client's hardware and
-        /// on your code for creating the UI.
-        /// </para>
-        /// <para>
-        /// At any given moment, only one of <see cref="MaxFps"/> and <see cref="SwapInterval"/> will be respected,
-        /// this will be respected if and only if <see cref="SwapInterval"/> is set to -1.
-        /// </para>
-        /// </remarks>
-        public int MaxFps { get; set; } = -1;
-
-        /// <summary>
-        /// <para>
-        /// It specifies the number of display vertical "blanks" to wait for until rendering the next frame.
-        /// The default value is 1 and is essentially V-Sync enabled, which is the best setting for most apps.
-        /// A value of 0 means that the app will try to render the frames as fast as possible (when there are changes, of course),
-        /// which might cause "screen tearing".
-        /// </para>
-        /// <para>
-        /// It is highly recommended to use this instead of <see cref="MaxFps"/> because it uses the OS mechanisms for
-        /// achieving a lower frame rate (to reduce power consumption). A value over 1 effectively means the display
-        /// frame rate divided by this value (so for a 60 Hz display a value of 2 means 30 FPS, 4 means 15 FPS etc.).
-        /// </para>
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// It is NOT guaranteed that this setting will be respected, because it is entirely dependent on the
-        /// client's hardware and drivers for the GPU.
-        /// </para>
-        /// <para>
-        /// At any given moment, only one of <see cref="MaxFps"/> and <see cref="SwapInterval"/> will be respected,
-        /// this has precedence over <see cref="MaxFps"/> and will be respected regardless of <see cref="MaxFps"/>
-        /// unless this is -1.
-        /// </para>
-        /// </remarks>
-        public int SwapInterval
-        {
-            get => _swapInterval;
-            set
-            {
-                _swapInterval = value;
-                GLFW.SwapInterval(_swapInterval);
-            }
-        }
-
-        private int _swapInterval = 1;
-
-        #endregion
-
-        #region Events
-
-        /// <summary>
-        /// Fired when the window is resized, either by the user, by the platform, or by your code.
-        /// </summary>
-        public event WindowResizedEventHandler? ResizedEvent;
-
-        /// <summary>
-        /// Fired when the window mode (i.e. windowed, maximized, minimized, or full-screen) is changed either by the user,
-        /// by the platform, or by your code. To enter full-screen (simple or exclusive), only your code can trigger this
-        /// event by calling <see cref="SetWindowMode"/>.
-        /// </summary>
-        public event WindowModeChangedEventHandler? WindowModeChangedEvent;
-
-        #endregion
-
-        /// <summary>
-        /// Represents the window startup flags. These are a bitmap that must be set in the constructor, before the call
-        /// to <see cref="DesktopWindow.Open"/> and can not be modified afterward, however some properties (like
-        /// the window visibility controlled by <see cref="Visible"/> here) can still be controlled by code.
-        /// </summary>
-        [Flags]
-        public enum WindowFlags
-        {
-            /// <summary>
-            /// Represents the default value for the flags (<see cref="Resizable"/>, <see cref="Visible"/>,
-            /// <see cref="Decorated"/>, <see cref="DpiAware"/> and <see cref="Focused"/>).
-            /// </summary>
-            Default = 0b11111,
-
-            /// <summary>
-            /// Indicates that the window is resizable by the user. Even if this is unset, you can generally set the
-            /// size from code using <see cref="DesktopWindow.Width"/> and <see cref="DesktopWindow.Height"/>.
-            /// </summary>
-            Resizable = 1,
-
-            /// <summary>
-            /// Sets the window to be visible. Otherwise, it will be hidden.
-            /// </summary>
-            Visible = 2,
-
-            /// <summary>
-            /// Makes the window have the platform's decorations like borders, the title bar, and the control buttons. 
-            /// </summary>
-            Decorated = 4,
-
-            /// <summary>
-            /// Indicates that the window's scale will be automatically controlled by CatUI and will correspond to
-            /// the platform preferences. It is highly recommended to set this flag. It is enabled by default.
-            /// </summary>
-            DpiAware = 8,
-
-            /// <summary>
-            /// Focuses the window so that the user can interact with it directly. 
-            /// </summary>
-            Focused = 16,
-
-            /// <summary>
-            /// Makes the window float above other windows even if it's not focused or that other windows are maximized.
-            /// This should generally be a setting controlled by the user, as enabling this without the user to be able
-            /// to disable this behavior might result in a bad UX. Note that some window managers might be able to
-            /// override this behavior.
-            /// </summary>
-            AlwaysOnTop = 32,
-
-            /// <summary>
-            /// Makes the window have a transparent background so it can allow the user to see behind this window.
-            /// This might be useful for implementing widget-like apps (like a clock) or splash screens.
-            /// </summary>
-            TransparentFramebuffer = 64
-        }
-
-        public enum WindowMode
-        {
-            /// <summary>
-            /// The window occupies a certain position and is visible.
-            /// </summary>
-            Windowed = 0,
-
-            /// <summary>
-            /// The window is minimized in the platform's taskbar. It is not visible.
-            /// </summary>
-            Minimized = 1,
-
-            /// <summary>
-            /// The window is maximized; it occupies the entire screen, except window decorations and optionally the
-            /// taskbar (depends on the platform and the user settings).
-            /// </summary>
-            Maximized = 2,
-
-            /// <summary>
-            /// The window is in full-screen, a.k.a. borderless full-screen or windowed full-screen. This is similar
-            /// to <see cref="Maximized"/>, but the window occupies the entire screen, no decorations or taskbar,
-            /// but the user can easily switch to other apps because the display's video mode is unaffected. This is
-            /// recommended if you want full-screen.
-            /// </summary>
-            Fullscreen = 3,
-
-            /// <summary>
-            /// The window is in full-screen, but it alters the display's video mode, makes switching to other apps
-            /// a bit harder and, in some rare situations, can cause GPU crashes more easily when switching. If you
-            /// want full-screen, consider using <see cref="Fullscreen"/> instead, as it's more stable and easier.
-            /// If the window loses focus in this mode, it is automatically minimized.
-            /// </summary>
-            ExclusiveFullscreen = 4
-        }
-
-        private double _lastTime;
-        private readonly List<Action<double>> _animationFrameCallbacks = [];
-
-        /// <summary>
-        /// Fired when the window is "dirty" and it needs a repaint, either partially or fully. This is fired before the
-        /// redraw.
-        /// </summary>
-        public event Action<double>? FrameUpdatedEvent;
-
-        #region Object creation
-
-        public DesktopWindow(
-            int width = 800,
-            int height = 600,
-            string title = "",
-            int minWidth = 50,
-            int maxWidth = ushort.MaxValue,
-            int minHeight = 50,
-            int maxHeight = ushort.MaxValue,
-            WindowFlags windowFlags = WindowFlags.Default,
-            WindowMode startupMode = WindowMode.Windowed)
-        {
-            _width = width;
-            _height = height;
-            _title = title;
-            _minWidth = minWidth;
-            _maxWidth = maxWidth;
-            _minHeight = minHeight;
-            _maxHeight = maxHeight;
-            _flags = windowFlags;
-            CurrentWindowMode = startupMode;
-            LastSetWindowMode = CurrentWindowMode;
-
-            if (!GLFW.Init())
-            {
-                ErrorCode errorCode = GLFW.GetError(out string description);
-                CatLogger.Log("GLFW: could not initialize. UI failed to render.", CatLogger.LogLevel.Critical);
-                var alert = new NativeAlert(
-                    "Can't initialize windowing",
-                    "The internal windowing system could not be initialized.",
-                    INativeAlert.Icon.Error);
-
-                try
-                {
-                    _ = alert.OpenAsync(INativeAlert.Button.Ok);
-                }
-                catch (PlatformNotSupportedException)
-                {
-                    CatLogger.LogInfo(
-                        "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
-                }
-                catch (Exception ex)
-                {
-                    CatLogger.LogInfo(
-                        $"Could not show native alert (UI failed). Exception: {ex}");
-                }
-
-                throw new InternalPlatformException($"Internal GLFW error ({errorCode}): {description}");
-            }
-
-            GLFW.WindowHint(WindowHintBool.Resizable, (_flags & WindowFlags.Resizable) != 0);
-            GLFW.WindowHint(WindowHintBool.Visible, (_flags & WindowFlags.Visible) != 0);
-            GLFW.WindowHint(WindowHintBool.Decorated, (_flags & WindowFlags.Decorated) != 0);
-            GLFW.WindowHint(WindowHintBool.ScaleToMonitor, (_flags & WindowFlags.DpiAware) != 0);
-            GLFW.WindowHint(WindowHintBool.Focused, (_flags & WindowFlags.Focused) != 0);
-
-            GLFW.WindowHint(WindowHintBool.Floating, (_flags & WindowFlags.AlwaysOnTop) != 0);
-            GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (_flags & WindowFlags.TransparentFramebuffer) != 0);
-
-            float contentScale = 1f;
-            if ((_flags & WindowFlags.DpiAware) != 0)
-            {
-                Monitor* monitor = GLFW.GetPrimaryMonitor();
-                if (monitor == null)
-                {
-                    CatLogger.LogWarning("GLFW: could not detect any display. Using a content scale factor of 1.");
-                }
-                else
-                {
-                    GLFW.GetMonitorContentScale(monitor, out contentScale, out float _);
-                }
-            }
-
-            Document = new UiDocument(new Size(_width, _height), contentScale);
-            Document.SetAnimationFrameAdder(RequestAnimationFrame);
-        }
-
-        // ~DesktopWindow()
-        // {
-        //     Terminate();
-        //
-        //     if (GlfwWindow != null)
-        //     {
-        //         UnregisterCallbacks();
-        //     }
-        //
-        //     //GLFW.SetErrorCallback(null);
-        // }
-
-        #endregion
-
-        /// <summary>
-        /// Runs through the whole application lifetime. When this function returns by normal window closing (not by an
-        /// unhandled exception), the window is destroyed, and any later calls or properties setting on this window
-        /// object will fail. This will block the main thread when waiting for the next frame.
-        /// </summary>
-        /// <remarks>
-        /// If an unhandled exception is thrown, the method will return, but without closing the window, so you can 
-        /// call this in a try/catch inside a loop; this is because running this function multiple times is OK, unless
-        /// the window was terminated.
-        /// </remarks>
-        public void Run()
-        {
-            Document.Renderer.SetCanvasDirty();
-            bool isFirstFrame = true;
-
-            //TODO: (HACK) find out why does Wayland need this and how to solve this more elegantly
-            bool needsFirstFrameForcedRedraw =
-                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland;
-
-            //don't use Glfw.WindowShouldClose because that is handled by OnCloseRequested
-            while (!_shouldCloseWindow)
-            {
-                if (GlfwWindow == null)
-                {
-                    CatLogger.Log("GLFW: no window opened. UI failed to render.", CatLogger.LogLevel.Critical);
-                    var alert = new NativeAlert(
-                        "Failed to open window",
-                        "The window could not be created and opened.",
-                        INativeAlert.Icon.Error);
-
-                    try
-                    {
-                        _ = alert.OpenAsync(INativeAlert.Button.Ok);
-                    }
-                    catch (PlatformNotSupportedException)
-                    {
-                        CatLogger.LogInfo(
-                            "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
-                    }
-                    catch (Exception ex)
-                    {
-                        CatLogger.LogInfo(
-                            $"Could not show native alert (UI failed). Exception: {ex}");
-                    }
-
-                    throw new NullReferenceException(
-                        "Window pointer was null. Did you forget to open the window using Open()?");
-                }
-
-                if (GLFW.WindowShouldClose(GlfwWindow))
-                {
-                    //if the handler returns true, close the window
-                    if (Document.OnCloseRequested.Invoke())
-                    {
-                        Terminate();
-                        return;
-                    }
-                }
-
-                DoFrameActions();
-                GLFW.WaitEventsTimeout(0.02);
-                _canInvokeMaximize = true;
-
-                if (isFirstFrame && needsFirstFrameForcedRedraw)
-                {
-                    Document.Renderer.SetCanvasDirty();
-                }
-
-                isFirstFrame = false;
-            }
-
-            Terminate();
-        }
-
-        /// <summary>
-        /// Creates the window and opens it. You must open the window before interacting with it, like calling
-        /// <see cref="Run"/>.
-        /// </summary>
-        /// <exception cref="InternalPlatformException">Thrown when GLFW couldn't create or show the window.</exception>
-        public void Open()
-        {
-            Window* windowPtr = null;
-            foreach (GraphicsApi api in CatApplication.Instance.GraphicsApisTryingOrder)
-            {
-                //if the window pointer is null, these won't be accessed, so we can safely circumvent nullability
-                IGraphicsBackendInfo info = null!;
-                IGraphicsBackend backend = null!;
-
-                switch (api)
-                {
-                    case GraphicsApi.OpenGlCore:
-                    case GraphicsApi.OpenGlCompatibility:
-                        windowPtr = TryCreateOpenGlWindow();
-                        backend = new OpenGlGraphicsBackend();
-                        info = new OpenGlGraphicsBackendInfo();
-                        break;
-                    case GraphicsApi.Software:
-                        windowPtr = TryCreateSoftwareRenderedWindow();
-                        backend = new SoftwareGraphicsBackend();
-                        info = new SoftwareGraphicsBackendInfo();
-                        break;
-                }
-
-                if (windowPtr != null)
-                {
-                    GraphicsBackend = backend;
-                    GraphicsBackendInfo = info;
-                    break;
-                }
-            }
-
-            if (windowPtr == null)
-            {
-                ShowErrorMessageAndExit();
-            }
-
-            GlfwWindow = windowPtr;
-            GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
-
-            switch (GraphicsBackend)
-            {
-                case OpenGlGraphicsBackend openGlGraphicsBackend:
-                    openGlGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
-                    break;
-                case SoftwareGraphicsBackend softwareGraphicsBackend:
-                    softwareGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
-                    break;
-            }
-
-            nint nativeHandle = 0;
-            if (OperatingSystem.IsWindows())
-            {
-                nativeHandle = GLFW.GetWin32Window(GlfwWindow);
-            }
-            else if (OperatingSystem.IsLinux())
-            {
-                if (GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11)
-                {
-                    nativeHandle = (nint)GLFW.GetX11Window(GlfwWindow);
-                }
-                else
-                {
-                    nativeHandle = GLFW.GetWaylandWindow(GlfwWindow);
-                }
-            }
-            else if (OperatingSystem.IsMacOS())
-            {
-                nativeHandle = GLFW.GetCocoaWindow(GlfwWindow);
-            }
-
-            var windowData = new WindowData(this, nativeHandle, (nint)GlfwWindow);
-            Document.SetWindowData(windowData);
-
-            //recompute the content scale using the window now, very important on Wayland, as it seems GLFW returns the
-            //monitor scale wrong on Wayland
-            float contentScale = 1f;
-            if ((_flags & WindowFlags.DpiAware) != 0 && GlfwWindow != null)
-            {
-                GLFW.GetWindowContentScale(GlfwWindow, out contentScale, out float _);
-            }
-
-            DocumentInvoke("WndSetContentScale", contentScale);
-
-            GraphicsBackend?.PostWindowCreation();
-            GraphicsBackend?.SwapIntervalChanged(SwapInterval);
-            GraphicsBackend?.Resized(
-                (int)(_width * Document.ContentScale), (int)(_height * Document.ContentScale));
-
-            switch (GraphicsBackend)
-            {
-                case OpenGlGraphicsBackend:
-                    {
-                        string versionString = GraphicsBackendInfo.GetGraphicsApiVersion();
-                        int majorVer = int.Parse(versionString.AsSpan(0, 1));
-                        int minorVer = int.Parse(versionString.AsSpan(2, 1));
-
-                        if (majorVer <= 3 && minorVer < 2)
-                        {
-                            CatLogger.LogWarning(
-                                "Graphics: OpenGL version is lower than 3.2. Some features might not work.");
-                        }
-
-                        if (majorVer < 2)
-                        {
-                            CatLogger.Log(
-                                "Graphics: OpenGL version is lower than 2.0. You need at least OpenGL 2.0 to run this app. UI failed to render.",
-                                CatLogger.LogLevel.Critical);
-                            Trace.Flush();
-
-                            Terminate();
-                            throw new InternalPlatformException(
-                                "GLFW: Could not create window; OpenGL version too old");
-                        }
-
-                        CatLogger.LogVerbose($"Rendering using OpenGL version {majorVer}.{minorVer}");
-                        break;
-                    }
-                case SoftwareGraphicsBackend:
-                    {
-                        CatLogger.LogVerbose("Rendering using software rendering");
-                        break;
-                    }
-            }
-
-            if (
-                CatApplication.Instance.PlatformInformation is DesktopPlatformInfo desktopPlatformInfo
-             && desktopPlatformInfo.DefaultWindowIcon != null)
-            {
-                SetWindowIcon(desktopPlatformInfo.DefaultWindowIcon);
-            }
-
-            //this is set so we know when Caps Lock and Num Lock were pressed through the key callbacks
-            GLFW.SetInputMode(GlfwWindow, LockKeyModAttribute.LockKeyMods, true);
-
-            RegisterCallbacks();
-            DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);
-            FullyRedraw();
-        }
-
-        private Window* TryCreateOpenGlWindow(int major = 0, int minor = 0)
-        {
-            GraphicsBackend = new OpenGlGraphicsBackend(major, minor);
-            return TryCreateWindowCommon();
-        }
-
-        private Window* TryCreateSoftwareRenderedWindow()
-        {
-            GraphicsBackend = new SoftwareGraphicsBackend();
-            return TryCreateWindowCommon();
-        }
-
-        private Window* TryCreateWindowCommon()
-        {
-            GraphicsBackend!.PrepareWindowCreation();
-
-        RetryCreation:
-            Window* ptr;
-            switch (CurrentWindowMode)
-            {
-                default:
-                case WindowMode.Windowed:
-                    ptr = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
-                    break;
-                case WindowMode.Minimized:
-                    ptr = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
-                    GLFW.IconifyWindow(GlfwWindow);
-                    break;
-                case WindowMode.Maximized:
-                    ptr = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
-                    GLFW.MaximizeWindow(GlfwWindow);
-                    break;
-                case WindowMode.Fullscreen:
-                    {
-                        _canInvokeMaximize = false;
-                        Monitor* monitor = GLFW.GetPrimaryMonitor();
-                        if (monitor == null)
-                        {
-                            CatLogger.LogError(
-                                "GLFW: Could not get primary display. Opening window in \"Windowed\" mode instead.");
-                            CurrentWindowMode = WindowMode.Windowed;
-                            goto RetryCreation;
-                        }
-
-                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        if (videoMode == null)
-                        {
-                            CatLogger.LogError(
-                                "GLFW: Could not get video mode. Opening window in \"Windowed\" mode instead.");
-                            CurrentWindowMode = WindowMode.Windowed;
-                            goto RetryCreation;
-                        }
-
-                        GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
-                        GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
-                        GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
-                        GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
-
-                        _width = videoMode->Width;
-                        _height = videoMode->Height;
-                        ptr = GLFW.CreateWindow(
-                            videoMode->Width,
-                            videoMode->Height,
-                            _title,
-                            monitor,
-                            (Window*)0);
-                        break;
-                    }
-                case WindowMode.ExclusiveFullscreen:
-                    {
-                        _canInvokeMaximize = false;
-                        Monitor* monitor = GLFW.GetPrimaryMonitor();
-                        if (monitor == null)
-                        {
-                            CatLogger.LogError(
-                                "GLFW: Could not get primary display. Opening window in \"Windowed\" mode instead.");
-                            CurrentWindowMode = WindowMode.Windowed;
-                            goto RetryCreation;
-                        }
-
-                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        if (videoMode == null)
-                        {
-                            CatLogger.LogError(
-                                "GLFW: Could not get video mode. Opening window in \"Windowed\" mode instead.");
-                            CurrentWindowMode = WindowMode.Windowed;
-                            goto RetryCreation;
-                        }
-
-                        _width = videoMode->Width;
-                        _height = videoMode->Height;
-
-                        ptr = GLFW.CreateWindow(_width, _height, _title, monitor, (Window*)0);
-                        break;
-                    }
-            }
-
-            return ptr;
-        }
-
-        private static void ShowErrorMessageAndExit()
-        {
-            CatLogger.Log(
-                "GLFW: Could not create window. UI failed to render.",
-                CatLogger.LogLevel.Critical);
-
+            ErrorCode errorCode = GLFW.GetError(out string description);
+            CatLogger.Log("GLFW: could not initialize. UI failed to render.", CatLogger.LogLevel.Critical);
             var alert = new NativeAlert(
-                "Failed to open window",
-                "The window could be created and opened.",
+                "Can't initialize windowing",
+                "The internal windowing system could not be initialized.",
                 INativeAlert.Icon.Error);
 
             try
@@ -898,449 +509,837 @@ namespace CatUI.Windowing.DesktopApp
                     $"Could not show native alert (UI failed). Exception: {ex}");
             }
 
-            throw new InternalPlatformException("GLFW: Could not create window");
+            throw new InternalPlatformException($"Internal GLFW error ({errorCode}): {description}");
         }
 
-        /// <summary>
-        /// Closes the window, but if <see cref="UiDocument.OnCloseRequested"/> is overriden, it will be called, so the
-        /// window might not close directly.
-        /// </summary>
-        public void Close()
-        {
-            _shouldCloseWindow = true;
-            GLFW.PostEmptyEvent();
-        }
+        GLFW.WindowHint(WindowHintBool.Resizable, (_flags & WindowFlags.Resizable) != 0);
+        GLFW.WindowHint(WindowHintBool.Visible, (_flags & WindowFlags.Visible) != 0);
+        GLFW.WindowHint(WindowHintBool.Decorated, (_flags & WindowFlags.Decorated) != 0);
+        GLFW.WindowHint(WindowHintBool.ScaleToMonitor, (_flags & WindowFlags.DpiAware) != 0);
+        GLFW.WindowHint(WindowHintBool.Focused, (_flags & WindowFlags.Focused) != 0);
 
-        /// <summary>
-        /// Sets the window mode. Any value will trigger <see cref="WindowModeChangedEvent"/>. You can minimize, maximize,
-        /// make full-screen, or make windowed this window. Regardless of the mode, the window will only be manipulated
-        /// on the current display.
-        /// </summary>
-        /// <param name="mode">The new mode.</param>
-        /// <param name="exclusiveFullscreenModeOptions">
-        /// If mode is <see cref="WindowMode.ExclusiveFullscreen"/>, this specifies the display resolution and refresh rate;
-        /// if this is left null, the display's preferred values are respected. This is ignored for other types of window mode.
-        /// </param>
-        /// <exception cref="InternalPlatformException">
-        /// Thrown if GLFW (the internal windowing library) could not get the required data from the platform.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Thrown if mode is some invalid value that is not any of the enum values.
-        /// </exception>
-        public void SetWindowMode(
-            WindowMode mode,
-            ExclusiveFullscreenModeOptions? exclusiveFullscreenModeOptions = null)
-        {
-            _canInvokeMaximize = mode != WindowMode.Fullscreen && mode != WindowMode.ExclusiveFullscreen;
+        GLFW.WindowHint(WindowHintBool.Floating, (_flags & WindowFlags.AlwaysOnTop) != 0);
+        GLFW.WindowHint(WindowHintBool.TransparentFramebuffer, (_flags & WindowFlags.TransparentFramebuffer) != 0);
 
-            switch (mode)
+        float contentScale = 1f;
+        if ((_flags & WindowFlags.DpiAware) != 0)
+        {
+            Monitor* monitor = GLFW.GetPrimaryMonitor();
+            if (monitor == null)
             {
-                case WindowMode.Windowed:
-                    if (CurrentWindowMode == WindowMode.Windowed)
-                    {
-                        break;
-                    }
-
-                    GLFW.RestoreWindow(GlfwWindow);
-                    break;
-                case WindowMode.Minimized:
-                    if (CurrentWindowMode == WindowMode.Minimized)
-                    {
-                        break;
-                    }
-
-                    GLFW.IconifyWindow(GlfwWindow);
-                    break;
-                case WindowMode.Maximized:
-                    if (CurrentWindowMode == WindowMode.Maximized)
-                    {
-                        break;
-                    }
-
-                    if (CurrentWindowMode == WindowMode.Fullscreen ||
-                        CurrentWindowMode == WindowMode.ExclusiveFullscreen)
-                    {
-                        GLFW.SetWindowMonitor(GlfwWindow, null, 0, 0, _width, _height, 0);
-                    }
-
-                    GLFW.MaximizeWindow(GlfwWindow);
-                    break;
-                case WindowMode.Fullscreen:
-                    {
-                        if (CurrentWindowMode == WindowMode.Fullscreen)
-                        {
-                            break;
-                        }
-
-                        Monitor* monitor = GLFW.GetWindowMonitor(GlfwWindow);
-                        if (monitor == null)
-                        {
-                            monitor = GLFW.GetPrimaryMonitor();
-
-                            if (monitor == null)
-                            {
-                                throw new InternalPlatformException("GLFW: Could not get the window's display");
-                            }
-                        }
-
-                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        if (videoMode == null)
-                        {
-                            throw new InternalPlatformException("GLFW: Could not get video mode");
-                        }
-
-                        GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
-                        GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
-                        GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
-                        GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
-
-                        GLFW.SetWindowMonitor(
-                            GlfwWindow, null,
-                            0, 0,
-                            videoMode->Width, videoMode->Height,
-                            0);
-
-                        WindowModeChangedEvent?.Invoke(
-                            this,
-                            new WindowModeChangedEventArgs(mode, CurrentWindowMode));
-                        break;
-                    }
-                case WindowMode.ExclusiveFullscreen:
-                    {
-                        if (CurrentWindowMode == WindowMode.ExclusiveFullscreen)
-                        {
-                            break;
-                        }
-
-                        Monitor* monitor = GLFW.GetWindowMonitor(GlfwWindow);
-                        if (monitor == null)
-                        {
-                            monitor = GLFW.GetPrimaryMonitor();
-
-                            if (monitor == null)
-                            {
-                                throw new InternalPlatformException("GLFW: Could not get window's display");
-                            }
-                        }
-
-                        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-                        if (videoMode == null)
-                        {
-                            throw new InternalPlatformException("GLFW: Could not get video mode");
-                        }
-
-                        _width = videoMode->Width;
-                        _height = videoMode->Height;
-
-                        GLFW.SetWindowMonitor(
-                            GlfwWindow,
-                            monitor,
-                            0, 0,
-                            exclusiveFullscreenModeOptions?.ResolutionWidth ?? videoMode->Width,
-                            exclusiveFullscreenModeOptions?.ResolutionHeight ?? videoMode->Height,
-                            exclusiveFullscreenModeOptions?.RefreshRate ?? videoMode->RefreshRate);
-
-                        WindowModeChangedEvent?.Invoke(
-                            this,
-                            new WindowModeChangedEventArgs(mode, CurrentWindowMode));
-                        break;
-                    }
-                default:
-                    throw new ArgumentException("Invalid window mode");
+                CatLogger.LogWarning("GLFW: could not detect any display. Using a content scale factor of 1.");
             }
-
-            CurrentWindowMode = mode;
-            LastSetWindowMode = mode;
-        }
-
-        /// <inheritdoc cref="IApplicationWindow.RequestAnimationFrame"/>
-        /// <remarks>
-        /// This is limited to <see cref="MaxFps"/>, meaning that if the drawing happens faster than the minimum time
-        /// a frame must take, the main thread will sleep until that period is elapsed.
-        /// </remarks>
-        public void RequestAnimationFrame(Action<double> frameCallback)
-        {
-            GLFW.PostEmptyEvent();
-            _animationFrameCallbacks.Add(frameCallback);
-        }
-
-        private WindowIcon? _windowIcon;
-
-        /// <summary>
-        /// Returns the given window icon, but also scaled to the common sizes. This caches the result, so you don't need
-        /// to cache it yourself.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// Windows: Will try to get the icon from the window data; if it fails, it will return null.
-        /// </para>
-        /// <para>
-        /// Linux: Will try to get the icon from the window data (on X11 only, on Wayland it always returns null);
-        /// if it fails, it will return null.
-        /// </para>
-        /// <para>
-        /// macOS: Will always return null.
-        /// </para>
-        /// <para>
-        /// NOTE: If you set the window icon without using <see cref="SetWindowIcon"/> (e.g. using native methods),
-        /// this will return outdated results. In that case, you must rely on <see cref="IWindowIcon.GetWindowIcon"/>
-        /// from <see cref="WindowIcon"/> instead.
-        /// </para>
-        /// </remarks>
-        public WindowIcon? GetWindowIcon()
-        {
-            if (_windowIcon != null)
+            else
             {
-                return _windowIcon;
+                GLFW.GetMonitorContentScale(monitor, out contentScale, out float _);
             }
-
-            SKImage? icon = OS.WindowIcon?.GetWindowIcon((nint)(Document.GetWindowData()?.NativeWindowHandle ?? 0));
-            if (icon == null)
-            {
-                return null;
-            }
-
-            _windowIcon = new WindowIcon(new ImageAsset(icon), false);
-            return _windowIcon;
         }
 
-        /// <summary>
-        /// Sets the window icon directly. Will return false on macOS and on Linux Wayland. Always call this AFTER
-        /// <see cref="Open"/>, otherwise it will also return false.
-        /// </summary>
-        /// <param name="icon">
-        /// The icon to set for this window. It's preferable to use both large and small sizes, as the platform will
-        /// decide at runtime what icon to use. If not, at least use a large size like 512x512 or 256x256.
-        /// </param>
-        /// <returns>
-        /// True if the operation succeeded, false if it failed or is not supported on the runtime platform.
-        /// </returns>
-        public bool SetWindowIcon(WindowIcon icon)
+        Document = new UiDocument(new Size(_width, _height), contentScale);
+        Document.SetAnimationFrameAdder(RequestAnimationFrame);
+    }
+
+    // ~DesktopWindow()
+    // {
+    //     Terminate();
+    //
+    //     if (GlfwWindow != null)
+    //     {
+    //         UnregisterCallbacks();
+    //     }
+    //
+    //     //GLFW.SetErrorCallback(null);
+    // }
+
+    #endregion
+
+    /// <summary>
+    /// Runs through the whole application lifetime. When this function returns by normal window closing (not by an
+    /// unhandled exception), the window is destroyed, and any later calls or properties setting on this window
+    /// object will fail. This will block the main thread when waiting for the next frame.
+    /// </summary>
+    /// <remarks>
+    /// If an unhandled exception is thrown, the method will return, but without closing the window, so you can 
+    /// call this in a try/catch inside a loop; this is because running this function multiple times is OK, unless
+    /// the window was terminated.
+    /// </remarks>
+    public void Run()
+    {
+        Document.Renderer.SetCanvasDirty();
+        bool isFirstFrame = true;
+
+        //TODO: (HACK) find out why does Wayland need this and how to solve this more elegantly
+        bool needsFirstFrameForcedRedraw =
+            GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland;
+
+        //don't use Glfw.WindowShouldClose because that is handled by OnCloseRequested
+        while (!_shouldCloseWindow)
         {
             if (GlfwWindow == null)
             {
-                return false;
-            }
+                CatLogger.Log("GLFW: no window opened. UI failed to render.", CatLogger.LogLevel.Critical);
+                var alert = new NativeAlert(
+                    "Failed to open window",
+                    "The window could not be created and opened.",
+                    INativeAlert.Icon.Error);
 
-            if (OperatingSystem.IsMacOS() || OperatingSystem.IsMacCatalyst())
-            {
-                return false;
-            }
-
-            if (
-                GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland &&
-                (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD()))
-            {
-                return false;
-            }
-
-            List<Image> imgArray = new(7);
-            List<IntPtr> dataToFree = new(7);
-            for (int i = 0; i < 7; i++)
-            {
-                ImageAsset? img = null;
-                int dim = 0;
-                switch (i)
+                try
                 {
-                    case 0:
-                        img = icon.Icon512X512;
-                        dim = 512;
-                        break;
-                    case 1:
-                        img = icon.Icon256X256;
-                        dim = 256;
-                        break;
-                    case 2:
-                        img = icon.Icon128X128;
-                        dim = 128;
-                        break;
-                    case 3:
-                        img = icon.Icon64X64;
-                        dim = 64;
-                        break;
-                    case 4:
-                        img = icon.Icon48X48;
-                        dim = 48;
-                        break;
-                    case 5:
-                        img = icon.Icon32X32;
-                        dim = 32;
-                        break;
-                    case 6:
-                        img = icon.Icon16X16;
-                        dim = 16;
-                        break;
+                    _ = alert.OpenAsync(INativeAlert.Button.Ok);
+                }
+                catch (PlatformNotSupportedException)
+                {
+                    CatLogger.LogInfo(
+                        "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
+                }
+                catch (Exception ex)
+                {
+                    CatLogger.LogInfo(
+                        $"Could not show native alert (UI failed). Exception: {ex}");
                 }
 
-                if (img?.SkiaImage != null)
+                throw new NullReferenceException(
+                    "Window pointer was null. Did you forget to open the window using Open()?");
+            }
+
+            if (GLFW.WindowShouldClose(GlfwWindow))
+            {
+                //if the handler returns true, close the window
+                if (Document.OnCloseRequested.Invoke())
                 {
-                    IntPtr pixelPtr = Marshal.AllocHGlobal(dim * dim * 4);
-                    bool success = img.SkiaImage.ReadPixels(
-                        new SKImageInfo(dim, dim, SKColorType.Rgba8888),
-                        pixelPtr);
-                    if (!success)
+                    Terminate();
+                    return;
+                }
+            }
+
+            DoFrameActions();
+            GLFW.WaitEventsTimeout(0.02);
+            _canInvokeMaximize = true;
+
+            if (isFirstFrame && needsFirstFrameForcedRedraw)
+            {
+                Document.Renderer.SetCanvasDirty();
+            }
+
+            isFirstFrame = false;
+        }
+
+        Terminate();
+    }
+
+    /// <summary>
+    /// Creates the window and opens it. You must open the window before interacting with it, like calling
+    /// <see cref="Run"/>.
+    /// </summary>
+    /// <exception cref="InternalPlatformException">Thrown when GLFW couldn't create or show the window.</exception>
+    public void Open()
+    {
+        Window* windowPtr = null;
+        foreach (GraphicsApi api in CatApplication.Instance.GraphicsApisTryingOrder)
+        {
+            //if the window pointer is null, these won't be accessed, so we can safely circumvent nullability
+            IGraphicsBackendInfo info = null!;
+            IGraphicsBackend backend = null!;
+
+            switch (api)
+            {
+                case GraphicsApi.OpenGlCore:
+                case GraphicsApi.OpenGlCompatibility:
+                    windowPtr = TryCreateOpenGlWindow();
+                    backend = new OpenGlGraphicsBackend();
+                    info = new OpenGlGraphicsBackendInfo();
+                    break;
+                case GraphicsApi.Software:
+                    windowPtr = TryCreateSoftwareRenderedWindow();
+                    backend = new SoftwareGraphicsBackend();
+                    info = new SoftwareGraphicsBackendInfo();
+                    break;
+            }
+
+            if (windowPtr != null)
+            {
+                GraphicsBackend = backend;
+                GraphicsBackendInfo = info;
+                break;
+            }
+        }
+
+        if (windowPtr == null)
+        {
+            ShowErrorMessageAndExit();
+        }
+
+        GlfwWindow = windowPtr;
+        GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
+
+        switch (GraphicsBackend)
+        {
+            case OpenGlGraphicsBackend openGlGraphicsBackend:
+                openGlGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
+                break;
+            case SoftwareGraphicsBackend softwareGraphicsBackend:
+                softwareGraphicsBackend.SetGlfwWindowPointer(GlfwWindow);
+                break;
+        }
+
+        nint nativeHandle = 0;
+        if (OperatingSystem.IsWindows())
+        {
+            nativeHandle = GLFW.GetWin32Window(GlfwWindow);
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            if (GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.X11)
+            {
+                nativeHandle = (nint)GLFW.GetX11Window(GlfwWindow);
+            }
+            else
+            {
+                nativeHandle = GLFW.GetWaylandWindow(GlfwWindow);
+            }
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            nativeHandle = GLFW.GetCocoaWindow(GlfwWindow);
+        }
+
+        var windowData = new WindowData(this, nativeHandle, (nint)GlfwWindow);
+        Document.SetWindowData(windowData);
+
+        //recompute the content scale using the window now, very important on Wayland, as it seems GLFW returns the
+        //monitor scale wrong on Wayland
+        float contentScale = 1f;
+        if ((_flags & WindowFlags.DpiAware) != 0 && GlfwWindow != null)
+        {
+            GLFW.GetWindowContentScale(GlfwWindow, out contentScale, out float _);
+        }
+
+        DocumentInvoke("WndSetContentScale", contentScale);
+
+        GraphicsBackend?.PostWindowCreation();
+        GraphicsBackend?.SwapIntervalChanged(SwapInterval);
+        GraphicsBackend?.Resized(
+            (int)(_width * Document.ContentScale), (int)(_height * Document.ContentScale));
+
+        switch (GraphicsBackend)
+        {
+            case OpenGlGraphicsBackend:
+                {
+                    string versionString = GraphicsBackendInfo.GetGraphicsApiVersion();
+                    int majorVer = int.Parse(versionString.AsSpan(0, 1));
+                    int minorVer = int.Parse(versionString.AsSpan(2, 1));
+
+                    if (majorVer <= 3 && minorVer < 2)
                     {
-                        goto FreeData;
+                        CatLogger.LogWarning(
+                            "Graphics: OpenGL version is lower than 3.2. Some features might not work.");
                     }
 
-                    var glfwImage = new Image { Width = dim, Height = dim, Pixels = (byte*)pixelPtr.ToPointer() };
-                    imgArray.Add(glfwImage);
-                    dataToFree.Add(pixelPtr);
+                    if (majorVer < 2)
+                    {
+                        CatLogger.Log(
+                            "Graphics: OpenGL version is lower than 2.0. You need at least OpenGL 2.0 to run this app. UI failed to render.",
+                            CatLogger.LogLevel.Critical);
+                        Trace.Flush();
+
+                        Terminate();
+                        throw new InternalPlatformException(
+                            "GLFW: Could not create window; OpenGL version too old");
+                    }
+
+                    CatLogger.LogVerbose($"Rendering using OpenGL version {majorVer}.{minorVer}");
+                    break;
                 }
-            }
-
-            _windowIcon = icon;
-            GLFW.SetWindowIcon(GlfwWindow, imgArray.ToArray().AsSpan());
-
-        FreeData:
-            foreach (IntPtr pointer in dataToFree)
-            {
-                Marshal.FreeHGlobal(pointer);
-            }
-
-            CatLogger.LogVerbose("Successfully set window icon.");
-            return true;
+            case SoftwareGraphicsBackend:
+                {
+                    CatLogger.LogVerbose("Rendering using software rendering");
+                    break;
+                }
         }
 
-        private void DoFrameActions()
+        if (
+            CatApplication.Instance.PlatformInformation is DesktopPlatformInfo desktopPlatformInfo
+         && desktopPlatformInfo.DefaultWindowIcon != null)
         {
-            double delta = GLFW.GetTime() - _lastTime;
+            SetWindowIcon(desktopPlatformInfo.DefaultWindowIcon);
+        }
+
+        //this is set so we know when Caps Lock and Num Lock were pressed through the key callbacks
+        GLFW.SetInputMode(GlfwWindow, LockKeyModAttribute.LockKeyMods, true);
+
+        RegisterCallbacks();
+        DocumentInvoke("WndSetAppState", UiDocument.AppState.Active);
+        FullyRedraw();
+    }
+
+    private Window* TryCreateOpenGlWindow(int major = 0, int minor = 0)
+    {
+        GraphicsBackend = new OpenGlGraphicsBackend(major, minor);
+        return TryCreateWindowCommon();
+    }
+
+    private Window* TryCreateSoftwareRenderedWindow()
+    {
+        GraphicsBackend = new SoftwareGraphicsBackend();
+        return TryCreateWindowCommon();
+    }
+
+    private Window* TryCreateWindowCommon()
+    {
+        GraphicsBackend!.PrepareWindowCreation();
+
+    RetryCreation:
+        Window* ptr;
+        switch (CurrentWindowMode)
+        {
+            default:
+            case WindowMode.Windowed:
+                ptr = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
+                break;
+            case WindowMode.Minimized:
+                ptr = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
+                GLFW.IconifyWindow(GlfwWindow);
+                break;
+            case WindowMode.Maximized:
+                ptr = GLFW.CreateWindow(_width, _height, _title, (Monitor*)0, (Window*)0);
+                GLFW.MaximizeWindow(GlfwWindow);
+                break;
+            case WindowMode.Fullscreen:
+                {
+                    _canInvokeMaximize = false;
+                    Monitor* monitor = GLFW.GetPrimaryMonitor();
+                    if (monitor == null)
+                    {
+                        CatLogger.LogError(
+                            "GLFW: Could not get primary display. Opening window in \"Windowed\" mode instead.");
+                        CurrentWindowMode = WindowMode.Windowed;
+                        goto RetryCreation;
+                    }
+
+                    VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                    if (videoMode == null)
+                    {
+                        CatLogger.LogError(
+                            "GLFW: Could not get video mode. Opening window in \"Windowed\" mode instead.");
+                        CurrentWindowMode = WindowMode.Windowed;
+                        goto RetryCreation;
+                    }
+
+                    GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
+                    GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
+                    GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
+                    GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
+
+                    _width = videoMode->Width;
+                    _height = videoMode->Height;
+                    ptr = GLFW.CreateWindow(
+                        videoMode->Width,
+                        videoMode->Height,
+                        _title,
+                        monitor,
+                        (Window*)0);
+                    break;
+                }
+            case WindowMode.ExclusiveFullscreen:
+                {
+                    _canInvokeMaximize = false;
+                    Monitor* monitor = GLFW.GetPrimaryMonitor();
+                    if (monitor == null)
+                    {
+                        CatLogger.LogError(
+                            "GLFW: Could not get primary display. Opening window in \"Windowed\" mode instead.");
+                        CurrentWindowMode = WindowMode.Windowed;
+                        goto RetryCreation;
+                    }
+
+                    VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                    if (videoMode == null)
+                    {
+                        CatLogger.LogError(
+                            "GLFW: Could not get video mode. Opening window in \"Windowed\" mode instead.");
+                        CurrentWindowMode = WindowMode.Windowed;
+                        goto RetryCreation;
+                    }
+
+                    _width = videoMode->Width;
+                    _height = videoMode->Height;
+
+                    ptr = GLFW.CreateWindow(_width, _height, _title, monitor, (Window*)0);
+                    break;
+                }
+        }
+
+        return ptr;
+    }
+
+    private static void ShowErrorMessageAndExit()
+    {
+        CatLogger.Log(
+            "GLFW: Could not create window. UI failed to render.",
+            CatLogger.LogLevel.Critical);
+
+        var alert = new NativeAlert(
+            "Failed to open window",
+            "The window could be created and opened.",
+            INativeAlert.Icon.Error);
+
+        try
+        {
+            _ = alert.OpenAsync(INativeAlert.Button.Ok);
+        }
+        catch (PlatformNotSupportedException)
+        {
+            CatLogger.LogInfo(
+                "Platform not supported for native alerts (UI failed). Could not even show the user a basic error message.");
+        }
+        catch (Exception ex)
+        {
+            CatLogger.LogInfo(
+                $"Could not show native alert (UI failed). Exception: {ex}");
+        }
+
+        throw new InternalPlatformException("GLFW: Could not create window");
+    }
+
+    /// <summary>
+    /// Closes the window, but if <see cref="UiDocument.OnCloseRequested"/> is overriden, it will be called, so the
+    /// window might not close directly.
+    /// </summary>
+    public void Close()
+    {
+        _shouldCloseWindow = true;
+        GLFW.PostEmptyEvent();
+    }
+
+    /// <summary>
+    /// Sets the window mode. Any value will trigger <see cref="WindowModeChangedEvent"/>. You can minimize, maximize,
+    /// make full-screen, or make windowed this window. Regardless of the mode, the window will only be manipulated
+    /// on the current display.
+    /// </summary>
+    /// <param name="mode">The new mode.</param>
+    /// <param name="exclusiveFullscreenModeOptions">
+    /// If mode is <see cref="WindowMode.ExclusiveFullscreen"/>, this specifies the display resolution and refresh rate;
+    /// if this is left null, the display's preferred values are respected. This is ignored for other types of window mode.
+    /// </param>
+    /// <exception cref="InternalPlatformException">
+    /// Thrown if GLFW (the internal windowing library) could not get the required data from the platform.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown if mode is some invalid value that is not any of the enum values.
+    /// </exception>
+    public void SetWindowMode(
+        WindowMode mode,
+        ExclusiveFullscreenModeOptions? exclusiveFullscreenModeOptions = null)
+    {
+        _canInvokeMaximize = mode != WindowMode.Fullscreen && mode != WindowMode.ExclusiveFullscreen;
+
+        switch (mode)
+        {
+            case WindowMode.Windowed:
+                if (CurrentWindowMode == WindowMode.Windowed)
+                {
+                    break;
+                }
+
+                GLFW.RestoreWindow(GlfwWindow);
+                break;
+            case WindowMode.Minimized:
+                if (CurrentWindowMode == WindowMode.Minimized)
+                {
+                    break;
+                }
+
+                GLFW.IconifyWindow(GlfwWindow);
+                break;
+            case WindowMode.Maximized:
+                if (CurrentWindowMode == WindowMode.Maximized)
+                {
+                    break;
+                }
+
+                if (CurrentWindowMode == WindowMode.Fullscreen ||
+                    CurrentWindowMode == WindowMode.ExclusiveFullscreen)
+                {
+                    GLFW.SetWindowMonitor(GlfwWindow, null, 0, 0, _width, _height, 0);
+                }
+
+                GLFW.MaximizeWindow(GlfwWindow);
+                break;
+            case WindowMode.Fullscreen:
+                {
+                    if (CurrentWindowMode == WindowMode.Fullscreen)
+                    {
+                        break;
+                    }
+
+                    Monitor* monitor = GLFW.GetWindowMonitor(GlfwWindow);
+                    if (monitor == null)
+                    {
+                        monitor = GLFW.GetPrimaryMonitor();
+
+                        if (monitor == null)
+                        {
+                            throw new InternalPlatformException("GLFW: Could not get the window's display");
+                        }
+                    }
+
+                    VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                    if (videoMode == null)
+                    {
+                        throw new InternalPlatformException("GLFW: Could not get video mode");
+                    }
+
+                    GLFW.WindowHint(WindowHintInt.RedBits, videoMode->RedBits);
+                    GLFW.WindowHint(WindowHintInt.GreenBits, videoMode->GreenBits);
+                    GLFW.WindowHint(WindowHintInt.BlueBits, videoMode->BlueBits);
+                    GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
+
+                    GLFW.SetWindowMonitor(
+                        GlfwWindow, null,
+                        0, 0,
+                        videoMode->Width, videoMode->Height,
+                        0);
+
+                    WindowModeChangedEvent?.Invoke(
+                        this,
+                        new WindowModeChangedEventArgs(mode, CurrentWindowMode));
+                    break;
+                }
+            case WindowMode.ExclusiveFullscreen:
+                {
+                    if (CurrentWindowMode == WindowMode.ExclusiveFullscreen)
+                    {
+                        break;
+                    }
+
+                    Monitor* monitor = GLFW.GetWindowMonitor(GlfwWindow);
+                    if (monitor == null)
+                    {
+                        monitor = GLFW.GetPrimaryMonitor();
+
+                        if (monitor == null)
+                        {
+                            throw new InternalPlatformException("GLFW: Could not get window's display");
+                        }
+                    }
+
+                    VideoMode* videoMode = GLFW.GetVideoMode(monitor);
+                    if (videoMode == null)
+                    {
+                        throw new InternalPlatformException("GLFW: Could not get video mode");
+                    }
+
+                    _width = videoMode->Width;
+                    _height = videoMode->Height;
+
+                    GLFW.SetWindowMonitor(
+                        GlfwWindow,
+                        monitor,
+                        0, 0,
+                        exclusiveFullscreenModeOptions?.ResolutionWidth ?? videoMode->Width,
+                        exclusiveFullscreenModeOptions?.ResolutionHeight ?? videoMode->Height,
+                        exclusiveFullscreenModeOptions?.RefreshRate ?? videoMode->RefreshRate);
+
+                    WindowModeChangedEvent?.Invoke(
+                        this,
+                        new WindowModeChangedEventArgs(mode, CurrentWindowMode));
+                    break;
+                }
+            default:
+                throw new ArgumentException("Invalid window mode");
+        }
+
+        CurrentWindowMode = mode;
+        LastSetWindowMode = mode;
+    }
+
+    /// <inheritdoc cref="IApplicationWindow.RequestAnimationFrame"/>
+    /// <remarks>
+    /// This is limited to <see cref="MaxFps"/>, meaning that if the drawing happens faster than the minimum time
+    /// a frame must take, the main thread will sleep until that period is elapsed.
+    /// </remarks>
+    public void RequestAnimationFrame(Action<double> frameCallback)
+    {
+        GLFW.PostEmptyEvent();
+        _animationFrameCallbacks.Add(frameCallback);
+    }
+
+    private WindowIcon? _windowIcon;
+
+    /// <summary>
+    /// Returns the given window icon, but also scaled to the common sizes. This caches the result, so you don't need
+    /// to cache it yourself.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Windows: Will try to get the icon from the window data; if it fails, it will return null.
+    /// </para>
+    /// <para>
+    /// Linux: Will try to get the icon from the window data (on X11 only, on Wayland it always returns null);
+    /// if it fails, it will return null.
+    /// </para>
+    /// <para>
+    /// macOS: Will always return null.
+    /// </para>
+    /// <para>
+    /// NOTE: If you set the window icon without using <see cref="SetWindowIcon"/> (e.g. using native methods),
+    /// this will return outdated results. In that case, you must rely on <see cref="IWindowIcon.GetWindowIcon"/>
+    /// from <see cref="WindowIcon"/> instead.
+    /// </para>
+    /// </remarks>
+    public WindowIcon? GetWindowIcon()
+    {
+        if (_windowIcon != null)
+        {
+            return _windowIcon;
+        }
+
+        SKImage? icon = OS.WindowIcon?.GetWindowIcon((nint)(Document.GetWindowData()?.NativeWindowHandle ?? 0));
+        if (icon == null)
+        {
+            return null;
+        }
+
+        _windowIcon = new WindowIcon(new ImageAsset(icon), false);
+        return _windowIcon;
+    }
+
+    /// <summary>
+    /// Sets the window icon directly. Will return false on macOS and on Linux Wayland. Always call this AFTER
+    /// <see cref="Open"/>, otherwise it will also return false.
+    /// </summary>
+    /// <param name="icon">
+    /// The icon to set for this window. It's preferable to use both large and small sizes, as the platform will
+    /// decide at runtime what icon to use. If not, at least use a large size like 512x512 or 256x256.
+    /// </param>
+    /// <returns>
+    /// True if the operation succeeded, false if it failed or is not supported on the runtime platform.
+    /// </returns>
+    public bool SetWindowIcon(WindowIcon icon)
+    {
+        if (GlfwWindow == null)
+        {
+            return false;
+        }
+
+        if (OperatingSystem.IsMacOS() || OperatingSystem.IsMacCatalyst())
+        {
+            return false;
+        }
+
+        if (
+            GLFW.GetPlatform() == OpenTK.Windowing.GraphicsLibraryFramework.Platform.Wayland &&
+            (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD()))
+        {
+            return false;
+        }
+
+        List<Image> imgArray = new(7);
+        List<IntPtr> dataToFree = new(7);
+        for (int i = 0; i < 7; i++)
+        {
+            ImageAsset? img = null;
+            int dim = 0;
+            switch (i)
+            {
+                case 0:
+                    img = icon.Icon512X512;
+                    dim = 512;
+                    break;
+                case 1:
+                    img = icon.Icon256X256;
+                    dim = 256;
+                    break;
+                case 2:
+                    img = icon.Icon128X128;
+                    dim = 128;
+                    break;
+                case 3:
+                    img = icon.Icon64X64;
+                    dim = 64;
+                    break;
+                case 4:
+                    img = icon.Icon48X48;
+                    dim = 48;
+                    break;
+                case 5:
+                    img = icon.Icon32X32;
+                    dim = 32;
+                    break;
+                case 6:
+                    img = icon.Icon16X16;
+                    dim = 16;
+                    break;
+            }
+
+            if (img?.SkiaImage != null)
+            {
+                IntPtr pixelPtr = Marshal.AllocHGlobal(dim * dim * 4);
+                bool success = img.SkiaImage.ReadPixels(
+                    new SKImageInfo(dim, dim, SKColorType.Rgba8888),
+                    pixelPtr);
+                if (!success)
+                {
+                    goto FreeData;
+                }
+
+                var glfwImage = new Image { Width = dim, Height = dim, Pixels = (byte*)pixelPtr.ToPointer() };
+                imgArray.Add(glfwImage);
+                dataToFree.Add(pixelPtr);
+            }
+        }
+
+        _windowIcon = icon;
+        GLFW.SetWindowIcon(GlfwWindow, imgArray.ToArray().AsSpan());
+
+    FreeData:
+        foreach (IntPtr pointer in dataToFree)
+        {
+            Marshal.FreeHGlobal(pointer);
+        }
+
+        CatLogger.LogVerbose("Successfully set window icon.");
+        return true;
+    }
+
+    private void DoFrameActions()
+    {
+        double delta = GLFW.GetTime() - _lastTime;
+        _lastTime = GLFW.GetTime();
+
+        bool hadFrameCallbacks = false;
+        if (_animationFrameCallbacks.Count > 0)
+        {
+            //if a callback registers another callback, this will effectively become an infinite loop,
+            //to prevent this, before executing all the callbacks, store their number
+            //and only execute that number of callbacks
+            int thisFrameCount = _animationFrameCallbacks.Count;
+
+            for (int i = 0; i < thisFrameCount; i++)
+            {
+                _animationFrameCallbacks[i].Invoke(delta);
+                hadFrameCallbacks = true;
+            }
+
+            _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
+        }
+
+        if (CatApplication.Instance.PlatformInformation != null &&
+            CatApplication.Instance.Dispatcher is DesktopDispatcher dispatcher)
+        {
+            dispatcher.CallActions();
+        }
+
+        if (hadFrameCallbacks || Document.Renderer.IsCanvasDirty)
+        {
+            if (Document.Renderer.IsCanvasDirty)
+            {
+                FrameUpdatedEvent?.Invoke(delta);
+                FullyRedraw();
+            }
+
             _lastTime = GLFW.GetTime();
+            GraphicsBackend?.SwapBuffers();
 
-            bool hadFrameCallbacks = false;
-            if (_animationFrameCallbacks.Count > 0)
+            if (Document.Renderer.IsCanvasDirty)
             {
-                //if a callback registers another callback, this will effectively become an infinite loop,
-                //to prevent this, before executing all the callbacks, store their number
-                //and only execute that number of callbacks
-                int thisFrameCount = _animationFrameCallbacks.Count;
-
-                for (int i = 0; i < thisFrameCount; i++)
-                {
-                    _animationFrameCallbacks[i].Invoke(delta);
-                    hadFrameCallbacks = true;
-                }
-
-                _animationFrameCallbacks.RemoveRange(0, thisFrameCount);
+                Document.Renderer.SkipCanvasPresentation();
             }
 
-            if (CatApplication.Instance.PlatformInformation != null &&
-                CatApplication.Instance.Dispatcher is DesktopDispatcher dispatcher)
-            {
-                dispatcher.CallActions();
-            }
-
-            if (hadFrameCallbacks || Document.Renderer.IsCanvasDirty)
-            {
-                if (Document.Renderer.IsCanvasDirty)
-                {
-                    FrameUpdatedEvent?.Invoke(delta);
-                    FullyRedraw();
-                }
-
-                _lastTime = GLFW.GetTime();
-                GraphicsBackend?.SwapBuffers();
-
-                if (Document.Renderer.IsCanvasDirty)
-                {
-                    Document.Renderer.SkipCanvasPresentation();
-                }
-
-                //Debug.WriteLine(delta);
-            }
-
-            if (SwapInterval != -1 || MaxFps != -1)
-            {
-                return;
-            }
-
-            double minFrameTime = 1.0 / MaxFps;
-            double thisFrameTime = GLFW.GetTime() - _lastTime;
-            if (thisFrameTime < minFrameTime)
-            {
-                System.Threading.Thread.Sleep((int)((minFrameTime - thisFrameTime) * 1000));
-            }
+            //Debug.WriteLine(delta);
         }
 
-        private void Terminate()
+        if (SwapInterval != -1 || MaxFps != -1)
         {
-            CatLogger.LogVerbose("Terminating window...");
-
-            if (Document.CurrentAppState == UiDocument.AppState.Active)
-            {
-                DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
-            }
-
-            if (Document.CurrentAppState == UiDocument.AppState.Inactive)
-            {
-                DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
-            }
-
-            if (Document.CurrentAppState == UiDocument.AppState.Hidden)
-            {
-                DocumentInvoke("WndSetAppState", UiDocument.AppState.Detached);
-            }
-
-            //remove all the elements from the document
-            Document.Root = null;
-            UnregisterCallbacks();
-            GraphicsBackend?.DestroyAndTerminate();
-
-            if (GlfwWindow != null)
-            {
-                GLFW.DestroyWindow(GlfwWindow);
-                GlfwWindow = (Window*)0;
-            }
-
-            CatLogger.LogVerbose("Window terminated.");
+            return;
         }
 
-        private void FullyRedraw()
+        double minFrameTime = 1.0 / MaxFps;
+        double thisFrameTime = GLFW.GetTime() - _lastTime;
+        if (thisFrameTime < minFrameTime)
         {
-            Document.Renderer.BeginDraw();
-
-            SKSurface? newSurface = GraphicsBackend?.RecreateSurface(Document.Renderer.Surface!);
-            if (newSurface != null && newSurface != Document.Renderer.Surface)
-            {
-                Document.Renderer.SetPlatformManagedData(newSurface, newSurface.Canvas);
-            }
-
-            Document.Renderer.ResetAndClear();
-
-            Document.DrawAllElements();
-            Document.Renderer.Flush();
-            Document.Renderer.EndDraw();
-        }
-
-        /// <summary>
-        /// Dangerously calls non-internal instance methods from <see cref="Document"/>. These are necessary to make
-        /// sure we don't have public access to those setters, only implementations of <see cref="IApplicationWindow"/>
-        /// should be allowed to modify those.
-        /// </summary>
-        /// <param name="methodName">The name of the method.</param>
-        /// <param name="args">The arguments to give.</param>
-        private void DocumentInvoke(string methodName, params object[] args)
-        {
-            MethodInfo? func = Document.GetType().GetMethod(
-                methodName, BindingFlags.NonPublic | BindingFlags.Instance);
-            if (func != null)
-            {
-                func.Invoke(Document, args);
-            }
+            System.Threading.Thread.Sleep((int)((minFrameTime - thisFrameTime) * 1000));
         }
     }
 
-    public readonly struct ExclusiveFullscreenModeOptions
+    private void Terminate()
     {
-        public int ResolutionWidth { get; }
-        public int ResolutionHeight { get; }
-        public int RefreshRate { get; }
+        CatLogger.LogVerbose("Terminating window...");
 
-        public ExclusiveFullscreenModeOptions(int resolutionWidth, int resolutionHeight, int refreshRate)
+        if (Document.CurrentAppState == UiDocument.AppState.Active)
         {
-            ResolutionWidth = resolutionWidth;
-            ResolutionHeight = resolutionHeight;
-            RefreshRate = refreshRate;
+            DocumentInvoke("WndSetAppState", UiDocument.AppState.Inactive);
         }
+
+        if (Document.CurrentAppState == UiDocument.AppState.Inactive)
+        {
+            DocumentInvoke("WndSetAppState", UiDocument.AppState.Hidden);
+        }
+
+        if (Document.CurrentAppState == UiDocument.AppState.Hidden)
+        {
+            DocumentInvoke("WndSetAppState", UiDocument.AppState.Detached);
+        }
+
+        //remove all the elements from the document
+        Document.Root = null;
+        UnregisterCallbacks();
+        GraphicsBackend?.DestroyAndTerminate();
+
+        if (GlfwWindow != null)
+        {
+            GLFW.DestroyWindow(GlfwWindow);
+            GlfwWindow = (Window*)0;
+        }
+
+        CatLogger.LogVerbose("Window terminated.");
+    }
+
+    private void FullyRedraw()
+    {
+        Document.Renderer.BeginDraw();
+
+        SKSurface? newSurface = GraphicsBackend?.RecreateSurface(Document.Renderer.Surface!);
+        if (newSurface != null && newSurface != Document.Renderer.Surface)
+        {
+            Document.Renderer.SetPlatformManagedData(newSurface, newSurface.Canvas);
+        }
+
+        Document.Renderer.ResetAndClear();
+
+        Document.DrawAllElements();
+        Document.Renderer.Flush();
+        Document.Renderer.EndDraw();
+    }
+
+    /// <summary>
+    /// Dangerously calls non-internal instance methods from <see cref="Document"/>. These are necessary to make
+    /// sure we don't have public access to those setters, only implementations of <see cref="IApplicationWindow"/>
+    /// should be allowed to modify those.
+    /// </summary>
+    /// <param name="methodName">The name of the method.</param>
+    /// <param name="args">The arguments to give.</param>
+    private void DocumentInvoke(string methodName, params object[] args)
+    {
+        MethodInfo? func = Document.GetType().GetMethod(
+            methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+        if (func != null)
+        {
+            func.Invoke(Document, args);
+        }
+    }
+}
+
+public readonly struct ExclusiveFullscreenModeOptions
+{
+    public int ResolutionWidth { get; }
+    public int ResolutionHeight { get; }
+    public int RefreshRate { get; }
+
+    public ExclusiveFullscreenModeOptions(int resolutionWidth, int resolutionHeight, int refreshRate)
+    {
+        ResolutionWidth = resolutionWidth;
+        ResolutionHeight = resolutionHeight;
+        RefreshRate = refreshRate;
     }
 }

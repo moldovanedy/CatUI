@@ -15,40 +15,39 @@ using CatUISample.UI.Pages.NativeUi;
 using CatUISample.UI.Pages.UiElements;
 using CatUISample.UI.Theming;
 
-namespace CatUISample.UI
-{
-    public class RootElement : RowContainer
-    {
-        protected override void EnterDocument(object sender)
-        {
-            ObjectRef<Navigator> navigatorRef = new();
-            Document!.BackgroundColor = CatTheme.Colors.Surface;
+namespace CatUISample.UI;
 
-            ThemeOverride = RootTheme.GetTheme();
-            Children =
-            [
-                new Sidebar(navigatorRef),
-                new Navigator(
-                    new Dictionary<string, Func<NavArgs?, NavRoute>>
-                    {
-                        { "/", _ => new NavRoute(new MainPage()) },
-                        { "/Layout/RowContainer", _ => new NavRoute(new RowContainerExamples()) },
-                        { "/Layout/ScrollContainer", _ => new NavRoute(new ScrollContainerExamples()) },
-                        { "/UiElements/Buttons", _ => new NavRoute(new ButtonsExample()) },
-                        { "/NativeUi/FilePicking", _ => new NavRoute(new FilePickingExamples()) },
-                        { "/Misc/Cursors", _ => new NavRoute(new CursorExamples()) },
-                        { "/Misc/Animation", _ => new NavRoute(new AnimationExamples()) }
-                    },
-                    "/")
+public class RootElement : RowContainer
+{
+    protected override void EnterDocument(object sender)
+    {
+        ObjectRef<Navigator> navigatorRef = new();
+        Document!.BackgroundColor = CatTheme.Colors.Surface;
+
+        ThemeOverride = RootTheme.GetTheme();
+        Children =
+        [
+            new Sidebar(navigatorRef),
+            new Navigator(
+                new Dictionary<string, Func<NavArgs?, NavRoute>>
                 {
-                    Ref = navigatorRef,
-                    Layout =
-                        new ElementLayout()
-                            .SetMinMaxAndPreferredWidth(Dimension.Unset, 0, Dimension.Unset)
-                            .SetFixedHeight("100%"),
-                    ElementContainerSizing = new RowContainerSizing()
-                }
-            ];
-        }
+                    { "/", _ => new NavRoute(new MainPage()) },
+                    { "/Layout/RowContainer", _ => new NavRoute(new RowContainerExamples()) },
+                    { "/Layout/ScrollContainer", _ => new NavRoute(new ScrollContainerExamples()) },
+                    { "/UiElements/Buttons", _ => new NavRoute(new ButtonsExample()) },
+                    { "/NativeUi/FilePicking", _ => new NavRoute(new FilePickingExamples()) },
+                    { "/Misc/Cursors", _ => new NavRoute(new CursorExamples()) },
+                    { "/Misc/Animation", _ => new NavRoute(new AnimationExamples()) }
+                },
+                "/")
+            {
+                Ref = navigatorRef,
+                Layout =
+                    new ElementLayout()
+                        .SetMinMaxAndPreferredWidth(Dimension.Unset, 0, Dimension.Unset)
+                        .SetFixedHeight("100%"),
+                ElementContainerSizing = new RowContainerSizing()
+            }
+        ];
     }
 }

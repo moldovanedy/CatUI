@@ -1,42 +1,41 @@
 using SkiaSharp;
 
-namespace CatUI.Data.Shapes
+namespace CatUI.Data.Shapes;
+
+/// <summary>
+/// This is the same as not having a clip shape at all.
+/// </summary>
+public class RectangleClipShape : ClipShape
 {
-    /// <summary>
-    /// This is the same as not having a clip shape at all.
-    /// </summary>
-    public class RectangleClipShape : ClipShape
+    /// <inheritdoc cref="ClipShape.IsPointInside"/>
+    /// <remarks>This calculation is very fast.</remarks>
+    public override bool IsPointInside(Point2D point, Rect bounds, float contentScale, Size viewportSize)
     {
-        /// <inheritdoc cref="ClipShape.IsPointInside"/>
-        /// <remarks>This calculation is very fast.</remarks>
-        public override bool IsPointInside(Point2D point, Rect bounds, float contentScale, Size viewportSize)
+        float endX = bounds.X + bounds.Width;
+        float endY = bounds.Y + bounds.Height;
+
+        if (point.X >= endX || point.X <= bounds.X)
         {
-            float endX = bounds.X + bounds.Width;
-            float endY = bounds.Y + bounds.Height;
-
-            if (point.X >= endX || point.X <= bounds.X)
-            {
-                return false;
-            }
-
-            if (point.Y >= endY || point.Y <= bounds.Y)
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
-        public override SKPath GetSkiaClipPath(Rect bounds, float contentScale, Size viewportSize)
+        if (point.Y >= endY || point.Y <= bounds.Y)
         {
-            SKPath path = new();
-            path.AddRect(bounds);
-            return path;
+            return false;
         }
 
-        public override RectangleClipShape Duplicate()
-        {
-            return new RectangleClipShape();
-        }
+        return true;
+    }
+
+    public override SKPath GetSkiaClipPath(Rect bounds, float contentScale, Size viewportSize)
+    {
+        SKPath path = new();
+        path.AddRect(bounds);
+        return path;
+    }
+
+    public override RectangleClipShape Duplicate()
+    {
+        return new RectangleClipShape();
     }
 }

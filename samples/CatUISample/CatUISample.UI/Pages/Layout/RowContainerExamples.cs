@@ -7,117 +7,116 @@ using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 
-namespace CatUISample.UI.Pages.Layout
-{
-    public class RowContainerExamples : ColumnContainer
-    {
-        public RowContainerExamples()
-        {
-            Layout = new ElementLayout().SetFixedWidth("100%");
-            Arrangement = LinearArrangement.SpacedBy(20);
+namespace CatUISample.UI.Pages.Layout;
 
+public class RowContainerExamples : ColumnContainer
+{
+    public RowContainerExamples()
+    {
+        Layout = new ElementLayout().SetFixedWidth("100%");
+        Arrangement = LinearArrangement.SpacedBy(20);
+
+        Children =
+        [
+            new Label("RowContainer examples", TextAlignmentType.Center)
+            {
+                Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
+                FontSize = 32,
+                TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
+            },
+
+            GetRowContainerExample(LinearArrangement.JustificationType.Start),
+            GetRowContainerExample(LinearArrangement.JustificationType.Center),
+            GetRowContainerExample(LinearArrangement.JustificationType.End),
+
+            GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceAround),
+            GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceBetween),
+            GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceEvenly)
+        ];
+    }
+
+    private static ColumnContainer GetRowContainerExample(LinearArrangement.JustificationType justification)
+    {
+        return new ColumnContainer
+        {
+            Layout = new ElementLayout().SetFixedWidth("100%"),
+            Arrangement = LinearArrangement.SpacedBy(10),
             Children =
             [
-                new Label("RowContainer examples", TextAlignmentType.Center)
+                new Label($"Alignment: {justification}")
                 {
-                    Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
-                    FontSize = 32,
-                    TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
+                    FontSize = 16, TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                 },
+                new RowContainer
+                {
+                    Layout = new ElementLayout().SetFixedWidth("100%"),
+                    Arrangement = new LinearArrangement(justification, 0),
+                    Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
+                    Children =
+                    [
+                        new RectangleElement
+                        {
+                            Layout = new ElementLayout().SetFixedWidth(100).SetFixedHeight(50),
+                            FillBrush = new ColorBrush(CatTheme.Colors.Primary)
+                        },
+                        new RectangleElement
+                        {
+                            Layout = new ElementLayout().SetFixedWidth(30).SetFixedHeight(50),
+                            FillBrush = new ColorBrush(CatTheme.Colors.Tertiary)
+                        },
+                        new RectangleElement
+                        {
+                            Layout = new ElementLayout().SetFixedWidth(150).SetFixedHeight(50),
+                            FillBrush = new ColorBrush(CatTheme.Colors.Primary)
+                        },
+                        new RectangleElement
+                        {
+                            Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
+                            FillBrush = new ColorBrush(CatTheme.Colors.Tertiary)
+                        }
+                    ]
+                }
+            ]
+        };
+    }
 
-                GetRowContainerExample(LinearArrangement.JustificationType.Start),
-                GetRowContainerExample(LinearArrangement.JustificationType.Center),
-                GetRowContainerExample(LinearArrangement.JustificationType.End),
-
-                GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceAround),
-                GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceBetween),
-                GetSpacingRowContainerExample(LinearArrangement.JustificationType.SpaceEvenly)
-            ];
-        }
-
-        private static ColumnContainer GetRowContainerExample(LinearArrangement.JustificationType justification)
+    private static ColumnContainer GetSpacingRowContainerExample(LinearArrangement.JustificationType justification)
+    {
+        return new ColumnContainer
         {
-            return new ColumnContainer
-            {
-                Layout = new ElementLayout().SetFixedWidth("100%"),
-                Arrangement = LinearArrangement.SpacedBy(10),
-                Children =
-                [
-                    new Label($"Alignment: {justification}")
-                    {
-                        FontSize = 16, TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
-                    },
-                    new RowContainer
-                    {
-                        Layout = new ElementLayout().SetFixedWidth("100%"),
-                        Arrangement = new LinearArrangement(justification, 0),
-                        Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
-                        Children =
-                        [
-                            new RectangleElement
-                            {
-                                Layout = new ElementLayout().SetFixedWidth(100).SetFixedHeight(50),
-                                FillBrush = new ColorBrush(CatTheme.Colors.Primary)
-                            },
-                            new RectangleElement
-                            {
-                                Layout = new ElementLayout().SetFixedWidth(30).SetFixedHeight(50),
-                                FillBrush = new ColorBrush(CatTheme.Colors.Tertiary)
-                            },
-                            new RectangleElement
-                            {
-                                Layout = new ElementLayout().SetFixedWidth(150).SetFixedHeight(50),
-                                FillBrush = new ColorBrush(CatTheme.Colors.Primary)
-                            },
-                            new RectangleElement
-                            {
-                                Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
-                                FillBrush = new ColorBrush(CatTheme.Colors.Tertiary)
-                            }
-                        ]
-                    }
-                ]
-            };
-        }
-
-        private static ColumnContainer GetSpacingRowContainerExample(LinearArrangement.JustificationType justification)
-        {
-            return new ColumnContainer
-            {
-                Layout = new ElementLayout().SetFixedWidth("100%"),
-                Arrangement = LinearArrangement.SpacedBy(10),
-                Children =
-                [
-                    new Label($"Alignment: {justification}")
-                    {
-                        FontSize = 16, TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
-                    },
-                    new RowContainer
-                    {
-                        Layout = new ElementLayout().SetFixedWidth("100%"),
-                        Arrangement = new LinearArrangement(justification, 0),
-                        Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
-                        Children =
-                        [
-                            new RectangleElement
-                            {
-                                Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
-                                FillBrush = new ColorBrush(CatTheme.Colors.Primary)
-                            },
-                            new RectangleElement
-                            {
-                                Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
-                                FillBrush = new ColorBrush(CatTheme.Colors.Primary)
-                            },
-                            new RectangleElement
-                            {
-                                Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
-                                FillBrush = new ColorBrush(CatTheme.Colors.Primary)
-                            }
-                        ]
-                    }
-                ]
-            };
-        }
+            Layout = new ElementLayout().SetFixedWidth("100%"),
+            Arrangement = LinearArrangement.SpacedBy(10),
+            Children =
+            [
+                new Label($"Alignment: {justification}")
+                {
+                    FontSize = 16, TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
+                },
+                new RowContainer
+                {
+                    Layout = new ElementLayout().SetFixedWidth("100%"),
+                    Arrangement = new LinearArrangement(justification, 0),
+                    Background = new ColorBrush(CatTheme.Colors.SurfaceContainer),
+                    Children =
+                    [
+                        new RectangleElement
+                        {
+                            Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
+                            FillBrush = new ColorBrush(CatTheme.Colors.Primary)
+                        },
+                        new RectangleElement
+                        {
+                            Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
+                            FillBrush = new ColorBrush(CatTheme.Colors.Primary)
+                        },
+                        new RectangleElement
+                        {
+                            Layout = new ElementLayout().SetFixedWidth(80).SetFixedHeight(50),
+                            FillBrush = new ColorBrush(CatTheme.Colors.Primary)
+                        }
+                    ]
+                }
+            ]
+        };
     }
 }

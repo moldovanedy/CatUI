@@ -1,19 +1,18 @@
 ﻿using System.ComponentModel;
 using SkiaSharp;
 
-namespace CatUI.Data.Brushes
+namespace CatUI.Data.Brushes;
+
+public interface IBrush : INotifyPropertyChanged
 {
-    public interface IBrush : INotifyPropertyChanged
-    {
-        SKPaint ToSkiaPaint();
+    SKPaint ToSkiaPaint();
 
-        /// <summary>
-        /// Returns true if the element to be drawn can skip the rendering because it would not create any difference.
-        /// For example, a color brush that has a completely transparent color can instruct the element to skip rendering.
-        /// </summary>
-        bool IsSkippable { get; }
+    /// <summary>
+    /// Returns true if the element to be drawn can skip the rendering because it would not create any difference.
+    /// For example, a color brush that has a completely transparent color can instruct the element to skip rendering.
+    /// </summary>
+    bool IsSkippable { get; }
 
-        /// <inheritdoc cref="CatObject.Duplicate"/>
-        IBrush Duplicate();
-    }
+    /// <inheritdoc cref="CatObject.Duplicate"/>
+    IBrush Duplicate();
 }

@@ -1,67 +1,66 @@
 ﻿using System.Numerics;
 
-namespace CatUI.Data.ElementData
+namespace CatUI.Data.ElementData;
+
+/// <summary>
+/// Represents the bounds of an element in device pixels, including the margins.
+/// </summary>
+/// <remarks>
+/// It's not axis-aligned, meaning that the actual display might be different if the element is a child of a TransformControl.
+/// </remarks>
+public readonly struct ElementBounds
 {
     /// <summary>
-    /// Represents the bounds of an element in device pixels, including the margins.
+    /// The top left corner of the element's content, without margins and padding.
     /// </summary>
-    /// <remarks>
-    /// It's not axis-aligned, meaning that the actual display might be different if the element is a child of a TransformControl.
-    /// </remarks>
-    public readonly struct ElementBounds
+    public Rect BoundingRect { get; } = new();
+
+    /// <summary>
+    /// A <see cref="Vector4"/> that represents the margins in the cardinal directions in the following order:
+    /// top (X), right (Y), bottom (Z), left (W).
+    /// </summary>
+    public Vector4 Margins { get; } = new();
+
+    public ElementBounds() { }
+
+    public ElementBounds(Rect boundingRect, Vector4 margins)
     {
-        /// <summary>
-        /// The top left corner of the element's content, without margins and padding.
-        /// </summary>
-        public Rect BoundingRect { get; } = new();
+        BoundingRect = boundingRect;
+        Margins = margins;
+    }
 
-        /// <summary>
-        /// A <see cref="Vector4"/> that represents the margins in the cardinal directions in the following order:
-        /// top (X), right (Y), bottom (Z), left (W).
-        /// </summary>
-        public Vector4 Margins { get; } = new();
+    public ElementBounds(ElementBounds other)
+    {
+        BoundingRect = other.BoundingRect;
+        Margins = other.Margins;
+    }
 
-        public ElementBounds() { }
+    public override string ToString()
+    {
+        string marginText = $"({Margins.X}, {Margins.Y}, {Margins.Z}, {Margins.W})";
 
-        public ElementBounds(Rect boundingRect, Vector4 margins)
-        {
-            BoundingRect = boundingRect;
-            Margins = margins;
-        }
+        return $"{{Rect:{BoundingRect}, Margin:{marginText}}}";
+    }
 
-        public ElementBounds(ElementBounds other)
-        {
-            BoundingRect = other.BoundingRect;
-            Margins = other.Margins;
-        }
+    /// <inheritdoc cref="CatObject.Duplicate"/>
+    public ElementBounds Duplicate()
+    {
+        return new ElementBounds(BoundingRect, Margins);
+    }
 
-        public override string ToString()
-        {
-            string marginText = $"({Margins.X}, {Margins.Y}, {Margins.Z}, {Margins.W})";
+    public Rect GetElementBox()
+    {
+        var rect = new Rect(
+            BoundingRect.X - Margins.W,
+            BoundingRect.Y - Margins.X,
+            BoundingRect.Width + Margins.Y,
+            BoundingRect.Height + Margins.Z
+        );
+        return rect;
+    }
 
-            return $"{{Rect:{BoundingRect}, Margin:{marginText}}}";
-        }
-
-        /// <inheritdoc cref="CatObject.Duplicate"/>
-        public ElementBounds Duplicate()
-        {
-            return new ElementBounds(BoundingRect, Margins);
-        }
-
-        public Rect GetElementBox()
-        {
-            var rect = new Rect(
-                BoundingRect.X - Margins.W,
-                BoundingRect.Y - Margins.X,
-                BoundingRect.Width + Margins.Y,
-                BoundingRect.Height + Margins.Z
-            );
-            return rect;
-        }
-
-        public Rect GetContentBox()
-        {
-            return BoundingRect;
-        }
+    public Rect GetContentBox()
+    {
+        return BoundingRect;
     }
 }

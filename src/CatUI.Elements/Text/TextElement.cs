@@ -3,168 +3,167 @@ using CatUI.Data.Assets;
 using CatUI.Data.Enums;
 using CatUI.RenderingEngine.GraphicsCaching;
 
-namespace CatUI.Elements.Text
+namespace CatUI.Elements.Text;
+
+public abstract class TextElement : Element
 {
-    public abstract class TextElement : Element
+    /// <summary>
+    /// The text of the element. Can use hyphenation with soft hyphens (U+00AD), but not all text elements support
+    /// multiple lines; read the documentation on each one to find out if it supports multiple lines or not.
+    /// The default value is an empty string.
+    /// </summary>
+    public string Text
     {
-        /// <summary>
-        /// The text of the element. Can use hyphenation with soft hyphens (U+00AD), but not all text elements support
-        /// multiple lines; read the documentation on each one to find out if it supports multiple lines or not.
-        /// The default value is an empty string.
-        /// </summary>
-        public string Text
+        get => _text;
+        set => TextProperty.Value = value;
+    }
+
+    private string _text = string.Empty;
+    public ObservableProperty<string> TextProperty { get; } = new(string.Empty);
+
+    private void SetText(string? value)
+    {
+        _text = value ?? string.Empty;
+        SetLocalValue(nameof(Text), value);
+        MarkLayoutDirty();
+    }
+
+    public FontAsset? Font
+    {
+        get => _font;
+        set => FontProperty.Value = value;
+    }
+
+    private FontAsset? _font;
+    public ObservableProperty<FontAsset> FontProperty { get; } = new();
+
+    private void SetFont(FontAsset? value)
+    {
+        _font = value;
+        SetLocalValue(nameof(Font), value);
+        MarkLayoutDirty();
+
+        if (value != null)
         {
-            get => _text;
-            set => TextProperty.Value = value;
+            TextMeasuringCache.UseFont(value);
         }
+    }
 
-        private string _text = string.Empty;
-        public ObservableProperty<string> TextProperty { get; } = new(string.Empty);
+    /// <summary>
+    /// Represents the size of the font to use when drawing the text. The default value is 16dp.
+    /// </summary>
+    public Dimension FontSize
+    {
+        get => _fontSize;
+        set => FontSizeProperty.Value = value;
+    }
 
-        private void SetText(string? value)
-        {
-            _text = value ?? string.Empty;
-            SetLocalValue(nameof(Text), value);
-            MarkLayoutDirty();
-        }
+    private Dimension _fontSize = new(16);
+    public ObservableProperty<Dimension> FontSizeProperty { get; } = new(new Dimension(16));
 
-        public FontAsset? Font
-        {
-            get => _font;
-            set => FontProperty.Value = value;
-        }
+    private void SetFontSize(Dimension value)
+    {
+        _fontSize = value;
+        SetLocalValue(nameof(FontSize), value);
+        MarkLayoutDirty();
+    }
 
-        private FontAsset? _font;
-        public ObservableProperty<FontAsset> FontProperty { get; } = new();
+    /// <summary>
+    /// Specifies the behavior of the text element when the text is too large to render in the given space.
+    /// The actual behavior depends on each element. See <see cref="TextOverflowMode"/> for information
+    /// about possible values. The default value is <see cref="TextOverflowMode.Ellipsis"/>.
+    /// </summary>
+    public TextOverflowMode OverflowMode
+    {
+        get => _overflowMode;
+        set => OverflowModeProperty.Value = value;
+    }
 
-        private void SetFont(FontAsset? value)
-        {
-            _font = value;
-            SetLocalValue(nameof(Font), value);
-            MarkLayoutDirty();
+    private TextOverflowMode _overflowMode = TextOverflowMode.Ellipsis;
 
-            if (value != null)
-            {
-                TextMeasuringCache.UseFont(value);
-            }
-        }
+    public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; } =
+        new(TextOverflowMode.Ellipsis);
 
-        /// <summary>
-        /// Represents the size of the font to use when drawing the text. The default value is 16dp.
-        /// </summary>
-        public Dimension FontSize
-        {
-            get => _fontSize;
-            set => FontSizeProperty.Value = value;
-        }
+    private void SetOverflowMode(TextOverflowMode value)
+    {
+        _overflowMode = value;
+        SetLocalValue(nameof(OverflowMode), value);
+        MarkLayoutDirty();
+    }
 
-        private Dimension _fontSize = new(16);
-        public ObservableProperty<Dimension> FontSizeProperty { get; } = new(new Dimension(16));
+    /// <summary>
+    /// The text alignment to use. All values except <see cref="TextAlignmentType.Justify"/> are generally supported
+    /// by all text elements, for <see cref="TextAlignmentType.Justify"/> consult the documentation on each document
+    /// to see if it specifies that it's not supported (if no mention of it, it means it's supported).
+    /// The default value is <see cref="TextAlignmentType.Left"/>.
+    /// </summary>
+    public TextAlignmentType TextAlignment
+    {
+        get => _textAlignment;
+        set => TextAlignmentProperty.Value = value;
+    }
 
-        private void SetFontSize(Dimension value)
-        {
-            _fontSize = value;
-            SetLocalValue(nameof(FontSize), value);
-            MarkLayoutDirty();
-        }
+    private TextAlignmentType _textAlignment = TextAlignmentType.Left;
 
-        /// <summary>
-        /// Specifies the behavior of the text element when the text is too large to render in the given space.
-        /// The actual behavior depends on each element. See <see cref="TextOverflowMode"/> for information
-        /// about possible values. The default value is <see cref="TextOverflowMode.Ellipsis"/>.
-        /// </summary>
-        public TextOverflowMode OverflowMode
-        {
-            get => _overflowMode;
-            set => OverflowModeProperty.Value = value;
-        }
+    public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; }
+        = new(TextAlignmentType.Left);
 
-        private TextOverflowMode _overflowMode = TextOverflowMode.Ellipsis;
+    private void SetTextAlignment(TextAlignmentType value)
+    {
+        _textAlignment = value;
+        SetLocalValue(nameof(TextAlignment), value);
+        MarkLayoutDirty();
+    }
 
-        public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; } =
-            new(TextOverflowMode.Ellipsis);
+    /// <summary>
+    /// Specifies the string that will be appended at the end of a row if the text cannot be drawn completely
+    /// (because it will overflow the element, for example).
+    /// </summary>
+    public string OverflowString
+    {
+        get => _overflowString;
+        set => OverflowStringProperty.Value = value;
+    }
 
-        private void SetOverflowMode(TextOverflowMode value)
-        {
-            _overflowMode = value;
-            SetLocalValue(nameof(OverflowMode), value);
-            MarkLayoutDirty();
-        }
+    private string _overflowString = "\u2026";
+    public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
 
-        /// <summary>
-        /// The text alignment to use. All values except <see cref="TextAlignmentType.Justify"/> are generally supported
-        /// by all text elements, for <see cref="TextAlignmentType.Justify"/> consult the documentation on each document
-        /// to see if it specifies that it's not supported (if no mention of it, it means it's supported).
-        /// The default value is <see cref="TextAlignmentType.Left"/>.
-        /// </summary>
-        public TextAlignmentType TextAlignment
-        {
-            get => _textAlignment;
-            set => TextAlignmentProperty.Value = value;
-        }
+    private void SetOverflowString(string? value)
+    {
+        _overflowString = value ?? string.Empty;
+        SetLocalValue(nameof(OverflowString), value);
+        MarkLayoutDirty();
+    }
 
-        private TextAlignmentType _textAlignment = TextAlignmentType.Left;
+    public TextElement()
+    {
+        InitPropertiesEvents();
+    }
 
-        public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; }
-            = new(TextAlignmentType.Left);
+    public TextElement(string text, TextAlignmentType textAlignment = TextAlignmentType.Left)
+    {
+        InitPropertiesEvents();
+        Text = text;
+        TextAlignment = textAlignment;
+    }
 
-        private void SetTextAlignment(TextAlignmentType value)
-        {
-            _textAlignment = value;
-            SetLocalValue(nameof(TextAlignment), value);
-            MarkLayoutDirty();
-        }
+    public TextElement(TextElement other) : base(other)
+    {
+        InitPropertiesEvents();
+        Text = other.Text;
+        FontSize = other.FontSize;
+        OverflowMode = other.OverflowMode;
+        TextAlignment = other.TextAlignment;
+        OverflowString = other.OverflowString;
+    }
 
-        /// <summary>
-        /// Specifies the string that will be appended at the end of a row if the text cannot be drawn completely
-        /// (because it will overflow the element, for example).
-        /// </summary>
-        public string OverflowString
-        {
-            get => _overflowString;
-            set => OverflowStringProperty.Value = value;
-        }
-
-        private string _overflowString = "\u2026";
-        public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
-
-        private void SetOverflowString(string? value)
-        {
-            _overflowString = value ?? string.Empty;
-            SetLocalValue(nameof(OverflowString), value);
-            MarkLayoutDirty();
-        }
-
-        public TextElement()
-        {
-            InitPropertiesEvents();
-        }
-
-        public TextElement(string text, TextAlignmentType textAlignment = TextAlignmentType.Left)
-        {
-            InitPropertiesEvents();
-            Text = text;
-            TextAlignment = textAlignment;
-        }
-
-        public TextElement(TextElement other) : base(other)
-        {
-            InitPropertiesEvents();
-            Text = other.Text;
-            FontSize = other.FontSize;
-            OverflowMode = other.OverflowMode;
-            TextAlignment = other.TextAlignment;
-            OverflowString = other.OverflowString;
-        }
-
-        private void InitPropertiesEvents()
-        {
-            TextProperty.ValueChangedEvent += SetText;
-            FontProperty.ValueChangedEvent += SetFont;
-            FontSizeProperty.ValueChangedEvent += SetFontSize;
-            OverflowModeProperty.ValueChangedEvent += SetOverflowMode;
-            TextAlignmentProperty.ValueChangedEvent += SetTextAlignment;
-            OverflowStringProperty.ValueChangedEvent += SetOverflowString;
-        }
+    private void InitPropertiesEvents()
+    {
+        TextProperty.ValueChangedEvent += SetText;
+        FontProperty.ValueChangedEvent += SetFont;
+        FontSizeProperty.ValueChangedEvent += SetFontSize;
+        OverflowModeProperty.ValueChangedEvent += SetOverflowMode;
+        TextAlignmentProperty.ValueChangedEvent += SetTextAlignment;
+        OverflowStringProperty.ValueChangedEvent += SetOverflowString;
     }
 }

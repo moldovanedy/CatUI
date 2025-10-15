@@ -1,24 +1,23 @@
 using CatUI.Elements.Behaviors;
 
-namespace CatUI.Elements.ControlFlow
+namespace CatUI.Elements.ControlFlow;
+
+public abstract class ControlFlowElementBase : Element, INonVisualElement
 {
-    public abstract class ControlFlowElementBase : Element, INonVisualElement
-    {
-        //it doesn't work... completely breaks the UI
+    //it doesn't work... completely breaks the UI
 
-        // public override Size RecomputeLayout(
-        //     Size parentSize,
-        //     Size parentMaxSize,
-        //     Point2D parentAbsolutePosition,
-        //     float? parentEnforcedWidth = null,
-        //     float? parentEnforcedHeight = null)
-        // {
-        //     RecomputeChildrenUtil(parentSize, parentMaxSize, parentAbsolutePosition);
-        //     Bounds = GetFinalBoundsUtil(parentAbsolutePosition, parentSize);
-        //     return parentSize;
-        // }
+    // public override Size RecomputeLayout(
+    //     Size parentSize,
+    //     Size parentMaxSize,
+    //     Point2D parentAbsolutePosition,
+    //     float? parentEnforcedWidth = null,
+    //     float? parentEnforcedHeight = null)
+    // {
+    //     RecomputeChildrenUtil(parentSize, parentMaxSize, parentAbsolutePosition);
+    //     Bounds = GetFinalBoundsUtil(parentAbsolutePosition, parentSize);
+    //     return parentSize;
+    // }
 
-        public ControlFlowElementBase() { }
-        public ControlFlowElementBase(ControlFlowElementBase other) : base(other) { }
-    }
+    public ControlFlowElementBase() { }
+    public ControlFlowElementBase(ControlFlowElementBase other) : base(other) { }
 }

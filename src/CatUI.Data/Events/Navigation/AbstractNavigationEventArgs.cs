@@ -1,9 +1,8 @@
 using System;
 
-namespace CatUI.Data.Events.Navigation
+namespace CatUI.Data.Events.Navigation;
+
+public abstract class AbstractNavigationEventArgs : EventArgs
 {
-    public abstract class AbstractNavigationEventArgs : EventArgs
-    {
-        public string OldPath { get; protected set; } = string.Empty;
-    }
+    public string OldPath { get; protected set; } = string.Empty;
 }

@@ -1,6 +1,5 @@
-namespace CatUI.Data.Containers
+namespace CatUI.Data.Containers;
+
+public abstract class ContainerSizing : CatObject
 {
-    public abstract class ContainerSizing : CatObject
-    {
-    }
 }

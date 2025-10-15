@@ -11,338 +11,337 @@ using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
 using CatUI.Utils;
 
-namespace CatUI.Elements.Buttons
+namespace CatUI.Elements.Buttons;
+
+/// <summary>
+/// A UI button that is specialized in having a text, an icon, or both. For a button that has any kind of
+/// content, see <see cref="BaseButton"/>. Do NOT set the <see cref="Element.Children"/> directly or interfere in any
+/// way with the first child, as it is used internally. Modifying it without using <see cref="TextElement"/> and
+/// <see cref="IconElement"/> might result in crashes or unexpected behavior in general.
+/// </summary>
+/// <remarks>
+/// <see cref="Element.Children"/> is controlled internally. You should never set or modify any children directly,
+/// but use convenience properties and methods instead. Direct children modification might cause crashes.
+/// </remarks>
+public class Button : BaseButton, IPaddingAware
 {
+    /// <inheritdoc cref="Element.Ref"/>
+    public new ObjectRef<Button>? Ref
+    {
+        get => _ref;
+        set
+        {
+            _ref = value;
+            if (_ref != null)
+            {
+                _ref.Value = this;
+            }
+        }
+    }
+
+    private ObjectRef<Button>? _ref;
+
+    public EdgeInset Padding
+    {
+        get => _padding;
+        set => PaddingProperty.Value = value;
+    }
+
+    private EdgeInset _padding = new();
+    public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
+
+    private void SetPadding(EdgeInset value)
+    {
+        _padding = value;
+        SetLocalValue(nameof(Padding), value);
+    }
+
     /// <summary>
-    /// A UI button that is specialized in having a text, an icon, or both. For a button that has any kind of
-    /// content, see <see cref="BaseButton"/>. Do NOT set the <see cref="Element.Children"/> directly or interfere in any
-    /// way with the first child, as it is used internally. Modifying it without using <see cref="TextElement"/> and
-    /// <see cref="IconElement"/> might result in crashes or unexpected behavior in general.
+    /// Represents the spacing between <see cref="TextElement"/> and <see cref="IconElement"/>. This will be considered
+    /// only when both a text and an icon are given.
+    /// </summary>
+    public Dimension Spacing
+    {
+        get => _spacing;
+        set => SpacingProperty.Value = value;
+    }
+
+    private Dimension _spacing = new();
+    public ObservableProperty<Dimension> SpacingProperty { get; } = new(new Dimension());
+
+    private void SetSpacing(Dimension value)
+    {
+        _spacing = value;
+        SetLocalValue(nameof(Spacing), value);
+        InternalRowContainer.Arrangement.Spacing = value;
+    }
+
+    /// <summary>
+    /// Represents the horizontal arrangement of the content. A value other than <see cref="LinearArrangement.JustificationType.Start"/>,
+    /// <see cref="LinearArrangement.JustificationType.Center"/> or <see cref="LinearArrangement.JustificationType.End"/>
+    /// will make <see cref="Spacing"/> irrelevant. By default, this is <see cref="LinearArrangement.JustificationType.Center"/>.
+    /// </summary>
+    public LinearArrangement.JustificationType HorizontalArrangement
+    {
+        get => _horizontalArrangement;
+        set => HorizontalArrangementProperty.Value = value;
+    }
+
+    private LinearArrangement.JustificationType _horizontalArrangement = LinearArrangement.JustificationType.Center;
+
+    public ObservableProperty<LinearArrangement.JustificationType> HorizontalArrangementProperty
+    {
+        get;
+    } = new(LinearArrangement.JustificationType.Center);
+
+    private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
+    {
+        _horizontalArrangement = value;
+        SetLocalValue(nameof(HorizontalArrangement), value);
+        InternalRowContainer.Arrangement.ContentJustification = value;
+    }
+
+    /// <summary>
+    /// Represents the vertical alignment of the content. By default, this is <see cref="VerticalAlignmentType.Center"/>.
+    /// </summary>
+    public VerticalAlignmentType VerticalAlignment
+    {
+        get => _verticalAlignment;
+        set => VerticalAlignmentProperty.Value = value;
+    }
+
+    private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Center;
+
+    public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
+        = new(VerticalAlignmentType.Center);
+
+    private void SetVerticalAlignment(VerticalAlignmentType value)
+    {
+        _verticalAlignment = value;
+        SetLocalValue(nameof(VerticalAlignment), value);
+        InternalRowContainer.VerticalAlignment = value;
+    }
+
+    /// <summary>
+    /// Represents the text content of the button, but it's optional, as you can have this, an <see cref="IconElement"/>,
+    /// or both. Contrary to the name, this can be any kind of element, but it's much more common for it to be a
+    /// <see cref="Label"/>.
     /// </summary>
     /// <remarks>
-    /// <see cref="Element.Children"/> is controlled internally. You should never set or modify any children directly,
-    /// but use convenience properties and methods instead. Direct children modification might cause crashes.
+    /// To see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
+    /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
+    /// <see cref="InternalRowContainer"/>.
     /// </remarks>
-    public class Button : BaseButton, IPaddingAware
+    public Element? TextElement
     {
-        /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<Button>? Ref
+        get => _textElement;
+        set
         {
-            get => _ref;
-            set
+            if (_textElement == null)
             {
-                _ref = value;
-                if (_ref != null)
-                {
-                    _ref.Value = this;
-                }
-            }
-        }
-
-        private ObjectRef<Button>? _ref;
-
-        public EdgeInset Padding
-        {
-            get => _padding;
-            set => PaddingProperty.Value = value;
-        }
-
-        private EdgeInset _padding = new();
-        public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
-
-        private void SetPadding(EdgeInset value)
-        {
-            _padding = value;
-            SetLocalValue(nameof(Padding), value);
-        }
-
-        /// <summary>
-        /// Represents the spacing between <see cref="TextElement"/> and <see cref="IconElement"/>. This will be considered
-        /// only when both a text and an icon are given.
-        /// </summary>
-        public Dimension Spacing
-        {
-            get => _spacing;
-            set => SpacingProperty.Value = value;
-        }
-
-        private Dimension _spacing = new();
-        public ObservableProperty<Dimension> SpacingProperty { get; } = new(new Dimension());
-
-        private void SetSpacing(Dimension value)
-        {
-            _spacing = value;
-            SetLocalValue(nameof(Spacing), value);
-            InternalRowContainer.Arrangement.Spacing = value;
-        }
-
-        /// <summary>
-        /// Represents the horizontal arrangement of the content. A value other than <see cref="LinearArrangement.JustificationType.Start"/>,
-        /// <see cref="LinearArrangement.JustificationType.Center"/> or <see cref="LinearArrangement.JustificationType.End"/>
-        /// will make <see cref="Spacing"/> irrelevant. By default, this is <see cref="LinearArrangement.JustificationType.Center"/>.
-        /// </summary>
-        public LinearArrangement.JustificationType HorizontalArrangement
-        {
-            get => _horizontalArrangement;
-            set => HorizontalArrangementProperty.Value = value;
-        }
-
-        private LinearArrangement.JustificationType _horizontalArrangement = LinearArrangement.JustificationType.Center;
-
-        public ObservableProperty<LinearArrangement.JustificationType> HorizontalArrangementProperty
-        {
-            get;
-        } = new(LinearArrangement.JustificationType.Center);
-
-        private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
-        {
-            _horizontalArrangement = value;
-            SetLocalValue(nameof(HorizontalArrangement), value);
-            InternalRowContainer.Arrangement.ContentJustification = value;
-        }
-
-        /// <summary>
-        /// Represents the vertical alignment of the content. By default, this is <see cref="VerticalAlignmentType.Center"/>.
-        /// </summary>
-        public VerticalAlignmentType VerticalAlignment
-        {
-            get => _verticalAlignment;
-            set => VerticalAlignmentProperty.Value = value;
-        }
-
-        private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Center;
-
-        public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
-            = new(VerticalAlignmentType.Center);
-
-        private void SetVerticalAlignment(VerticalAlignmentType value)
-        {
-            _verticalAlignment = value;
-            SetLocalValue(nameof(VerticalAlignment), value);
-            InternalRowContainer.VerticalAlignment = value;
-        }
-
-        /// <summary>
-        /// Represents the text content of the button, but it's optional, as you can have this, an <see cref="IconElement"/>,
-        /// or both. Contrary to the name, this can be any kind of element, but it's much more common for it to be a
-        /// <see cref="Label"/>.
-        /// </summary>
-        /// <remarks>
-        /// To see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
-        /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
-        /// <see cref="InternalRowContainer"/>.
-        /// </remarks>
-        public Element? TextElement
-        {
-            get => _textElement;
-            set
-            {
-                if (_textElement == null)
-                {
-                    _textElement = value;
-                    if (value != null)
-                    {
-                        InternalRowContainer.Children.Add(value);
-                    }
-
-                    return;
-                }
-
-                if (value == null)
-                {
-                    InternalRowContainer.Children.Remove(_textElement);
-                    _textElement = null;
-                    return;
-                }
-
                 _textElement = value;
-                InternalRowContainer.Children[_iconElement == null ? 0 : 1] = value;
+                if (value != null)
+                {
+                    InternalRowContainer.Children.Add(value);
+                }
+
+                return;
             }
-        }
 
-        private Element? _textElement;
-
-        /// <summary>
-        /// Represents content of the icon, but it's optional, as you can have this, an <see cref="TextElement"/>, or both.
-        /// Contrary to the name, this can be any kind of element, but it's generally used as an icon, like a
-        /// <see cref="GeometricPathElement"/> or <see cref="ImageView"/>.
-        /// </summary>
-        /// <remarks>
-        /// To see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
-        /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
-        /// <see cref="InternalRowContainer"/>.
-        /// </remarks>
-        public Element? IconElement
-        {
-            get => _iconElement;
-            set
+            if (value == null)
             {
-                if (_iconElement == null)
-                {
-                    _iconElement = value;
-                    if (value != null)
-                    {
-                        InternalRowContainer.Children.Insert(0, value);
-                    }
+                InternalRowContainer.Children.Remove(_textElement);
+                _textElement = null;
+                return;
+            }
 
-                    return;
-                }
+            _textElement = value;
+            InternalRowContainer.Children[_iconElement == null ? 0 : 1] = value;
+        }
+    }
 
-                if (value == null)
-                {
-                    InternalRowContainer.Children.Remove(_iconElement);
-                    _iconElement = null;
-                    return;
-                }
+    private Element? _textElement;
 
+    /// <summary>
+    /// Represents content of the icon, but it's optional, as you can have this, an <see cref="TextElement"/>, or both.
+    /// Contrary to the name, this can be any kind of element, but it's generally used as an icon, like a
+    /// <see cref="GeometricPathElement"/> or <see cref="ImageView"/>.
+    /// </summary>
+    /// <remarks>
+    /// To see when this is modified, assuming you don't interfere with <see cref="InternalRowContainer"/>'s
+    /// children, you can listen to <see cref="ObservableList{T}"/> events on <see cref="Element.Children"/> on
+    /// <see cref="InternalRowContainer"/>.
+    /// </remarks>
+    public Element? IconElement
+    {
+        get => _iconElement;
+        set
+        {
+            if (_iconElement == null)
+            {
                 _iconElement = value;
-                InternalRowContainer.Children[0] = value;
-            }
-        }
-
-        private Element? _iconElement;
-
-        /// <summary>
-        /// Gives direct access to the button's <see cref="PaddingElement"/>. You should generally not modify this
-        /// and certainly not remove it from the document, but you have access to it just in case you need it.
-        /// </summary>
-        public PaddingElement InternalPaddingElement { get; private set; }
-
-        /// <summary>
-        /// Gives direct access to the button's <see cref="RowContainer"/>, which holds <see cref="TextElement"/> and
-        /// <see cref="IconElement"/>. You should generally not modify this and certainly not remove it from the document,
-        /// but you have access to it just in case you need it.
-        /// </summary>
-        /// <remarks>
-        /// Modifying properties from here won't reflect in properties of Button like <see cref="HorizontalArrangement"/>,
-        /// that's why you should always modify everything that's possible from Button properties, not from this container
-        /// directly.
-        /// </remarks>
-        public RowContainer InternalRowContainer { get; private set; }
-
-        /// <summary>
-        /// A constructor that creates a Button based on the given text element and icon element. Both are optional
-        /// because you can have a button with none of them, one of them (either text-only or icon-only) or both
-        /// (a text accompanied by an icon).
-        /// </summary>
-        /// <param name="textElement">The value of <see cref="TextElement"/>.</param>
-        /// <param name="iconElement">The value of <see cref="IconElement"/>.</param>
-        public Button(Element? textElement = null, Element? iconElement = null)
-        {
-            //silence compiler
-            InternalRowContainer = null!;
-            InternalPaddingElement = null!;
-
-            Init(textElement, iconElement);
-        }
-
-        /// <summary>
-        /// A helper constructor that will set the <see cref="TextElement"/> as a default <see cref="Label"/> with
-        /// the given text, font size and text brush and will give it some padding.
-        /// </summary>
-        /// <param name="text">
-        /// The text that a <see cref="Label"/> will have when set as the value of <see cref="TextElement"/>.
-        /// </param>
-        /// <param name="fontSize">The value of <see cref="Text.TextElement.FontSize"/>.</param>
-        /// <param name="textBrush">The value of <see cref="Label.TextBrush"/>.</param>
-        /// <param name="padding">The value of <see cref="Padding"/>.</param>
-        public Button(
-            string text,
-            Dimension? fontSize = null,
-            ColorBrush? textBrush = null,
-            EdgeInset? padding = null) :
-            this(
-                new Label(text, TextAlignmentType.Center)
+                if (value != null)
                 {
-                    StyleClass = "Button::TextElement",
-                    FontSize = fontSize ?? 16,
-                    TextBrush = textBrush ?? new ColorBrush(new Color(0)),
-                    Layout =
-                        new ElementLayout()
-                            .SetMinMaxAndPreferredHeight(0, 0, "100%")
-                            .SetMinMaxAndPreferredWidth("100%", 0, "100%"),
-                    ElementContainerSizing = new RowContainerSizing(1f, VerticalAlignmentType.Center)
+                    InternalRowContainer.Children.Insert(0, value);
                 }
-            )
-        {
-            if (padding != null)
-            {
-                Padding = padding.Value;
-            }
-        }
 
-        /// <summary>
-        /// A helper constructor that will set the <see cref="IconElement"/> as a given <see cref="AbstractShapeElement"/>
-        /// and will give it padding.
-        /// </summary>
-        /// <param name="shapeElement">
-        /// A shape element that will be set as the value of <see cref="IconElement"/>.
-        /// </param>
-        /// <param name="padding">The value of <see cref="Padding"/>.</param>
-        public Button(AbstractShapeElement shapeElement, EdgeInset? padding = null) :
-            this(null, shapeElement)
-        {
-            if (padding != null)
-            {
-                Padding = padding.Value;
-            }
-        }
-
-        public Button(Button other) : base(other)
-        {
-            //silence compiler
-            InternalRowContainer = null!;
-            InternalPaddingElement = null!;
-
-            Init(other.TextElement, other.IconElement);
-            Padding = other.Padding;
-            Spacing = other.Spacing;
-            HorizontalArrangement = other.HorizontalArrangement;
-            VerticalAlignment = other.VerticalAlignment;
-        }
-
-        private void Init(Element? textElement = null, Element? iconElement = null)
-        {
-            PaddingProperty.ValueChangedEvent += SetPadding;
-            SpacingProperty.ValueChangedEvent += SetSpacing;
-            HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
-            VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
-
-            _textElement = textElement;
-            _iconElement = iconElement;
-
-            InternalRowContainer = new RowContainer
-            {
-                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
-                Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
-                VerticalAlignment = VerticalAlignmentType.Center
-            };
-
-            if (_iconElement != null)
-            {
-                InternalRowContainer.Children.Add(_iconElement);
+                return;
             }
 
-            if (_textElement != null)
+            if (value == null)
             {
-                InternalRowContainer.Children.Add(_textElement);
+                InternalRowContainer.Children.Remove(_iconElement);
+                _iconElement = null;
+                return;
             }
 
-            InternalPaddingElement = new PaddingElement
+            _iconElement = value;
+            InternalRowContainer.Children[0] = value;
+        }
+    }
+
+    private Element? _iconElement;
+
+    /// <summary>
+    /// Gives direct access to the button's <see cref="PaddingElement"/>. You should generally not modify this
+    /// and certainly not remove it from the document, but you have access to it just in case you need it.
+    /// </summary>
+    public PaddingElement InternalPaddingElement { get; private set; }
+
+    /// <summary>
+    /// Gives direct access to the button's <see cref="RowContainer"/>, which holds <see cref="TextElement"/> and
+    /// <see cref="IconElement"/>. You should generally not modify this and certainly not remove it from the document,
+    /// but you have access to it just in case you need it.
+    /// </summary>
+    /// <remarks>
+    /// Modifying properties from here won't reflect in properties of Button like <see cref="HorizontalArrangement"/>,
+    /// that's why you should always modify everything that's possible from Button properties, not from this container
+    /// directly.
+    /// </remarks>
+    public RowContainer InternalRowContainer { get; private set; }
+
+    /// <summary>
+    /// A constructor that creates a Button based on the given text element and icon element. Both are optional
+    /// because you can have a button with none of them, one of them (either text-only or icon-only) or both
+    /// (a text accompanied by an icon).
+    /// </summary>
+    /// <param name="textElement">The value of <see cref="TextElement"/>.</param>
+    /// <param name="iconElement">The value of <see cref="IconElement"/>.</param>
+    public Button(Element? textElement = null, Element? iconElement = null)
+    {
+        //silence compiler
+        InternalRowContainer = null!;
+        InternalPaddingElement = null!;
+
+        Init(textElement, iconElement);
+    }
+
+    /// <summary>
+    /// A helper constructor that will set the <see cref="TextElement"/> as a default <see cref="Label"/> with
+    /// the given text, font size and text brush and will give it some padding.
+    /// </summary>
+    /// <param name="text">
+    /// The text that a <see cref="Label"/> will have when set as the value of <see cref="TextElement"/>.
+    /// </param>
+    /// <param name="fontSize">The value of <see cref="Text.TextElement.FontSize"/>.</param>
+    /// <param name="textBrush">The value of <see cref="Label.TextBrush"/>.</param>
+    /// <param name="padding">The value of <see cref="Padding"/>.</param>
+    public Button(
+        string text,
+        Dimension? fontSize = null,
+        ColorBrush? textBrush = null,
+        EdgeInset? padding = null) :
+        this(
+            new Label(text, TextAlignmentType.Center)
             {
-                Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
-                Children = [InternalRowContainer]
-            };
-            Children.Add(InternalPaddingElement);
-
-            InternalPaddingElement.PaddingProperty.BindBidirectional(PaddingProperty);
-        }
-
-        public override Button Duplicate()
+                StyleClass = "Button::TextElement",
+                FontSize = fontSize ?? 16,
+                TextBrush = textBrush ?? new ColorBrush(new Color(0)),
+                Layout =
+                    new ElementLayout()
+                        .SetMinMaxAndPreferredHeight(0, 0, "100%")
+                        .SetMinMaxAndPreferredWidth("100%", 0, "100%"),
+                ElementContainerSizing = new RowContainerSizing(1f, VerticalAlignmentType.Center)
+            }
+        )
+    {
+        if (padding != null)
         {
-            var el = new Button(this);
-            DuplicateChildrenUtil(el);
-            return el;
+            Padding = padding.Value;
         }
+    }
+
+    /// <summary>
+    /// A helper constructor that will set the <see cref="IconElement"/> as a given <see cref="AbstractShapeElement"/>
+    /// and will give it padding.
+    /// </summary>
+    /// <param name="shapeElement">
+    /// A shape element that will be set as the value of <see cref="IconElement"/>.
+    /// </param>
+    /// <param name="padding">The value of <see cref="Padding"/>.</param>
+    public Button(AbstractShapeElement shapeElement, EdgeInset? padding = null) :
+        this(null, shapeElement)
+    {
+        if (padding != null)
+        {
+            Padding = padding.Value;
+        }
+    }
+
+    public Button(Button other) : base(other)
+    {
+        //silence compiler
+        InternalRowContainer = null!;
+        InternalPaddingElement = null!;
+
+        Init(other.TextElement, other.IconElement);
+        Padding = other.Padding;
+        Spacing = other.Spacing;
+        HorizontalArrangement = other.HorizontalArrangement;
+        VerticalAlignment = other.VerticalAlignment;
+    }
+
+    private void Init(Element? textElement = null, Element? iconElement = null)
+    {
+        PaddingProperty.ValueChangedEvent += SetPadding;
+        SpacingProperty.ValueChangedEvent += SetSpacing;
+        HorizontalArrangementProperty.ValueChangedEvent += SetHorizontalArrangement;
+        VerticalAlignmentProperty.ValueChangedEvent += SetVerticalAlignment;
+
+        _textElement = textElement;
+        _iconElement = iconElement;
+
+        InternalRowContainer = new RowContainer
+        {
+            Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
+            Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Center, 0),
+            VerticalAlignment = VerticalAlignmentType.Center
+        };
+
+        if (_iconElement != null)
+        {
+            InternalRowContainer.Children.Add(_iconElement);
+        }
+
+        if (_textElement != null)
+        {
+            InternalRowContainer.Children.Add(_textElement);
+        }
+
+        InternalPaddingElement = new PaddingElement
+        {
+            Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
+            Children = [InternalRowContainer]
+        };
+        Children.Add(InternalPaddingElement);
+
+        InternalPaddingElement.PaddingProperty.BindBidirectional(PaddingProperty);
+    }
+
+    public override Button Duplicate()
+    {
+        var el = new Button(this);
+        DuplicateChildrenUtil(el);
+        return el;
     }
 }

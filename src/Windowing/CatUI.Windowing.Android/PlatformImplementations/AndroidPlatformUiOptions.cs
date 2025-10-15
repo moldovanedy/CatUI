@@ -1,8 +1,7 @@
 using CatUI.Platform.Essentials;
 
-namespace CatUI.Windowing.Android.PlatformImplementations
+namespace CatUI.Windowing.Android.PlatformImplementations;
+
+public class AndroidPlatformUiOptions : PlatformUiOptionsBase
 {
-    public class AndroidPlatformUiOptions : PlatformUiOptionsBase
-    {
-    }
 }

@@ -1,7 +1,6 @@
-namespace CatUI.Data
+namespace CatUI.Data;
+
+public abstract class PlatformInfo
 {
-    public abstract class PlatformInfo
-    {
-        public abstract CatApplicationInitializer AppInitializer { get; }
-    }
+    public abstract CatApplicationInitializer AppInitializer { get; }
 }

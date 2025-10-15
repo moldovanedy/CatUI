@@ -1,10 +1,9 @@
-﻿namespace CatUI.Platform.Linux
+﻿namespace CatUI.Platform.Linux;
+
+public static class LinuxNativeCommunicator
 {
-    public static class LinuxNativeCommunicator
+    public static void Open()
     {
-        public static void Open()
-        {
-            _ = XdgServices.Init();
-        }
+        _ = XdgServices.Init();
     }
 }

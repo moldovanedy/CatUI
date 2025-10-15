@@ -5,226 +5,225 @@ using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using SkiaSharp;
 
-namespace CatUI.RenderingEngine
+namespace CatUI.RenderingEngine;
+
+public partial class Renderer
 {
-    public partial class Renderer
+    /// <summary>
+    /// Draws a rect directly on the canvas. The corners values are interpreted as pixels regardless of the measuring unit.
+    /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
+    /// </summary>
+    /// <remarks>
+    /// This method can only draw a filled rectangle, for only drawing the outline (aka stroke), use
+    /// <see cref="DrawRectOutline"/>.
+    /// </remarks>
+    /// <param name="rect">The direct pixel measurements of the rect.</param>
+    /// <param name="fillBrush">The brush to use to paint the rect.</param>
+    /// <param name="roundedCorners">
+    /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless
+    /// of the measuring unit.
+    /// </param>
+    public void DrawRect(Rect rect, IBrush fillBrush, CornerInset? roundedCorners = null)
     {
-        /// <summary>
-        /// Draws a rect directly on the canvas. The corners values are interpreted as pixels regardless of the measuring unit.
-        /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
-        /// </summary>
-        /// <remarks>
-        /// This method can only draw a filled rectangle, for only drawing the outline (aka stroke), use
-        /// <see cref="DrawRectOutline"/>.
-        /// </remarks>
-        /// <param name="rect">The direct pixel measurements of the rect.</param>
-        /// <param name="fillBrush">The brush to use to paint the rect.</param>
-        /// <param name="roundedCorners">
-        /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless
-        /// of the measuring unit.
-        /// </param>
-        public void DrawRect(Rect rect, IBrush fillBrush, CornerInset? roundedCorners = null)
-        {
-            SKPaint paint = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(paint);
+        SKPaint paint = fillBrush.ToSkiaPaint();
+        PaintManager.ModifyPaint(paint);
 
-            if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
+        if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
+        {
+            var roundRect = new SKRoundRect();
+            SKPoint[] radii = SetupRectCorners(roundedCorners);
+            roundRect.SetRectRadii(rect, radii);
+            Canvas?.DrawRoundRect(roundRect, paint);
+        }
+        else
+        {
+            Canvas?.DrawRect(rect, paint);
+        }
+    }
+
+    /// <summary>
+    /// Draws a rect outline (outline) directly on the canvas. The corners values are interpreted as pixels regardless of the measuring unit.
+    /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
+    /// </summary>
+    /// <remarks>
+    /// This method can only draw an outlined (stroke) rectangle, for drawing the rectangle as filled, use
+    /// <see cref="DrawRect"/>.
+    /// </remarks>
+    /// <param name="rect">The direct pixel measurements of the rect.</param>
+    /// <param name="outlineBrush">The brush to use to paint the rect.</param>
+    /// <param name="outlineParams">The parameters that define the outline.</param>
+    /// <param name="roundedCorners">
+    /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless
+    /// of the measuring unit.
+    /// </param>
+    public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams,
+        CornerInset? roundedCorners = null)
+    {
+        SKPaint paint = outlineBrush.ToSkiaPaint();
+        PaintManager.ModifyPaint(paint, PaintMode.Outline, outlineParams: outlineParams);
+
+        if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
+        {
+            var roundRect = new SKRoundRect();
+            SKPoint[] radii = SetupRectCorners(roundedCorners);
+            roundRect.SetRectRadii(rect, radii);
+
+            Canvas?.DrawRoundRect(roundRect, paint);
+        }
+        else
+        {
+            Canvas?.DrawRect(rect, paint);
+        }
+    }
+
+    public void DrawEllipse(Point2D center, float rx, float ry, IBrush fillBrush)
+    {
+        SKPaint paint = fillBrush.ToSkiaPaint();
+        PaintManager.ModifyPaint(paint);
+        Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
+    }
+
+    public void DrawEllipseOutline(Point2D center, float rx, float ry, IBrush outlineBrush,
+        OutlineParams outlineParams)
+    {
+        SKPaint paint = outlineBrush.ToSkiaPaint();
+        PaintManager.ModifyPaint(
+            paint,
+            PaintMode.Outline,
+            outlineParams: outlineParams);
+
+        Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
+    }
+
+    public void DrawPath(SKPath skiaPath, IBrush fillBrush)
+    {
+        if (fillBrush.IsSkippable)
+        {
+            return;
+        }
+
+        SKPaint fillPaint = fillBrush.ToSkiaPaint();
+        PaintManager.ModifyPaint(
+            fillPaint);
+
+        Canvas?.DrawPath(skiaPath, fillPaint);
+    }
+
+    public void DrawPathOutline(SKPath skiaPath, IBrush outlineBrush, OutlineParams outlineParams)
+    {
+        if (outlineBrush.IsSkippable || outlineParams.OutlineWidth == 0)
+        {
+            return;
+        }
+
+        SKPaint outlinePaint = outlineBrush.ToSkiaPaint();
+        PaintManager.ModifyPaint(
+            outlinePaint,
+            PaintMode.Outline,
+            outlineParams: outlineParams);
+
+        Canvas?.DrawPath(skiaPath, outlinePaint);
+    }
+
+    public void DrawLine(Point2D start, Point2D end, IBrush brush, OutlineParams? outlineParams = null)
+    {
+        if (brush.IsSkippable)
+        {
+            return;
+        }
+
+        SKPaint outlinePaint = brush.ToSkiaPaint();
+        PaintManager.ModifyPaint(
+            outlinePaint,
+            PaintMode.Outline,
+            outlineParams: outlineParams);
+
+        Canvas?.DrawLine(start, end, outlinePaint);
+    }
+
+
+    private static SKPoint[] SetupRectCorners(CornerInset roundedCorners)
+    {
+        SKPoint[] radii = new SKPoint[4];
+
+        if (roundedCorners.TopLeftEllipse.IsUnset())
+        {
+            if (roundedCorners.TopLeftRadius.IsUnset())
             {
-                var roundRect = new SKRoundRect();
-                SKPoint[] radii = SetupRectCorners(roundedCorners);
-                roundRect.SetRectRadii(rect, radii);
-                Canvas?.DrawRoundRect(roundRect, paint);
+                radii[0] = new SKPoint(0, 0);
             }
             else
             {
-                Canvas?.DrawRect(rect, paint);
+                radii[0] = new SKPoint(roundedCorners.TopLeftRadius.Value, roundedCorners.TopLeftRadius.Value);
             }
         }
-
-        /// <summary>
-        /// Draws a rect outline (outline) directly on the canvas. The corners values are interpreted as pixels regardless of the measuring unit.
-        /// Leaving corners to default will draw a sharp rectangle, with no rounded corners.
-        /// </summary>
-        /// <remarks>
-        /// This method can only draw an outlined (stroke) rectangle, for drawing the rectangle as filled, use
-        /// <see cref="DrawRect"/>.
-        /// </remarks>
-        /// <param name="rect">The direct pixel measurements of the rect.</param>
-        /// <param name="outlineBrush">The brush to use to paint the rect.</param>
-        /// <param name="outlineParams">The parameters that define the outline.</param>
-        /// <param name="roundedCorners">
-        /// Optionally provide the details for rounded corners. The corners values are interpreted as pixels regardless
-        /// of the measuring unit.
-        /// </param>
-        public void DrawRectOutline(Rect rect, IBrush outlineBrush, OutlineParams outlineParams,
-            CornerInset? roundedCorners = null)
+        else
         {
-            SKPaint paint = outlineBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(paint, PaintMode.Outline, outlineParams: outlineParams);
+            radii[0] =
+                new SKPoint(
+                    roundedCorners.TopLeftEllipse.X.Value,
+                    roundedCorners.TopLeftEllipse.Y.Value);
+        }
 
-            if (roundedCorners != null && roundedCorners.HasNonTrivialValues)
+        if (roundedCorners.TopRightEllipse.IsUnset())
+        {
+            if (roundedCorners.TopRightRadius.IsUnset())
             {
-                var roundRect = new SKRoundRect();
-                SKPoint[] radii = SetupRectCorners(roundedCorners);
-                roundRect.SetRectRadii(rect, radii);
-
-                Canvas?.DrawRoundRect(roundRect, paint);
+                radii[1] = new SKPoint(0, 0);
             }
             else
             {
-                Canvas?.DrawRect(rect, paint);
+                radii[1] = new SKPoint(roundedCorners.TopRightRadius.Value, roundedCorners.TopRightRadius.Value);
             }
         }
-
-        public void DrawEllipse(Point2D center, float rx, float ry, IBrush fillBrush)
+        else
         {
-            SKPaint paint = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(paint);
-            Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
+            radii[1] =
+                new SKPoint(
+                    roundedCorners.TopRightEllipse.X.Value,
+                    roundedCorners.TopRightEllipse.Y.Value);
         }
 
-        public void DrawEllipseOutline(Point2D center, float rx, float ry, IBrush outlineBrush,
-            OutlineParams outlineParams)
+        if (roundedCorners.BottomRightEllipse.IsUnset())
         {
-            SKPaint paint = outlineBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                paint,
-                PaintMode.Outline,
-                outlineParams: outlineParams);
-
-            Canvas?.DrawOval(center.X, center.Y, rx, ry, paint);
-        }
-
-        public void DrawPath(SKPath skiaPath, IBrush fillBrush)
-        {
-            if (fillBrush.IsSkippable)
+            if (roundedCorners.BottomRightRadius.IsUnset())
             {
-                return;
-            }
-
-            SKPaint fillPaint = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                fillPaint);
-
-            Canvas?.DrawPath(skiaPath, fillPaint);
-        }
-
-        public void DrawPathOutline(SKPath skiaPath, IBrush outlineBrush, OutlineParams outlineParams)
-        {
-            if (outlineBrush.IsSkippable || outlineParams.OutlineWidth == 0)
-            {
-                return;
-            }
-
-            SKPaint outlinePaint = outlineBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                outlinePaint,
-                PaintMode.Outline,
-                outlineParams: outlineParams);
-
-            Canvas?.DrawPath(skiaPath, outlinePaint);
-        }
-
-        public void DrawLine(Point2D start, Point2D end, IBrush brush, OutlineParams? outlineParams = null)
-        {
-            if (brush.IsSkippable)
-            {
-                return;
-            }
-
-            SKPaint outlinePaint = brush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                outlinePaint,
-                PaintMode.Outline,
-                outlineParams: outlineParams);
-
-            Canvas?.DrawLine(start, end, outlinePaint);
-        }
-
-
-        private static SKPoint[] SetupRectCorners(CornerInset roundedCorners)
-        {
-            SKPoint[] radii = new SKPoint[4];
-
-            if (roundedCorners.TopLeftEllipse.IsUnset())
-            {
-                if (roundedCorners.TopLeftRadius.IsUnset())
-                {
-                    radii[0] = new SKPoint(0, 0);
-                }
-                else
-                {
-                    radii[0] = new SKPoint(roundedCorners.TopLeftRadius.Value, roundedCorners.TopLeftRadius.Value);
-                }
+                radii[2] = new SKPoint(0, 0);
             }
             else
             {
-                radii[0] =
-                    new SKPoint(
-                        roundedCorners.TopLeftEllipse.X.Value,
-                        roundedCorners.TopLeftEllipse.Y.Value);
+                radii[2] = new SKPoint(roundedCorners.BottomRightRadius.Value,
+                    roundedCorners.BottomRightRadius.Value);
             }
-
-            if (roundedCorners.TopRightEllipse.IsUnset())
-            {
-                if (roundedCorners.TopRightRadius.IsUnset())
-                {
-                    radii[1] = new SKPoint(0, 0);
-                }
-                else
-                {
-                    radii[1] = new SKPoint(roundedCorners.TopRightRadius.Value, roundedCorners.TopRightRadius.Value);
-                }
-            }
-            else
-            {
-                radii[1] =
-                    new SKPoint(
-                        roundedCorners.TopRightEllipse.X.Value,
-                        roundedCorners.TopRightEllipse.Y.Value);
-            }
-
-            if (roundedCorners.BottomRightEllipse.IsUnset())
-            {
-                if (roundedCorners.BottomRightRadius.IsUnset())
-                {
-                    radii[2] = new SKPoint(0, 0);
-                }
-                else
-                {
-                    radii[2] = new SKPoint(roundedCorners.BottomRightRadius.Value,
-                        roundedCorners.BottomRightRadius.Value);
-                }
-            }
-            else
-            {
-                radii[2] =
-                    new SKPoint(
-                        roundedCorners.BottomRightEllipse.X.Value,
-                        roundedCorners.BottomRightEllipse.Y.Value);
-            }
-
-            if (roundedCorners.BottomLeftEllipse.IsUnset())
-            {
-                if (roundedCorners.BottomLeftRadius.IsUnset())
-                {
-                    radii[3] = new SKPoint(0, 0);
-                }
-                else
-                {
-                    radii[3] = new SKPoint(roundedCorners.BottomLeftRadius.Value,
-                        roundedCorners.BottomLeftRadius.Value);
-                }
-            }
-            else
-            {
-                radii[3] =
-                    new SKPoint(
-                        roundedCorners.BottomLeftEllipse.X.Value,
-                        roundedCorners.BottomLeftEllipse.Y.Value);
-            }
-
-            return radii;
         }
+        else
+        {
+            radii[2] =
+                new SKPoint(
+                    roundedCorners.BottomRightEllipse.X.Value,
+                    roundedCorners.BottomRightEllipse.Y.Value);
+        }
+
+        if (roundedCorners.BottomLeftEllipse.IsUnset())
+        {
+            if (roundedCorners.BottomLeftRadius.IsUnset())
+            {
+                radii[3] = new SKPoint(0, 0);
+            }
+            else
+            {
+                radii[3] = new SKPoint(roundedCorners.BottomLeftRadius.Value,
+                    roundedCorners.BottomLeftRadius.Value);
+            }
+        }
+        else
+        {
+            radii[3] =
+                new SKPoint(
+                    roundedCorners.BottomLeftEllipse.X.Value,
+                    roundedCorners.BottomLeftEllipse.Y.Value);
+        }
+
+        return radii;
     }
 }

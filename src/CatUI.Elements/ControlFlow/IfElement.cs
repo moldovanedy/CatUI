@@ -1,178 +1,177 @@
 using CatUI.Data;
 using CatUI.Utils;
 
-namespace CatUI.Elements.ControlFlow
+namespace CatUI.Elements.ControlFlow;
+
+/// <summary>
+/// A control flow element that attaches one element (or another if set) based on a given condition. DO NOT
+/// directly manipulate children (add, remove), as they are used internally and might cause errors otherwise.
+/// </summary>
+public class IfElement : ControlFlowElementBase
 {
-    /// <summary>
-    /// A control flow element that attaches one element (or another if set) based on a given condition. DO NOT
-    /// directly manipulate children (add, remove), as they are used internally and might cause errors otherwise.
-    /// </summary>
-    public class IfElement : ControlFlowElementBase
+    /// <inheritdoc cref="Element.Ref"/>
+    public new ObjectRef<IfElement>? Ref
     {
-        /// <inheritdoc cref="Element.Ref"/>
-        public new ObjectRef<IfElement>? Ref
+        get => _ref;
+        set
         {
-            get => _ref;
-            set
+            _ref = value;
+            if (_ref != null)
             {
-                _ref = value;
-                if (_ref != null)
-                {
-                    _ref.Value = this;
-                }
+                _ref.Value = this;
             }
         }
+    }
 
-        private ObjectRef<IfElement>? _ref;
+    private ObjectRef<IfElement>? _ref;
 
-        /// <summary>
-        /// The condition that determines which element is attached to the Document. Changing its
-        /// <see cref="ObservableProperty{T}.Value"/> will trigger the evaluation and change the attached element.
-        /// By default, it will be an <see cref="ObservableProperty{T}"/> with a value of true.
-        /// </summary>
-        public ObservableProperty<bool> Condition
+    /// <summary>
+    /// The condition that determines which element is attached to the Document. Changing its
+    /// <see cref="ObservableProperty{T}.Value"/> will trigger the evaluation and change the attached element.
+    /// By default, it will be an <see cref="ObservableProperty{T}"/> with a value of true.
+    /// </summary>
+    public ObservableProperty<bool> Condition
+    {
+        get => _condition;
+        set => ConditionProperty.Value = value;
+    }
+
+    private ObservableProperty<bool> _condition = new(true);
+
+    public ObservableProperty<ObservableProperty<bool>> ConditionProperty { get; }
+        = new(new ObservableProperty<bool>(true));
+
+    private void SetCondition(ObservableProperty<bool>? value)
+    {
+        if (value == null)
         {
-            get => _condition;
-            set => ConditionProperty.Value = value;
+            return;
         }
 
-        private ObservableProperty<bool> _condition = new(true);
+        _condition.ValueChangedEvent -= EvaluateCondition;
+        _condition = value;
+        _condition.ValueChangedEvent += EvaluateCondition;
 
-        public ObservableProperty<ObservableProperty<bool>> ConditionProperty { get; }
-            = new(new ObservableProperty<bool>(true));
+        SetLocalValue(nameof(Condition), value);
+        EvaluateCondition(value.Value);
+    }
 
-        private void SetCondition(ObservableProperty<bool>? value)
+    /// <summary>
+    /// The element that will be attached to the Document if the <see cref="Condition"/> is true. This is
+    /// required.
+    /// </summary>
+    public Element TrueBranchElement
+    {
+        get => _trueBranchElement;
+        set => TrueBranchElementProperty.Value = value;
+    }
+
+    private Element _trueBranchElement;
+    public ObservableProperty<Element> TrueBranchElementProperty { get; } = new(null);
+
+    private void SetTrueBranchElement(Element? value)
+    {
+        if (value == null)
         {
-            if (value == null)
+            return;
+        }
+
+        _trueBranchElement = value;
+        SetLocalValue(nameof(TrueBranchElement), value);
+
+        if (Condition.Value)
+        {
+            if (Children.Count == 1)
             {
-                return;
+                Children.RemoveAt(0);
             }
 
-            _condition.ValueChangedEvent -= EvaluateCondition;
-            _condition = value;
-            _condition.ValueChangedEvent += EvaluateCondition;
+            Children.Insert(0, value);
+        }
+    }
 
-            SetLocalValue(nameof(Condition), value);
-            EvaluateCondition(value.Value);
+    /// <summary>
+    /// The element that will be attached to the Document if the <see cref="Condition"/> is false. This is not
+    /// required, but by default it's an empty element.
+    /// </summary>
+    public Element FalseBranchElement
+    {
+        get => _falseBranchElement;
+        set => FalseBranchElementProperty.Value = value;
+    }
+
+    private Element _falseBranchElement = new();
+    public ObservableProperty<Element> FalseBranchElementProperty { get; } = new(new Element());
+
+    private void SetFalseBranchElement(Element? value)
+    {
+        if (value == null)
+        {
+            return;
         }
 
-        /// <summary>
-        /// The element that will be attached to the Document if the <see cref="Condition"/> is true. This is
-        /// required.
-        /// </summary>
-        public Element TrueBranchElement
-        {
-            get => _trueBranchElement;
-            set => TrueBranchElementProperty.Value = value;
-        }
+        _falseBranchElement = value;
+        SetLocalValue(nameof(FalseBranchElement), value);
 
-        private Element _trueBranchElement;
-        public ObservableProperty<Element> TrueBranchElementProperty { get; } = new(null);
-
-        private void SetTrueBranchElement(Element? value)
+        if (!Condition.Value)
         {
-            if (value == null)
+            if (Children.Count == 1)
             {
-                return;
+                Children.RemoveAt(0);
             }
 
-            _trueBranchElement = value;
-            SetLocalValue(nameof(TrueBranchElement), value);
-
-            if (Condition.Value)
-            {
-                if (Children.Count == 1)
-                {
-                    Children.RemoveAt(0);
-                }
-
-                Children.Insert(0, value);
-            }
+            Children.Insert(0, value);
         }
+    }
 
-        /// <summary>
-        /// The element that will be attached to the Document if the <see cref="Condition"/> is false. This is not
-        /// required, but by default it's an empty element.
-        /// </summary>
-        public Element FalseBranchElement
+    public IfElement(ObservableProperty<bool> condition, Element trueBranchElement)
+    {
+        Init(condition, trueBranchElement);
+        //silence compiler
+        _trueBranchElement = trueBranchElement;
+    }
+
+    public IfElement(ObservableProperty<bool> condition, Element trueBranchElement, Element falseBranchElement)
+        : this(condition, trueBranchElement)
+    {
+        FalseBranchElement = falseBranchElement;
+    }
+
+    public IfElement(IfElement other) : base(other)
+    {
+        //silence compiler
+        _trueBranchElement = null!;
+
+        Init(new ObservableProperty<bool>(other.Condition.Value), other.TrueBranchElement.Duplicate());
+        FalseBranchElement = other.FalseBranchElement.Duplicate();
+    }
+
+    private void EvaluateCondition(bool condition)
+    {
+        //edge case on creation
+        if (Children.Count == 0)
         {
-            get => _falseBranchElement;
-            set => FalseBranchElementProperty.Value = value;
+            return;
         }
 
-        private Element _falseBranchElement = new();
-        public ObservableProperty<Element> FalseBranchElementProperty { get; } = new(new Element());
+        Children.RemoveAt(0);
+        Children.Insert(0, condition ? TrueBranchElement : FalseBranchElement);
+    }
 
-        private void SetFalseBranchElement(Element? value)
-        {
-            if (value == null)
-            {
-                return;
-            }
+    public override IfElement Duplicate()
+    {
+        var el = new IfElement(this);
+        DuplicateChildrenUtil(el);
+        return el;
+    }
 
-            _falseBranchElement = value;
-            SetLocalValue(nameof(FalseBranchElement), value);
+    private void Init(ObservableProperty<bool> condition, Element trueBranchElement)
+    {
+        ConditionProperty.ValueChangedEvent += SetCondition;
+        TrueBranchElementProperty.ValueChangedEvent += SetTrueBranchElement;
+        FalseBranchElementProperty.ValueChangedEvent += SetFalseBranchElement;
 
-            if (!Condition.Value)
-            {
-                if (Children.Count == 1)
-                {
-                    Children.RemoveAt(0);
-                }
-
-                Children.Insert(0, value);
-            }
-        }
-
-        public IfElement(ObservableProperty<bool> condition, Element trueBranchElement)
-        {
-            Init(condition, trueBranchElement);
-            //silence compiler
-            _trueBranchElement = trueBranchElement;
-        }
-
-        public IfElement(ObservableProperty<bool> condition, Element trueBranchElement, Element falseBranchElement)
-            : this(condition, trueBranchElement)
-        {
-            FalseBranchElement = falseBranchElement;
-        }
-
-        public IfElement(IfElement other) : base(other)
-        {
-            //silence compiler
-            _trueBranchElement = null!;
-
-            Init(new ObservableProperty<bool>(other.Condition.Value), other.TrueBranchElement.Duplicate());
-            FalseBranchElement = other.FalseBranchElement.Duplicate();
-        }
-
-        private void EvaluateCondition(bool condition)
-        {
-            //edge case on creation
-            if (Children.Count == 0)
-            {
-                return;
-            }
-
-            Children.RemoveAt(0);
-            Children.Insert(0, condition ? TrueBranchElement : FalseBranchElement);
-        }
-
-        public override IfElement Duplicate()
-        {
-            var el = new IfElement(this);
-            DuplicateChildrenUtil(el);
-            return el;
-        }
-
-        private void Init(ObservableProperty<bool> condition, Element trueBranchElement)
-        {
-            ConditionProperty.ValueChangedEvent += SetCondition;
-            TrueBranchElementProperty.ValueChangedEvent += SetTrueBranchElement;
-            FalseBranchElementProperty.ValueChangedEvent += SetFalseBranchElement;
-
-            Condition = condition;
-            TrueBranchElement = trueBranchElement;
-        }
+        Condition = condition;
+        TrueBranchElement = trueBranchElement;
     }
 }
