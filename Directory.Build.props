@@ -1,8 +1,5 @@
 <Project>
     <PropertyGroup>
-        <!-- Drop TFMs that aren’t valid on this OS (e.g. iOS/macOS on Linux) -->
-        <DisableUnsupportedTargetFrameworks>true</DisableUnsupportedTargetFrameworks>
-
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <!-- All CatUI projects need to be AOT-compatible -->
