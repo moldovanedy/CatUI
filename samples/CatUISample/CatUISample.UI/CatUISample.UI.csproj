@@ -12,9 +12,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="./NotoSans-Bold.ttf" CopyToOutputDirectory="Always" />
-        <None Include="./Millenia.ttf" CopyToOutputDirectory="Always" />
-        <None Include="./cat_image.png" CopyToOutputDirectory="Always" />
+        <EmbeddedResource Include="./NotoSans-Bold.ttf" />
+        <EmbeddedResource Include="./Millenia.ttf" />
+        <EmbeddedResource Include="./cat_image.png" />
     </ItemGroup>
 
 </Project>

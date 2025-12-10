@@ -1,3 +1,4 @@
+using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
@@ -11,6 +12,7 @@ using CatUI.Elements;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Input;
+using CatUI.Elements.Media;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 
@@ -27,13 +29,17 @@ public class MainPage : ColumnContainer
     protected override void EnterDocument(object sender)
     {
         base.EnterDocument(sender);
+        AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
+
         FontAsset fontAsset =
-            AssetsManager.Load<FontAsset>("/NotoSans-Bold.ttf")
+            AssetsManager.LoadFromAssembly<FontAsset>("/NotoSans-Bold.ttf")
          ?? FontUtility.DefaultPlatformFont;
 
         FontAsset cursiveFontAsset =
-            AssetsManager.Load<FontAsset>("/Millenia.ttf")
+            AssetsManager.LoadFromAssembly<FontAsset>("/Millenia.ttf")
          ?? FontUtility.DefaultPlatformFont;
+
+        var imageAsset = AssetsManager.LoadFromAssembly<ImageAsset>("/cat_image.png");
 
         Children =
         [
@@ -150,7 +156,7 @@ public class MainPage : ColumnContainer
                 Layout =
                     new ElementLayout()
                         .SetMinMaxAndPreferredWidth("100%", 0, "100%")
-                        .SetFixedHeight(100),
+                        .SetFixedHeight(250),
                 Children =
                 [
                     new Element(),
@@ -160,6 +166,26 @@ public class MainPage : ColumnContainer
                         new ColorBrush(new Color("#ffff0080")))
                     {
                         OutlineParameters = new OutlineParams(10f), ClipType = ClipApplicability.None
+                    },
+                    new GeometricPathElement(
+                        "M0,0.054V20h21V0.054H0z M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
+                        new ColorBrush(new Color(0xff_98_00)),
+                        new ColorBrush(new Color(0x21_96_f3)))
+                    {
+                        Position = "5 10",
+                        Layout =
+                            new ElementLayout().SetFixedWidth(80).SetFixedHeight(60),
+                        Background = new ColorBrush(new Color(0xff_ff_ff)),
+                        ShouldApplyScaling = true,
+                        OutlineParameters = new OutlineParams(
+                            2,
+                            LineCapType.Round,
+                            miterLimit: 5)
+                    },
+                    new ImageView(imageAsset!)
+                    {
+                        Layout = new ElementLayout().SetFixedWidth(240).SetFixedHeight(240),
+                        ShouldKeepAspectRatio = true
                     }
                 ]
             },
