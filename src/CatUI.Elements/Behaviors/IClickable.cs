@@ -27,7 +27,12 @@ public interface IClickable
 
     ClickEventHandler? OnClick { get; set; }
 
-    void Click(object sender, ClickEventArgs e);
+    /// <summary>
+    /// Will simulate a click programatically. This will fire <see cref="ClickEvent"/> on this element.
+    /// The event will have <see cref="ClickEventArgs"/> with the <see cref="ClickEventArgs.Position"/> set to 0, while
+    /// <see cref="ClickEventArgs.AbsolutePosition"/> will be the top-left point of the element.
+    /// </summary>
+    void Click();
 
     /// <summary>
     /// This will be fired by the document when the element is focused and the user triggered the "select" action

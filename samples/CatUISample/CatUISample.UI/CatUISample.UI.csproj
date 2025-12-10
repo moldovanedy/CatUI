@@ -11,4 +11,10 @@
         <ProjectReference Include="..\..\..\src\CoreExtensions\CatUI.CoreExtensions.Itania\CatUI.CoreExtensions.Itania.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="./NotoSans-Bold.ttf" CopyToOutputDirectory="Always" />
+        <None Include="./Millenia.ttf" CopyToOutputDirectory="Always" />
+        <None Include="./cat_image.png" CopyToOutputDirectory="Always" />
+    </ItemGroup>
+
 </Project>
