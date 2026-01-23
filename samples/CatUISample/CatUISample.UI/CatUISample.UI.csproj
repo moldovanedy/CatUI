@@ -12,9 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="./NotoSans-Bold.ttf" />
-        <EmbeddedResource Include="./Millenia.ttf" />
-        <EmbeddedResource Include="./cat_image.png" />
+        <None Include="Assets\**">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
-
 </Project>

@@ -2,15 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using CatUI.Data.Assets;
-using CatUI.Utils;
 
 namespace CatUI.Data.Managers;
 
 /// <summary>
-/// Handles asset loading, caching and saving. Supports both loading from assemblies (embedded resources in the app)
+/// Handles asset loading, caching, and saving. Supports both loading from assemblies (embedded resources in the app)
 /// and loading from asset files (files (usually *.dat) created at compile-time using CatUIUtility or even ar
 /// run-time).
 /// </summary>
@@ -20,21 +18,8 @@ namespace CatUI.Data.Managers;
 /// </remarks>
 public static class AssetsManager
 {
-    /// <summary>
-    /// Represents the number of loaded asset files (.dat) during the application lifetime.
-    /// </summary>
-    public static ushort NumberOfLoadedAssetFiles { get; private set; }
-
     private static readonly Dictionary<string, Asset> _cachedAssets = new();
 
-    /// <summary>
-    /// Represent the actual asset paths, the value is composed of most significant 2 bytes
-    /// which are an index in the <see cref="_assetFilesPaths"/> and a 6 byte position of the
-    /// asset data beginning in the file.
-    /// </summary>
-    private static readonly Dictionary<string, ulong> _assetPaths = new();
-
-    private static readonly List<string> _assetFilesPaths = [];
     private static readonly List<Assembly> _assemblies = [];
 
     /// <summary>
@@ -50,7 +35,7 @@ public static class AssetsManager
     /// <param name="shouldCache">If true, the asset is cached for faster loading on later calls.</param>
     /// <typeparam name="T">The type of the desired asset.</typeparam>
     /// <returns>The desired asset or null if one wasn't found.</returns>
-    public static T? Load<T>(string path, bool shouldCache = true) where T : Asset, new()
+    public static T Load<T>(string path, bool shouldCache = true) where T : Asset, new()
     {
         if (_cachedAssets.TryGetValue(path, out Asset? asset))
         {
@@ -115,11 +100,6 @@ public static class AssetsManager
     /// the path would start with "/Assets/").
     /// All the files must be set as "Embedded resource" to be retrievable.
     /// </summary>
-    /// <remarks>
-    /// You can also use .dat files for resources, together with methods like
-    /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and
-    /// <see cref="GetAssetFileStream"/> for asset handling.
-    /// </remarks>
     /// <typeparam name="T">The type of asset desired.</typeparam>
     /// <param name="assetPath">
     /// The path of the assembly, relative to the directory where the .csproj is located.
@@ -129,8 +109,7 @@ public static class AssetsManager
     /// <see cref="Assembly.GetAssembly(Type)"/> on the given type.
     /// </param>
     /// <param name="shouldCache">
-    /// If true, will hold a reference to the asset internally, so subsequent calls will return the asset much
-    /// faster.
+    /// If true, will hold a reference to the asset internally, so later calls will return the asset much faster.
     /// </param>
     /// <returns>The asset from the specified path if one was found, null otherwise.</returns>
     public static T? LoadFromAssembly<T>(string assetPath, Type classFromAssembly, bool shouldCache = true)
@@ -210,22 +189,16 @@ public static class AssetsManager
     /// <summary>
     /// Loads an asset from one of the loaded "asset assemblies", which can incur a small performance penalty
     /// when you have a lot of loaded asset assemblies (see <see cref="AddAssetAssembly(Assembly)"/>).
-    /// All the files must be set as "Embedded resource" in order to be retrievable.
+    /// All the files must be set as "Embedded resource" to be retrievable.
     /// The asset path is always relative to the root directory (the directory where the .csproj file is located, 
     /// so for a directory named "Assets" the path would start with "/Assets/").
     /// </summary>
-    /// <remarks>
-    /// You can also use .dat files for resources, together with methods like
-    /// <see cref="LoadFromFileAsync{T}(string, bool)"/>, <see cref="LoadMetadataFromStreamAsync(Stream)"/> and
-    /// <see cref="GetAssetFileStream"/> for efficient asset handling.
-    /// </remarks>
     /// <typeparam name="T">The type of asset desired.</typeparam>
     /// <param name="assetPath">
     /// The path of the assembly, relative to the directory where the .csproj is located.
     /// </param>
     /// <param name="shouldCache">
-    /// If true, will hold a reference to the asset internally, so subsequent calls
-    /// will return the asset much faster.
+    /// If true, will hold a reference to the asset internally, so later calls will return the asset much faster.
     /// </param>
     /// <returns>The asset from the specified path if one was found, null otherwise.</returns>
     public static T? LoadFromAssembly<T>(string assetPath, bool shouldCache = true) where T : Asset, new()
@@ -297,44 +270,66 @@ public static class AssetsManager
     }
 
     /// <summary>
-    /// Loads an asset from one of the loaded asset files, specified by the asset path that is always relative
-    /// to the project root directory. An asset file containing the asset must be loaded before calling this method
-    /// using <see cref="LoadMetadataFromFileAsync(string)"/> or<see cref="LoadMetadataFromStreamAsync(Stream)"/>.
+    /// Loads an asset from the file system. This can be either the files that ship with the app (CopyToOutputDirectory)
+    /// or an arbitrary file from the user's device (this is subject to restrictions, especially on mobile).
     /// </summary>
     /// <remarks>
-    /// To create asset files, you can use the CatUIUtility.
+    /// <para>
+    /// There are lots of restrictions regarding arbitrary file reads, so it's recommended to use it only for special
+    /// known directories such as the app's execution directory or the data directory.
+    /// </para>
+    /// <para>
+    /// On Windows, paths will be converted from "/" to "\", but the root directory still needs to have the drive letter
+    /// without the colon in the path. This is only applied to global paths, loading assets from the execution directory
+    /// does not have the drive letter problem.
+    /// </para>
     /// </remarks>
     /// <typeparam name="T">The type of asset desired.</typeparam>
     /// <param name="path">
-    /// The path of the assembly, always beginning with "/", pointing to the project root directory.
+    /// The path of the assembly. If isGlobal is false, the path must begin with "/", pointing to the app's
+    /// execution directory (generally the project directory); otherwise, if the path begins with "/", it's treated
+    /// as an absolute path (beginning from the device root directory), otherwise as a relative path (beginning from
+    /// the app's execution directory).
+    /// </param>
+    /// <param name="isGlobal">
+    /// If true, it can reference files from the entire device file system. Otherwise (the default value), it can
+    /// only reference files from the app's execution directory.
     /// </param>
     /// <param name="shouldCache">
-    /// If true, will hold a reference to the asset internally, so subsequent calls will return the asset much
+    /// If true, will hold a reference to the asset internally, so later calls will return the asset much
     /// faster.
     /// </param>
     /// <returns>
     /// The task containing an asset from the specified path if one was found, a task containing null otherwise.
     /// </returns>
-    public static async Task<T?> LoadFromFileAsync<T>(string path, bool shouldCache = true) where T : Asset, new()
+    public static async Task<T> LoadFromFileAsync<T>(string path, bool isGlobal = false, bool shouldCache = true)
+        where T : Asset, new()
     {
         if (_cachedAssets.TryGetValue(path, out Asset? asset))
         {
             return (T)asset;
         }
 
-        ObjectRef<long> endPositionRef = new();
-        FileStream? stream = GetAssetFileStream(path, endPositionRef);
-        if (stream == null)
+        if (OperatingSystem.IsWindows())
         {
-            return null;
+            path = path.Replace('/', '\\');
         }
 
-        byte[] assetRawData = new byte[endPositionRef.Value - stream.Position];
+        FileStream stream =
+            isGlobal
+                ? File.OpenRead(path)
+                : File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + path);
+
+        stream.Seek(0, SeekOrigin.End);
+        long size = stream.Position;
+        stream.Seek(0, SeekOrigin.Begin);
+
+        byte[] assetRawData = new byte[size];
         long bytesWritten = 0;
 
         byte[] buffer = new byte[4096];
         long position = stream.Position;
-        while (position < endPositionRef.Value)
+        while (position < size)
         {
             int limit = await stream.ReadAsync(buffer.AsMemory(0, 4096));
             Array.Copy(
@@ -356,265 +351,6 @@ public static class AssetsManager
         }
 
         return finalAsset;
-    }
-
-    /// <summary>
-    /// Returns a stream from one of the loaded asset files, specified by the asset path that is always relative
-    /// to the project root directory. An asset file containing the asset must be loaded before calling this method
-    /// using <see cref="LoadMetadataFromFileAsync(string)"/> or <see cref="LoadMetadataFromStreamAsync(Stream)"/>.
-    /// </summary>
-    /// <remarks>
-    /// The stream has its position at the beginning of the asset data, while the endPosition will specify the 
-    /// absolute byte position of the end of the asset data.
-    /// In order to create asset files, you can use the CatUIUtility.
-    /// </remarks>
-    /// <param name="path">
-    /// The path of the assembly, always beginning with "/", pointing to the project root directory.
-    /// </param>
-    /// <param name="endPosition">
-    /// An <see cref="ObjectRef{T}"/> ref object whose <see cref="ObjectRef{T}.Value"/> will be set to
-    /// the absolute byte position of the end of the asset data.
-    /// </param>
-    /// <returns>A FileStream configured as specified above if the asset was found, null otherwise.</returns>
-    /// <exception cref="IOException">Thrown if it can't read the asset size.</exception>
-    public static FileStream? GetAssetFileStream(string path, ObjectRef<long> endPosition)
-    {
-        if (!_assetPaths.TryGetValue(path, out ulong value))
-        {
-            return null;
-        }
-
-        int fileIndex = (int)(value >> 48);
-        if (_assetFilesPaths.Count < fileIndex)
-        {
-            return null;
-        }
-
-        var fs = new FileStream(_assetFilesPaths[fileIndex], FileMode.Open, FileAccess.Read);
-        long position = (long)(value & 0xff_ff_ff_ff_ff_ff);
-        fs.Seek(position, SeekOrigin.Begin);
-
-        byte[] assetSizeRaw = new byte[6];
-        int bytesRead = fs.Read(assetSizeRaw, 0, 6);
-        if (bytesRead != 6)
-        {
-            throw new IOException("Could not the read the asset file size.");
-        }
-
-        long assetSize = BinaryUtils.ConvertBytesToLong(assetSizeRaw, 0);
-
-        endPosition.Value = position + 6 + assetSize;
-        return fs;
-    }
-
-    /// <summary>
-    /// Loads only the metadata of the assets contained in the asset file. It is necessary to load the metadata first,
-    /// then load the actual assets. This will NOT load all the assets in memory, use the load functions for that.
-    /// </summary>
-    /// <remarks>
-    /// If an asset's metadata with the same virtual path and name is already loaded, the method will throw an
-    /// `EXCEPTION`. If this method throws an exception while loading the data, all the assets' metadata already
-    /// loaded will remain loaded. While this method will work with very large files, consider splitting your
-    /// assets into multiple files if you have a lot of them.
-    /// </remarks>
-    /// <param name="path">The path to an asset file.</param>
-    public static async Task LoadMetadataFromFileAsync(string path)
-    {
-        var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
-        await LoadMetadataFromStreamAsync(fs);
-        _assetFilesPaths.Add(path);
-    }
-
-    /// <summary>
-    /// Loads only the metadata of the assets contained in the asset file. It is necessary to load the metadata first,
-    /// then load the actual assets. This will NOT load all the assets in memory, use the load functions for that.
-    /// </summary>
-    /// <remarks>
-    /// If an asset's metadata with the same virtual path and name is already loaded, the method will throw an
-    /// `EXCEPTION`. If this method throws an exception while loading the data, all the assets' metadata already
-    /// loaded will remain loaded. While this method will work with very large files, consider splitting your
-    /// assets into multiple files if you have a lot of them.
-    /// </remarks>
-    /// <param name="stream">The stream to an asset file.</param>
-    /// <exception cref="IOException">Thrown if it can't read the asset size.</exception>
-    public static async Task LoadMetadataFromStreamAsync(Stream stream)
-    {
-        if (stream.Length < 6)
-        {
-            throw new FormatException("Invalid format");
-        }
-
-        stream.Seek(6, SeekOrigin.End);
-        byte[] dictionaryStartPosRaw = new byte[6];
-        // ReSharper disable once MethodHasAsyncOverload
-        int bytesRead = stream.Read(dictionaryStartPosRaw, 0, 6);
-        if (bytesRead != 6)
-        {
-            throw new IOException("Could not the read the asset file length.");
-        }
-
-        //go to the dictionary start
-        long pos = BinaryUtils.ConvertBytesToLong(dictionaryStartPosRaw, 0);
-        stream.Seek(pos, SeekOrigin.Begin);
-
-        byte[] buffer = new byte[4096];
-        byte[]? assetPathRaw = null, assetPositionRaw = null;
-        int assetPositionWrittenBytes = 0;
-        while (pos < stream.Length)
-        {
-            int limit = await stream.ReadAsync(buffer.AsMemory(0, 4096));
-            int bufferPos = 0;
-            while (bufferPos < limit)
-            {
-                if (assetPositionRaw != null)
-                {
-                    for (int i = assetPositionWrittenBytes; i < 6; i++)
-                    {
-                        assetPositionRaw[i] = buffer[bufferPos];
-                        bufferPos++;
-                    }
-
-                    if (assetPathRaw != null)
-                    {
-                        goto SaveAssetMetadata;
-                    }
-                    //if the path is null here, it must be an error
-                    else
-                    {
-                        throw new FormatException("Invalid format");
-                    }
-                }
-
-                if (assetPathRaw != null)
-                {
-                    int newDimension = assetPathRaw.Length;
-                    while (buffer[bufferPos] != 0 && bufferPos < limit)
-                    {
-                        newDimension++;
-                        bufferPos++;
-                    }
-
-                    //if the limit was reached here, it must be an invalid format as a path can't have more than 4096 bytes
-                    //and the only time a buffer is less than 4096 bytes is when EOF is reached,
-                    //meaning the path is incomplete or at least is missing the position
-                    if (bufferPos >= limit)
-                    {
-                        throw new FormatException("Invalid format");
-                    }
-
-                    //pass over the '\0'
-                    bufferPos++;
-
-                    byte[] newPathRaw = new byte[newDimension];
-                    //copy old portion
-                    Array.Copy(assetPathRaw, newPathRaw, assetPathRaw.Length);
-                    //copy remaining portion
-                    Array.Copy(buffer, 0, newPathRaw, assetPathRaw.Length, newDimension - assetPathRaw.Length);
-                    //assign
-                    assetPathRaw = newPathRaw;
-
-                    //resolve the position
-                    if (limit - bufferPos < 6)
-                    {
-                        assetPositionRaw = new byte[limit - bufferPos];
-                        for (int i = 0; i < limit - bufferPos; i++)
-                        {
-                            assetPositionRaw[i] = buffer[bufferPos];
-                            bufferPos++;
-                        }
-
-                        continue;
-                    }
-
-                    assetPositionRaw = new byte[6];
-                    for (int i = 0; i < 6; i++)
-                    {
-                        assetPositionRaw[i] = buffer[bufferPos];
-                        bufferPos++;
-                    }
-
-                    goto SaveAssetMetadata;
-                }
-
-                #region Path
-
-                int stringStart = bufferPos;
-                while (buffer[bufferPos] != 0 && bufferPos < limit)
-                {
-                    bufferPos++;
-                }
-
-                //the end of buffer was reached, save the relevant portion of data and continue to the next buffer read
-                if (bufferPos >= limit)
-                {
-                    assetPathRaw = new byte[stringStart - bufferPos];
-                    for (int i = 0; i < assetPathRaw.Length; i++)
-                    {
-                        assetPathRaw[i] = buffer[stringStart + i];
-                    }
-
-                    continue;
-                }
-                //if the string is not empty
-                else if (stringStart != bufferPos)
-                {
-                    //pass over the '\0'
-                    bufferPos++;
-                }
-                //empty strings are not allowed as paths
-                else
-                {
-                    throw new Exception("Invalid format");
-                }
-
-                assetPathRaw = new byte[bufferPos - stringStart - 1];
-                for (int i = 0; i < assetPathRaw.Length; i++)
-                {
-                    assetPathRaw[i] = buffer[stringStart + i];
-                }
-
-                #endregion //Path
-
-                #region Position
-
-                if (limit - bufferPos < 6)
-                {
-                    assetPositionRaw = new byte[limit - bufferPos];
-                    for (int i = 0; i < limit - bufferPos; i++)
-                    {
-                        assetPositionRaw[i] = buffer[bufferPos];
-                        bufferPos++;
-                    }
-
-                    continue;
-                }
-                else
-                {
-                    assetPositionRaw = new byte[6];
-                    for (int i = 0; i < 6; i++)
-                    {
-                        assetPositionRaw[i] = buffer[bufferPos];
-                        bufferPos++;
-                    }
-                }
-
-                #endregion //Position
-
-            SaveAssetMetadata:
-                ulong savedValue = (ulong)NumberOfLoadedAssetFiles << 48;
-                savedValue |= (ulong)BinaryUtils.ConvertBytesToLong(assetPositionRaw, 0) & 0xff_ff_ff_ff_ff_ff;
-
-                _assetPaths.Add(
-                    Encoding.UTF8.GetString(assetPathRaw),
-                    savedValue);
-                assetPathRaw = null;
-                assetPositionRaw = null;
-            }
-
-            pos += limit;
-        }
-
-        NumberOfLoadedAssetFiles++;
     }
 
 

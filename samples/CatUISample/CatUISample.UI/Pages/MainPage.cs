@@ -1,4 +1,3 @@
-using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
@@ -7,7 +6,6 @@ using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Managers;
 using CatUI.Data.Theming;
-using CatUI.Data.Theming.Typography;
 using CatUI.Elements;
 using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
@@ -29,17 +27,11 @@ public class MainPage : ColumnContainer
     protected override void EnterDocument(object sender)
     {
         base.EnterDocument(sender);
-        AssetsManager.AddAssetAssembly(Assembly.GetExecutingAssembly());
 
-        FontAsset fontAsset =
-            AssetsManager.LoadFromAssembly<FontAsset>("/NotoSans-Bold.ttf")
-         ?? FontUtility.DefaultPlatformFont;
-
+        FontAsset fontAsset = AssetsManager.LoadFromFileAsync<FontAsset>("/Assets/Fonts/NotoSans-Bold.ttf").Result;
         FontAsset cursiveFontAsset =
-            AssetsManager.LoadFromAssembly<FontAsset>("/Millenia.ttf")
-         ?? FontUtility.DefaultPlatformFont;
-
-        var imageAsset = AssetsManager.LoadFromAssembly<ImageAsset>("/cat_image.png");
+            AssetsManager.LoadFromFileAsync<FontAsset>("/Assets/Fonts/Babbler-Regular.ttf").Result;
+        ImageAsset imageAsset = AssetsManager.LoadFromFileAsync<ImageAsset>("/Assets/Images/cat_image.png").Result;
 
         Children =
         [
@@ -182,7 +174,7 @@ public class MainPage : ColumnContainer
                             LineCapType.Round,
                             miterLimit: 5)
                     },
-                    new ImageView(imageAsset!)
+                    new ImageView(imageAsset)
                     {
                         Layout = new ElementLayout().SetFixedWidth(240).SetFixedHeight(240),
                         ShouldKeepAspectRatio = true

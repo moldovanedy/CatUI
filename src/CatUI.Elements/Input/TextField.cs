@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Timers;
@@ -15,7 +16,9 @@ using CatUI.Elements.Containers.Scroll;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
+using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
+using SkiaSharp;
 
 namespace CatUI.Elements.Input;
 
@@ -206,6 +209,7 @@ public class TextField : InputField, IFocusable
     private Point2D _caretTopLeftPosition = new(2, 0);
     private bool _isDrawingCaret;
     private readonly Timer _caretTimer = new();
+    private List<float> _characterSizes = new(1024);
 
     #region Focus
 
@@ -385,65 +389,152 @@ public class TextField : InputField, IFocusable
         string newText = _label.Text;
         if (Selection.Start.Value != Selection.End.Value)
         {
-            // newText =
-            //     string.Concat(
-            //         newText.AsSpan(0, Selection.Start.Value),
-            //         newText.AsSpan(Selection.End.Value, newText.Length - Selection.End.Value));
-
             newText = newText.Remove(Selection.Start.Value, Selection.End.Value - Selection.Start.Value);
             Selection = new Range(Selection.Start.Value, Selection.Start.Value);
         }
 
+        SKPaint painter = _label.TextBrush.ToSkiaPaint();
+        float charSize = TextMeasuringCache.Calculate([e.Character], painter);
+
         if (Selection.Start.Value == newText.Length)
         {
             _label.Text = newText + e.Character;
+            _characterSizes.Add(charSize);
         }
         else
         {
             _label.Text = newText.Insert(Selection.Start.Value, e.Character.ToString());
+            _characterSizes.Insert(Selection.Start.Value, charSize);
         }
 
-        Selection = new Range(Selection.Start.Value + 1, Selection.Start.Value + 1);
+        UpdateSelectionAndCaret(new Range(Selection.Start.Value + 1, Selection.Start.Value + 1));
     }
 
     private void PrivateOnKey(object sender, KeyEventArgs e)
     {
-        //TODO: configurable shortcuts
-        if (
-            e.Key != PhysicalKey.Backspace
-         || _label.Text.Length == 0
-         || (e.Action != KeyAction.Pressed && e.Action != KeyAction.Repeat)
-            //the caret is at the start and there is no selection
-         || (Selection.Start.Value == Selection.End.Value && Selection.Start.Value == 0))
+        if (_label.Text.Length == 0)
         {
             return;
         }
 
-        //the caret is at the end
-        if (Selection.Start.Value == _label.Text.Length)
+        if (e.Action == KeyAction.Released)
         {
-            _label.Text = _label.Text.Substring(0, _label.Text.Length - 1);
-            Selection = new Range(Selection.Start.Value - 1, Selection.Start.Value - 1);
+            return;
         }
-        //the caret is not at the end, but there is no selection
-        else if (Selection.Start.Value == Selection.End.Value)
-        {
-            _label.Text = _label.Text.Remove(Selection.Start.Value - 1, 1);
-        }
-        //text selected
-        else
-        {
-            _label.Text = _label.Text.Remove(Selection.Start.Value, Selection.End.Value - Selection.Start.Value);
 
-            // _label.Text =
-            //     string.Concat(
-            //         _label.Text.AsSpan(0, Selection.Start.Value),
-            //         _label.Text.AsSpan(Selection.End.Value, _label.Text.Length - Selection.End.Value));
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+        switch (e.Key)
+        {
+            //TODO: configurable shortcuts
+            case PhysicalKey.Backspace:
+                Delete(true);
+                break;
+            case PhysicalKey.Delete:
+                Delete(false);
+                break;
+            case PhysicalKey.LeftArrow:
+                LeftNav();
+                break;
+            case PhysicalKey.RightArrow:
+                RightNav();
+                break;
         }
     }
 
     private void PrivateOnPointerDown(object sender, PointerDownEventArgs e)
     {
         this.GrabFocus();
+    }
+
+
+    private void Delete(bool isFromBackspace)
+    {
+        Range newRange;
+
+        //there is no selection
+        if (Selection.Start.Value == Selection.End.Value)
+        {
+            //backspace key and not at the start
+            if (isFromBackspace && Selection.Start.Value > 0)
+            {
+                _label.Text = _label.Text.Remove(Selection.Start.Value - 1, 1);
+                newRange = new Range(Selection.Start.Value - 1, Selection.Start.Value - 1);
+            }
+            //delete key and not at the end
+            else if (!isFromBackspace && Selection.Start.Value < _label.Text.Length)
+            {
+                _label.Text = _label.Text.Remove(Selection.Start.Value, 1);
+                newRange = new Range(Selection.Start.Value, Selection.Start.Value);
+                //forcefully remove the curent character
+                _characterSizes.RemoveAt(Selection.Start.Value);
+            }
+            //no action
+            else
+            {
+                newRange = Selection;
+            }
+        }
+        //text selected
+        else
+        {
+            _label.Text = _label.Text.Remove(Selection.Start.Value, Selection.End.Value - Selection.Start.Value);
+            newRange = new Range(Selection.Start.Value, Selection.Start.Value);
+        }
+
+        int selectionEnd = Selection.End.Value;
+        UpdateSelectionAndCaret(newRange);
+        _characterSizes.RemoveRange(newRange.Start.Value, selectionEnd - newRange.Start.Value);
+    }
+
+    private void LeftNav()
+    {
+        if (Selection.Start.Value > 0)
+        {
+            UpdateSelectionAndCaret(new Range(Selection.Start.Value - 1, Selection.Start.Value - 1));
+        }
+    }
+
+    private void RightNav()
+    {
+        if (Selection.End.Value < _label.Text.Length)
+        {
+            UpdateSelectionAndCaret(new Range(Selection.End.Value + 1, Selection.End.Value + 1));
+        }
+    }
+
+    private void UpdateSelectionAndCaret(Range newSelection)
+    {
+        //reset the caret and its timer
+        _isDrawingCaret = true;
+        _caretTimer.Interval = _caretOptions.BlinkInterval;
+
+        float textSize = 0;
+        List<float> deletedCharsSizes;
+
+        if (newSelection.End.Value < Selection.Start.Value)
+        {
+            deletedCharsSizes = _characterSizes.GetRange(
+                newSelection.End.Value,
+                Selection.Start.Value - newSelection.End.Value);
+        }
+        else
+        {
+            deletedCharsSizes = _characterSizes.GetRange(
+                Selection.Start.Value,
+                newSelection.End.Value - Selection.Start.Value);
+        }
+
+        foreach (float charSize in deletedCharsSizes)
+        {
+            textSize += charSize;
+        }
+
+        if (newSelection.End.Value < Selection.Start.Value)
+        {
+            textSize = -textSize;
+        }
+
+        _caretTopLeftPosition = new Point2D(_caretTopLeftPosition.X + textSize, _caretTopLeftPosition.Y);
+        Selection = newSelection;
     }
 }
