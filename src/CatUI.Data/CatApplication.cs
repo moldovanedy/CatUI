@@ -2,9 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using CatUI.Data.Enums;
 using CatUI.Data.Exceptions;
+using CatUI.Data.Gestures;
+using CatUI.Data.Managers;
 using CatUI.Platform.Essentials;
+
+[assembly: InternalsVisibleTo("CatUI.Elements")]
 
 namespace CatUI.Data;
 
@@ -115,6 +120,7 @@ public class CatApplication
 #endif
 
         CatUIVersion = typeof(CatApplication).Assembly.GetName().Version;
+        RegisterCriticalShortcuts();
     }
 
     /// <summary>
@@ -128,6 +134,34 @@ public class CatApplication
     public static AppBuilder NewBuilder()
     {
         return new AppBuilder();
+    }
+
+    private static void RegisterCriticalShortcuts()
+    {
+        InputManager.CurrentShortcuts[DefaultShortcutNames.KEYBOARD_NAVIGATION_NEXT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Tab));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.KEYBOARD_NAVIGATION_PREVIOUS] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Shift, PhysicalKey.Tab));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.KEYBOARD_NAVIGATION_SELECT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Enter));
+
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_DELETE_FROM_BEGINNING] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Backspace));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_DELETE_FROM_END] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Delete));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_LEFT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.LeftArrow));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_RIGHT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.RightArrow));
+
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_WORD_TO_LEFT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Control, PhysicalKey.LeftArrow));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_WORD_TO_RIGHT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Control, PhysicalKey.RightArrow));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_LEFT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Home));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_RIGHT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.End));
     }
 
     /// <summary>

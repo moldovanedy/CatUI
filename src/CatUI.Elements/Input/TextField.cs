@@ -10,6 +10,8 @@ using CatUI.Data.Enums;
 using CatUI.Data.Events.Input.Gestures;
 using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
+using CatUI.Data.Gestures;
+using CatUI.Data.Managers;
 using CatUI.Elements.Behaviors;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Containers.Scroll;
@@ -64,7 +66,8 @@ public class TextField : InputField, IFocusable
         private double _width = 1;
 
         /// <summary>
-        /// Specifies the brush used for drawing the text caret. The default value is a black color brush.
+        /// Specifies the brush used for drawing the text caret. The default value is a black color brush, but a text
+        /// field generally sets it to the font color.
         /// </summary>
         public IBrush Brush
         {
@@ -76,7 +79,7 @@ public class TextField : InputField, IFocusable
             }
         }
 
-        private IBrush _brush = new ColorBrush(new Color(0x00_00_ff));
+        private IBrush _brush = new ColorBrush(new Color(0x00_00_00));
 
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
@@ -209,7 +212,7 @@ public class TextField : InputField, IFocusable
     private Point2D _caretTopLeftPosition = new(2, 0);
     private bool _isDrawingCaret;
     private readonly Timer _caretTimer = new();
-    private List<float> _characterSizes = new(1024);
+    private readonly List<float> _characterSizes = new(1024);
 
     #region Focus
 
@@ -348,6 +351,14 @@ public class TextField : InputField, IFocusable
             }
         };
 
+        if (labelRef.Value != null)
+        {
+            labelRef.Value.TextBrushProperty.ValueChangedEvent += brush =>
+            {
+                CaretOptions.Brush = brush ?? new ColorBrush(new Color(0x00_00_00));
+            };
+        }
+
         _scroller = containerRef.Value!;
         _scroller.Ref = null;
         _label = labelRef.Value!;
@@ -422,22 +433,21 @@ public class TextField : InputField, IFocusable
             return;
         }
 
-        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-        switch (e.Key)
+        if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_DELETE_FROM_BEGINNING))
         {
-            //TODO: configurable shortcuts
-            case PhysicalKey.Backspace:
-                Delete(true);
-                break;
-            case PhysicalKey.Delete:
-                Delete(false);
-                break;
-            case PhysicalKey.LeftArrow:
-                LeftNav();
-                break;
-            case PhysicalKey.RightArrow:
-                RightNav();
-                break;
+            Delete(true);
+        }
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_DELETE_FROM_END))
+        {
+            Delete(false);
+        }
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_LEFT))
+        {
+            LeftNav();
+        }
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_RIGHT))
+        {
+            RightNav();
         }
     }
 

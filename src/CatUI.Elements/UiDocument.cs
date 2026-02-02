@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using CatUI.Data;
 using CatUI.Data.ElementData;
-using CatUI.Data.Enums;
 using CatUI.Data.Events.Input;
 using CatUI.Data.Events.Input.Keyboard;
 using CatUI.Data.Events.Input.Pointer;
 using CatUI.Data.Exceptions;
+using CatUI.Data.Gestures;
+using CatUI.Data.Managers;
 using CatUI.Elements.Behaviors;
 using CatUI.Elements.DocumentManagers;
 using CatUI.RenderingEngine;
@@ -115,24 +115,7 @@ public class UiDocument
     /// </example>
     public MouseButtonType PressedMouseButtons { get; private set; }
 
-    /// <summary>
-    /// Represents a bitmap of all the pressed key modifiers (like "Ctrl", "Alt", etc.). Does not take into account
-    /// whether the left key, the right key, or both keys were pressed (for modifiers that have 2 keys for the same
-    /// function).
-    /// </summary>
-    /// <example>
-    /// ((PressedKeyModifiers &amp; KeyModifiers.Shift) != 0) is true if one of the "Shift" keys is pressed,
-    /// false otherwise.
-    /// </example>
-    public KeyModifiers PressedKeyModifiers { get; private set; }
-
     private int _mousePointerId = -1;
-
-    /// <summary>
-    /// From least significant bits: bit 0 is left "Shift", bit 1 is right "Shift", bit 2-3 for left/right "Ctrl",
-    /// bit 4-5 for left/right "Alt", bit 6-7 for left/right "Super", bit 8 for "Caps Lock", bit 9 for "Num Lock".
-    /// </summary>
-    private int _keyModifiersBitmap;
 
     /// <summary>
     /// Represents the active pointer dictionary. Remember that the IDs are not always given in the order of presses,
@@ -620,83 +603,19 @@ public class UiDocument
     /// <param name="e">The event arguments.</param>
     public void SimulatePhysicalKeyEvent(KeyEventArgs e)
     {
-        if (e.Key.IsModifierKey())
+        InputManager.DocumentOnPhysicalKeyEvent(e);
+
+        if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.KEYBOARD_NAVIGATION_NEXT))
         {
-            int mask = 0;
-            // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-            switch (e.Key)
-            {
-                case PhysicalKey.LeftShift:
-                    mask |= 1 << 0;
-                    break;
-                case PhysicalKey.RightShift:
-                    mask |= 1 << 1;
-                    break;
-                case PhysicalKey.LeftControl:
-                    mask |= 1 << 2;
-                    break;
-                case PhysicalKey.RightControl:
-                    mask |= 1 << 3;
-                    break;
-                case PhysicalKey.LeftAlt:
-                    mask |= 1 << 4;
-                    break;
-                case PhysicalKey.RightAlt:
-                    mask |= 1 << 5;
-                    break;
-                case PhysicalKey.LeftSuper:
-                    mask |= 1 << 6;
-                    break;
-                case PhysicalKey.RightSuper:
-                    mask |= 1 << 7;
-                    break;
-                case PhysicalKey.CapsLock:
-                    mask |= 1 << 8;
-                    break;
-                case PhysicalKey.NumLock:
-                    mask |= 1 << 9;
-                    break;
-                default:
-#if DEBUG
-                    CatLogger.LogError($"Unexpected modifier key: {e.Key}.");
-#endif
-                    return;
-            }
-
-            if (e.Action == KeyAction.Released)
-            {
-                _keyModifiersBitmap &= ~mask;
-            }
-            else
-            {
-                _keyModifiersBitmap |= mask;
-            }
-
-            UpdateModifierState(KeyModifiers.Shift, 0);
-            UpdateModifierState(KeyModifiers.Control, 2);
-            UpdateModifierState(KeyModifiers.Alt, 4);
-            UpdateModifierState(KeyModifiers.Super, 6);
-            UpdateModifierState(KeyModifiers.CapsLock, 7, 1);
-            UpdateModifierState(KeyModifiers.NumLock, 8, 1);
+            FocusManager.UserWantsNextFocusable();
         }
-
-        //TODO: configurable shortcuts
-        if (e.Key == PhysicalKey.Tab && e.Action == KeyAction.Released)
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.KEYBOARD_NAVIGATION_PREVIOUS))
         {
-            //if it's JUST Shift, no other modifier
-            if (e.Modifiers == KeyModifiers.Shift)
-            {
-                FocusManager.UserWantsPreviousFocusable();
-            }
-            else
-            {
-                FocusManager.UserWantsNextFocusable();
-            }
+            FocusManager.UserWantsPreviousFocusable();
         }
 
         if (
-            e.Key == PhysicalKey.Enter
-         && e.Action == KeyAction.Released
+            InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.KEYBOARD_NAVIGATION_SELECT)
          && FocusManager.CurrentlyFocusedElement is IClickable clickableElement)
         {
             clickableElement.FocusedSelectActionTriggered();
@@ -707,15 +626,6 @@ public class UiDocument
 
         //TESTS: 
         // CatLogger.LogDebug($"Key: {e.Key}, US key: {e.RawKey}, {e.Action}, Modifiers: {e.Modifiers}");
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void UpdateModifierState(KeyModifiers modifier, int offset, int bitCount = 2)
-    {
-        int mask = bitCount == 1 ? 1 << offset : 0b11 << offset;
-        PressedKeyModifiers = (_keyModifiersBitmap & mask) == 0
-            ? PressedKeyModifiers & ~modifier
-            : PressedKeyModifiers | modifier;
     }
 
     /// <summary>
