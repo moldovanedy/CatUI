@@ -19,6 +19,7 @@ public class Sidebar : ColumnContainer
         ("Layout - RowContainer", "/Layout/RowContainer"),
         ("Layout - ScrollContainer", "/Layout/ScrollContainer"),
         ("UI Elements - Buttons", "/UiElements/Buttons"),
+        ("UI Elements - Text fields", "/UiElements/Input/TextFields"),
         ("Native UI - File picking", "/NativeUi/FilePicking"),
         ("Misc - Cursors", "/Misc/Cursors"),
         ("Misc - Animation", "/Misc/Animation")

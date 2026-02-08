@@ -63,8 +63,6 @@ public interface IFocusable
 
     FocusChangedEventHandler? OnFocusChanged { get; set; }
 
-    void FocusChanged(object sender, FocusChangedEventHandler e);
-
     /// <summary>
     /// If not null, the contained element will be focused next when navigating with the keyboard (using the Tab key
     /// on most systems). If null, the framework will automatically decide the next focusable element by following

@@ -5,6 +5,11 @@ using CatUI.RenderingEngine.GraphicsCaching;
 
 namespace CatUI.Elements.Text;
 
+/// <summary>
+/// An abstract class that represents all elements that are composed just of text, like labels. Note that most elements
+/// that do have text are generally composed of multiple elements, and the actual text element is just a subelement, so
+/// those DON'T inherit this class.
+/// </summary>
 public abstract class TextElement : Element
 {
     /// <summary>
@@ -69,29 +74,6 @@ public abstract class TextElement : Element
     }
 
     /// <summary>
-    /// Specifies the behavior of the text element when the text is too large to render in the given space.
-    /// The actual behavior depends on each element. See <see cref="TextOverflowMode"/> for information
-    /// about possible values. The default value is <see cref="TextOverflowMode.Ellipsis"/>.
-    /// </summary>
-    public TextOverflowMode OverflowMode
-    {
-        get => _overflowMode;
-        set => OverflowModeProperty.Value = value;
-    }
-
-    private TextOverflowMode _overflowMode = TextOverflowMode.Ellipsis;
-
-    public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; } =
-        new(TextOverflowMode.Ellipsis);
-
-    private void SetOverflowMode(TextOverflowMode value)
-    {
-        _overflowMode = value;
-        SetLocalValue(nameof(OverflowMode), value);
-        MarkLayoutDirty();
-    }
-
-    /// <summary>
     /// The text alignment to use. All values except <see cref="TextAlignmentType.Justify"/> are generally supported
     /// by all text elements, for <see cref="TextAlignmentType.Justify"/> consult the documentation on each document
     /// to see if it specifies that it's not supported (if no mention of it, it means it's supported).
@@ -115,26 +97,6 @@ public abstract class TextElement : Element
         MarkLayoutDirty();
     }
 
-    /// <summary>
-    /// Specifies the string that will be appended at the end of a row if the text cannot be drawn completely
-    /// (because it will overflow the element, for example).
-    /// </summary>
-    public string OverflowString
-    {
-        get => _overflowString;
-        set => OverflowStringProperty.Value = value;
-    }
-
-    private string _overflowString = "\u2026";
-    public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
-
-    private void SetOverflowString(string? value)
-    {
-        _overflowString = value ?? string.Empty;
-        SetLocalValue(nameof(OverflowString), value);
-        MarkLayoutDirty();
-    }
-
     public TextElement()
     {
         InitPropertiesEvents();
@@ -152,9 +114,7 @@ public abstract class TextElement : Element
         InitPropertiesEvents();
         Text = other.Text;
         FontSize = other.FontSize;
-        OverflowMode = other.OverflowMode;
         TextAlignment = other.TextAlignment;
-        OverflowString = other.OverflowString;
     }
 
     private void InitPropertiesEvents()
@@ -162,8 +122,6 @@ public abstract class TextElement : Element
         TextProperty.ValueChangedEvent += SetText;
         FontProperty.ValueChangedEvent += SetFont;
         FontSizeProperty.ValueChangedEvent += SetFontSize;
-        OverflowModeProperty.ValueChangedEvent += SetOverflowMode;
         TextAlignmentProperty.ValueChangedEvent += SetTextAlignment;
-        OverflowStringProperty.ValueChangedEvent += SetOverflowString;
     }
 }

@@ -177,12 +177,12 @@ public class FocusManager
             return null;
         }
 
+        //this is to ensure we avoid infinite loops (shouldn't happen, but still): if the counter exceeds the
+        //number of children of this parent, we just return null
+        int watchDogCounter = 0;
+
         while (true)
         {
-            //this is to ensure we avoid infinite loops (shouldn't happen, but still): if the counter exceeds the
-            //number of children of this parent, we just return null
-            int watchDogCounter = 0;
-
             //we start with a "dummy" element, the worst element
             Element bestFit = new()
             {

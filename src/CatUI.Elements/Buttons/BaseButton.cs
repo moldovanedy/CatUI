@@ -130,8 +130,10 @@ public class BaseButton : Element, IClickable, IFocusable
         ClickEvent += PrivateClick;
     }
 
-    public virtual void Click(object sender, ClickEventArgs e) { }
-    public virtual void FocusChanged(object sender, FocusChangedEventHandler e) { }
+    public void Click()
+    {
+        FocusedSelectActionTriggered();
+    }
 
     /// <inheritdoc cref="IClickable.FocusedSelectActionTriggered"/>
     /// <remarks>

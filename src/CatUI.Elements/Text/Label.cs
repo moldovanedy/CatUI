@@ -15,9 +15,10 @@ namespace CatUI.Elements.Text;
 /// <summary>
 /// A complex element that is designed to display text. It has advanced text features such as word wrap, multiple
 /// lines support and is expandable. It is pretty efficient for both small and large amounts of text, so it can
-/// be used to display entire paragraphs of text.
+/// be used to display entire paragraphs of text. Does not support <see cref="TextAlignmentType.Justify"/> for
+/// <see cref="TextElement.TextAlignment"/> yet.
 /// </summary>
-public class Label : TextElement, IWordWrappable
+public class Label : TextElement, IWordWrappable, ITextOverflowAware
 {
     /// <inheritdoc cref="Element.Ref"/>
     public new ObjectRef<Label>? Ref
@@ -52,6 +53,42 @@ public class Label : TextElement, IWordWrappable
         SetLocalValue(nameof(WordWrap), value);
         MarkLayoutDirty();
     }
+
+    /// <inheritdoc cref="ITextOverflowAware.OverflowMode"/>
+    public TextOverflowMode OverflowMode
+    {
+        get => _overflowMode;
+        set => OverflowModeProperty.Value = value;
+    }
+
+    private TextOverflowMode _overflowMode = TextOverflowMode.Ellipsis;
+
+    public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; } = new(TextOverflowMode.Ellipsis);
+
+    private void SetOverflowMode(TextOverflowMode value)
+    {
+        _overflowMode = value;
+        SetLocalValue(nameof(OverflowMode), value);
+        MarkLayoutDirty();
+    }
+
+    /// <inheritdoc cref="ITextOverflowAware.OverflowString"/>
+    public string OverflowString
+    {
+        get => _overflowString;
+        set => OverflowStringProperty.Value = value;
+    }
+
+    private string _overflowString = "\u2026";
+    public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
+
+    private void SetOverflowString(string? value)
+    {
+        _overflowString = value ?? string.Empty;
+        SetLocalValue(nameof(OverflowString), value);
+        MarkLayoutDirty();
+    }
+
 
     /// <summary>
     /// Represents the text's word break mode. It is only relevant when <see cref="WordWrap"/> is true.
@@ -231,6 +268,9 @@ public class Label : TextElement, IWordWrappable
         InitPropertiesEvents();
 
         WordWrap = other.WordWrap;
+        OverflowMode = other.OverflowMode;
+        OverflowString = other.OverflowString;
+
         BreakMode = other.BreakMode;
         HyphenCharacter = other.HyphenCharacter;
         TextBrush = other.TextBrush.Duplicate();
@@ -244,6 +284,9 @@ public class Label : TextElement, IWordWrappable
         TextProperty.ForceRecallEvents();
 
         WordWrapProperty.ValueChangedEvent += SetWordWrap;
+        OverflowModeProperty.ValueChangedEvent += SetOverflowMode;
+        OverflowStringProperty.ValueChangedEvent += SetOverflowString;
+
         BreakModeProperty.ValueChangedEvent += SetBreakMode;
         HyphenCharacterProperty.ValueChangedEvent += SetHyphenCharacter;
         TextBrushProperty.ValueChangedEvent += SetTextBrush;
@@ -356,7 +399,7 @@ public class Label : TextElement, IWordWrappable
         _visibleTextTotalHeight = 0;
         RowInformation rowInfo;
 
-        List<int> possibleBreakPoints = new();
+        List<int> possibleBreakPoints = [];
 
         if (newText == null)
         {
@@ -383,7 +426,7 @@ public class Label : TextElement, IWordWrappable
                 rowInfo = new RowInformation { Text = sb.ToString(), PossibleBreakPoints = possibleBreakPoints };
                 _userRows.Add(rowInfo);
                 sb.Clear();
-                possibleBreakPoints = new List<int>();
+                possibleBreakPoints = [];
                 columnIndex = 0;
                 continue;
             }
@@ -461,7 +504,7 @@ public class Label : TextElement, IWordWrappable
                     _drawableRows.Add(new RowInformation
                     {
                         Text = row.Text,
-                        PossibleBreakPoints = new List<int>(),
+                        PossibleBreakPoints = [],
                         Width = currentRowWidth,
                         WidthWithoutLastBreakPoint = 0
                     });
@@ -686,10 +729,7 @@ public class Label : TextElement, IWordWrappable
                             }
 
                             string text = sb.ToString();
-                            _drawableRows.Add(new RowInformation
-                            {
-                                Text = text, Width = painter.MeasureText(text)
-                            });
+                            _drawableRows.Add(new RowInformation { Text = text, Width = painter.MeasureText(text) });
 
                             currentHeight += rowHeight;
                             if (_drawableRows[^1].Width > _maxRowWidth)
@@ -762,7 +802,7 @@ public class Label : TextElement, IWordWrappable
                 Text = string.Concat(
                     _drawableRows[^1].Text.AsSpan(0, _drawableRows[^1].Text.Length - charsToRemove),
                     OverflowString),
-                PossibleBreakPoints = new List<int>(),
+                PossibleBreakPoints = [],
                 Width = _drawableRows[^1].Width - removeWidth + overflowStringWidth,
                 WidthWithoutLastBreakPoint = 0
             };

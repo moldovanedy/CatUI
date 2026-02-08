@@ -93,7 +93,9 @@ public static class TextMeasuringCache
     }
 
     /// <summary>
-    /// Calculates the text's width using <see cref="SKPaint.MeasureText(string)"/>.
+    /// Calculates the text's width using <see cref="SKPaint.MeasureText(string)"/>. Note that the SKPaint is derived
+    /// from the fontSize, so it is accurate only for the default paint. Otherwise, use the overload that accepts a
+    /// SKPaint.
     /// </summary>
     /// <param name="text">See <see cref="GetValueOrCalculate"/>.</param>
     /// <param name="fontSize">See <see cref="GetValueOrCalculate"/>.</param>
@@ -103,6 +105,17 @@ public static class TextMeasuringCache
     {
         SKPaint paint = PaintManager.GetPaint(fontSize: fontSize);
         return paint.MeasureText(text);
+    }
+
+    /// <summary>
+    /// Calculates the text's width using <see cref="SKPaint.MeasureText(string)"/> with the given paint.
+    /// </summary>
+    /// <param name="text">See <see cref="GetValueOrCalculate"/>.</param>
+    /// <param name="painter">See <see cref="GetValueOrCalculate"/>.</param>
+    /// <returns>The text's width in pixels.</returns>
+    public static float Calculate(ReadOnlySpan<char> text, SKPaint painter)
+    {
+        return painter.MeasureText(text);
     }
 
     /// <summary>
