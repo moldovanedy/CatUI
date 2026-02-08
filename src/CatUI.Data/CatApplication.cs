@@ -146,7 +146,9 @@ public class CatApplication
             new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Enter));
 
         InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_DELETE_FROM_BEGINNING] =
-            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Backspace));
+            new Shortcut(
+                new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Backspace),
+                new Shortcut.KeyCombination(KeyModifiers.Shift, PhysicalKey.Backspace));
         InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_DELETE_FROM_END] =
             new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Delete));
         InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_LEFT] =
@@ -154,13 +156,13 @@ public class CatApplication
         InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_RIGHT] =
             new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.RightArrow));
 
-        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_WORD_TO_LEFT] =
-            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Control, PhysicalKey.LeftArrow));
-        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_WORD_TO_RIGHT] =
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_NEXT_WORD] =
             new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Control, PhysicalKey.RightArrow));
-        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_LEFT] =
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_PREVIOUS_WORD] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Control, PhysicalKey.LeftArrow));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_BEGINNING] =
             new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Home));
-        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_RIGHT] =
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_END] =
             new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.End));
     }
 

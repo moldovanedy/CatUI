@@ -9,19 +9,63 @@ namespace CatUI.Data.Gestures;
 /// </summary>
 public static class DefaultShortcutNames
 {
+    /// <summary>
+    /// Next focusable element enters focus (default is Tab).
+    /// </summary>
     public const string KEYBOARD_NAVIGATION_NEXT = nameof(KEYBOARD_NAVIGATION_NEXT);
+
+    /// <summary>
+    /// Previous focusable element enters focus (default is Shift+Tab).
+    /// </summary>
     public const string KEYBOARD_NAVIGATION_PREVIOUS = nameof(KEYBOARD_NAVIGATION_PREVIOUS);
+
+    /// <summary>
+    /// The currently focused element is selected (action is triggered) (default is Enter).
+    /// </summary>
     public const string KEYBOARD_NAVIGATION_SELECT = nameof(KEYBOARD_NAVIGATION_SELECT);
 
+
+    /// <summary>
+    /// Deletes the next character from the caret (so the character towards the row end) (default is Delete).
+    /// </summary>
     public const string TEXT_DELETE_FROM_END = nameof(TEXT_DELETE_FROM_END);
+
+    /// <summary>
+    /// Deletes the previous character from the caret (so the character towards the row beginning)
+    /// (default is Backspace).
+    /// </summary>
     public const string TEXT_DELETE_FROM_BEGINNING = nameof(TEXT_DELETE_FROM_BEGINNING);
+
+    /// <summary>
+    /// Moves the caret one position to the left (all languages) (default is Left Arrow).
+    /// </summary>
     public const string TEXT_NAVIGATE_TO_LEFT = nameof(TEXT_NAVIGATE_TO_LEFT);
+
+    /// <summary>
+    /// Moves the caret one position to the right (all languages) (default is Right Arrow).
+    /// </summary>
     public const string TEXT_NAVIGATE_TO_RIGHT = nameof(TEXT_NAVIGATE_TO_RIGHT);
 
-    public const string TEXT_NAVIGATE_WORD_TO_LEFT = nameof(TEXT_NAVIGATE_WORD_TO_LEFT);
-    public const string TEXT_NAVIGATE_WORD_TO_RIGHT = nameof(TEXT_NAVIGATE_WORD_TO_RIGHT);
-    public const string TEXT_NAVIGATE_TO_ROW_LEFT = nameof(TEXT_NAVIGATE_TO_ROW_LEFT);
-    public const string TEXT_NAVIGATE_TO_ROW_RIGHT = nameof(TEXT_NAVIGATE_TO_ROW_RIGHT);
+
+    /// <summary>
+    /// Moves the caret one word to the next word (right in most languages) (default is Ctrl + Right Arrow).
+    /// </summary>
+    public const string TEXT_NAVIGATE_TO_NEXT_WORD = nameof(TEXT_NAVIGATE_TO_NEXT_WORD);
+
+    /// <summary>
+    /// Moves the caret one word to the previous word (left in most languages) (default is Ctrl + Left Arrow).
+    /// </summary>
+    public const string TEXT_NAVIGATE_TO_PREVIOUS_WORD = nameof(TEXT_NAVIGATE_TO_PREVIOUS_WORD);
+
+    /// <summary>
+    /// Moves the caret to the row beginning (left in most languages) (default is Home).
+    /// </summary>
+    public const string TEXT_NAVIGATE_TO_ROW_BEGINNING = nameof(TEXT_NAVIGATE_TO_ROW_BEGINNING);
+
+    /// <summary>
+    /// Moves the caret to the row end (right in most languages) (default is End).
+    /// </summary>
+    public const string TEXT_NAVIGATE_TO_ROW_END = nameof(TEXT_NAVIGATE_TO_ROW_END);
 }
 
 /// <summary>

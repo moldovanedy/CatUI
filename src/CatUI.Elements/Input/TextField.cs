@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Timers;
 using CatUI.Data;
 using CatUI.Data.Brushes;
@@ -24,7 +26,7 @@ using SkiaSharp;
 
 namespace CatUI.Elements.Input;
 
-public class TextField : InputField, IFocusable
+public partial class TextField : InputField, IFocusable
 {
     public class TextCaretOptions : INotifyPropertyChanged
     {
@@ -81,12 +83,34 @@ public class TextField : InputField, IFocusable
 
         private IBrush _brush = new ColorBrush(new Color(0x00_00_00));
 
+        /// <summary>
+        /// Specifies the brush used for drawing the text caret. The default value is a black color brush, but a text
+        /// field generally sets it to the font color.
+        /// </summary>
+        public IBrush SelectionBrush
+        {
+            get => _selectionBrush;
+            set
+            {
+                _selectionBrush = value;
+                OnPropertyChanged();
+            }
+        }
+
+        //default taken from https://stackoverflow.com/a/16094931/23361865 (Chrome 107)
+        private IBrush _selectionBrush = new ColorBrush(new Color(0x0_74_ff_cc, Color.ColorType.RGBA));
+
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
+
+    private const float LEFT_RIGHT_LABEL_PADDING = 3f;
+    private const float CARET_EXTRA_SIZE = 4f;
+
+    private static readonly Regex WordBreakRegex = WordBreakCompiledRegex();
 
     /// <inheritdoc cref="Element.Ref"/>
     public new ObjectRef<TextField>? Ref
@@ -214,6 +238,11 @@ public class TextField : InputField, IFocusable
     private readonly Timer _caretTimer = new();
     private readonly List<float> _characterSizes = new(1024);
 
+    private bool _isPointerDown;
+    private float _previousMousePos;
+    private (float, float) _selectionPositionRange = (0, 0);
+    private (float, float) _selectionFractionalPositionRange = (0, 0);
+
     #region Focus
 
     public IFocusable? NextFocusableElement { get; set; }
@@ -295,6 +324,15 @@ public class TextField : InputField, IFocusable
     {
         base.Draw(sender);
 
+        //selection
+        Document?.Renderer.DrawRect(
+            new Rect(
+                new Point2D(Bounds.X + _selectionPositionRange.Item1, Bounds.Y + _caretTopLeftPosition.Y),
+                new Size(
+                    _selectionPositionRange.Item2 - _selectionPositionRange.Item1,
+                    CalculateDimension(_label.FontSize, Bounds.Height) + CARET_EXTRA_SIZE)),
+            CaretOptions.SelectionBrush);
+
         if (_isDrawingCaret)
         {
             Document?.Renderer.DrawRect(
@@ -302,7 +340,7 @@ public class TextField : InputField, IFocusable
                     new Point2D(Bounds.X + _caretTopLeftPosition.X, Bounds.Y + _caretTopLeftPosition.Y),
                     new Size(
                         CalculateDimension((Dimension)CaretOptions.Width, Bounds.Height),
-                        CalculateDimension(_label.FontSize, Bounds.Height))),
+                        CalculateDimension(_label.FontSize, Bounds.Height) + CARET_EXTRA_SIZE)),
                 CaretOptions.Brush);
         }
     }
@@ -366,6 +404,7 @@ public class TextField : InputField, IFocusable
         _labelParent = labelParentRef.Value!;
         _labelParent.Ref = null;
 
+        Cursor = CursorIcon.CURSOR_TEXT;
         InternalContainer.Children.Add(scrollContainer);
         Children.Add(InternalContainer);
 
@@ -373,9 +412,13 @@ public class TextField : InputField, IFocusable
         SelectionProperty.ValueChangedEvent += SetSelection;
         CaretOptionsProperty.ValueChangedEvent += SetCaretOptions;
 
+        FocusChangedEvent += PrivateFocusChanged;
         CharTypedEvent += PrivateOnCharTyped;
         KeyEvent += PrivateOnKey;
+
         PointerDownEvent += PrivateOnPointerDown;
+        PointerUpEvent += PrivateOnPointerUp;
+        PointerMoveEvent += PrivateOnPointerMove;
 
         //caret control
         _caretTimer.Interval = _caretOptions.BlinkInterval;
@@ -384,16 +427,27 @@ public class TextField : InputField, IFocusable
             _isDrawingCaret = !_isDrawingCaret;
             RequestRedraw();
         };
-        EnterDocumentEvent += _ =>
-        {
-            _caretTimer.Start();
-        };
         ExitDocumentEvent += _ =>
         {
             _caretTimer.Stop();
         };
     }
 
+
+    private void PrivateFocusChanged(object sender, bool hasEnteredFocus)
+    {
+        if (hasEnteredFocus)
+        {
+            _isDrawingCaret = true;
+            _caretTimer.Interval = _caretOptions.BlinkInterval;
+            _caretTimer.Start();
+        }
+        else
+        {
+            _isDrawingCaret = false;
+            _caretTimer.Stop();
+        }
+    }
 
     private void PrivateOnCharTyped(object sender, CharTypedEventArgs e)
     {
@@ -433,6 +487,7 @@ public class TextField : InputField, IFocusable
             return;
         }
 
+        //deletion
         if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_DELETE_FROM_BEGINNING))
         {
             Delete(true);
@@ -441,21 +496,220 @@ public class TextField : InputField, IFocusable
         {
             Delete(false);
         }
+        //one char navigation
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_LEFT))
         {
-            LeftNav();
+            if (CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft)
+            {
+                EndNav(1);
+            }
+            else
+            {
+                HomeNav(1);
+            }
         }
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_RIGHT))
         {
-            RightNav();
+            if (CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft)
+            {
+                HomeNav(1);
+            }
+            else
+            {
+                EndNav(1);
+            }
+        }
+        //one word navigation
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_NEXT_WORD))
+        {
+            int pos = GoToAdjacentWord(true);
+            EndNav(pos - Selection.End.Value);
+        }
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_PREVIOUS_WORD))
+        {
+            int pos = GoToAdjacentWord(false);
+            HomeNav(Selection.Start.Value - pos);
+        }
+        //entire row navigation
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_BEGINNING))
+        {
+            //an enormous value to ensure that an end is reached (will get clamped anyway) while avoiding overflow;
+            // this the middle of the integer range
+            HomeNav(1 << 30);
+        }
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_END))
+        {
+            EndNav(1 << 30);
         }
     }
 
     private void PrivateOnPointerDown(object sender, PointerDownEventArgs e)
     {
+        _isPointerDown = true;
         this.GrabFocus();
+
+        float xPos = e.Position.X - LEFT_RIGHT_LABEL_PADDING;
+        float currentCharPos = 0;
+        float previousCharPos = 0;
+        int charIdx = 0;
+
+        while (currentCharPos < xPos && charIdx < _characterSizes.Count)
+        {
+            previousCharPos = currentCharPos;
+            currentCharPos += _characterSizes[charIdx];
+            charIdx++;
+        }
+
+        //if it was closer to the previous char than to this one, go to the previous char
+        if (Math.Abs(xPos - previousCharPos) < Math.Abs(xPos - currentCharPos))
+        {
+            charIdx--;
+        }
+
+        _selectionPositionRange = (currentCharPos, currentCharPos);
+        _selectionFractionalPositionRange = (currentCharPos, currentCharPos);
+        UpdateSelectionAndCaret(new Range(charIdx, charIdx));
     }
 
+    private void PrivateOnPointerUp(object sender, PointerUpEventArgs e)
+    {
+        _isPointerDown = false;
+        _previousMousePos = 0;
+    }
+
+    private void PrivateOnPointerMove(object sender, PointerMoveEventArgs e)
+    {
+        if (!_isPointerDown)
+        {
+            return;
+        }
+
+        if (_previousMousePos == 0)
+        {
+            _previousMousePos = e.Position.X;
+        }
+
+        float currentMousePos = e.Position.X;
+        bool wasSelectionModified = false;
+        Range newSelection = Selection;
+
+        //going to the right
+        if (currentMousePos > _selectionFractionalPositionRange.Item2)
+        {
+            _selectionFractionalPositionRange.Item2 = currentMousePos;
+
+            //if rightwards from the last selected letter
+            if (
+                _selectionFractionalPositionRange.Item2 > _selectionPositionRange.Item2
+             && Selection.End.Value < _label.Text.Length - 1)
+            {
+                //if the distance between the raw selection and the actual selection is more than half of the letter,
+                // move the selection
+                float delta = _selectionFractionalPositionRange.Item2 - _selectionPositionRange.Item2;
+                if (delta > _characterSizes[Selection.End.Value + 1] / 2.0)
+                {
+                    wasSelectionModified = true;
+                    newSelection = new Range(newSelection.Start, newSelection.End.Value + 1);
+                }
+            }
+        }
+        //going to the left, moving the selection end towards the start
+        else if (
+            currentMousePos < _selectionFractionalPositionRange.Item2
+         && currentMousePos > _selectionFractionalPositionRange.Item1)
+        {
+            _selectionFractionalPositionRange.Item2 = currentMousePos;
+
+            //if leftwards from the last selected letter
+            if (
+                _selectionFractionalPositionRange.Item2 < _selectionPositionRange.Item2
+             && Selection.End.Value > 0)
+            {
+                //if the distance between the raw selection and the actual selection is more than half of the letter,
+                // move the selection
+                float delta = _selectionPositionRange.Item2 - _selectionFractionalPositionRange.Item2;
+                if (delta > _characterSizes[Selection.End.Value - 1] / 2.0)
+                {
+                    wasSelectionModified = true;
+                    newSelection = new Range(newSelection.Start, newSelection.End.Value - 1);
+                }
+            }
+        }
+        //going to the left, moving the selection start to left
+        else
+        {
+            _selectionFractionalPositionRange.Item1 = currentMousePos;
+
+            //if leftwards from the last selected letter
+            if (
+                _selectionFractionalPositionRange.Item2 < _selectionPositionRange.Item2
+             && Selection.Start.Value > 0)
+            {
+                //if the distance between the raw selection and the actual selection is more than half of the letter,
+                // move the selection
+                float delta = _selectionPositionRange.Item2 - _selectionFractionalPositionRange.Item2;
+                if (delta > _characterSizes[Selection.End.Value - 1] / 2.0)
+                {
+                    wasSelectionModified = true;
+                    newSelection = new Range(newSelection.Start.Value - 1, newSelection.End);
+                }
+            }
+        }
+
+        _previousMousePos = e.Position.X;
+        if (wasSelectionModified)
+        {
+            UpdateSelectionAndCaret(newSelection);
+        }
+    }
+
+
+    private int GoToAdjacentWord(bool wantsNextWord)
+    {
+        //TODO: handle this according to UAX #29 (Unicode Standard Annex), this is only an approximation;
+        // this also does not work properly, as it skips words sometimes
+
+        int pos = wantsNextWord ? Selection.End.Value : Selection.Start.Value;
+        if (wantsNextWord)
+        {
+            Match nextMatch = WordBreakRegex.Match(_label.Text, pos);
+            return nextMatch.Length > 0 ? nextMatch.Index + nextMatch.Length : _label.Text.Length;
+        }
+
+        //we heuristically try to reduce the workload of the RegEx matcher by only starting at the last whitespace
+        // (whitespace is always a word boundary)
+        int currentPos = 0;
+        int lastWhitespacePos = 0;
+
+        while (currentPos < pos)
+        {
+            if (char.IsWhiteSpace(_label.Text[currentPos]))
+            {
+                lastWhitespacePos = currentPos;
+            }
+
+            currentPos++;
+        }
+
+        MatchCollection prevMatches = WordBreakRegex.Matches(_label.Text, lastWhitespacePos);
+        if (prevMatches.Count == 0)
+        {
+            return 0;
+        }
+
+        int startIdx = 0;
+        for (int i = 0; i < prevMatches.Count; i++)
+        {
+            if (prevMatches[i].Index > pos)
+            {
+                break;
+            }
+
+            startIdx = prevMatches[i].Index;
+        }
+
+        return startIdx - prevMatches[^1].Length;
+    }
 
     private void Delete(bool isFromBackspace)
     {
@@ -496,55 +750,66 @@ public class TextField : InputField, IFocusable
         _characterSizes.RemoveRange(newRange.Start.Value, selectionEnd - newRange.Start.Value);
     }
 
-    private void LeftNav()
+    private void HomeNav(int numCharacters)
     {
-        if (Selection.Start.Value > 0)
-        {
-            UpdateSelectionAndCaret(new Range(Selection.Start.Value - 1, Selection.Start.Value - 1));
-        }
+        int position = Math.Max(0, Selection.Start.Value - numCharacters);
+        UpdateSelectionAndCaret(new Range(position, position));
     }
 
-    private void RightNav()
+    private void EndNav(int numCharacters)
     {
-        if (Selection.End.Value < _label.Text.Length)
-        {
-            UpdateSelectionAndCaret(new Range(Selection.End.Value + 1, Selection.End.Value + 1));
-        }
+        int position = Math.Min(Selection.End.Value + numCharacters, _label.Text.Length);
+        UpdateSelectionAndCaret(new Range(position, position));
     }
 
     private void UpdateSelectionAndCaret(Range newSelection)
     {
+        if (
+            newSelection.Start.Value > newSelection.End.Value
+         || newSelection.Start.Value < 0
+         || newSelection.End.Value > _label.Text.Length)
+        {
+            return;
+        }
+
         //reset the caret and its timer
         _isDrawingCaret = true;
         _caretTimer.Interval = _caretOptions.BlinkInterval;
 
         float textSize = 0;
-        List<float> deletedCharsSizes;
 
-        if (newSelection.End.Value < Selection.Start.Value)
+        if (newSelection.Start.Value == 0)
         {
-            deletedCharsSizes = _characterSizes.GetRange(
-                newSelection.End.Value,
-                Selection.Start.Value - newSelection.End.Value);
-        }
-        else
-        {
-            deletedCharsSizes = _characterSizes.GetRange(
-                Selection.Start.Value,
-                newSelection.End.Value - Selection.Start.Value);
+            _selectionPositionRange.Item1 = 0;
         }
 
-        foreach (float charSize in deletedCharsSizes)
+        if (newSelection.End.Value == 0)
         {
+            _selectionPositionRange.Item2 = 0;
+        }
+
+        for (int i = 0; i < _characterSizes.Count; i++)
+        {
+            float charSize = _characterSizes[i];
             textSize += charSize;
+
+            if (i == newSelection.Start.Value - 1)
+            {
+                _selectionPositionRange.Item1 = textSize;
+            }
+
+            if (i == newSelection.End.Value - 1)
+            {
+                _selectionPositionRange.Item2 = textSize;
+            }
         }
 
-        if (newSelection.End.Value < Selection.Start.Value)
-        {
-            textSize = -textSize;
-        }
-
-        _caretTopLeftPosition = new Point2D(_caretTopLeftPosition.X + textSize, _caretTopLeftPosition.Y);
+        _caretTopLeftPosition = new Point2D(
+            _selectionPositionRange.Item2 + LEFT_RIGHT_LABEL_PADDING,
+            _caretTopLeftPosition.Y);
         Selection = newSelection;
     }
+
+    [GeneratedRegex(@"\b\w+\b", RegexOptions.Compiled)]
+    private static partial Regex WordBreakCompiledRegex();
 }
