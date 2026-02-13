@@ -35,8 +35,8 @@ public abstract partial class LinearContainerBase
                 : Children[index].Bounds.Y;
         float posLimit =
             ContainerOrientation == Orientation.Horizontal
-                ? Document.ViewportSize.Width
-                : Document.ViewportSize.Height;
+                ? Document.FramebufferSize.Width
+                : Document.FramebufferSize.Height;
 
         int i = 0;
         while (i < Children.Count && lastPositionOnAxis <= posLimit)

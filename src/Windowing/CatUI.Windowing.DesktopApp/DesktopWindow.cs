@@ -457,7 +457,7 @@ public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycl
 
     /// <summary>
     /// Fired when the window is "dirty" and it needs a repaint, either partially or fully. This is fired before the
-    /// redraw.
+    /// redrawing.
     /// </summary>
     public event Action<double>? FrameUpdatedEvent;
 
@@ -1174,18 +1174,18 @@ public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycl
 
             if (img?.SkiaImage != null)
             {
-                IntPtr pixelPtr = Marshal.AllocHGlobal(dim * dim * 4);
+                void* pixelPtr = NativeMemory.Alloc((nuint)(dim * dim * 4));
                 bool success = img.SkiaImage.ReadPixels(
                     new SKImageInfo(dim, dim, SKColorType.Rgba8888),
-                    pixelPtr);
+                    (nint)pixelPtr);
                 if (!success)
                 {
                     goto FreeData;
                 }
 
-                var glfwImage = new Image { Width = dim, Height = dim, Pixels = (byte*)pixelPtr.ToPointer() };
+                var glfwImage = new Image { Width = dim, Height = dim, Pixels = (byte*)pixelPtr };
                 imgArray.Add(glfwImage);
-                dataToFree.Add(pixelPtr);
+                dataToFree.Add((nint)pixelPtr);
             }
         }
 
@@ -1195,7 +1195,7 @@ public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycl
     FreeData:
         foreach (IntPtr pointer in dataToFree)
         {
-            Marshal.FreeHGlobal(pointer);
+            NativeMemory.Free(pointer.ToPointer());
         }
 
         CatLogger.LogVerbose("Successfully set window icon.");
@@ -1239,7 +1239,7 @@ public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycl
             }
 
             _lastTime = GLFW.GetTime();
-            GraphicsBackend?.SwapBuffers();
+            GraphicsBackend?.PresentFramebuffer();
 
             if (Document.Renderer.IsCanvasDirty)
             {

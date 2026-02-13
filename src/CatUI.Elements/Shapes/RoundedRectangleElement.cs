@@ -112,7 +112,7 @@ public class RoundedRectangleElement : AbstractShapeElement
         SKPath clipPath = _clipShape.GetSkiaClipPath(
             Bounds,
             Document?.ContentScale ?? 1f,
-            Document?.ViewportSize ?? new Size());
+            Document?.FramebufferSize ?? new Size());
 
         int saveCount = renderer.SaveCanvasState();
         renderer.SetClipPath(clipPath);

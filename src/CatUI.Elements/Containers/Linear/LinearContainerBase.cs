@@ -505,7 +505,7 @@ public abstract partial class LinearContainerBase : Container
         }
         else if (Document != null)
         {
-            RecomputeLayout(Document.ViewportSize, Document.ViewportSize, new Point2D());
+            RecomputeLayout(Document.FramebufferSize, Document.FramebufferSize, new Point2D());
         }
     }
 

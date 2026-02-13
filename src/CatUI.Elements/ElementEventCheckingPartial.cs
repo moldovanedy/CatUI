@@ -777,7 +777,7 @@ public partial class Element
         {
             return
                 Document != null &&
-                ClipPath.IsPointInside(e.AbsolutePosition, Bounds, Document.ContentScale, Document.ViewportSize);
+                ClipPath.IsPointInside(e.AbsolutePosition, Bounds, Document.ContentScale, Document.FramebufferSize);
         }
 
         return Rect.IsPointInside(Bounds, e.AbsolutePosition);

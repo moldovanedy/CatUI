@@ -165,7 +165,7 @@ internal sealed unsafe class OpenGlGraphicsBackend : IGraphicsBackend
     }
 
 
-    public void SwapBuffers()
+    public void PresentFramebuffer()
     {
         GLFW.SwapBuffers(_glfwWindow);
     }

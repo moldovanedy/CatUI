@@ -479,7 +479,7 @@ public unsafe partial class DesktopWindow
         _height = e.NewHeight;
 
         DocumentInvoke(
-            "WndSetViewportSize",
+            "WndSetFramebufferSize",
             new Size((int)(_width * Document.ContentScale), (int)(_height * Document.ContentScale)));
         GraphicsBackend?.Resized(
             (int)(_width * Document.ContentScale), (int)(_height * Document.ContentScale));

@@ -10,7 +10,7 @@ namespace CatUI.Windowing.DesktopApp.GraphicsBackends;
 public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
 {
     private Window* _glfwWindow;
-    private nint _pixelDataPtr;
+    private void* _pixelDataPtr;
     private int _swapInterval;
 
     private SKSize _lastSize;
@@ -57,12 +57,12 @@ public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
         }
 
         _lastSize = newSize;
-        Marshal.FreeCoTaskMem(_pixelDataPtr);
+        NativeMemory.Free(_pixelDataPtr);
         SKImageInfo info = new(_width, _height, SKColorType.Rgba8888, SKAlphaType.Premul);
-        _pixelDataPtr = Marshal.AllocCoTaskMem(info.BytesSize);
+        _pixelDataPtr = NativeMemory.Alloc((nuint)info.BytesSize);
         _bytesPerRow = info.RowBytes;
 
-        var surface = SKSurface.Create(info, _pixelDataPtr, info.RowBytes);
+        var surface = SKSurface.Create(info, (nint)_pixelDataPtr, info.RowBytes);
         if (surface == null)
         {
             throw new NullReferenceException(
@@ -77,7 +77,7 @@ public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
         return surface;
     }
 
-    public void SwapBuffers()
+    public void PresentFramebuffer()
     {
         GLFW.GetWindowSize(_glfwWindow, out int windowWidth, out int windowHeight);
         nint nativeWindowHandle =
@@ -93,7 +93,7 @@ public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
 
         OS.SoftwareRenderer?.Draw(
             nativeWindowHandle,
-            _pixelDataPtr,
+            (nint)_pixelDataPtr,
             _width,
             _height,
             _bytesPerRow,
@@ -103,7 +103,7 @@ public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
 
     public void DestroyAndTerminate()
     {
-        Marshal.FreeCoTaskMem(_pixelDataPtr);
+        NativeMemory.Free(_pixelDataPtr);
     }
 
     public void Resized(int width, int height)

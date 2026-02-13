@@ -39,7 +39,7 @@ public class CursorProviderDesktop : ICursorProvider
                         return null;
                     }
 
-                    byte* pixelsRaw = (byte*)Marshal.AllocHGlobal(pixelData.Length);
+                    byte* pixelsRaw = (byte*)NativeMemory.Alloc((nuint)pixelData.Length);
                     for (int i = 0; i < pixelData.Length; i++)
                     {
                         pixelsRaw[i] = pixelData[i];
@@ -83,7 +83,7 @@ public class CursorProviderDesktop : ICursorProvider
         Cursor* glfwCursor = (Cursor*)glfwCursorPtr;
         if (_customCursors.TryGetValue(cursorIcon.Id, out Image glfwCursorImage))
         {
-            Marshal.FreeHGlobal((nint)glfwCursorImage.Pixels);
+            NativeMemory.Free(glfwCursorImage.Pixels);
             _customCursors.Remove(cursorIcon.Id);
         }
 

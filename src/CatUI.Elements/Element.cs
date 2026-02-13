@@ -806,7 +806,7 @@ public partial class Element
     /// <returns>True if the element is inside the viewport, false otherwise.</returns>
     protected bool IsInsideViewport()
     {
-        Size viewportSize = Document?.ViewportSize ?? new Size(0, 0);
+        Size viewportSize = Document?.FramebufferSize ?? new Size(0, 0);
 
         if (Bounds.X >= viewportSize.Width)
         {
@@ -873,7 +873,7 @@ public partial class Element
             if (ClipPath != null)
             {
                 Document.Renderer.SetClipPath(
-                    ClipPath.GetSkiaClipPath(Bounds, Document.ContentScale, Document.ViewportSize));
+                    ClipPath.GetSkiaClipPath(Bounds, Document.ContentScale, Document.FramebufferSize));
             }
             else
             {
@@ -1106,7 +1106,7 @@ public partial class Element
                         return 0;
                     }
 
-                    return dimension.Value * Document.ViewportSize.Width / 100f;
+                    return dimension.Value * Document.FramebufferSize.Width / 100f;
                 }
             case Unit.ViewportHeight:
                 {
@@ -1115,7 +1115,7 @@ public partial class Element
                         return 0;
                     }
 
-                    return dimension.Value * Document.ViewportSize.Height / 100f;
+                    return dimension.Value * Document.FramebufferSize.Height / 100f;
                 }
             case Unit.Em:
                 return dimension.Value * (Document?.ContentScale ?? 1f) * (Document?.RootEmSize ?? 16f);
@@ -1150,7 +1150,7 @@ public partial class Element
 
         if (this == Document?.Root)
         {
-            RecomputeLayout(Document.ViewportSize, Document.ViewportSize, Point2D.Zero);
+            RecomputeLayout(Document.FramebufferSize, Document.FramebufferSize, Point2D.Zero);
         }
         else
         {
