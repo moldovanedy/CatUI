@@ -32,7 +32,7 @@ public interface IGraphicsBackend
     /// <summary>
     /// This will be called when the canvas was already redrawn, and now it needs to be presented to the user.
     /// </summary>
-    void SwapBuffers();
+    void PresentFramebuffer();
 
     /// <summary>
     /// This is called when the window is terminated, useful for freeing memory used by graphics objects.

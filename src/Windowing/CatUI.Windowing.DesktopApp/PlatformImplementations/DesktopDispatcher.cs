@@ -4,7 +4,7 @@ namespace CatUI.Windowing.DesktopApp.PlatformImplementations;
 
 public class DesktopDispatcher : DispatcherBase
 {
-    internal void CallActions()
+    public void CallActions()
     {
         CallOnUIThread();
     }

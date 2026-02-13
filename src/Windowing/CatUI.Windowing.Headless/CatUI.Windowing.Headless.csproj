@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+
+        <Title>CatUI.Windowing.Headless</Title>
+        <Description>
+            Contains the methods needed to use CatUI in existing apps (like 3D apps already using
+            a hardware graphics context) or custom advanced scenarios.
+        </Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj" />
+    </ItemGroup>
+
+</Project>

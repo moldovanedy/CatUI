@@ -147,27 +147,27 @@ public class UiDocument
 
             _root.Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
             _root.Document = this;
-            _root.Bounds = new Rect(0, 0, ViewportSize.Width, ViewportSize.Height);
+            _root.Bounds = new Rect(0, 0, FramebufferSize.Width, FramebufferSize.Height);
         }
     }
 
     private Element? _root;
 
     /// <summary>
-    /// The viewport size in pixels. If you change this, the document will be resized and all elements will be
+    /// The framebuffer size in pixels. If you change this, the document will be resized and all elements will be
     /// redrawn.
     /// </summary>
-    public Size ViewportSize
+    public Size FramebufferSize
     {
-        get => _viewportSize;
+        get => _framebufferSize;
         private set
         {
-            _viewportSize = value;
+            _framebufferSize = value;
             Root?.MarkLayoutDirty();
         }
     }
 
-    private Size _viewportSize = new();
+    private Size _framebufferSize = new();
 
     public Renderer Renderer { get; }
     public FocusManager FocusManager { get; }
@@ -192,7 +192,7 @@ public class UiDocument
     private Color _background = new(0xff_ff_ff);
 
     /// <summary>
-    /// The factor used to convert between pixels and dp. Any change will trigger a <see cref="ViewportSize"/>
+    /// The factor used to convert between pixels and dp. Any change will trigger a <see cref="FramebufferSize"/>
     /// change, which will in turn resize the document and perform layout recalculation on all elements.
     /// </summary>
     public float ContentScale
@@ -200,9 +200,11 @@ public class UiDocument
         get => _contentScale;
         set
         {
-            Size originalSize = new(ViewportSize.Width / _contentScale, ViewportSize.Height / _contentScale);
+            Size originalSize = new(
+                FramebufferSize.Width / _contentScale,
+                FramebufferSize.Height / _contentScale);
             _contentScale = value;
-            ViewportSize = new Size(originalSize.Width * value, originalSize.Height * value);
+            FramebufferSize = new Size(originalSize.Width * value, originalSize.Height * value);
         }
     }
 
@@ -293,8 +295,11 @@ public class UiDocument
     /// <summary>
     /// Creates a new document.
     /// </summary>
-    /// <param name="initialViewportSize"></param>
-    /// <param name="initialContentScale"></param>
+    /// <param name="initialViewportSize">
+    /// The initial viewport size. This is not always the <see cref="FramebufferSize"/> as the framebuffer size is
+    /// the viewport size multiplied by <see cref="ContentScale"/>.
+    /// </param>
+    /// <param name="initialContentScale">The initial value for <see cref="ContentScale"/>. Default is 1.</param>
     public UiDocument(
         Size initialViewportSize = default,
         float initialContentScale = 1f)
@@ -304,7 +309,7 @@ public class UiDocument
         PseudoClassesManager = new PseudoClassesManager();
 
         ContentScale = initialContentScale;
-        ViewportSize = new Size(
+        FramebufferSize = new Size(
             initialViewportSize.Width * initialContentScale,
             initialViewportSize.Height * initialContentScale);
         Renderer.SetBgColor(_background);
@@ -743,13 +748,13 @@ public class UiDocument
     #region Set by window
 
     /// <summary>
-    /// Will be used by window implementation to set the viewport's size. Do NOT modify its signature unless
+    /// Will be used by window implementation to set the framebuffers' size. Do NOT modify its signature unless
     /// modifying it across all windowing heads.
     /// </summary>
-    /// <param name="viewportSize">The new viewport size.</param>
-    internal void WndSetViewportSize(Size viewportSize)
+    /// <param name="framebufferSize">The new framebuffer size.</param>
+    internal void WndSetFramebufferSize(Size framebufferSize)
     {
-        ViewportSize = viewportSize;
+        FramebufferSize = framebufferSize;
     }
 
     /// <summary>

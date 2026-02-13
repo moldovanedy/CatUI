@@ -233,7 +233,7 @@ public partial class TextField : InputField, IFocusable
     private ScrollContainer _scroller = null!;
     private ColumnContainer _labelParent = null!;
 
-    private Point2D _caretTopLeftPosition = new(2, 0);
+    private Point2D _caretTopLeftPosition = new(LEFT_RIGHT_LABEL_PADDING, 0);
     private bool _isDrawingCaret;
     private readonly Timer _caretTimer = new();
     private readonly List<float> _characterSizes = new(1024);
@@ -327,7 +327,9 @@ public partial class TextField : InputField, IFocusable
         //selection
         Document?.Renderer.DrawRect(
             new Rect(
-                new Point2D(Bounds.X + _selectionPositionRange.Item1, Bounds.Y + _caretTopLeftPosition.Y),
+                new Point2D(
+                    Bounds.X + _selectionPositionRange.Item1 + LEFT_RIGHT_LABEL_PADDING,
+                    Bounds.Y + _caretTopLeftPosition.Y),
                 new Size(
                     _selectionPositionRange.Item2 - _selectionPositionRange.Item1,
                     CalculateDimension(_label.FontSize, Bounds.Height) + CARET_EXTRA_SIZE)),

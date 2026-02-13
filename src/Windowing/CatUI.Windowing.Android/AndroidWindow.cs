@@ -441,7 +441,7 @@ public class AndroidWindow : Activity, IApplicationWindow
 
     private void OnResize(object sender, WindowResizedEventArgs e)
     {
-        DocumentInvoke("WndSetViewportSize", new Data.Size(e.NewWidth, e.NewHeight));
+        DocumentInvoke("WndSetFramebufferSize", new Data.Size(e.NewWidth, e.NewHeight));
         Document.Renderer.SetCanvasDirty();
     }
 

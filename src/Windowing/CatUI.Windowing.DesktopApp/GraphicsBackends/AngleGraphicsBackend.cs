@@ -168,7 +168,7 @@ internal sealed class AngleGraphicsBackend : IGraphicsBackend
         return previousSurface;
     }
 
-    public void SwapBuffers()
+    public void PresentFramebuffer()
     {
         Egl.SwapBuffers(_eglDisplay, _eglSurface);
     }
