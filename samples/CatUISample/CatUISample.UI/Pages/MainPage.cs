@@ -1,3 +1,4 @@
+using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
@@ -22,16 +23,26 @@ public class MainPage : ColumnContainer
     {
         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
         Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Start, 20);
+
+        AssetsManager.AddAssetAssembly(Assembly.GetAssembly(typeof(MainPage))!);
     }
 
     protected override void EnterDocument(object sender)
     {
         base.EnterDocument(sender);
 
-        FontAsset fontAsset = AssetsManager.LoadFromFileAsync<FontAsset>("/Assets/Fonts/NotoSans-Bold.ttf").Result;
-        FontAsset cursiveFontAsset =
-            AssetsManager.LoadFromFileAsync<FontAsset>("/Assets/Fonts/Babbler-Regular.ttf").Result;
-        ImageAsset imageAsset = AssetsManager.LoadFromFileAsync<ImageAsset>("/Assets/Images/cat_image.png").Result;
+        FontAsset? fontAsset =
+            AssetsManager.LoadFromAssemblyAsync<FontAsset>("/Assets/Fonts/NotoSans-Bold.ttf").Result;
+        FontAsset? cursiveFontAsset =
+            AssetsManager.LoadFromAssemblyAsync<FontAsset>("/Assets/Fonts/Babbler-Regular.ttf").Result;
+        ImageAsset? imageAsset =
+            AssetsManager.LoadFromAssemblyAsync<ImageAsset>("/Assets/Images/cat_image.png").Result;
+
+        if (fontAsset == null || cursiveFontAsset == null || imageAsset == null)
+        {
+            CatLogger.LogError("CatUISample: One or more assets could not be retrieved in MainPage");
+            return;
+        }
 
         Children =
         [

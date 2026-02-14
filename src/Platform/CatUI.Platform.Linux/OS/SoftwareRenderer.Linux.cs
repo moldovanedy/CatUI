@@ -1,10 +1,12 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using CatUI.Platform.CommonInterface;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace CatUI.Platform.Linux.OS;
 
+[SupportedOSPlatform("linux")]
 public partial class SoftwareRendererLinux : ISoftwareRenderer
 {
     #region Library P/Invoke

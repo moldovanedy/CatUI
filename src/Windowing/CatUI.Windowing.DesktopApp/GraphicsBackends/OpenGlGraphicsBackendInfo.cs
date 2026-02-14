@@ -1,10 +1,14 @@
 using System;
+using System.Runtime.Versioning;
 using CatUI.Data.Enums;
 using CatUI.Windowing.Common;
 using OpenTK.Graphics.OpenGL;
 
 namespace CatUI.Windowing.DesktopApp.GraphicsBackends;
 
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 public class OpenGlGraphicsBackendInfo : IGraphicsBackendInfo
 {
     private int? _majorVersion;

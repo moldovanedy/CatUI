@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Enums;
@@ -23,6 +24,9 @@ namespace CatUI.Windowing.DesktopApp;
 /// Represents a window on a desktop platform. On desktop, your app can create multiple windows and can generally
 /// set their size, position on the display etc.
 /// </summary>
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycle
 {
     /// <summary>

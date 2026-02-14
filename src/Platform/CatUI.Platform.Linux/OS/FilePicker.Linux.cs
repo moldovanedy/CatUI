@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ using System.Diagnostics;
 
 namespace CatUI.Platform.Linux.OS;
 
+[SupportedOSPlatform("linux")]
 public class FilePickerLinux : IFilePicker
 {
     public async Task<IFilePicker.OpenFilesResponse?> OpenFilesAsync(

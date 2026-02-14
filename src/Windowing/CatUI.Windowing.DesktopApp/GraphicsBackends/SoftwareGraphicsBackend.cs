@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using CatUI.Platform;
 using CatUI.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -7,6 +8,9 @@ using SkiaSharp;
 
 namespace CatUI.Windowing.DesktopApp.GraphicsBackends;
 
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
 {
     private Window* _glfwWindow;
@@ -25,24 +29,28 @@ public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
 
     public void PrepareWindowCreation()
     {
-#if CAT_LOCAL_LINUX
-        GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlApi);
+        if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
+        {
+            GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlApi);
 
-        //1.0 will get the highest possible context, but still compatible with the old OpenGL 1.1 spec
-        GLFW.WindowHint(WindowHintInt.ContextVersionMajor, 1);
-        GLFW.WindowHint(WindowHintInt.ContextVersionMinor, 0);
+            //1.0 will get the highest possible context, but still compatible with the old OpenGL 1.1 spec
+            GLFW.WindowHint(WindowHintInt.ContextVersionMajor, 1);
+            GLFW.WindowHint(WindowHintInt.ContextVersionMinor, 0);
 
-        GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Any);
-#else
+            GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Any);
+        }
+        else
+        {
             GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.NoApi);
-#endif
+        }
     }
 
     public void PostWindowCreation()
     {
-#if CAT_LOCAL_LINUX
-        GLFW.MakeContextCurrent(_glfwWindow);
-#endif
+        if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
+        {
+            GLFW.MakeContextCurrent(_glfwWindow);
+        }
     }
 
     public SKSurface RecreateSurface(SKSurface previousSurface)
@@ -80,16 +88,20 @@ public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
     public void PresentFramebuffer()
     {
         GLFW.GetWindowSize(_glfwWindow, out int windowWidth, out int windowHeight);
-        nint nativeWindowHandle =
-#if CAT_LOCAL_WINDOWS
-                GLFW.GetWin32Window(_glfwWindow);
-#elif CAT_LOCAL_MACOS
-                GLFW.GetCocoaWindow(_glfwWindow);
-#elif CAT_LOCAL_LINUX
-            (nint)_glfwWindow;
-#else
-                0;
-#endif
+
+        nint nativeWindowHandle = 0;
+        if (OperatingSystem.IsWindows())
+        {
+            nativeWindowHandle = GLFW.GetWin32Window(_glfwWindow);
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            nativeWindowHandle = GLFW.GetCocoaWindow(_glfwWindow);
+        }
+        else if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
+        {
+            nativeWindowHandle = (nint)_glfwWindow;
+        }
 
         OS.SoftwareRenderer?.Draw(
             nativeWindowHandle,
@@ -117,8 +129,9 @@ public unsafe class SoftwareGraphicsBackend : IGraphicsBackend
     {
         _swapInterval = swapInterval;
 
-#if CAT_LOCAL_LINUX
-        GLFW.SwapInterval(_swapInterval);
-#endif
+        if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
+        {
+            GLFW.SwapInterval(_swapInterval);
+        }
     }
 }

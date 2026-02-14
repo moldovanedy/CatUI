@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4" />
+        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" />
     </ItemGroup>
 
 </Project>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using CatUI.Platform.CommonInterface;
 using CatUI.Utils;
@@ -13,6 +14,7 @@ namespace CatUI.Platform.Linux.OS;
 /// Does not work properly on sandboxed environments like Flatpak, it also suffers from not being able to attach
 /// the alert window to the main window, thus the user can just ignore the alert.
 /// </remarks>
+[SupportedOSPlatform("linux")]
 public class NativeAlertLinux : INativeAlert
 {
     /// <summary>

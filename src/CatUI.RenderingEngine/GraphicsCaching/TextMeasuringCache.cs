@@ -29,7 +29,7 @@ public static class TextMeasuringCache
 
     /// <summary>
     /// Given the values, will search for the text's width and will return it if it's found. Otherwise, it is
-    /// calculated using <see cref="Calculate"/>.
+    /// calculated using <see cref="Calculate(ReadOnlySpan{char}, float, int)"/>.
     /// </summary>
     /// <param name="text">The text to search for. For empty will return 0.</param>
     /// <param name="fontSize">The font size to search for. It will be rounded to 2 decimals.</param>

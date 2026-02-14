@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Versioning;
 using CatUI.Platform.CommonInterface;
 using CatUI.Platform.Linux.PInvoke;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -6,6 +7,7 @@ using SkiaSharp;
 
 namespace CatUI.Platform.Linux.OS;
 
+[SupportedOSPlatform("linux")]
 public class WindowIconLinux : IWindowIcon
 {
     public unsafe SKImage? GetWindowIcon(IntPtr windowHandle)

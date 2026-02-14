@@ -1,17 +1,18 @@
 using System;
+using System.Runtime.Versioning;
 using CatUI.Data;
 using CatUI.Platform;
 using CatUI.Platform.Essentials;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.PlatformImplementations;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-
-#if CAT_LOCAL_LINUX
 using CatUI.Platform.Linux;
-#endif
 
 namespace CatUI.Windowing.DesktopApp;
 
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 public class DesktopPlatformInfo : PlatformInfo
 {
     /// <summary>
@@ -25,25 +26,34 @@ public class DesktopPlatformInfo : PlatformInfo
     public WindowIcon? DefaultWindowIcon { get; set; }
 
     private bool _linuxUseWayland = true;
+    private readonly PlatformUiOptionsBase _uiOptions;
 
-    private readonly PlatformUiOptionsBase _uiOptions =
-#if CAT_LOCAL_LINUX
-        new LinuxPlatformUiOptions();
-#else
-            new DesktopPlatformUiOptions();
-#endif
+    public DesktopPlatformInfo()
+    {
+        if (OperatingSystem.IsLinux())
+        {
+            _uiOptions = new LinuxPlatformUiOptions();
+        }
+        else
+        {
+            _uiOptions = new DesktopPlatformUiOptions();
+        }
+    }
 
     public override CatApplicationInitializer AppInitializer => new(
         new DesktopDispatcher(),
         _uiOptions,
         () =>
         {
-#if CAT_LOCAL_WINDOWS
+            if (OperatingSystem.IsWindows())
+            {
                 GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Win32);
-#elif CAT_LOCAL_MACOS
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
                 GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Cocoa);
-#else
-            if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
+            }
+            else if (OperatingSystem.IsLinux() || OperatingSystem.IsFreeBSD())
             {
                 GLFW.InitHint(
                     InitHintPlatform.Platform,
@@ -55,14 +65,14 @@ public class DesktopPlatformInfo : PlatformInfo
             {
                 GLFW.InitHint(InitHintPlatform.Platform, OpenTK.Windowing.GraphicsLibraryFramework.Platform.Any);
             }
-#endif
 
             OS.Init();
             GLFW.Init();
 
-#if CAT_LOCAL_LINUX
-            LinuxNativeCommunicator.Open();
-#endif
+            if (OperatingSystem.IsLinux())
+            {
+                LinuxNativeCommunicator.Open();
+            }
         });
 
     /// <summary>

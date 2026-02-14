@@ -1,10 +1,12 @@
 using System;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Desktop.DBus;
 using Tmds.DBus.Protocol;
 
 namespace CatUI.Platform.Linux;
 
+[SupportedOSPlatform("linux")]
 internal static class XdgServices
 {
     internal static ServiceStatus Status { get; private set; } = ServiceStatus.Uninitialized;

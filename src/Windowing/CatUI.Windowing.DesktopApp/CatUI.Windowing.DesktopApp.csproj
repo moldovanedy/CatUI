@@ -13,26 +13,14 @@
         <DefineConstants>$(DefineConstants);CAT_USE_ANGLE</DefineConstants>
     </PropertyGroup>
 
-    <!--    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))">-->
-    <!--        <DefineConstants>$(DefineConstants);CAT_LOCAL_WINDOWS</DefineConstants>-->
-    <!--    </PropertyGroup>-->
-
-    <!--    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $(RuntimeIdentifier.StartsWith('osx'))">-->
-    <!--        <DefineConstants>$(DefineConstants);CAT_LOCAL_MACOS</DefineConstants>-->
-    <!--    </PropertyGroup>-->
-
-    <!--    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))">-->
-    <!--        <DefineConstants>$(DefineConstants);CAT_LOCAL_LINUX</DefineConstants>-->
-    <!--    </PropertyGroup>-->
-
-    <ItemGroup>
-        <PackageReference Include="OpenTK.Graphics" Version="4.9.4" />
-        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4" />
-    </ItemGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\..\CatUI.RenderingEngine\CatUI.RenderingEngine.csproj" />
         <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="OpenTK.Graphics" />
+        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" />
     </ItemGroup>
 
 </Project>

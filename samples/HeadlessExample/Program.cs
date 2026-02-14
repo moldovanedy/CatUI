@@ -20,6 +20,12 @@ internal static class Program
 
     private static void Main()
     {
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux())
+        {
+            Console.WriteLine("Unsupported platform");
+            return;
+        }
+
         Console.WriteLine("CatUI headless mode example: draws UI to .png files");
         Console.CancelKeyPress += OnExitRequested;
 
