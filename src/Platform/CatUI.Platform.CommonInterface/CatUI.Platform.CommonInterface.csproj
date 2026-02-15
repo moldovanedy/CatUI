@@ -5,8 +5,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\CatUI.Utils\CatUI.Utils.csproj" />
-        <ProjectReference Include="..\..\CatUI.Data\CatUI.Data.csproj" />
+        <ProjectReference Include="../../CatUI.Utils/CatUI.Utils.csproj" />
+        <ProjectReference Include="../../CatUI.Data/CatUI.Data.csproj" />
     </ItemGroup>
 
 </Project>

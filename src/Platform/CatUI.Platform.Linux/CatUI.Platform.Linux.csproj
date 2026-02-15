@@ -6,8 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Platform.CommonInterface\CatUI.Platform.CommonInterface.csproj" />
-        <ProjectReference Include="..\..\CatUI.Data\CatUI.Data.csproj" />
+        <ProjectReference Include="../CatUI.Platform.CommonInterface/CatUI.Platform.CommonInterface.csproj" />
+        <ProjectReference Include="../../CatUI.Data/CatUI.Data.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -16,7 +16,7 @@
         (it's net8.0, so it would get included otherwise) 
         -->
         <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" />
-        <PackageReference Condition="$(DefineConstants.Contains('CAT_LOCAL_LINUX'))" Include="Tmds.DBus.Protocol" />
+        <PackageReference Condition="$(DefineConstants.Contains('CAT_LINUX')) Or $(DefineConstants.Contains('CAT_ANY_PLATFORM'))" Include="Tmds.DBus.Protocol" />
     </ItemGroup>
 
 </Project>

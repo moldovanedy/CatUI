@@ -3,6 +3,7 @@
     <PropertyGroup>
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
+
     <ItemGroup>
         <PackageVersion Include="SkiaSharp" Version="2.88.8" />
         <PackageVersion Include="SkiaSharp.Views" Version="2.88.8" />
@@ -25,4 +26,5 @@
         <PackageVersion Include="NUnit.Analyzers" Version="4.4.0" />
         <PackageVersion Include="NUnit3TestAdapter" Version="4.6.0" />
     </ItemGroup>
+    
 </Project>

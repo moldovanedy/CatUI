@@ -9,6 +9,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj" />
+        <ProjectReference Include="../CatUI.Windowing.Common/CatUI.Windowing.Common.csproj" />
     </ItemGroup>
 </Project>

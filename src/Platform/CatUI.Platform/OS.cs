@@ -1,9 +1,21 @@
 ﻿using System;
 using CatUI.Platform.CommonInterface;
-using CatUI.Platform.DesktopCommon.OS;
-using CatUI.Platform.MacOS.OS;
+
+#if CAT_WINDOWS
 using CatUI.Platform.Windows.OS;
+#elif CAT_MACOS
+using CatUI.Platform.MacOS.OS;
+#elif CAT_LINUX
 using CatUI.Platform.Linux.OS;
+#elif CAT_ANY_PLATFORM
+using CatUI.Platform.Windows.OS;
+using CatUI.Platform.MacOS.OS;
+using CatUI.Platform.Linux.OS;
+#endif
+
+#if CAT_WINDOWS || CAT_MACOS || CAT_LINUX || CAT_ANY_PLATFORM
+using CatUI.Platform.DesktopCommon.OS;
+#endif
 
 namespace CatUI.Platform;
 
@@ -66,6 +78,18 @@ public static class OS
 
         _isInitialized = true;
 
+#if CAT_WINDOWS
+        if (OperatingSystem.IsWindows())
+        {
+            WindowIcon = new WindowIconWindows();
+        }
+#elif CAT_MACOS
+#elif CAT_LINUX
+        if (OperatingSystem.IsLinux())
+        {
+            WindowIcon = new WindowIconLinux();
+        }
+#elif CAT_ANY_PLATFORM
         if (OperatingSystem.IsWindows())
         {
             WindowIcon = new WindowIconWindows();
@@ -74,7 +98,20 @@ public static class OS
         {
             WindowIcon = new WindowIconLinux();
         }
+#endif
 
+#if CAT_WINDOWS
+        if (OperatingSystem.IsWindows())
+        {
+            NativeAlert = new NativeAlertWindows();
+        }
+#elif CAT_MACOS
+#elif CAT_LINUX
+        if (OperatingSystem.IsLinux())
+        {
+            NativeAlert = new NativeAlertLinux();
+        }
+#elif CAT_ANY_PLATFORM
         if (OperatingSystem.IsWindows())
         {
             NativeAlert = new NativeAlertWindows();
@@ -83,7 +120,20 @@ public static class OS
         {
             NativeAlert = new NativeAlertLinux();
         }
+#endif
 
+#if CAT_WINDOWS
+        if (OperatingSystem.IsWindows())
+        {
+            FilePicker = new FilePickerWindows();
+        }
+#elif CAT_MACOS
+#elif CAT_LINUX
+        if (OperatingSystem.IsLinux())
+        {
+            FilePicker = new FilePickerLinux();
+        }
+#elif CAT_ANY_PLATFORM
         if (OperatingSystem.IsWindows())
         {
             FilePicker = new FilePickerWindows();
@@ -92,7 +142,24 @@ public static class OS
         {
             FilePicker = new FilePickerLinux();
         }
+#endif
 
+#if CAT_WINDOWS
+        if (OperatingSystem.IsWindows())
+        {
+            SoftwareRenderer = new SoftwareRendererWindows();
+        }
+#elif CAT_MACOS
+        if (OperatingSystem.IsMacOS())
+        {
+            SoftwareRenderer = new SoftwareRendererMacOS();
+        }
+#elif CAT_LINUX
+        if (OperatingSystem.IsLinux())
+        {
+            SoftwareRenderer = new SoftwareRendererLinux();
+        }
+#elif CAT_ANY_PLATFORM
         if (OperatingSystem.IsWindows())
         {
             SoftwareRenderer = new SoftwareRendererWindows();
@@ -105,10 +172,13 @@ public static class OS
         {
             SoftwareRenderer = new SoftwareRendererLinux();
         }
+#endif
 
+#if CAT_WINDOWS || CAT_MACOS || CAT_LINUX || CAT_ANY_PLATFORM
         if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() || OperatingSystem.IsLinux())
         {
             CursorProvider = new CursorProviderDesktop();
         }
+#endif
     }
 }

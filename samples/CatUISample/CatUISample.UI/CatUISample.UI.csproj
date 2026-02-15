@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\CatUI\CatUI.csproj" />
-        <ProjectReference Include="..\..\..\src\CoreExtensions\CatUI.CoreExtensions.Itania\CatUI.CoreExtensions.Itania.csproj" />
+        <ProjectReference Include="../../../src/CatUI/CatUI.csproj" />
+        <ProjectReference Include="../../../src/CoreExtensions/CatUI.CoreExtensions.Itania/CatUI.CoreExtensions.Itania.csproj" />
     </ItemGroup>
 
     <ItemGroup>

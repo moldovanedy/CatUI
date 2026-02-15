@@ -12,10 +12,6 @@ using CatUI.Platform.CommonInterface;
 using CatUI.Utils;
 using Tmds.DBus.Protocol;
 
-#if !DEBUG && TRACE
-using System.Diagnostics;
-#endif
-
 namespace CatUI.Platform.Linux.OS;
 
 [SupportedOSPlatform("linux")]

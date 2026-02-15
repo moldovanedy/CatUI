@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\CatUI.Data\CatUI.Data.csproj" />
+        <ProjectReference Include="../../src/CatUI.Data/CatUI.Data.csproj" />
     </ItemGroup>
 
 </Project>

@@ -6,7 +6,10 @@ using CatUI.Platform.Essentials;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.PlatformImplementations;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+
+#if CAT_LINUX || CAT_ANY_PLATFORM
 using CatUI.Platform.Linux;
+#endif
 
 namespace CatUI.Windowing.DesktopApp;
 
@@ -30,6 +33,7 @@ public class DesktopPlatformInfo : PlatformInfo
 
     public DesktopPlatformInfo()
     {
+#if CAT_LINUX || CAT_ANY_PLATFORM
         if (OperatingSystem.IsLinux())
         {
             _uiOptions = new LinuxPlatformUiOptions();
@@ -38,6 +42,9 @@ public class DesktopPlatformInfo : PlatformInfo
         {
             _uiOptions = new DesktopPlatformUiOptions();
         }
+#else
+        _uiOptions = new DesktopPlatformUiOptions();
+#endif
     }
 
     public override CatApplicationInitializer AppInitializer => new(
@@ -69,10 +76,12 @@ public class DesktopPlatformInfo : PlatformInfo
             OS.Init();
             GLFW.Init();
 
+#if CAT_LINUX || CAT_ANY_PLATFORM
             if (OperatingSystem.IsLinux())
             {
                 LinuxNativeCommunicator.Open();
             }
+#endif
         });
 
     /// <summary>
