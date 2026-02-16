@@ -119,7 +119,8 @@ public class WindowIcon
             image.SkiaImage.ColorType);
 
         var outputImage = SKImage.Create(newImageInfo);
-        bool success = image.SkiaImage.ScalePixels(outputImage.PeekPixels(), SKFilterQuality.High);
+        bool success =
+            image.SkiaImage.ScalePixels(outputImage.PeekPixels(), new SKSamplingOptions(SKFilterMode.Linear));
         return success
             ? new ImageAsset(outputImage)
             : throw new InvalidOperationException("Unable to resize image.");

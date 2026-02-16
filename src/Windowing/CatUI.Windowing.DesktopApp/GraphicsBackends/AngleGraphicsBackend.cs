@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Versioning;
 using CatUI.Data.Exceptions;
 using CatUI.Windowing.Common;
 using OpenTK.Graphics.Egl;
@@ -8,6 +9,9 @@ using SkiaSharp;
 
 namespace CatUI.Windowing.DesktopApp.GraphicsBackends;
 
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 internal sealed class AngleGraphicsBackend : IGraphicsBackend
 {
     private nint _nativeWindowHandle;

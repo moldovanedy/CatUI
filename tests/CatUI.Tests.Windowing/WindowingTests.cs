@@ -1,8 +1,12 @@
-﻿using CatUI.Windowing.DesktopApp;
+﻿using System.Runtime.Versioning;
+using CatUI.Windowing.DesktopApp;
 using NUnit.Framework;
 
 namespace CatUI.Tests.Windowing;
 
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 public class WindowingTests
 {
     private readonly BaseWindowingManager _manager = new();

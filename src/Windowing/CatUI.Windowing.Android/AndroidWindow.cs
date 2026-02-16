@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.Versioning;
 using Android.OS;
 using Android.Util;
 using Android.Views;
@@ -17,6 +18,7 @@ using Environment = System.Environment;
 
 namespace CatUI.Windowing.Android;
 
+[SupportedOSPlatform("android21.0")]
 public class AndroidWindow : Activity, IApplicationWindow
 {
     #region Properties

@@ -10,6 +10,14 @@ public static class Program
 {
     private static void Main()
     {
+        //the classic lifecycle with a "main" method only works on desktop; for other platforms, there are other
+        // ways the application works
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux())
+        {
+            Console.WriteLine("Unsupported platform");
+            return;
+        }
+
         Init();
 
         //we create a new window
@@ -41,6 +49,11 @@ public static class Program
 
     private static void Init()
     {
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux())
+        {
+            return;
+        }
+
         //early initialization of the app
         CatApplication
             .NewBuilder()

@@ -1,8 +1,12 @@
+using System.Runtime.Versioning;
 using CatUI.Data;
 using CatUI.Windowing.DesktopApp;
 
 namespace CatUI.Tests.Windowing;
 
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 public class BaseWindowingManager
 {
     public DesktopWindow? Window { get; private set; }

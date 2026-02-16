@@ -67,9 +67,11 @@ public class ImageAsset : Asset
     {
         byte[] rawData = new byte[stream.Length];
         int currentReadBytes, totalReadBytes = 0;
-        while ((currentReadBytes =
-                   await stream.ReadAsync(
-                       rawData.AsMemory(totalReadBytes, rawData.Length))) > 0)
+        while (
+            totalReadBytes < stream.Length &&
+            (currentReadBytes =
+                await stream.ReadAsync(
+                    rawData.AsMemory(totalReadBytes, rawData.Length))) > 0)
         {
             totalReadBytes += currentReadBytes;
         }

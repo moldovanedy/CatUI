@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CatUI.Data;
+using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.Enums;
-using CatUI.Data.Managers;
 using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
 using SkiaSharp;
@@ -465,7 +465,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
 
         float fontSize = CalculateDimension(FontSize);
         float rowHeight = fontSize * LineHeight;
-        SKPaint painter = PaintManager.GetPaint(fontSize: fontSize);
+        SKFont font = (Font ?? FontAsset.Default).GetSkiaFont(fontSize);
 
         float overflowStringWidth = TextMeasuringCache.GetValueOrCalculate(OverflowString, fontSize);
         float hyphenCharacterWidth = TextMeasuringCache.GetValueOrCalculate(
@@ -492,7 +492,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
 
                     if (BreakMode == TextBreakMode.HardBreak)
                     {
-                        int length = (int)painter.BreakText(row.Text.AsSpan(), preferredSize.Width);
+                        int length = font.BreakText(row.Text.AsSpan(), preferredSize.Width);
                         thisRow = row.Text.AsMemory(0, length);
                     }
                     else
@@ -500,7 +500,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
                         thisRow = row.Text.AsMemory();
                     }
 
-                    float currentRowWidth = painter.MeasureText(thisRow.Span);
+                    float currentRowWidth = font.MeasureText(thisRow.Span);
                     _drawableRows.Add(new RowInformation
                     {
                         Text = row.Text,
@@ -525,7 +525,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
 
                     while (startIndex < row.Text.Length)
                     {
-                        int charCount = (int)painter.BreakText(row.Text.AsSpan(startIndex), preferredSize.Width);
+                        int charCount = font.BreakText(row.Text.AsSpan(startIndex), preferredSize.Width);
                         //at least one char to avoid infinite loops (both in code and in UI as infinite newlines)
                         if (charCount == 0)
                         {
@@ -537,7 +537,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
                             usedBreakPoints = true;
                         }
 
-                        float currentRowWidth = painter.MeasureText(row.Text.AsSpan(startIndex, charCount));
+                        float currentRowWidth = font.MeasureText(row.Text.AsSpan(startIndex, charCount));
 
                         _drawableRows.Add(new RowInformation
                         {
@@ -706,7 +706,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
                             StringBuilder sb = new();
 
                             //if the entire row can be drawn
-                            if (painter.BreakText(row.Text, maximumSize.Width) == row.Text.Length)
+                            if (font.BreakText(row.Text, maximumSize.Width) == row.Text.Length)
                             {
                                 sb.Append(row.Text.AsSpan());
                             }
@@ -716,7 +716,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
                                     row.Text.AsSpan(
                                         0,
                                         Math.Max(
-                                            (int)painter.BreakText(
+                                            font.BreakText(
                                                 row.Text,
                                                 maximumSize.Width - overflowStringWidth),
                                             1)
@@ -729,7 +729,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
                             }
 
                             string text = sb.ToString();
-                            _drawableRows.Add(new RowInformation { Text = text, Width = painter.MeasureText(text) });
+                            _drawableRows.Add(new RowInformation { Text = text, Width = font.MeasureText(text) });
 
                             currentHeight += rowHeight;
                             if (_drawableRows[^1].Width > _maxRowWidth)
@@ -793,8 +793,8 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
                                      .ToArray().Reverse().ToArray());
                 //calculate the number of characters needed to remove to add the overflow string and add 1
                 //to ensure we don't exceed the element finalSize but don't remove more than 3 characters
-                charsToRemove = (int)Math.Min(painter.BreakText(lastChars, overflowStringWidth) + 1, 3);
-                removeWidth = painter.MeasureText(lastChars.AsSpan(0, charsToRemove));
+                charsToRemove = Math.Min(font.BreakText(lastChars, overflowStringWidth) + 1, 3);
+                removeWidth = font.MeasureText(lastChars.AsSpan(0, charsToRemove));
             }
 
             _drawableRows[^1] = new RowInformation

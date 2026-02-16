@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 // ReSharper disable InconsistentNaming
 
 namespace CatUI.Platform.Linux.PInvoke;
 
+[SupportedOSPlatform("linux")]
 internal static partial class X11
 {
     private const string libX11 = "libX11";

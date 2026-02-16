@@ -55,8 +55,24 @@ public partial class Renderer
                 (int)MathF.Round(size.Width, MidpointRounding.ToZero),
                 (int)MathF.Round(size.Height, MidpointRounding.ToZero),
                 image.ColorType);
+
+            SKSamplingOptions samplingOptions;
+            switch (resizeQuality)
+            {
+                case ImageResizeQuality.Low:
+                    samplingOptions = new SKSamplingOptions(SKFilterMode.Nearest);
+                    break;
+                case ImageResizeQuality.High:
+                    samplingOptions = new SKSamplingOptions(SKCubicResampler.Mitchell);
+                    break;
+                case ImageResizeQuality.Medium:
+                default:
+                    samplingOptions = new SKSamplingOptions(SKFilterMode.Linear);
+                    break;
+            }
+
             outputImage = SKImage.Create(newImageInfo);
-            bool success = image.ScalePixels(outputImage.PeekPixels(), (SKFilterQuality)resizeQuality);
+            bool success = image.ScalePixels(outputImage.PeekPixels(), samplingOptions);
             if (!success)
             {
                 throw new InvalidOperationException("Unable to resize image.");
@@ -102,8 +118,22 @@ public partial class Renderer
             (Math.Abs(size.Width - bitmap.Width) > EPSILON ||
              Math.Abs(size.Height - bitmap.Height) > EPSILON))
         {
-            bitmap = bitmap.Resize(new SKImageInfo((int)size.Width, (int)size.Height),
-                (SKFilterQuality)resizeQuality);
+            SKSamplingOptions samplingOptions;
+            switch (resizeQuality)
+            {
+                case ImageResizeQuality.Low:
+                    samplingOptions = new SKSamplingOptions(SKFilterMode.Nearest);
+                    break;
+                case ImageResizeQuality.High:
+                    samplingOptions = new SKSamplingOptions(SKCubicResampler.Mitchell);
+                    break;
+                case ImageResizeQuality.Medium:
+                default:
+                    samplingOptions = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+                    break;
+            }
+
+            bitmap = bitmap.Resize(new SKImageInfo((int)size.Width, (int)size.Height), samplingOptions);
 
             if (makeBitmapImmutable)
             {

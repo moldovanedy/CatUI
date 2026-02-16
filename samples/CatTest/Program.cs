@@ -31,6 +31,11 @@ internal static class Program
     {
         try
         {
+            if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux())
+            {
+                return;
+            }
+
             Init();
 
             _window = new DesktopWindow(
@@ -81,6 +86,11 @@ internal static class Program
 
     private static void Init()
     {
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux())
+        {
+            return;
+        }
+
         //early initialization of the app
         CatApplication
             .NewBuilder()

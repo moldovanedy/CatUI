@@ -14,8 +14,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SkiaSharp" Version="2.88.8" />
-        <PackageReference Condition="$([MSBuild]::IsOSPlatform('Linux'))" Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8" />
+        <PackageReference Include="SkiaSharp" />
+
+        <PackageReference Condition="$(DefineConstants.Contains('CAT_ANY_PLATFORM')) Or $(DefineConstants.Contains('CAT_WINDOWS'))" Include="SkiaSharp.NativeAssets.Win32" />
+        <PackageReference Condition="$(DefineConstants.Contains('CAT_ANY_PLATFORM')) Or $(DefineConstants.Contains('CAT_MACOS'))" Include="SkiaSharp.NativeAssets.macOS" />
+        <PackageReference Condition="$(DefineConstants.Contains('CAT_ANY_PLATFORM')) Or $(DefineConstants.Contains('CAT_LINUX'))" Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     </ItemGroup>
 
     <ItemGroup>

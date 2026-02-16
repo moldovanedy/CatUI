@@ -17,10 +17,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Windowing\CatUI.Windowing.Headless\CatUI.Windowing.Headless.csproj" />
-    </ItemGroup>
-
-    <ItemGroup Condition="$(DefineConstants.Contains('CAT_LOCAL_WINDOWS')) Or $(DefineConstants.Contains('CAT_LOCAL_MACOS')) Or $(DefineConstants.Contains('CAT_LOCAL_LINUX'))">
-        <ProjectReference Include="..\Windowing\CatUI.Windowing.DesktopApp\CatUI.Windowing.DesktopApp.csproj" />
+        <ProjectReference Condition="$(DefineConstants.Contains('CAT_ANY_PLATFORM')) Or $(DefineConstants.Contains('CAT_WINDOWS')) Or $(DefineConstants.Contains('CAT_MACOS')) Or $(DefineConstants.Contains('CAT_LINUX'))" Include="..\Windowing\CatUI.Windowing.DesktopApp\CatUI.Windowing.DesktopApp.csproj" />
     </ItemGroup>
 
 </Project>

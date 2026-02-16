@@ -136,7 +136,7 @@ public static class ThemeCommand
         {
             string contents = File.ReadAllText(jsonFilePath, Encoding.UTF8);
             JObject obj = JObject.Parse(contents);
-            var combinations = obj["schemes"]?.ToObject<JObject>();
+            JToken? combinations = obj["schemes"];
             if (combinations == null)
             {
                 Console.WriteLine("Error: Material 3 JSON file is missing the \"schemes\" object.");
@@ -198,7 +198,7 @@ public static class ThemeCommand
         }
     }
 
-    private static StringBuilder? GetCodeForColor(string colorToken, JObject data, bool noNamedArguments = false)
+    private static StringBuilder? GetCodeForColor(string colorToken, JToken data, bool noNamedArguments = false)
     {
         //if there are no occurrences of colorToken, it means this color token is absent, represented by an empty SB
         if (data["light"]?[colorToken] == null && data["dark"]?[colorToken] == null)

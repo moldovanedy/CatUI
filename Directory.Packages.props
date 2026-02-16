@@ -1,0 +1,33 @@
+<Project>
+    <!-- https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management -->
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageVersion Include="SkiaSharp" Version="3.119.2" />
+        <PackageVersion Include="SkiaSharp.Views" Version="3.119.2" />
+        <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" />
+        <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="3.119.2" />
+        <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="3.119.2" />
+        <PackageVersion Include="SkiaSharp.NativeAssets.Android" Version="3.119.2" />
+
+        <!-- desktop -->
+        <PackageVersion Include="OpenTK.Graphics" Version="4.9.4" />
+        <PackageVersion Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4" />
+
+        <!-- Linux -->
+        <PackageVersion Include="Tmds.DBus.Protocol" Version="0.90.3" />
+
+        <!-- tool -->
+        <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+
+        <!-- tests -->
+        <PackageVersion Include="coverlet.collector" Version="8.0.0" />
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+        <PackageVersion Include="NUnit" Version="4.4.0" />
+        <PackageVersion Include="NUnit.Analyzers" Version="4.11.2" />
+        <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
+    </ItemGroup>
+
+</Project>

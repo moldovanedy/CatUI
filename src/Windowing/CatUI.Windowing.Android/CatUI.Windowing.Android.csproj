@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0-android</TargetFramework>
+        <TargetFramework>net9.0-android</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SkiaSharp.Views" Version="2.88.8" />
+        <PackageReference Include="SkiaSharp.Views" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Windowing.Common\CatUI.Windowing.Common.csproj" />
+        <ProjectReference Include="../CatUI.Windowing.Common/CatUI.Windowing.Common.csproj" />
     </ItemGroup>
 </Project>

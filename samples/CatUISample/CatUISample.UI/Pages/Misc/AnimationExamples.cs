@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
@@ -17,6 +19,7 @@ namespace CatUISample.UI.Pages.Misc;
 public class AnimationExamples : ScrollContainer
 {
     private bool _isLarge;
+    private bool _isAnimating;
 
     public AnimationExamples()
     {
@@ -42,37 +45,45 @@ public class AnimationExamples : ScrollContainer
                         new Button("Animate!", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                         {
                             Layout = new ElementLayout().SetFixedWidth(150).SetFixedHeight(48),
-                            OnClick = (sender, _) =>
+                            OnClick = async void (sender, _) =>
                             {
-                                if (sender is not Button element)
+                                try
                                 {
-                                    return;
+                                    if (_isAnimating || sender is not Button element)
+                                    {
+                                        return;
+                                    }
+
+                                    _isAnimating = true;
+                                    var tween = new Tween(element)
+                                    {
+                                        AnimationEasing = new Easing(Easing.EasingType.BackInOut)
+                                    };
+
+                                    Task fontTask = tween.TweenPropertyAsync(
+                                        el => ((el as Button)!.TextElement as Label)!.FontSizeProperty,
+                                        _isLarge ? new Dimension(1, Unit.Em) : new Dimension(1.5f, Unit.Em),
+                                        false,
+                                        0.5,
+                                        PlaneGeometryTweener.DimensionTweener);
+
+                                    Task bgColorTask = tween.TweenPropertyAsync(
+                                        el => (el as Button)!.BackgroundProperty,
+                                        _isLarge
+                                            ? new ColorBrush(CatTheme.Colors.Primary)
+                                            : new ColorBrush(CatTheme.Colors.Tertiary),
+                                        false,
+                                        0.5,
+                                        BrushTweener.GenericBrushTweener);
+
+                                    await Task.WhenAll(fontTask, bgColorTask);
+                                    _isLarge = !_isLarge;
+                                    _isAnimating = false;
                                 }
-
-                                var tween = new Tween(element)
+                                catch (Exception ex)
                                 {
-                                    AnimationEasing = new Easing(Easing.EasingType.BackInOut)
-                                };
-
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                                tween.TweenPropertyAsync(
-                                    el => ((el as Button)!.TextElement as Label)!.FontSizeProperty,
-                                    _isLarge ? new Dimension(1, Unit.Em) : new Dimension(1.5f, Unit.Em),
-                                    false,
-                                    0.5,
-                                    PlaneGeometryTweener.DimensionTweener);
-
-                                tween.TweenPropertyAsync(
-                                    el => (el as Button)!.BackgroundProperty,
-                                    _isLarge
-                                        ? new ColorBrush(CatTheme.Colors.Primary)
-                                        : new ColorBrush(CatTheme.Colors.Tertiary),
-                                    false,
-                                    0.5,
-                                    BrushTweener.GenericBrushTweener);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-                                _isLarge = !_isLarge;
+                                    CatLogger.LogError($"Error at AnimationExamples: {ex}");
+                                }
                             }
                         }
                     ]

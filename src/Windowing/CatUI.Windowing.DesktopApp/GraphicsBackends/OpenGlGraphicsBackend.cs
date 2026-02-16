@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Versioning;
 using CatUI.Windowing.Common;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -6,6 +7,9 @@ using SkiaSharp;
 
 namespace CatUI.Windowing.DesktopApp.GraphicsBackends;
 
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 internal sealed unsafe class OpenGlGraphicsBackend : IGraphicsBackend
 {
     private readonly int _requestedMajorVersion;

@@ -12,13 +12,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Platform.Essentials\CatUI.Platform.Essentials.csproj" />
+        <ProjectReference Include="../CatUI.Platform.Essentials/CatUI.Platform.Essentials.csproj" />
 
-        <ProjectReference Condition="$(DefineConstants.Contains('CAT_LOCAL_LINUX'))" Include="..\CatUI.Platform.Linux\CatUI.Platform.Linux.csproj" />
-        <ProjectReference Condition="$(DefineConstants.Contains('CAT_LOCAL_MACOS'))" Include="..\CatUI.Platform.MacOS\CatUI.Platform.MacOS.csproj" />
-        <ProjectReference Condition="$(DefineConstants.Contains('CAT_LOCAL_WINDOWS'))" Include="..\CatUI.Platform.Windows\CatUI.Platform.Windows.csproj" />
-
-        <ProjectReference Condition="$(DefineConstants.Contains('CAT_LOCAL_WINDOWS')) Or $(DefineConstants.Contains('CAT_LOCAL_MACOS')) Or $(DefineConstants.Contains('CAT_LOCAL_LINUX'))" Include="..\CatUI.Platform.DesktopCommon\CatUI.Platform.DesktopCommon.csproj" />
+        <ProjectReference Condition="$(DefineConstants.Contains('CAT_ANY_PLATFORM')) Or $(DefineConstants.Contains('CAT_WINDOWS'))" Include="../CatUI.Platform.Windows/CatUI.Platform.Windows.csproj" />
+        <ProjectReference Condition="$(DefineConstants.Contains('CAT_ANY_PLATFORM')) Or $(DefineConstants.Contains('CAT_MACOS'))" Include="../CatUI.Platform.MacOS/CatUI.Platform.MacOS.csproj" />
+        <ProjectReference Condition="$(DefineConstants.Contains('CAT_ANY_PLATFORM')) Or $(DefineConstants.Contains('CAT_LINUX'))" Include="../CatUI.Platform.Linux\CatUI.Platform.Linux.csproj" />
+        <ProjectReference Condition="$(DefineConstants.Contains('CAT_ANY_PLATFORM')) Or $(DefineConstants.Contains('CAT_WINDOWS')) Or $(DefineConstants.Contains('CAT_MACOS')) Or $(DefineConstants.Contains('CAT_LINUX'))" Include="..\CatUI.Platform.DesktopCommon\CatUI.Platform.DesktopCommon.csproj" />
     </ItemGroup>
 
 </Project>

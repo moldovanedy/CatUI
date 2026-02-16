@@ -15,14 +15,15 @@ public partial class Renderer
 {
     /// <summary>
     /// Draws the specified text until the text will exceed the width of the element size.
-    /// This means that this method MIGHT NOT render the whole text, but will return the number of characters rendered.
+    /// This means that this method MIGHT NOT render the whole text but will return the number of characters rendered.
     /// </summary>
     /// <param name="text">The text to render. This method MIGHT NOT render the whole text.</param>
     /// <param name="topLeftPoint">The top-left point of the text that needs to be drawn.</param>
+    /// <param name="fontAsset">The font to draw with.</param>
     /// <param name="fontSize">The font size of the text.</param>
     /// <param name="elementSize">
     /// The size of the element that contains the text.
-    /// Use a very large width in order to guarantee the rendering of the whole text (this will use word wrap).
+    /// Use a very large width to guarantee the rendering of the whole text (this will use word wrap).
     /// This method does NOT account for vertical size, so vertical overflow is possible.
     /// </param>
     /// <param name="fillBrush"></param>
@@ -31,17 +32,25 @@ public partial class Renderer
     /// The text alignment to use. <see cref="TextAlignmentType.Justify"/> won't have any effect
     /// and will work as <see cref="TextAlignmentType.Left"/>.
     /// </param>
-    /// <param name="breakMode">Specifies the text break mode. See <see cref="TextBreakMode"/> for more information.</param>
-    /// <param name="hyphenCharacter">Specifies the character used as a hyphen if necessary. For no hyphens, set this to the null character.</param>
+    /// <param name="breakMode">
+    /// Specifies the text break mode. See <see cref="TextBreakMode"/> for more information.
+    /// </param>
+    /// <param name="hyphenCharacter">
+    /// Specifies the character used as a hyphen if necessary. For no hyphens, set this to the null character.
+    /// </param>
     /// <param name="cachedMaxCharacters">
-    /// If larger than 0, will use this value instead of using more expensive calculations with Skia's BreakText functions.
-    /// If you already called BreakText and didn't modify the paint, you can safely pass the result here to avoid another call to BreakText.
+    /// If larger than 0, will use this value instead of using more expensive calculations with Skia's BreakText
+    /// functions. If you already called BreakText and didn't modify the paint, you can safely pass the result here
+    /// to avoid another call to BreakText.
     /// </param>
     /// <returns>The number of characters drawn.</returns>
-    /// <exception cref="ArgumentException">Thrown if the text contains an invalid newline (\r instead of \n or \r\n).</exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown if the text contains an invalid newline (\r instead of \n or \r\n).
+    /// </exception>
     public int DrawTextRow(
         string text,
         Point2D topLeftPoint,
+        FontAsset fontAsset,
         float fontSize,
         Size elementSize,
         IBrush? fillBrush = null,
@@ -57,17 +66,14 @@ public partial class Renderer
         {
             return 0;
         }
+
         //fill, but no outline
-        else if (
+        if (
             fillBrush != null && !fillBrush.IsSkippable &&
             (outlineBrush == null || outlineBrush.IsSkippable))
         {
             painter = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.Fill,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
+            PaintManager.ModifyPaint(painter);
         }
         //outline, but no fill
         else if (
@@ -75,11 +81,7 @@ public partial class Renderer
             (fillBrush == null || fillBrush.IsSkippable))
         {
             painter = outlineBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.Outline,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
+            PaintManager.ModifyPaint(painter, PaintMode.Outline);
         }
         //both fill and outline
         else if (
@@ -87,11 +89,7 @@ public partial class Renderer
             fillBrush != null && !fillBrush.IsSkippable)
         {
             painter = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.FillAndOutline,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
+            PaintManager.ModifyPaint(painter, PaintMode.FillAndOutline);
         }
         else
         {
@@ -111,7 +109,7 @@ public partial class Renderer
         var drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
 
         var sb = new StringBuilder();
-        List<int> shyPositions = new();
+        List<int> shyPositions = [];
 
         for (int i = 0; i < text.Length; i++)
         {
@@ -124,7 +122,8 @@ public partial class Renderer
             {
                 break;
             }
-            else if (text[i] == '\u00ad')
+
+            if (text[i] == '\u00ad')
             {
                 shyPositions.Add(sb.Length);
                 continue;
@@ -143,7 +142,7 @@ public partial class Renderer
         }
         else
         {
-            charsOnThisRow = (int)painter.BreakText(drawableText, elementSize.Width);
+            charsOnThisRow = fontAsset.GetSkiaFont(fontSize).BreakText(drawableText, elementSize.Width);
         }
 
         if (charsOnThisRow <= 0)
@@ -218,11 +217,21 @@ public partial class Renderer
         if (needsHyphen)
         {
             string newString = new(drawableText.AsSpan(charactersDrawn, charsOnThisRow));
-            Canvas?.DrawText(newString + hyphenCharacter, drawPoint, painter);
+            Canvas?.DrawText(
+                newString + hyphenCharacter,
+                drawPoint,
+                GetSkiaTextAlignment(textAlignment),
+                fontAsset.GetSkiaFont(fontSize),
+                painter);
         }
         else
         {
-            Canvas?.DrawText(drawableText.Substring(charactersDrawn, charsOnThisRow), drawPoint, painter);
+            Canvas?.DrawText(
+                drawableText.Substring(charactersDrawn, charsOnThisRow),
+                drawPoint,
+                GetSkiaTextAlignment(textAlignment),
+                fontAsset.GetSkiaFont(fontSize),
+                painter);
         }
 
         charactersDrawn += charsOnThisRow;
@@ -241,170 +250,6 @@ public partial class Renderer
         }
 
         return charactersDrawn;
-    }
-
-    /// <summary>
-    /// Draws the specified text until a newline is found or until the element size limit is reached and overflowMode
-    /// is <see cref="TextOverflowMode.Ellipsis"/> or <see cref="TextOverflowMode.Clip"/>.
-    /// </summary>
-    /// <param name="text">The text to render. This method MIGHT NOT render the whole text.</param>
-    /// <param name="topLeftPoint">The top-left point of the text that needs to be drawn.</param>
-    /// <param name="fontSize">The font size of the text.</param>
-    /// <param name="elementSize">
-    /// The size of the element that contains the text. This method does not use word wrapping.
-    /// This method does NOT account for vertical size, so vertical overflow is possible.
-    /// </param>
-    /// <param name="textAlignment">
-    /// The text alignment to use. <see cref="TextAlignmentType.Justify"/> won't have any effect
-    /// and will work as <see cref="TextAlignmentType.Left"/>.
-    /// </param>
-    /// <param name="fillBrush"></param>
-    /// <param name="outlineBrush"></param>
-    /// <param name="overflowMode">Specifies the text overflow behavior.</param>
-    /// <param name="ellipsisStringOverride">
-    /// An alternative string to use instead of \u2026 when overflowMode is <see cref="TextOverflowMode.Ellipsis"/>.
-    /// Setting this to null (default) will display the \u2026 when ellipsis is necessary.
-    /// </param>
-    /// <returns>The number of characters drawn.</returns>
-    /// <exception cref="ArgumentException">Thrown if the text contains an invalid newline (\r instead of \n or \r\n).</exception>
-    [Obsolete("Unreliable, use a custom solution with DrawTextRowFast instead. See the Label implementation.")]
-    public int DrawTextRow(
-        string text,
-        Point2D topLeftPoint,
-        float fontSize,
-        Size elementSize,
-        IBrush? fillBrush = null,
-        IBrush? outlineBrush = null,
-        TextAlignmentType textAlignment = TextAlignmentType.Left,
-        TextOverflowMode overflowMode = TextOverflowMode.Ellipsis,
-        string? ellipsisStringOverride = null)
-    {
-        SKPaint? painter;
-
-        if (fillBrush == null && outlineBrush == null)
-        {
-            return 0;
-        }
-        //fill, but no outline
-        else if (
-            fillBrush != null && !fillBrush.IsSkippable &&
-            (outlineBrush == null || outlineBrush.IsSkippable))
-        {
-            painter = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.Fill,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
-        }
-        //outline, but no fill
-        else if (
-            outlineBrush != null && !outlineBrush.IsSkippable &&
-            (fillBrush == null || fillBrush.IsSkippable))
-        {
-            painter = outlineBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.Outline,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
-        }
-        //both fill and outline
-        else if (
-            outlineBrush != null && !outlineBrush.IsSkippable &&
-            fillBrush != null && !fillBrush.IsSkippable)
-        {
-            painter = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.FillAndOutline,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
-        }
-        else
-        {
-            return 0;
-        }
-
-        float drawPointX = topLeftPoint.X;
-        if (textAlignment == TextAlignmentType.Center)
-        {
-            drawPointX += elementSize.Width / 2;
-        }
-        else if (textAlignment == TextAlignmentType.Right)
-        {
-            drawPointX += elementSize.Width;
-        }
-
-        var drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
-
-        bool hasHyphens = TextUtils.RemoveSoftHyphens(text, out string textWithoutHyphens);
-        if (hasHyphens)
-        {
-            text = textWithoutHyphens;
-        }
-
-        if (overflowMode == TextOverflowMode.Overflow)
-        {
-            Canvas?.DrawText(text, drawPoint, painter);
-            return text.Length;
-        }
-
-        string ellipsisString = ellipsisStringOverride ?? "\u2026";
-
-        float ellipsisSize = painter.MeasureText(ellipsisString);
-        //exit early
-        if (elementSize.Width < ellipsisSize && overflowMode == TextOverflowMode.Ellipsis)
-        {
-            Canvas?.DrawText(ellipsisString, drawPoint, painter);
-            return 0;
-        }
-
-        int newLinePosition = -1;
-        for (int i = 0; i < text.Length; i++)
-        {
-            if (text[i] == '\r' && i == text.Length - 1)
-            {
-                throw new ArgumentException("Invalid text: found CR (\\r) without LF (\\n)", text);
-            }
-
-            if (text[i] == '\n' || (text[i] == '\r' && text[i + 1] == '\n'))
-            {
-                newLinePosition = i;
-                break;
-            }
-        }
-
-        if (newLinePosition != -1)
-        {
-            text = text.Substring(0, newLinePosition);
-        }
-
-        switch (overflowMode)
-        {
-            case TextOverflowMode.Ellipsis:
-                {
-                    long charactersToDraw = painter.BreakText(text, elementSize.Width);
-                    if (charactersToDraw == text.Length)
-                    {
-                        Canvas?.DrawText(text, drawPoint, painter);
-                    }
-                    else
-                    {
-                        charactersToDraw = painter.BreakText(text, elementSize.Width - ellipsisSize);
-                        text = text.Substring(0, (int)charactersToDraw);
-
-                        Canvas?.DrawText(text + ellipsisString, drawPoint, painter);
-                    }
-
-                    return text.Length;
-                }
-            case TextOverflowMode.Clip:
-                //TODO
-                break;
-        }
-
-        return 0;
     }
 
     /// <summary>
@@ -442,40 +287,23 @@ public partial class Renderer
         if (fillBrush != null && !fillBrush.IsSkippable && (outlineBrush == null || outlineBrush.IsSkippable))
         {
             painter = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.Fill,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
+            PaintManager.ModifyPaint(painter);
         }
         //outline, but no fill
         else if (outlineBrush != null && !outlineBrush.IsSkippable && (fillBrush == null || fillBrush.IsSkippable))
         {
             painter = outlineBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.Outline,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
+            PaintManager.ModifyPaint(painter, PaintMode.Outline);
         }
         //both fill and outline
         else if (outlineBrush != null && !outlineBrush.IsSkippable && fillBrush != null && !fillBrush.IsSkippable)
         {
             painter = fillBrush.ToSkiaPaint();
-            PaintManager.ModifyPaint(
-                painter,
-                PaintMode.FillAndOutline,
-                textAlignment: textAlignment,
-                fontSize: fontSize);
+            PaintManager.ModifyPaint(painter, PaintMode.FillAndOutline);
         }
         else
         {
             return;
-        }
-
-        if (font != null)
-        {
-            painter.Typeface = font.SkiaFont;
         }
 
         float drawPointX = topLeftPoint.X;
@@ -489,23 +317,27 @@ public partial class Renderer
         }
 
         var drawPoint = new SKPoint(drawPointX, topLeftPoint.Y);
-
-        Canvas?.DrawText(text, drawPoint, painter);
+        font ??= FontAsset.Default;
+        Canvas?.DrawText(text, drawPoint, GetSkiaTextAlignment(textAlignment), font.GetSkiaFont(fontSize), painter);
     }
 
     /// <summary>
     /// Draws the specified text on one row without doing any checks or measurements for better performance. 
-    /// Only use this on sanitized text (no newlines, hyphens or any kind of control characters,
+    /// Only use this on sanitized text (no newlines, hyphens, or any kind of control characters,
     /// as the text will be drawn directly) and when you are sure that the text is not going to overflow
     /// the parent element or that overflowing doesn't matter.
     /// </summary>
     public void DrawTextRowFast(
         string text,
         Point2D topLeftPoint,
-        SKPaint rawPaint)
+        SKPaint rawPaint,
+        FontAsset font,
+        TextAlignmentType textAlignment,
+        float fontSize)
     {
         var drawPoint = new SKPoint(topLeftPoint.X, topLeftPoint.Y);
-        Canvas?.DrawText(text, drawPoint, rawPaint);
+        Canvas?.DrawText(
+            text, drawPoint, GetSkiaTextAlignment(textAlignment), font.GetSkiaFont(fontSize), rawPaint);
     }
 
 
@@ -516,11 +348,14 @@ public partial class Renderer
     /// it does NOT GUARANTEE that this won't happen).
     /// </summary>
     /// <param name="largeText">The large text string.</param>
-    /// <param name="painter">The paint that will be used to draw the text.</param>
-    /// <returns>The estimated average size of a character (estimation will generally be half of the actual average).</returns>
-    public static float EstimateCharSizeSafe(string largeText, SKPaint painter)
+    /// <param name="font">The font that will be used to draw the text.</param>
+    /// <param name="fontSize">The size of the font.</param>
+    /// <returns>
+    /// The estimated average size of a character (estimation will generally be half of the actual average).
+    /// </returns>
+    public static float EstimateCharSizeSafe(string largeText, FontAsset font, float fontSize)
     {
-        return EstimateCharSizeSafe(largeText.AsSpan(), painter);
+        return EstimateCharSizeSafe(largeText.AsSpan(), font, fontSize);
     }
 
     /// <summary>
@@ -530,13 +365,16 @@ public partial class Renderer
     /// it does NOT GUARANTEE that this won't happen).
     /// </summary>
     /// <param name="largeText">The large text as a character span.</param>
-    /// <param name="painter">The paint that will be used to draw the text.</param>
-    /// <returns>The estimated average size of a character (estimation will generally be half of the actual average).</returns>
-    public static float EstimateCharSizeSafe(ReadOnlySpan<char> largeText, SKPaint painter)
+    /// <param name="font">The font that will be used to draw the text.</param>
+    /// <param name="fontSize">The size of the font.</param>
+    /// <returns>
+    /// The estimated average size of a character (estimation will generally be half of the actual average).
+    /// </returns>
+    public static float EstimateCharSizeSafe(ReadOnlySpan<char> largeText, FontAsset font, float fontSize)
     {
         if (largeText.Length <= 5)
         {
-            return painter.MeasureText(largeText) * 0.4f;
+            return font.GetSkiaFont(fontSize).MeasureText(largeText) * 0.4f;
         }
 
         int upperLimit = largeText.Length;
@@ -550,7 +388,7 @@ public partial class Renderer
         for (values = 0; values < limit; values++)
         {
             int index = rand.Next(0, upperLimit - 1);
-            sum += painter.MeasureText(largeText.Slice(index, 1));
+            sum += font.GetSkiaFont(fontSize).MeasureText(largeText.Slice(index, 1));
         }
 
         int normalizedCharNumber = Math.Clamp(upperLimit, 100, 400);
@@ -559,5 +397,20 @@ public partial class Renderer
         multiplicationFactor = 0.6f - multiplicationFactor + 0.35f;
 
         return sum / values * multiplicationFactor;
+    }
+
+
+    private static SKTextAlign GetSkiaTextAlignment(TextAlignmentType textAlignment)
+    {
+        switch (textAlignment)
+        {
+            default:
+            case TextAlignmentType.Left:
+                return SKTextAlign.Left;
+            case TextAlignmentType.Center:
+                return SKTextAlign.Center;
+            case TextAlignmentType.Right:
+                return SKTextAlign.Right;
+        }
     }
 }

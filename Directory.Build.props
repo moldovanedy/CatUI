@@ -6,21 +6,31 @@
         <IsAotCompatible>True</IsAotCompatible>
 
         <Version>0.1.0</Version>
-        <Copyright>Copyright (c) moldovanedy 2025</Copyright>
+        <Copyright>Copyright (c) moldovanedy 2026</Copyright>
         <PackageTags>UI;User Interface;fast</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Authors>Moldovan Eduard</Authors>
+
+        <CatTargetPlatform Condition="'$(CatTargetPlatform)' == ''">any</CatTargetPlatform>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows')) Or $(RuntimeIdentifier.StartsWith('win'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_WINDOWS</DefineConstants>
+    <PropertyGroup Condition="'$(CatTargetPlatform)' == 'any' Or '$(CatTargetPlatform)' == ''">
+        <DefineConstants>$(DefineConstants);CAT_ANY_PLATFORM</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $(RuntimeIdentifier.StartsWith('osx'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_MACOS</DefineConstants>
+    <PropertyGroup Condition="$(CatTargetPlatform.StartsWith('win'))">
+        <DefineConstants>$(DefineConstants);CAT_WINDOWS</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux')) Or $([MSBuild]::IsOSPlatform('FreeBSD')) Or $(RuntimeIdentifier.StartsWith('linux')) Or $(RuntimeIdentifier.StartsWith('unix'))">
-        <DefineConstants>$(DefineConstants);CAT_LOCAL_LINUX</DefineConstants>
+    <PropertyGroup Condition="$(CatTargetPlatform.StartsWith('osx'))">
+        <DefineConstants>$(DefineConstants);CAT_MACOS</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(CatTargetPlatform.StartsWith('linux')) Or $(CatTargetPlatform.StartsWith('unix'))">
+        <DefineConstants>$(DefineConstants);CAT_LINUX</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(CatTargetPlatform.StartsWith('android'))">
+        <DefineConstants>$(DefineConstants);CAT_ANDROID</DefineConstants>
     </PropertyGroup>
 </Project>

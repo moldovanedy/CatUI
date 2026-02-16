@@ -12,6 +12,12 @@ public static class Program
 {
     private static void Main()
     {
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux())
+        {
+            Console.WriteLine("Unsupported platform");
+            return;
+        }
+
         var icon = AssetsManager.LoadFromAssembly<ImageAsset>(
             "/icon.png",
             typeof(Program));
@@ -26,6 +32,7 @@ public static class Program
             .Build();
 
         InitialSetup.Init();
+
         var window = new DesktopWindow(title: "CatUI Sample", minWidth: 250, minHeight: 200);
         window.Document.Root = new RootElement();
         window.Open();
@@ -36,7 +43,7 @@ public static class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"UI unhandled exception: {ex}");
         }
     }
 }

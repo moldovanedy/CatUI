@@ -105,6 +105,13 @@ public class ButtonsExample : ScrollContainer
                                     return;
                                 }
 
+                                if (!OperatingSystem.IsWindows()
+                                 && !OperatingSystem.IsMacOS()
+                                 && !OperatingSystem.IsLinux())
+                                {
+                                    return;
+                                }
+
                                 ImageAsset? imgAsset =
                                     (imgView.Document?.GetWindowData()?.CatWindow as DesktopWindow)
                                     ?.GetWindowIcon()

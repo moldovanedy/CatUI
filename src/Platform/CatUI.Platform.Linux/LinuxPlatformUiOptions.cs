@@ -1,7 +1,9 @@
+using System.Runtime.Versioning;
 using CatUI.Platform.Essentials;
 
 namespace CatUI.Platform.Linux;
 
+[SupportedOSPlatform("linux")]
 public class LinuxPlatformUiOptions : PlatformUiOptionsBase
 {
     public LinuxPlatformUiOptions()

@@ -5,11 +5,8 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <ItemGroup Condition="!$(DefineConstants.Contains('CAT_LOCAL_MACOS'))">
-        <Compile Remove="**/*" />
-    </ItemGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\CatUI.Platform.CommonInterface\CatUI.Platform.CommonInterface.csproj" />
     </ItemGroup>
+    
 </Project>

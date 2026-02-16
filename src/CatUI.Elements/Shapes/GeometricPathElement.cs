@@ -112,7 +112,7 @@ public class GeometricPathElement : AbstractShapeElement
     /// </para>
     /// <para>
     /// If you prefer a more straightforward approach when you create paths, see <see cref="SetNewSkiaPath"/>, that accepts
-    /// a <see cref="SKPath"/> object where you can use methods like <see cref="SKPath.AddPoly"/> or
+    /// a <see cref="SKPath"/> object where you can use methods like
     /// <see cref="SKPath.AddPath(SkiaSharp.SKPath,float,float,SkiaSharp.SKPathAddMode)"/> to create a path in a
     /// more readable way than using this string format.
     /// </para>

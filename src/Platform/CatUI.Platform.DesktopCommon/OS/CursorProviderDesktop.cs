@@ -1,11 +1,15 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using CatUI.Data;
 using CatUI.Platform.CommonInterface;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace CatUI.Platform.DesktopCommon.OS;
 
+[SupportedOSPlatform("windows")]
+[SupportedOSPlatform("macos")]
+[SupportedOSPlatform("linux")]
 public class CursorProviderDesktop : ICursorProvider
 {
     private readonly Dictionary<int, Image> _customCursors = new();

@@ -1,18 +1,26 @@
-﻿using CatUI.Platform.CommonInterface;
-using CatUI.Platform.DesktopCommon.OS;
+﻿using System;
+using CatUI.Platform.CommonInterface;
 
-#if CAT_LOCAL_WINDOWS
+#if CAT_WINDOWS
 using CatUI.Platform.Windows.OS;
-#elif CAT_LOCAL_MACOS
+#elif CAT_MACOS
 using CatUI.Platform.MacOS.OS;
-#elif CAT_LOCAL_LINUX
+#elif CAT_LINUX
 using CatUI.Platform.Linux.OS;
+#elif CAT_ANY_PLATFORM
+using CatUI.Platform.Windows.OS;
+using CatUI.Platform.MacOS.OS;
+using CatUI.Platform.Linux.OS;
+#endif
+
+#if CAT_WINDOWS || CAT_MACOS || CAT_LINUX || CAT_ANY_PLATFORM
+using CatUI.Platform.DesktopCommon.OS;
 #endif
 
 namespace CatUI.Platform;
 
 /// <summary>
-/// Provides access to some common functions on the runtime platform (e.g. opening the file picker, showing alerts,
+/// Provides access to some common functions on the runtime platform (e.g., opening the file picker, showing alerts,
 /// etc.) The objects are always non-null if the platform supports the said feature (e.g. <see cref="WindowIcon"/>
 /// will be available on Windows and Linux, but null on macOS).
 /// </summary>
@@ -70,38 +78,107 @@ public static class OS
 
         _isInitialized = true;
 
-#if CAT_LOCAL_WINDOWS
+#if CAT_WINDOWS
+        if (OperatingSystem.IsWindows())
+        {
             WindowIcon = new WindowIconWindows();
-#elif CAT_LOCAL_LINUX
-        WindowIcon = new WindowIconLinux();
+        }
+#elif CAT_MACOS
+#elif CAT_LINUX
+        if (OperatingSystem.IsLinux())
+        {
+            WindowIcon = new WindowIconLinux();
+        }
+#elif CAT_ANY_PLATFORM
+        if (OperatingSystem.IsWindows())
+        {
+            WindowIcon = new WindowIconWindows();
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            WindowIcon = new WindowIconLinux();
+        }
 #endif
 
-
-#if CAT_LOCAL_WINDOWS
+#if CAT_WINDOWS
+        if (OperatingSystem.IsWindows())
+        {
             NativeAlert = new NativeAlertWindows();
-#elif CAT_LOCAL_LINUX
-        NativeAlert = new NativeAlertLinux();
+        }
+#elif CAT_MACOS
+#elif CAT_LINUX
+        if (OperatingSystem.IsLinux())
+        {
+            NativeAlert = new NativeAlertLinux();
+        }
+#elif CAT_ANY_PLATFORM
+        if (OperatingSystem.IsWindows())
+        {
+            NativeAlert = new NativeAlertWindows();
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            NativeAlert = new NativeAlertLinux();
+        }
 #endif
 
-
-#if CAT_LOCAL_WINDOWS
+#if CAT_WINDOWS
+        if (OperatingSystem.IsWindows())
+        {
             FilePicker = new FilePickerWindows();
-#elif CAT_LOCAL_LINUX
-        FilePicker = new FilePickerLinux();
+        }
+#elif CAT_MACOS
+#elif CAT_LINUX
+        if (OperatingSystem.IsLinux())
+        {
+            FilePicker = new FilePickerLinux();
+        }
+#elif CAT_ANY_PLATFORM
+        if (OperatingSystem.IsWindows())
+        {
+            FilePicker = new FilePickerWindows();
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            FilePicker = new FilePickerLinux();
+        }
 #endif
 
-
-#if CAT_LOCAL_WINDOWS || CAT_LOCAL_MACOS || CAT_LOCAL_LINUX
-        CursorProvider = new CursorProviderDesktop();
-#endif
-
-
-#if CAT_LOCAL_WINDOWS
+#if CAT_WINDOWS
+        if (OperatingSystem.IsWindows())
+        {
             SoftwareRenderer = new SoftwareRendererWindows();
-#elif CAT_LOCAL_MACOS
+        }
+#elif CAT_MACOS
+        if (OperatingSystem.IsMacOS())
+        {
             SoftwareRenderer = new SoftwareRendererMacOS();
-#elif CAT_LOCAL_LINUX
-        SoftwareRenderer = new SoftwareRendererLinux();
+        }
+#elif CAT_LINUX
+        if (OperatingSystem.IsLinux())
+        {
+            SoftwareRenderer = new SoftwareRendererLinux();
+        }
+#elif CAT_ANY_PLATFORM
+        if (OperatingSystem.IsWindows())
+        {
+            SoftwareRenderer = new SoftwareRendererWindows();
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            SoftwareRenderer = new SoftwareRendererMacOS();
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            SoftwareRenderer = new SoftwareRendererLinux();
+        }
+#endif
+
+#if CAT_WINDOWS || CAT_MACOS || CAT_LINUX || CAT_ANY_PLATFORM
+        if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() || OperatingSystem.IsLinux())
+        {
+            CursorProvider = new CursorProviderDesktop();
+        }
 #endif
     }
 }

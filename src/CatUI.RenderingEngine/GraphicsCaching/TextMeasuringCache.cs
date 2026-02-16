@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using CatUI.Data.Assets;
-using CatUI.Data.Managers;
 using SkiaSharp;
 
 namespace CatUI.RenderingEngine.GraphicsCaching;
@@ -20,11 +19,11 @@ public static class TextMeasuringCache
     private static readonly List<FontAsset> _loadedFonts = [];
 
     /// <summary>
-    /// The key is the text, the value is an array where the index is the font index, and each element is another
+    /// The key is the text, the value is a dictionary where the key is the font, and each value is another
     /// dictionary where the key is the font size (rounded to 2 decimals), and the value is finally the width of the
     /// text.
     /// </summary>
-    private static readonly Dictionary<string, List<Dictionary<float, float>>>
+    private static readonly Dictionary<string, Dictionary<FontAsset, Dictionary<float, float>>>
         _cache = new(500);
 
     /// <summary>
@@ -33,22 +32,17 @@ public static class TextMeasuringCache
     /// </summary>
     /// <param name="text">The text to search for. For empty will return 0.</param>
     /// <param name="fontSize">The font size to search for. It will be rounded to 2 decimals.</param>
-    /// <param name="fontIndex">The index in the font table. 0 for platform default.</param>
+    /// <param name="fontAsset">The index in the font table. 0 for platform default.</param>
     /// <returns>The text's width in pixels.</returns>
     /// <exception cref="ArgumentException">
-    /// Thrown if the font index or the font size are negative. Also when the font weight is not between 100 and 1000
-    /// and the modulus to 100 is not 0 (x % 100 != 0).
+    /// Thrown when the font weight is not between 100 and 1000 and the modulus to 100 is not 0 (x % 100 != 0).
+    /// Also when the fontSize is negative.
     /// </exception>
     public static float GetValueOrCalculate(
         string text,
         float fontSize,
-        int fontIndex = 0)
+        FontAsset? fontAsset = null)
     {
-        if (fontIndex < 0)
-        {
-            throw new ArgumentException("Negative font index is not allowed", nameof(fontIndex));
-        }
-
         if (fontSize < 0)
         {
             throw new ArgumentException("Negative font size is not allowed", nameof(fontSize));
@@ -59,33 +53,28 @@ public static class TextMeasuringCache
             return 0;
         }
 
+        fontAsset ??= FontAsset.Default;
         fontSize = MathF.Round(fontSize, 2);
 
         //if the text isn't in the cache 
-        if (!_cache.TryGetValue(text, out List<Dictionary<float, float>>? records))
+        if (!_cache.TryGetValue(text, out Dictionary<FontAsset, Dictionary<float, float>>? records))
         {
-            records = new List<Dictionary<float, float>>(fontIndex + 1);
+            records = new Dictionary<FontAsset, Dictionary<float, float>>();
             _cache[text] = records;
         }
 
-        //if the text entry doesn't have space for all the fonts
-        if (fontIndex >= records.Count)
+        //if the text entry doesn't have this font
+        if (!_cache[text].TryGetValue(fontAsset, out Dictionary<float, float>? fontEntry))
         {
-            Dictionary<float, float>[] newRecords =
-                new Dictionary<float, float>[fontIndex - records.Count + 1];
-            for (int i = 0; i < newRecords.Length; i++)
-            {
-                newRecords[i] = new Dictionary<float, float>();
-            }
-
-            _cache[text].AddRange(newRecords);
+            fontEntry = new Dictionary<float, float>();
+            _cache[text][fontAsset] = fontEntry;
         }
 
         //if the given size doesn't exist
-        if (!records[fontIndex].TryGetValue(fontSize, out float value))
+        if (!fontEntry.TryGetValue(fontSize, out float value))
         {
-            value = Calculate(text.AsSpan(), fontSize, fontIndex);
-            records[fontIndex][fontSize] = value;
+            value = Calculate(text.AsSpan(), fontAsset, fontSize);
+            fontEntry[fontSize] = value;
             NumberOfEntries++;
         }
 
@@ -93,29 +82,15 @@ public static class TextMeasuringCache
     }
 
     /// <summary>
-    /// Calculates the text's width using <see cref="SKPaint.MeasureText(string)"/>. Note that the SKPaint is derived
-    /// from the fontSize, so it is accurate only for the default paint. Otherwise, use the overload that accepts a
-    /// SKPaint.
+    /// Calculates the text's width using <see cref="SKFont.MeasureText(string, SKPaint)"/> with the given paint.
     /// </summary>
     /// <param name="text">See <see cref="GetValueOrCalculate"/>.</param>
-    /// <param name="fontSize">See <see cref="GetValueOrCalculate"/>.</param>
-    /// <param name="fontIndex">See <see cref="GetValueOrCalculate"/>.</param>
+    /// <param name="font">See <see cref="GetValueOrCalculate"/>.</param>
+    /// <param name="fontSize">The font size.</param>
     /// <returns>The text's width in pixels.</returns>
-    public static float Calculate(ReadOnlySpan<char> text, float fontSize, int fontIndex = 0)
+    public static float Calculate(ReadOnlySpan<char> text, FontAsset font, float fontSize)
     {
-        SKPaint paint = PaintManager.GetPaint(fontSize: fontSize);
-        return paint.MeasureText(text);
-    }
-
-    /// <summary>
-    /// Calculates the text's width using <see cref="SKPaint.MeasureText(string)"/> with the given paint.
-    /// </summary>
-    /// <param name="text">See <see cref="GetValueOrCalculate"/>.</param>
-    /// <param name="painter">See <see cref="GetValueOrCalculate"/>.</param>
-    /// <returns>The text's width in pixels.</returns>
-    public static float Calculate(ReadOnlySpan<char> text, SKPaint painter)
-    {
-        return painter.MeasureText(text);
+        return font.GetSkiaFont(fontSize).MeasureText(text);
     }
 
     /// <summary>
@@ -130,20 +105,18 @@ public static class TextMeasuringCache
     /// if they are still in use by an Element.
     /// </remarks>
     /// <param name="forText">
-    /// If this is given without the font index forFontIndex == -1, it will remove
-    /// the entry for that text (faster).
+    /// If this is given without the font forFontAsset == null, it will remove the entry for that text (faster).
     /// </param>
-    /// <param name="forFontIndex">
-    /// If this is given without text forText == null, it will remove the entries
-    /// for the font index on all texts (slow).
+    /// <param name="forFontAsset">
+    /// If this is given without text forText == null, it will remove the entries for the font asset on all texts (slow).
     /// </param>
-    public static void PurgeCache(Memory<char>? forText = null, int forFontIndex = -1)
+    public static void PurgeCache(Memory<char>? forText = null, FontAsset? forFontAsset = null)
     {
         //for all texts
         if (forText == null)
         {
             //clear completely
-            if (forFontIndex < 0)
+            if (forFontAsset == null)
             {
                 _cache.Clear();
                 _loadedFonts.Clear();
@@ -155,20 +128,20 @@ public static class TextMeasuringCache
             {
                 foreach (string key in _cache.Keys)
                 {
-                    Dictionary<float, float> toDelete = _cache[key][forFontIndex];
+                    Dictionary<float, float> toDelete = _cache[key][forFontAsset];
                     NumberOfEntries -= (uint)toDelete.Count;
                     toDelete.Clear();
                 }
             }
         }
         //a specific text, all fonts
-        else if (forFontIndex < 0)
+        else if (forFontAsset == null)
         {
             string text = forText.ToString()!;
 
-            if (_cache.TryGetValue(text, out List<Dictionary<float, float>>? records))
+            if (_cache.TryGetValue(text, out Dictionary<FontAsset, Dictionary<float, float>>? records))
             {
-                foreach (Dictionary<float, float> record in records)
+                foreach (Dictionary<float, float> record in records.Values)
                 {
                     NumberOfEntries -= (uint)record.Count;
                 }
@@ -181,7 +154,7 @@ public static class TextMeasuringCache
         {
             string text = forText.ToString()!;
 
-            Dictionary<float, float> toDelete = _cache[text][forFontIndex];
+            Dictionary<float, float> toDelete = _cache[text][forFontAsset];
             NumberOfEntries -= (uint)toDelete.Count;
             toDelete.Clear();
         }

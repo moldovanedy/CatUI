@@ -5,13 +5,9 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <ItemGroup Condition="!$(DefineConstants.Contains('CAT_LOCAL_LINUX'))">
-        <Compile Remove="**/*" />
-    </ItemGroup>
-
     <ItemGroup>
-        <ProjectReference Include="..\CatUI.Platform.CommonInterface\CatUI.Platform.CommonInterface.csproj" />
-        <ProjectReference Include="..\..\CatUI.Data\CatUI.Data.csproj" />
+        <ProjectReference Include="../CatUI.Platform.CommonInterface/CatUI.Platform.CommonInterface.csproj" />
+        <ProjectReference Include="../../CatUI.Data/CatUI.Data.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -19,8 +15,8 @@
         we need conditions because net8.0-linux is not defined and we don't want to include this with every platform 
         (it's net8.0, so it would get included otherwise) 
         -->
-        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" Version="4.9.4" />
-        <PackageReference Condition="$(DefineConstants.Contains('CAT_LOCAL_LINUX'))" Include="Tmds.DBus.Protocol" Version="0.21.2" />
+        <PackageReference Include="OpenTK.Windowing.GraphicsLibraryFramework" />
+        <PackageReference Condition="$(DefineConstants.Contains('CAT_LINUX')) Or $(DefineConstants.Contains('CAT_ANY_PLATFORM'))" Include="Tmds.DBus.Protocol" />
     </ItemGroup>
 
 </Project>
