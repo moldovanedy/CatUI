@@ -8,24 +8,27 @@ namespace CatUI.Data.Assets;
 
 public class FontAsset : Asset
 {
+    public static FontAsset Default { get; } = new() { SkiaTypeface = SKTypeface.Default, IsLoaded = true };
+
+
     /// <summary>
-    /// Returns the SkiaSharp's internal font object.
+    /// Returns the SkiaSharp's internal typeface object.
     /// </summary>
-    public SKTypeface? SkiaFont { get; private set; }
+    public SKTypeface? SkiaTypeface { get; private set; }
 
     /// <summary>
     /// Returns the weight of this font. It is generally one of the values from <see cref="FontWeightPreset"/>.
     /// Returns <see cref="FontWeightPreset.Invalid"/> if the font weight is unknown, or the font is not loaded yet.
     /// </summary>
     public FontWeightPreset FontWeight =>
-        SkiaFont != null ? (FontWeightPreset)SkiaFont.FontWeight : FontWeightPreset.Invalid;
+        SkiaTypeface != null ? (FontWeightPreset)SkiaTypeface.FontWeight : FontWeightPreset.Invalid;
 
     /// <summary>
     /// Returns the width of this font. It is generally one of the values from <see cref="FontWidthPreset"/>.
     /// Returns <see cref="FontWidthPreset.Invalid"/> if the font width is unknown, or the font is not loaded yet.
     /// </summary>
     public FontWidthPreset FontWidth =>
-        SkiaFont != null ? (FontWidthPreset)SkiaFont.FontWidth : FontWidthPreset.Invalid;
+        SkiaTypeface != null ? (FontWidthPreset)SkiaTypeface.FontWidth : FontWidthPreset.Invalid;
 
     /// <summary>
     /// Returns the slant type of this font. It is generally one of the values from <see cref="FontSlantPreset"/>.
@@ -33,13 +36,13 @@ public class FontAsset : Asset
     /// loaded yet.
     /// </summary>
     public FontSlantPreset FontSlant =>
-        SkiaFont != null ? (FontSlantPreset)SkiaFont.FontSlant : FontSlantPreset.Invalid;
+        SkiaTypeface != null ? (FontSlantPreset)SkiaTypeface.FontSlant : FontSlantPreset.Invalid;
 
     /// <summary>
     /// Returns the font family name, usually localized (i.e. translated to the user's language). Returns an empty
     /// string if the family name is unknown, or the font is not loaded yet.
     /// </summary>
-    public string FontFamily => SkiaFont?.FamilyName ?? "";
+    public string FontFamily => SkiaTypeface?.FamilyName ?? "";
 
     /// <summary>
     /// Creates a new, empty font asset, without any data.
@@ -49,9 +52,9 @@ public class FontAsset : Asset
         IsLoaded = true;
     }
 
-    public FontAsset(SKTypeface font)
+    public FontAsset(SKTypeface typeface)
     {
-        SkiaFont = font;
+        SkiaTypeface = typeface;
         IsLoaded = true;
     }
 
@@ -78,7 +81,7 @@ public class FontAsset : Asset
         stream.CopyTo(ms);
 
         //TODO: this creates a copy of the byte buffer, the only other solution for now is to use IntPtr
-        SkiaFont =
+        SkiaTypeface =
             SKTypeface.FromData(SKData.CreateCopy(ms.ToArray())) ??
             throw new AssetLoadException("A font asset couldn't be loaded from the input stream.");
         IsLoaded = true;
@@ -90,7 +93,7 @@ public class FontAsset : Asset
         await stream.CopyToAsync(ms);
 
         //TODO: this creates a copy of the byte buffer, the only other solution for now is to use IntPtr
-        SkiaFont =
+        SkiaTypeface =
             SKTypeface.FromData(SKData.CreateCopy(ms.ToArray())) ??
             throw new AssetLoadException("A font asset couldn't be loaded from the input stream.");
         IsLoaded = true;
@@ -99,7 +102,7 @@ public class FontAsset : Asset
     protected internal sealed override void LoadFromRawData(byte[] rawData)
     {
         //TODO: this creates a copy of the byte buffer, the only other solution for now is to use IntPtr
-        SkiaFont =
+        SkiaTypeface =
             SKTypeface.FromData(SKData.CreateCopy(rawData)) ??
             throw new AssetLoadException("A font asset couldn't be loaded from the binary data.");
         IsLoaded = true;
@@ -107,12 +110,15 @@ public class FontAsset : Asset
 
     public override CatObject Duplicate()
     {
-        if (SkiaFont == null)
-        {
-            return new FontAsset();
-        }
+        return SkiaTypeface == null ? new FontAsset() : new FontAsset(SkiaTypeface);
+    }
 
-        SKFontStyle style = SkiaFont.FontStyle;
-        return new FontAsset(SKFontManager.Default.MatchTypeface(SkiaFont, style));
+
+    public SKFont GetSkiaFont(float fontSize)
+    {
+        return new SKFont
+        {
+            Typeface = SkiaTypeface, Size = fontSize, Edging = SKFontEdging.Antialias, Subpixel = true
+        };
     }
 }

@@ -42,12 +42,7 @@ public enum LineJoinType
 public enum ImageResizeQuality
 {
     /// <summary>
-    /// Uses nearest-neighbour sampling. Very fast, but very low quality.
-    /// </summary>
-    VeryLow = 0,
-
-    /// <summary>
-    /// Bilinear filtering. Fast, but low quality.
+    /// Nearest-neighbor sampling. Fast, but low-quality.
     /// </summary>
     Low = 1,
 
@@ -57,13 +52,13 @@ public enum ImageResizeQuality
     Medium = 2,
 
     /// <summary>
-    /// Bicubic filtering with mipmaps (fast drawing when downscaling, very slow on upscaling). Highest quality.
+    /// Bicubic filtering (fast drawing when downscaling, very slow on upscaling). Highest quality.
     /// </summary>
     High = 3
 }
 
 /// <summary>
-/// Describes how will the image fit inside the element's space.
+/// Describes how the image will fit inside the element's space.
 /// </summary>
 public enum ImageFitType
 {
@@ -75,14 +70,14 @@ public enum ImageFitType
 
     /// <summary>
     /// The image can only be shrunk to have a smaller size (or keep its original size), but can't be expanded.
-    /// This ensures that the image will not get blurry (because it can't have a size larger than the original one),
-    /// but when the element's size is much smaller than the original size, it can create some other artifacts,
+    /// This ensures that the image will not get blurry (because it can't have a size larger than the original one).
+    /// However, when the element's size is much smaller than the original size, it can create some other artifacts,
     /// like more ragged edges.
     /// </summary>
     CanShrink = 1,
 
     /// <summary>
-    /// The image can only grow (expand, or keep its original size), but can't be shrunk. Any growth can create
+    /// The image can only grow (expand or keep its original size) but can't be shrunk. Any growth can create
     /// blurry images, the effect might not be noticeable on small expansions or if the <see cref="ImageResizeQuality"/>
     /// is set to high quality, but it is there.
     /// </summary>
@@ -114,18 +109,18 @@ public enum ImageFitType
 public enum ClipApplicability
 {
     /// <summary>
-    /// The clip does not have any applicability (i.e. is useless).
+    /// The clip does not have any applicability (i.e., is useless).
     /// </summary>
     None = 0,
 
     /// <summary>
-    /// The clip affects the drawing, so any element visual (including all descendants) can be affected by clipping.
+    /// The clip affects the drawing, so clipping can affect any element visual (including all descendants).
     /// If not set, the element visuals can overflow the element bounds. 
     /// </summary>
     Drawing = 1,
 
     /// <summary>
-    /// The clip affects the hit testing (i.e. checking if the user pointer is inside/outside/touches the element).
+    /// The clip affects the hit testing (i.e., checking if the user pointer is inside/outside/touches the element).
     /// For any shape except PathClipShape, the performance impact of checking this is negligible.
     /// </summary>
     HitTesting = 2,

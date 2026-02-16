@@ -29,4 +29,8 @@
     <PropertyGroup Condition="$(CatTargetPlatform.StartsWith('linux')) Or $(CatTargetPlatform.StartsWith('unix'))">
         <DefineConstants>$(DefineConstants);CAT_LINUX</DefineConstants>
     </PropertyGroup>
+
+    <PropertyGroup Condition="$(CatTargetPlatform.StartsWith('android'))">
+        <DefineConstants>$(DefineConstants);CAT_ANDROID</DefineConstants>
+    </PropertyGroup>
 </Project>

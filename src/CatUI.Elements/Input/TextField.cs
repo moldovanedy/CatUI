@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Timers;
 using CatUI.Data;
+using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
@@ -22,7 +23,6 @@ using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
 using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
-using SkiaSharp;
 
 namespace CatUI.Elements.Input;
 
@@ -460,8 +460,10 @@ public partial class TextField : InputField, IFocusable
             Selection = new Range(Selection.Start.Value, Selection.Start.Value);
         }
 
-        SKPaint painter = _label.TextBrush.ToSkiaPaint();
-        float charSize = TextMeasuringCache.Calculate([e.Character], painter);
+        float charSize = TextMeasuringCache.GetValueOrCalculate(
+            e.Character.ToString(),
+            CalculateDimension(_label.FontSize),
+            _label.Font ?? FontAsset.Default);
 
         if (Selection.Start.Value == newText.Length)
         {

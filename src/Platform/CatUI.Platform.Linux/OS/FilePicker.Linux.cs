@@ -215,10 +215,10 @@ public class FilePickerLinux : IFilePicker
         await using CancellationTokenRegistration ctr = token.Register(() => tcs.TrySetCanceled(token));
         bool isInErrorState = false;
 
-        IDisposable watcher = await XdgServices.FilePickerService.WatchSignalAsync(
-            XdgServices.FilePickerService.Service.Destination,
-            "org.freedesktop.portal.Request",
+        IDisposable watcher = await XdgServices.FilePickerService.Connection.WatchSignalAsync(
+            XdgServices.FilePickerService.Destination,
             responsePath,
+            "org.freedesktop.portal.Request",
             "Response",
             (msg, _) =>
             {
@@ -312,6 +312,7 @@ public class FilePickerLinux : IFilePicker
 
                 tcs.TrySetResult(catResponse);
             },
+            null,
             false,
             ObserverFlags.None);
 
@@ -420,10 +421,10 @@ public class FilePickerLinux : IFilePicker
 
         await using CancellationTokenRegistration ctr = token.Register(() => tcs.TrySetCanceled(token));
 
-        IDisposable watcher = await XdgServices.FilePickerService.WatchSignalAsync(
-            XdgServices.FilePickerService.Service.Destination,
-            "org.freedesktop.portal.Request",
+        IDisposable watcher = await XdgServices.FilePickerService.Connection.WatchSignalAsync(
+            XdgServices.FilePickerService.Destination,
             responsePath,
+            "org.freedesktop.portal.Request",
             "Response",
             (msg, _) =>
             {
@@ -516,6 +517,7 @@ public class FilePickerLinux : IFilePicker
                     new FileGlobPattern(selectedFilterPatterns.ToArray()));
                 tcs.TrySetResult(new CommonSaveFilesResponse(catResponse, catFiltersResponse));
             },
+            null,
             false,
             ObserverFlags.None);
 

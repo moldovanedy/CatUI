@@ -23,17 +23,17 @@ internal static class XdgServices
 
         try
         {
-            string? sessionBusAddress = Address.Session;
+            string? sessionBusAddress = DBusAddress.Session;
             if (sessionBusAddress is null)
             {
                 Status = ServiceStatus.Unavailable;
                 return;
             }
 
-            var conn = new Connection(Address.Session!);
+            var conn = new DBusConnection(sessionBusAddress);
             await conn.ConnectAsync();
 
-            DesktopService xdgService = new(conn, "org.freedesktop.portal.Desktop");
+            DBusService xdgService = new(conn, "org.freedesktop.portal.Desktop");
             await SetupSettingsService(xdgService);
             SetupFilePickerService(xdgService);
 
@@ -97,7 +97,7 @@ internal static class XdgServices
         }
     }
 
-    internal static async Task SetupSettingsService(DesktopService xdgService)
+    internal static async Task SetupSettingsService(DBusService xdgService)
     {
         SettingsService = xdgService.CreateSettings(XDG_PORTAL_PATH);
 
@@ -129,7 +129,7 @@ internal static class XdgServices
 
     internal static FileChooser? FilePickerService { get; private set; }
 
-    internal static void SetupFilePickerService(DesktopService xdgService)
+    internal static void SetupFilePickerService(DBusService xdgService)
     {
         FilePickerService = xdgService.CreateFileChooser(XDG_PORTAL_PATH);
     }

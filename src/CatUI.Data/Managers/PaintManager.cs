@@ -1,5 +1,4 @@
-﻿using CatUI.Data.Assets;
-using CatUI.Data.Enums;
+﻿using CatUI.Data.Enums;
 using SkiaSharp;
 
 namespace CatUI.Data.Managers;
@@ -13,32 +12,19 @@ public static class PaintManager
     /// uses antialiasing and subpixel rendering.
     /// </summary>
     public static SKPaint DefaultPainter =>
-        new()
-        {
-            Color = new SKColor(0x00_00_00_00),
-            TextEncoding = SKTextEncoding.Utf8,
-            TextSize = DEFAULT_FONT_SIZE,
-            IsAntialias = true,
-            SubpixelText = true
-        };
+        new() { Color = new SKColor(0x00_00_00_00), IsAntialias = true };
 
     public static SKPaint GetPaint(
         PaintMode paintMode = PaintMode.Fill,
         Color? paintColor = null,
-        OutlineParams? outlineParams = null,
-        float fontSize = 0,
-        TextAlignmentType textAlignment = TextAlignmentType.Left,
-        FontAsset? font = null)
+        OutlineParams? outlineParams = null)
     {
         SKPaint newPaint = DefaultPainter;
         ModifyPaint(
             newPaint,
             paintMode,
             paintColor,
-            outlineParams,
-            fontSize,
-            textAlignment,
-            font);
+            outlineParams);
         return newPaint;
     }
 
@@ -51,17 +37,11 @@ public static class PaintManager
     /// <param name="paintMode"></param>
     /// <param name="paintColor"></param>
     /// <param name="outlineParams"></param>
-    /// <param name="fontSize"></param>
-    /// <param name="textAlignment"></param>
-    /// <param name="font"></param>
     public static void ModifyPaint(
         SKPaint paint,
         PaintMode? paintMode = PaintMode.Fill,
         Color? paintColor = null,
-        OutlineParams? outlineParams = null,
-        float fontSize = 0,
-        TextAlignmentType? textAlignment = TextAlignmentType.Left,
-        FontAsset? font = null)
+        OutlineParams? outlineParams = null)
     {
         if (paintMode != null)
         {
@@ -78,27 +58,12 @@ public static class PaintManager
             paint.Color = (SKColor)paintColor;
         }
 
-        if (fontSize != 0)
-        {
-            paint.TextSize = fontSize;
-        }
-
         if (outlineParams != null)
         {
             paint.StrokeWidth = outlineParams.Value.OutlineWidth;
             paint.StrokeCap = (SKStrokeCap)outlineParams.Value.LineCap;
             paint.StrokeJoin = (SKStrokeJoin)outlineParams.Value.LineJoin;
             paint.StrokeMiter = outlineParams.Value.MiterLimit;
-        }
-
-        if (textAlignment != null && textAlignment != TextAlignmentType.Justify)
-        {
-            paint.TextAlign = (SKTextAlign)(textAlignment - 1);
-        }
-
-        if (font != null)
-        {
-            paint.Typeface = font.SkiaFont;
         }
     }
 }
