@@ -14,7 +14,7 @@ using CatUI.Elements.Transitions;
 using CatUI.Elements.Transitions.PredefinedTweeners;
 using CatUI.Elements.Utils;
 
-namespace CatUISample.UI.Pages.Misc;
+namespace CatUISample.UI.Views.Misc;
 
 public class AnimationExamples : ScrollContainer
 {

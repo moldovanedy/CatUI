@@ -16,7 +16,7 @@ using CatUI.Platform.CommonInterface;
 using CatUI.Platform.NativeUI;
 using CatUI.Windowing.DesktopApp;
 
-namespace CatUISample.UI.Pages.UiElements;
+namespace CatUISample.UI.Views.UiElements;
 
 public class ButtonsExample : ScrollContainer
 {

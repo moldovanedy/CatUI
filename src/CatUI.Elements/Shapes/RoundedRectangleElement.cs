@@ -38,7 +38,13 @@ public class RoundedRectangleElement : AbstractShapeElement
     }
 
     private CornerInset _roundCornersDescriptor = new();
-    public ObservableProperty<CornerInset> RoundCornersDescriptorProperty { get; } = new(new CornerInset());
+    public ObservableProperty<CornerInset> RoundCornersDescriptorProperty
+    {
+        get => _roundCornersDescriptorProperty;
+        set => _roundCornersDescriptorProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<CornerInset> _roundCornersDescriptorProperty = new(new CornerInset());
 
     private void SetRoundCornersDescriptor(CornerInset? value)
     {

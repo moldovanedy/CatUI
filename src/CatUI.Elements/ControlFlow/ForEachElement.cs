@@ -60,7 +60,13 @@ public class ForEachElement<T> : ControlFlowElementBase
     }
 
     private Element _generatorParent;
-    public ObservableProperty<Element> GeneratorParentProperty { get; } = new();
+    public ObservableProperty<Element> GeneratorParentProperty
+    {
+        get => _generatorParentProperty;
+        set => _generatorParentProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Element> _generatorParentProperty = new();
 
     private void SetGeneratorParent(Element? value)
     {
@@ -92,7 +98,13 @@ public class ForEachElement<T> : ControlFlowElementBase
     }
 
     private GeneratorFunctionCallback _generatorFunction;
-    public ObservableProperty<GeneratorFunctionCallback> GeneratorFunctionProperty { get; } = new();
+    public ObservableProperty<GeneratorFunctionCallback> GeneratorFunctionProperty
+    {
+        get => _generatorFunctionProperty;
+        set => _generatorFunctionProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<GeneratorFunctionCallback> _generatorFunctionProperty = new();
 
     private void SetGeneratorFunction(GeneratorFunctionCallback? value)
     {

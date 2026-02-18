@@ -52,7 +52,13 @@ public partial class Element
 
     private Theme? _themeOverride;
 
-    public ObservableProperty<Theme> ThemeOverrideProperty { get; } = new(null);
+    public ObservableProperty<Theme> ThemeOverrideProperty
+    {
+        get => _themeOverrideProperty;
+        set => _themeOverrideProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Theme> _themeOverrideProperty = new(null);
 
     private void SetThemeOverride(Theme? value)
     {
@@ -77,7 +83,13 @@ public partial class Element
 
     private string _styleClass = "";
 
-    public ObservableProperty<string> StyleClassProperty { get; } = new("");
+    public ObservableProperty<string> StyleClassProperty
+    {
+        get => _styleClassProperty;
+        set => _styleClassProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<string> _styleClassProperty = new("");
 
     private void SetStyleClass(string? value)
     {
@@ -103,7 +115,13 @@ public partial class Element
     }
 
     private int _baseThemingCount = -1;
-    public ObservableProperty<int> BaseThemingCountProperty { get; } = new(-1);
+    public ObservableProperty<int> BaseThemingCountProperty
+    {
+        get => _baseThemingCountProperty;
+        set => _baseThemingCountProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<int> _baseThemingCountProperty = new(-1);
 
     private void SetBaseThemingCount(int value)
     {
@@ -122,7 +140,13 @@ public partial class Element
     }
 
     private bool _ignoreGlobalTheming;
-    public ObservableProperty<bool> IgnoreGlobalThemingProperty { get; } = new(false);
+    public ObservableProperty<bool> IgnoreGlobalThemingProperty
+    {
+        get => _ignoreGlobalThemingProperty;
+        set => _ignoreGlobalThemingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _ignoreGlobalThemingProperty = new(false);
 
     private void SetIgnoreGlobalTheming(bool value)
     {

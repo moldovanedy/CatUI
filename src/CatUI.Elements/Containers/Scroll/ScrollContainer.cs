@@ -52,7 +52,13 @@ public class ScrollContainer : Container
     }
 
     private Point2D _scrollPosition = Point2D.Zero;
-    public ObservableProperty<Point2D> ScrollPositionProperty { get; } = new(Point2D.Zero);
+    public ObservableProperty<Point2D> ScrollPositionProperty
+    {
+        get => _scrollPositionProperty;
+        set => _scrollPositionProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Point2D> _scrollPositionProperty = new(Point2D.Zero);
 
     private void SetScrollPosition(Point2D value)
     {
@@ -106,7 +112,13 @@ public class ScrollContainer : Container
     }
 
     private bool _isHorizontalScrollEnabled = true;
-    public ObservableProperty<bool> IsHorizontalScrollEnabledProperty { get; } = new(true);
+    public ObservableProperty<bool> IsHorizontalScrollEnabledProperty
+    {
+        get => _isHorizontalScrollEnabledProperty;
+        set => _isHorizontalScrollEnabledProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _isHorizontalScrollEnabledProperty = new(true);
 
     private void SetIsHorizontalScrollEnabled(bool value)
     {
@@ -132,7 +144,13 @@ public class ScrollContainer : Container
     }
 
     private bool _isVerticalScrollEnabled = true;
-    public ObservableProperty<bool> IsVerticalScrollEnabledProperty { get; } = new(true);
+    public ObservableProperty<bool> IsVerticalScrollEnabledProperty
+    {
+        get => _isVerticalScrollEnabledProperty;
+        set => _isVerticalScrollEnabledProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _isVerticalScrollEnabledProperty = new(true);
 
     private void SetIsVerticalScrollEnabled(bool value)
     {
@@ -155,8 +173,14 @@ public class ScrollContainer : Container
 
     private RepositionBehaviorType _scrollBarsRepositionBehavior = RepositionBehaviorType.GoToPosition;
 
-    public ObservableProperty<RepositionBehaviorType> ScrollBarsRepositionBehaviorProperty { get; }
-        = new(RepositionBehaviorType.GoToPosition);
+    public ObservableProperty<RepositionBehaviorType> ScrollBarsRepositionBehaviorProperty
+    {
+        get => _scrollBarsRepositionBehaviorProperty;
+        set => _scrollBarsRepositionBehaviorProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<RepositionBehaviorType> _scrollBarsRepositionBehaviorProperty =
+        new(RepositionBehaviorType.GoToPosition);
 
     private void SetScrollBarsRepositionBehavior(RepositionBehaviorType value)
     {
@@ -175,8 +199,14 @@ public class ScrollContainer : Container
 
     private ScrollBarVisibility _horizontalScrollBarVisibility = ScrollBarVisibility.Auto;
 
-    public ObservableProperty<ScrollBarVisibility> HorizontalScrollBarVisibilityProperty { get; }
-        = new(ScrollBarVisibility.Auto);
+    public ObservableProperty<ScrollBarVisibility> HorizontalScrollBarVisibilityProperty
+    {
+        get => _horizontalScrollBarVisibilityProperty;
+        set => _horizontalScrollBarVisibilityProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ScrollBarVisibility> _horizontalScrollBarVisibilityProperty =
+        new(ScrollBarVisibility.Auto);
 
     private void SetHorizontalScrollBarVisibility(ScrollBarVisibility value)
     {
@@ -194,8 +224,14 @@ public class ScrollContainer : Container
 
     private ScrollBarVisibility _verticalScrollBarVisibility = ScrollBarVisibility.Auto;
 
-    public ObservableProperty<ScrollBarVisibility> VerticalScrollBarVisibilityProperty { get; }
-        = new(ScrollBarVisibility.Auto);
+    public ObservableProperty<ScrollBarVisibility> VerticalScrollBarVisibilityProperty
+    {
+        get => _verticalScrollBarVisibilityProperty;
+        set => _verticalScrollBarVisibilityProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ScrollBarVisibility> _verticalScrollBarVisibilityProperty =
+        new(ScrollBarVisibility.Auto);
 
     private void SetVerticalScrollBarVisibility(ScrollBarVisibility value)
     {
@@ -221,7 +257,13 @@ public class ScrollContainer : Container
     }
 
     private bool _isUserScrollable = true;
-    public ObservableProperty<bool> IsUserScrollableProperty { get; } = new(true);
+    public ObservableProperty<bool> IsUserScrollableProperty
+    {
+        get => _isUserScrollableProperty;
+        set => _isUserScrollableProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _isUserScrollableProperty = new(true);
 
     private void SetIsUserScrollable(bool value)
     {
@@ -244,8 +286,14 @@ public class ScrollContainer : Container
 
     private ValueTuple<bool, bool> _scrollPastLimits = (false, false);
 
-    public ObservableProperty<ValueTuple<bool, bool>> ScrollPastLimitsProperty { get; }
-        = new((false, false));
+    public ObservableProperty<ValueTuple<bool, bool>> ScrollPastLimitsProperty
+    {
+        get => _scrollPastLimitsProperty;
+        set => _scrollPastLimitsProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ValueTuple<bool, bool>> _scrollPastLimitsProperty =
+        new((false, false));
 
     private void SetScrollPastLimits(ValueTuple<bool, bool> value)
     {

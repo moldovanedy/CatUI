@@ -35,7 +35,13 @@ public abstract class Divider : Element
 
     private float _lineThickness = 2;
 
-    public ObservableProperty<float> LineThicknessProperty { get; } = new(2);
+    public ObservableProperty<float> LineThicknessProperty
+    {
+        get => _lineThicknessProperty;
+        set => _lineThicknessProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<float> _lineThicknessProperty = new(2);
 
     private void SetLineThickness(float value)
     {
@@ -55,7 +61,13 @@ public abstract class Divider : Element
 
     private IBrush _lineBrush = new ColorBrush(new Color(0));
 
-    public ObservableProperty<IBrush> LineBrushProperty { get; } = new(new ColorBrush(new Color(0)));
+    public ObservableProperty<IBrush> LineBrushProperty
+    {
+        get => _lineBrushProperty;
+        set => _lineBrushProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<IBrush> _lineBrushProperty = new(new ColorBrush(new Color(0)));
 
     private void SetLineBrush(IBrush? value)
     {
@@ -75,7 +87,13 @@ public abstract class Divider : Element
 
     private LineCapType _lineCap = LineCapType.Butt;
 
-    public ObservableProperty<LineCapType> LineCapProperty { get; } = new(LineCapType.Butt);
+    public ObservableProperty<LineCapType> LineCapProperty
+    {
+        get => _lineCapProperty;
+        set => _lineCapProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<LineCapType> _lineCapProperty = new(LineCapType.Butt);
 
     private void SetLineCap(LineCapType value)
     {

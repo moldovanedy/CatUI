@@ -45,7 +45,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private bool _wordWrap;
-    public ObservableProperty<bool> WordWrapProperty { get; } = new(false);
+    public ObservableProperty<bool> WordWrapProperty
+    {
+        get => _wordWrapProperty;
+        set => _wordWrapProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _wordWrapProperty = new(false);
 
     private void SetWordWrap(bool value)
     {
@@ -63,7 +69,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
 
     private TextOverflowMode _overflowMode = TextOverflowMode.Ellipsis;
 
-    public ObservableProperty<TextOverflowMode> OverflowModeProperty { get; } = new(TextOverflowMode.Ellipsis);
+    public ObservableProperty<TextOverflowMode> OverflowModeProperty
+    {
+        get => _overflowModeProperty;
+        set => _overflowModeProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<TextOverflowMode> _overflowModeProperty = new(TextOverflowMode.Ellipsis);
 
     private void SetOverflowMode(TextOverflowMode value)
     {
@@ -80,7 +92,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private string _overflowString = "\u2026";
-    public ObservableProperty<string> OverflowStringProperty { get; } = new("\u2026");
+    public ObservableProperty<string> OverflowStringProperty
+    {
+        get => _overflowStringProperty;
+        set => _overflowStringProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<string> _overflowStringProperty = new("\u2026");
 
     private void SetOverflowString(string? value)
     {
@@ -102,7 +120,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
 
     private TextBreakMode _breakMode = TextBreakMode.SoftBreak;
 
-    public ObservableProperty<TextBreakMode> BreakModeProperty { get; } = new(TextBreakMode.SoftBreak);
+    public ObservableProperty<TextBreakMode> BreakModeProperty
+    {
+        get => _breakModeProperty;
+        set => _breakModeProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<TextBreakMode> _breakModeProperty = new(TextBreakMode.SoftBreak);
 
     private void SetBreakMode(TextBreakMode value)
     {
@@ -124,7 +148,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private char _hyphenCharacter = '-';
-    public ObservableProperty<char> HyphenCharacterProperty { get; } = new('-');
+    public ObservableProperty<char> HyphenCharacterProperty
+    {
+        get => _hyphenCharacterProperty;
+        set => _hyphenCharacterProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<char> _hyphenCharacterProperty = new('-');
 
     private void SetHyphenCharacter(char value)
     {
@@ -143,7 +173,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private IBrush _textBrush = new ColorBrush(new Color(0));
-    public ObservableProperty<IBrush> TextBrushProperty { get; } = new(new ColorBrush(new Color(0)));
+    public ObservableProperty<IBrush> TextBrushProperty
+    {
+        get => _textBrushProperty;
+        set => _textBrushProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<IBrush> _textBrushProperty = new(new ColorBrush(new Color(0)));
 
     private void SetTextBrush(IBrush? value)
     {
@@ -164,7 +200,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
 
     private IBrush _outlineTextBrush = new ColorBrush(Color.Default);
 
-    public ObservableProperty<IBrush> OutlineTextBrushProperty { get; } =
+    public ObservableProperty<IBrush> OutlineTextBrushProperty
+    {
+        get => _outlineTextBrushProperty;
+        set => _outlineTextBrushProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<IBrush> _outlineTextBrushProperty =
         new(new ColorBrush(Color.Default));
 
     private void SetOutlineTextBrush(IBrush? value)
@@ -195,7 +237,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private float _lineHeight = 1.2f;
-    public ObservableProperty<float> LineHeightProperty { get; } = new(1.2f);
+    public ObservableProperty<float> LineHeightProperty
+    {
+        get => _lineHeightProperty;
+        set => _lineHeightProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<float> _lineHeightProperty = new(1.2f);
 
     private void SetLineHeight(float value)
     {
@@ -217,7 +265,13 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private bool _canExpand = true;
-    public ObservableProperty<bool> CanExpandProperty { get; } = new(true);
+    public ObservableProperty<bool> CanExpandProperty
+    {
+        get => _canExpandProperty;
+        set => _canExpandProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _canExpandProperty = new(true);
 
     private void SetCanExpand(bool value)
     {

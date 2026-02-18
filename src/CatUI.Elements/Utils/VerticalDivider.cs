@@ -43,7 +43,13 @@ public class VerticalDivider : Divider
         }
     }
 
-    public ObservableProperty<float> LeftSpacingProperty { get; } = new(0);
+    public ObservableProperty<float> LeftSpacingProperty
+    {
+        get => _leftSpacingProperty;
+        set => _leftSpacingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<float> _leftSpacingProperty = new(0);
 
     private void SetLeftSpacing(float value)
     {
@@ -65,7 +71,13 @@ public class VerticalDivider : Divider
         }
     }
 
-    public ObservableProperty<float> RightSpacingProperty { get; } = new(0);
+    public ObservableProperty<float> RightSpacingProperty
+    {
+        get => _rightSpacingProperty;
+        set => _rightSpacingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<float> _rightSpacingProperty = new(0);
 
     private void SetRightSpacing(float value)
     {
@@ -87,7 +99,13 @@ public class VerticalDivider : Divider
         }
     }
 
-    public ObservableProperty<Dimension> TopLinePaddingProperty { get; } = new(0);
+    public ObservableProperty<Dimension> TopLinePaddingProperty
+    {
+        get => _topLinePaddingProperty;
+        set => _topLinePaddingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Dimension> _topLinePaddingProperty = new(0);
 
     private void SetTopLinePadding(Dimension value)
     {
@@ -109,7 +127,13 @@ public class VerticalDivider : Divider
         }
     }
 
-    public ObservableProperty<Dimension> BottomLinePaddingProperty { get; } = new(0);
+    public ObservableProperty<Dimension> BottomLinePaddingProperty
+    {
+        get => _bottomLinePaddingProperty;
+        set => _bottomLinePaddingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Dimension> _bottomLinePaddingProperty = new(0);
 
     private void SetBottomLinePadding(Dimension value)
     {

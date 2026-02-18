@@ -15,7 +15,7 @@ using CatUI.Platform.CommonInterface;
 using CatUI.Platform.NativeUI;
 using CatUI.Utils;
 
-namespace CatUISample.UI.Pages.NativeUi;
+namespace CatUISample.UI.Views.NativeUi;
 
 public class FilePickingExamples : ScrollContainer
 {

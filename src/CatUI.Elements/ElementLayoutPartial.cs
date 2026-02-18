@@ -17,7 +17,13 @@ public partial class Element
     }
 
     private ElementLayout? _layout;
-    public ObservableProperty<ElementLayout> LayoutProperty { get; } = new();
+    public ObservableProperty<ElementLayout> LayoutProperty
+    {
+        get => _layoutProperty;
+        set => _layoutProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ElementLayout> _layoutProperty = new();
 
     private void SetLayout(ElementLayout? value)
     {

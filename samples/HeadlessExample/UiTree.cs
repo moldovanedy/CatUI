@@ -57,16 +57,11 @@ public class UiTree
                             [
                                 new Label("PNG test", TextAlignmentType.Center)
                                 {
-                                    InitializationFunction = e =>
-                                    {
-                                        if (e is Label el)
-                                        {
-                                            el.TextProperty.BindUnidirectional(_snapshotText);
-                                        }
-                                    },
                                     Layout = new ElementLayout().SetFixedWidth(500),
                                     FontSize = 60,
-                                    TextBrush = new ColorBrush(new Color(0))
+                                    TextBrush = new ColorBrush(new Color(0)),
+                                    //auto-binds bidirectionally
+                                    TextProperty = _snapshotText
                                 }
                             ]
                         }

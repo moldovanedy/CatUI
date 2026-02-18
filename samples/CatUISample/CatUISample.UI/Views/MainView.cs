@@ -15,16 +15,16 @@ using CatUI.Elements.Media;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 
-namespace CatUISample.UI.Pages;
+namespace CatUISample.UI.Views;
 
-public class MainPage : ColumnContainer
+public class MainView : ColumnContainer
 {
-    public MainPage()
+    public MainView()
     {
         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
         Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Start, 20);
 
-        AssetsManager.AddAssetAssembly(Assembly.GetAssembly(typeof(MainPage))!);
+        AssetsManager.AddAssetAssembly(Assembly.GetAssembly(typeof(MainView))!);
     }
 
     protected override void EnterDocument(object sender)
@@ -40,7 +40,7 @@ public class MainPage : ColumnContainer
 
         if (fontAsset == null || cursiveFontAsset == null || imageAsset == null)
         {
-            CatLogger.LogError("CatUISample: One or more assets could not be retrieved in MainPage");
+            CatLogger.LogError("CatUISample: One or more assets could not be retrieved in MainView");
             return;
         }
 

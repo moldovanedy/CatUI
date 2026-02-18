@@ -38,8 +38,14 @@ public class IfElement : ControlFlowElementBase
 
     private ObservableProperty<bool> _condition = new(true);
 
-    public ObservableProperty<ObservableProperty<bool>> ConditionProperty { get; }
-        = new(new ObservableProperty<bool>(true));
+    public ObservableProperty<ObservableProperty<bool>> ConditionProperty
+    {
+        get => _conditionProperty;
+        set => _conditionProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ObservableProperty<bool>> _conditionProperty =
+        new(new ObservableProperty<bool>(true));
 
     private void SetCondition(ObservableProperty<bool>? value)
     {
@@ -67,7 +73,13 @@ public class IfElement : ControlFlowElementBase
     }
 
     private Element _trueBranchElement;
-    public ObservableProperty<Element> TrueBranchElementProperty { get; } = new(null);
+    public ObservableProperty<Element> TrueBranchElementProperty
+    {
+        get => _trueBranchElementProperty;
+        set => _trueBranchElementProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Element> _trueBranchElementProperty = new(null);
 
     private void SetTrueBranchElement(Element? value)
     {
@@ -101,7 +113,13 @@ public class IfElement : ControlFlowElementBase
     }
 
     private Element _falseBranchElement = new();
-    public ObservableProperty<Element> FalseBranchElementProperty { get; } = new(new Element());
+    public ObservableProperty<Element> FalseBranchElementProperty
+    {
+        get => _falseBranchElementProperty;
+        set => _falseBranchElementProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Element> _falseBranchElementProperty = new(new Element());
 
     private void SetFalseBranchElement(Element? value)
     {

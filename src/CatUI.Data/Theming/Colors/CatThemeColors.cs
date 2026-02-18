@@ -65,55 +65,6 @@ public class CatThemeColors
         ShadowProperty.ValueChangedEvent += SetShadow;
     }
 
-    ~CatThemeColors()
-    {
-        PrimaryProperty = null!;
-        OnPrimaryProperty = null!;
-        PrimaryContainerProperty = null!;
-        OnPrimaryContainerProperty = null!;
-
-        SecondaryProperty = null!;
-        OnSecondaryProperty = null!;
-        SecondaryContainerProperty = null!;
-        OnSecondaryContainerProperty = null!;
-
-        TertiaryProperty = null!;
-        OnTertiaryProperty = null!;
-        TertiaryContainerProperty = null!;
-        OnTertiaryContainerProperty = null!;
-
-        ErrorProperty = null!;
-        OnErrorProperty = null!;
-        ErrorContainerProperty = null!;
-        OnErrorContainerProperty = null!;
-
-        SuccessProperty = null!;
-        OnSuccessProperty = null!;
-        SuccessContainerProperty = null!;
-        OnSuccessContainerProperty = null!;
-
-        SurfaceProperty = null!;
-        SurfaceDimProperty = null!;
-        SurfaceBrightProperty = null!;
-        SurfaceContainerLowestProperty = null!;
-        SurfaceContainerLowProperty = null!;
-        SurfaceContainerProperty = null!;
-        SurfaceContainerHighProperty = null!;
-        SurfaceContainerHighestProperty = null!;
-
-        OnSurfaceProperty = null!;
-        OnSurfaceVariantProperty = null!;
-
-        InverseSurfaceProperty = null!;
-        InverseOnSurfaceProperty = null!;
-        InversePrimaryProperty = null!;
-
-        OutlineProperty = null!;
-        OutlineVariantProperty = null!;
-        ScrimProperty = null!;
-        ShadowProperty = null!;
-    }
-
     #region Primary
 
     /// <summary>
@@ -130,7 +81,7 @@ public class CatThemeColors
     }
 
     private Color _primary = new(0xff_ff_ff);
-    public ObservableProperty<Color> PrimaryProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> PrimaryProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetPrimary(Color value)
     {
@@ -151,7 +102,7 @@ public class CatThemeColors
     }
 
     private Color _onPrimary = new(0);
-    public ObservableProperty<Color> OnPrimaryProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnPrimaryProperty { get; } = new(new Color(0));
 
     private void SetOnPrimary(Color value)
     {
@@ -172,7 +123,7 @@ public class CatThemeColors
     }
 
     private Color _primaryContainer = new(0xff_ff_ff);
-    public ObservableProperty<Color> PrimaryContainerProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> PrimaryContainerProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetPrimaryContainer(Color value)
     {
@@ -193,7 +144,7 @@ public class CatThemeColors
     }
 
     private Color _onPrimaryContainer = new(0);
-    public ObservableProperty<Color> OnPrimaryContainerProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnPrimaryContainerProperty { get; } = new(new Color(0));
 
     private void SetOnPrimaryContainer(Color value)
     {
@@ -218,7 +169,7 @@ public class CatThemeColors
     }
 
     private Color _secondary = new(0xff_ff_ff);
-    public ObservableProperty<Color> SecondaryProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SecondaryProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSecondary(Color value)
     {
@@ -239,7 +190,7 @@ public class CatThemeColors
     }
 
     private Color _onSecondary = new(0);
-    public ObservableProperty<Color> OnSecondaryProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnSecondaryProperty { get; } = new(new Color(0));
 
     private void SetOnSecondary(Color value)
     {
@@ -260,7 +211,7 @@ public class CatThemeColors
     }
 
     private Color _secondaryContainer = new(0xff_ff_ff);
-    public ObservableProperty<Color> SecondaryContainerProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SecondaryContainerProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSecondaryContainer(Color value)
     {
@@ -281,7 +232,7 @@ public class CatThemeColors
     }
 
     private Color _onSecondaryContainer = new(0);
-    public ObservableProperty<Color> OnSecondaryContainerProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnSecondaryContainerProperty { get; } = new(new Color(0));
 
     private void SetOnSecondaryContainer(Color value)
     {
@@ -306,7 +257,7 @@ public class CatThemeColors
     }
 
     private Color _tertiary = new(0xff_ff_ff);
-    public ObservableProperty<Color> TertiaryProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> TertiaryProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetTertiary(Color value)
     {
@@ -327,7 +278,7 @@ public class CatThemeColors
     }
 
     private Color _onTertiary = new(0);
-    public ObservableProperty<Color> OnTertiaryProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnTertiaryProperty { get; } = new(new Color(0));
 
     private void SetOnTertiary(Color value)
     {
@@ -348,7 +299,7 @@ public class CatThemeColors
     }
 
     private Color _tertiaryContainer = new(0xff_ff_ff);
-    public ObservableProperty<Color> TertiaryContainerProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> TertiaryContainerProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetTertiaryContainer(Color value)
     {
@@ -369,7 +320,7 @@ public class CatThemeColors
     }
 
     private Color _onTertiaryContainer = new(0);
-    public ObservableProperty<Color> OnTertiaryContainerProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnTertiaryContainerProperty { get; } = new(new Color(0));
 
     private void SetOnTertiaryContainer(Color value)
     {
@@ -394,7 +345,7 @@ public class CatThemeColors
     }
 
     private Color _error = new(0xff_ff_ff);
-    public ObservableProperty<Color> ErrorProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> ErrorProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetError(Color value)
     {
@@ -415,7 +366,7 @@ public class CatThemeColors
     }
 
     private Color _onError = new(0);
-    public ObservableProperty<Color> OnErrorProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnErrorProperty { get; } = new(new Color(0));
 
     private void SetOnError(Color value)
     {
@@ -436,7 +387,7 @@ public class CatThemeColors
     }
 
     private Color _errorContainer = new(0xff_ff_ff);
-    public ObservableProperty<Color> ErrorContainerProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> ErrorContainerProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetErrorContainer(Color value)
     {
@@ -457,7 +408,7 @@ public class CatThemeColors
     }
 
     private Color _onErrorContainer = new(0);
-    public ObservableProperty<Color> OnErrorContainerProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnErrorContainerProperty { get; } = new(new Color(0));
 
     private void SetOnErrorContainer(Color value)
     {
@@ -483,7 +434,7 @@ public class CatThemeColors
     }
 
     private Color _success = new(0xff_ff_ff);
-    public ObservableProperty<Color> SuccessProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SuccessProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSuccess(Color value)
     {
@@ -505,7 +456,7 @@ public class CatThemeColors
     }
 
     private Color _onSuccess = new(0);
-    public ObservableProperty<Color> OnSuccessProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnSuccessProperty { get; } = new(new Color(0));
 
     private void SetOnSuccess(Color value)
     {
@@ -527,7 +478,7 @@ public class CatThemeColors
     }
 
     private Color _successContainer = new(0xff_ff_ff);
-    public ObservableProperty<Color> SuccessContainerProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SuccessContainerProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSuccessContainer(Color value)
     {
@@ -549,7 +500,7 @@ public class CatThemeColors
     }
 
     private Color _onSuccessContainer = new(0);
-    public ObservableProperty<Color> OnSuccessContainerProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnSuccessContainerProperty { get; } = new(new Color(0));
 
     private void SetOnSuccessContainer(Color value)
     {
@@ -574,7 +525,7 @@ public class CatThemeColors
     }
 
     private Color _surface = new(0xff_ff_ff);
-    public ObservableProperty<Color> SurfaceProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SurfaceProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSurface(Color value)
     {
@@ -595,7 +546,7 @@ public class CatThemeColors
     }
 
     private Color _surfaceDim = new(0xff_ff_ff);
-    public ObservableProperty<Color> SurfaceDimProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SurfaceDimProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSurfaceDim(Color value)
     {
@@ -616,7 +567,7 @@ public class CatThemeColors
     }
 
     private Color _surfaceBright = new(0xff_ff_ff);
-    public ObservableProperty<Color> SurfaceBrightProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SurfaceBrightProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSurfaceBright(Color value)
     {
@@ -638,7 +589,7 @@ public class CatThemeColors
 
     private Color _surfaceContainerLowest = new(0xff_ff_ff);
 
-    public ObservableProperty<Color> SurfaceContainerLowestProperty { get; private set; } =
+    public ObservableProperty<Color> SurfaceContainerLowestProperty { get; } =
         new(new Color(0xff_ff_ff));
 
     private void SetSurfaceContainerLowest(Color value)
@@ -660,7 +611,7 @@ public class CatThemeColors
     }
 
     private Color _surfaceContainerLow = new(0xff_ff_ff);
-    public ObservableProperty<Color> SurfaceContainerLowProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SurfaceContainerLowProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSurfaceContainerLow(Color value)
     {
@@ -681,7 +632,7 @@ public class CatThemeColors
     }
 
     private Color _surfaceContainer = new(0xff_ff_ff);
-    public ObservableProperty<Color> SurfaceContainerProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> SurfaceContainerProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetSurfaceContainer(Color value)
     {
@@ -703,7 +654,7 @@ public class CatThemeColors
 
     private Color _surfaceContainerHigh = new(0xff_ff_ff);
 
-    public ObservableProperty<Color> SurfaceContainerHighProperty { get; private set; } =
+    public ObservableProperty<Color> SurfaceContainerHighProperty { get; } =
         new(new Color(0xff_ff_ff));
 
     private void SetSurfaceContainerHigh(Color value)
@@ -726,7 +677,7 @@ public class CatThemeColors
 
     private Color _surfaceContainerHighest = new(0xff_ff_ff);
 
-    public ObservableProperty<Color> SurfaceContainerHighestProperty { get; private set; } =
+    public ObservableProperty<Color> SurfaceContainerHighestProperty { get; } =
         new(new Color(0xff_ff_ff));
 
     private void SetSurfaceContainerHighest(Color value)
@@ -752,7 +703,7 @@ public class CatThemeColors
     }
 
     private Color _onSurface = new(0);
-    public ObservableProperty<Color> OnSurfaceProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnSurfaceProperty { get; } = new(new Color(0));
 
     private void SetOnSurface(Color value)
     {
@@ -773,7 +724,7 @@ public class CatThemeColors
     }
 
     private Color _onSurfaceVariant = new(0);
-    public ObservableProperty<Color> OnSurfaceVariantProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OnSurfaceVariantProperty { get; } = new(new Color(0));
 
     private void SetOnSurfaceVariant(Color value)
     {
@@ -798,7 +749,7 @@ public class CatThemeColors
     }
 
     private Color _inverseSurface = new(0);
-    public ObservableProperty<Color> InverseSurfaceProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> InverseSurfaceProperty { get; } = new(new Color(0));
 
     private void SetInverseSurface(Color value)
     {
@@ -819,7 +770,7 @@ public class CatThemeColors
     }
 
     private Color _inverseOnSurface = new(0xff_ff_ff);
-    public ObservableProperty<Color> InverseOnSurfaceProperty { get; private set; } = new(new Color(0xff_ff_ff));
+    public ObservableProperty<Color> InverseOnSurfaceProperty { get; } = new(new Color(0xff_ff_ff));
 
     private void SetInverseOnSurface(Color value)
     {
@@ -840,7 +791,7 @@ public class CatThemeColors
     }
 
     private Color _inversePrimary = new(0);
-    public ObservableProperty<Color> InversePrimaryProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> InversePrimaryProperty { get; } = new(new Color(0));
 
     private void SetInversePrimary(Color value)
     {
@@ -865,7 +816,7 @@ public class CatThemeColors
     }
 
     private Color _outline = new(0);
-    public ObservableProperty<Color> OutlineProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OutlineProperty { get; } = new(new Color(0));
 
     private void SetOutline(Color value)
     {
@@ -886,7 +837,7 @@ public class CatThemeColors
     }
 
     private Color _outlineVariant = new(0);
-    public ObservableProperty<Color> OutlineVariantProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> OutlineVariantProperty { get; } = new(new Color(0));
 
     private void SetOutlineVariant(Color value)
     {
@@ -908,7 +859,7 @@ public class CatThemeColors
     }
 
     private Color _scrim = new(0);
-    public ObservableProperty<Color> ScrimProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> ScrimProperty { get; } = new(new Color(0));
 
     private void SetScrim(Color value)
     {
@@ -929,7 +880,7 @@ public class CatThemeColors
     }
 
     private Color _shadow = new(0);
-    public ObservableProperty<Color> ShadowProperty { get; private set; } = new(new Color(0));
+    public ObservableProperty<Color> ShadowProperty { get; } = new(new Color(0));
 
     private void SetShadow(Color value)
     {

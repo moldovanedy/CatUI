@@ -37,7 +37,13 @@ public class ImageView : Element
     }
 
     private ImageAsset? _source;
-    public ObservableProperty<ImageAsset> SourceProperty { get; } = new();
+    public ObservableProperty<ImageAsset> SourceProperty
+    {
+        get => _sourceProperty;
+        set => _sourceProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ImageAsset> _sourceProperty = new();
 
     private void SetSource(ImageAsset? value)
     {
@@ -58,8 +64,14 @@ public class ImageView : Element
 
     private HorizontalAlignmentType _horizontalAlignment = HorizontalAlignmentType.Left;
 
-    public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; }
-        = new(HorizontalAlignmentType.Left);
+    public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty
+    {
+        get => _horizontalAlignmentProperty;
+        set => _horizontalAlignmentProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<HorizontalAlignmentType> _horizontalAlignmentProperty =
+        new(HorizontalAlignmentType.Left);
 
     private void SetHorizontalAlignment(HorizontalAlignmentType value)
     {
@@ -80,8 +92,14 @@ public class ImageView : Element
 
     private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Top;
 
-    public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
-        = new(VerticalAlignmentType.Top);
+    public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty
+    {
+        get => _verticalAlignmentProperty;
+        set => _verticalAlignmentProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<VerticalAlignmentType> _verticalAlignmentProperty =
+        new(VerticalAlignmentType.Top);
 
     private void SetVerticalAlignment(VerticalAlignmentType value)
     {
@@ -103,7 +121,13 @@ public class ImageView : Element
     }
 
     private bool _shouldKeepAspectRatio = true;
-    public ObservableProperty<bool> ShouldKeepAspectRatioProperty { get; } = new(true);
+    public ObservableProperty<bool> ShouldKeepAspectRatioProperty
+    {
+        get => _shouldKeepAspectRatioProperty;
+        set => _shouldKeepAspectRatioProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _shouldKeepAspectRatioProperty = new(true);
 
     private void SetShouldKeepAspectRatio(bool value)
     {
@@ -123,7 +147,13 @@ public class ImageView : Element
     }
 
     private ImageFitType _imageFit = ImageFitType.CanShrink;
-    public ObservableProperty<ImageFitType> ImageFitProperty { get; } = new(ImageFitType.CanShrink);
+    public ObservableProperty<ImageFitType> ImageFitProperty
+    {
+        get => _imageFitProperty;
+        set => _imageFitProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ImageFitType> _imageFitProperty = new(ImageFitType.CanShrink);
 
     private void SetImageFit(ImageFitType value)
     {
@@ -144,7 +174,13 @@ public class ImageView : Element
     }
 
     private ImageResizeQuality _resizeQuality = ImageResizeQuality.Medium;
-    public ObservableProperty<ImageResizeQuality> ResizeQualityProperty { get; } = new();
+    public ObservableProperty<ImageResizeQuality> ResizeQualityProperty
+    {
+        get => _resizeQualityProperty;
+        set => _resizeQualityProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ImageResizeQuality> _resizeQualityProperty = new();
 
     private void SetResizeQuality(ImageResizeQuality value)
     {

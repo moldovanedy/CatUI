@@ -7,7 +7,7 @@ using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 
-namespace CatUISample.UI.Pages.Layout;
+namespace CatUISample.UI.Views.Layout;
 
 public class RowContainerExamples : ColumnContainer
 {

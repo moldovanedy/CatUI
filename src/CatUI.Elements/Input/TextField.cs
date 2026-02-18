@@ -146,7 +146,13 @@ public partial class TextField : InputField, IFocusable
 
     private Range _selection = new(0, 0);
 
-    public ObservableProperty<Range> SelectionProperty { get; } = new(new Range(0, 0));
+    public ObservableProperty<Range> SelectionProperty
+    {
+        get => _selectionProperty;
+        set => _selectionProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Range> _selectionProperty = new(new Range(0, 0));
 
     private void SetSelection(Range value)
     {
@@ -166,7 +172,13 @@ public partial class TextField : InputField, IFocusable
 
     private TextCaretOptions _caretOptions = new();
 
-    public ObservableProperty<TextCaretOptions> CaretOptionsProperty { get; } = new(new TextCaretOptions());
+    public ObservableProperty<TextCaretOptions> CaretOptionsProperty
+    {
+        get => _caretOptionsProperty;
+        set => _caretOptionsProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<TextCaretOptions> _caretOptionsProperty = new(new TextCaretOptions());
 
     private void SetCaretOptions(TextCaretOptions? value)
     {
@@ -269,7 +281,13 @@ public partial class TextField : InputField, IFocusable
     }
 
     private bool _isFocusEnabled = true;
-    public ObservableProperty<bool> IsFocusEnabledProperty { get; } = new(true);
+    public ObservableProperty<bool> IsFocusEnabledProperty
+    {
+        get => _isFocusEnabledProperty;
+        set => _isFocusEnabledProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _isFocusEnabledProperty = new(true);
 
     private void SetIsFocusEnabled(bool value)
     {

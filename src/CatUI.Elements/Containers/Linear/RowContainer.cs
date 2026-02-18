@@ -35,8 +35,14 @@ public class RowContainer : LinearContainerBase
         set => VerticalAlignmentProperty.Value = value;
     }
 
-    public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
-        = new(VerticalAlignmentType.Top);
+    public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty
+    {
+        get => _verticalAlignmentProperty;
+        set => _verticalAlignmentProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<VerticalAlignmentType> _verticalAlignmentProperty =
+        new(VerticalAlignmentType.Top);
 
     private void SetVerticalAlignment(VerticalAlignmentType value)
     {

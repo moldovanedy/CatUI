@@ -1,20 +1,33 @@
+using System;
+using System.Collections.Generic;
 using CatUI.Data;
 using CatUI.Data.Brushes;
 using CatUI.Data.Containers.LinearContainers;
 using CatUI.Data.ElementData;
 using CatUI.Data.Enums;
 using CatUI.Data.Theming;
+using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Containers.Scroll;
-using CatUI.Elements.Input;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
 
-namespace CatUISample.UI.Pages.UiElements.Input;
+namespace CatUISample.UI.Views.Misc;
 
-public class TextFieldsExample : ScrollContainer
+public class CursorExamples : ScrollContainer
 {
-    public TextFieldsExample()
+    private readonly List<int> _cursors =
+    [
+        CursorIcon.CURSOR_ARROW,
+        CursorIcon.CURSOR_CROSSHAIR,
+        CursorIcon.CURSOR_ALL_RESIZE,
+        CursorIcon.CURSOR_NESW_RESIZE,
+        CursorIcon.CURSOR_NOT_ALLOWED,
+        CursorIcon.CURSOR_POINTING_HAND,
+        CursorIcon.CURSOR_TEXT
+    ];
+
+    public CursorExamples()
     {
         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
 
@@ -29,18 +42,20 @@ public class TextFieldsExample : ScrollContainer
                     Arrangement = LinearArrangement.SpacedBy(5),
                     Children =
                     [
-                        new Label("Text fields examples", TextAlignmentType.Center)
+                        new Label("Cursor examples", TextAlignmentType.Center)
                         {
                             Layout = new ElementLayout().SetMinMaxAndPreferredWidth("100%", 0, "100%"),
                             FontSize = 32,
                             TextBrush = new ColorBrush(CatTheme.Colors.OnSurface)
                         },
-                        new TextField
+                        new Button("Set random cursor", 16, new ColorBrush(CatTheme.Colors.OnPrimary))
                         {
-                            Layout =
-                                new ElementLayout()
-                                    .SetMinMaxAndPreferredWidth(250, 250, Dimension.Unset)
-                                    .SetFixedHeight(32)
+                            Layout = new ElementLayout().SetFixedWidth(150).SetFixedHeight(32),
+                            OnClick = (_, _) =>
+                            {
+                                Document?.CursorManager?.SetPersistentCursor(
+                                    _cursors[Random.Shared.Next(0, _cursors.Count)]);
+                            }
                         }
                     ]
                 }

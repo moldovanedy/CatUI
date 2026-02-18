@@ -28,7 +28,13 @@ public abstract class AbstractShapeElement : Element
     }
 
     private IBrush _fillBrush = new ColorBrush(Color.Default);
-    public ObservableProperty<IBrush> FillBrushProperty { get; } = new(new ColorBrush(Color.Default));
+    public ObservableProperty<IBrush> FillBrushProperty
+    {
+        get => _fillBrushProperty;
+        set => _fillBrushProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<IBrush> _fillBrushProperty = new(new ColorBrush(Color.Default));
 
     private void SetFillBrush(IBrush? value)
     {
@@ -50,7 +56,13 @@ public abstract class AbstractShapeElement : Element
 
     private IBrush _outlineBrush = new ColorBrush(Color.Default);
 
-    public ObservableProperty<IBrush> OutlineBrushProperty { get; } =
+    public ObservableProperty<IBrush> OutlineBrushProperty
+    {
+        get => _outlineBrushProperty;
+        set => _outlineBrushProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<IBrush> _outlineBrushProperty =
         new(new ColorBrush(Color.Default));
 
     private void SetOutlineBrush(IBrush? value)
@@ -73,7 +85,13 @@ public abstract class AbstractShapeElement : Element
 
     private OutlineParams _outlineParameters = new();
 
-    public ObservableProperty<OutlineParams> OutlineParametersProperty { get; } =
+    public ObservableProperty<OutlineParams> OutlineParametersProperty
+    {
+        get => _outlineParametersProperty;
+        set => _outlineParametersProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<OutlineParams> _outlineParametersProperty =
         new(new OutlineParams());
 
     private void SetOutlineParameters(OutlineParams value)
