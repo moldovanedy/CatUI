@@ -38,7 +38,13 @@ public class ForElement : ControlFlowElementBase
     }
 
     private Element _generatorParent;
-    public ObservableProperty<Element> GeneratorParentProperty { get; } = new();
+    public ObservableProperty<Element> GeneratorParentProperty
+    {
+        get => _generatorParentProperty;
+        set => _generatorParentProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Element> _generatorParentProperty = new();
 
     private void SetGeneratorParent(Element? value)
     {

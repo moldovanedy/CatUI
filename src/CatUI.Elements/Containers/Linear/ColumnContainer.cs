@@ -35,8 +35,14 @@ public class ColumnContainer : LinearContainerBase
         set => HorizontalAlignmentProperty.Value = value;
     }
 
-    public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty { get; }
-        = new(HorizontalAlignmentType.Left);
+    public ObservableProperty<HorizontalAlignmentType> HorizontalAlignmentProperty
+    {
+        get => _horizontalAlignmentProperty;
+        set => _horizontalAlignmentProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<HorizontalAlignmentType> _horizontalAlignmentProperty =
+        new(HorizontalAlignmentType.Left);
 
     private void SetHorizontalAlignment(HorizontalAlignmentType value)
     {

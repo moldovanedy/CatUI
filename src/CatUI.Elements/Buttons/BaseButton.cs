@@ -33,7 +33,13 @@ public class BaseButton : Element, IClickable, IFocusable
     }
 
     private bool _canUserCancelClick = true;
-    public ObservableProperty<bool> CanUserCancelClickProperty { get; } = new(true);
+    public ObservableProperty<bool> CanUserCancelClickProperty
+    {
+        get => _canUserCancelClickProperty;
+        set => _canUserCancelClickProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _canUserCancelClickProperty = new(true);
 
     private void SetCanUserCancelClick(bool value)
     {
@@ -83,7 +89,13 @@ public class BaseButton : Element, IClickable, IFocusable
     }
 
     private bool _isFocusEnabled = true;
-    public ObservableProperty<bool> IsFocusEnabledProperty { get; } = new(true);
+    public ObservableProperty<bool> IsFocusEnabledProperty
+    {
+        get => _isFocusEnabledProperty;
+        set => _isFocusEnabledProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _isFocusEnabledProperty = new(true);
 
     private void SetIsFocusEnabled(bool value)
     {

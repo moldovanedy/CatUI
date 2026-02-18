@@ -40,7 +40,13 @@ public class SwitchElement<T> : ControlFlowElementBase where T : notnull
     }
 
     private T _value;
-    public ObservableProperty<T> ValueProperty { get; } = new();
+    public ObservableProperty<T> ValueProperty
+    {
+        get => _valueProperty;
+        set => _valueProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<T> _valueProperty = new();
 
     private void SetValue(T? value)
     {

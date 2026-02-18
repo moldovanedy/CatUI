@@ -17,14 +17,6 @@ public class CatThemeClipShapes
         XlRoundingProperty.ValueChangedEvent += SetXlRounding;
     }
 
-    ~CatThemeClipShapes()
-    {
-        SmallRoundingProperty = null!;
-        MediumRoundingProperty = null!;
-        LargeRoundingProperty = null!;
-        XlRoundingProperty = null!;
-    }
-
 #pragma warning disable CA1822
     /// <summary>
     /// Returns a new rectangle clip shape with no rounding on corners. The returned value is a duplicate of the
@@ -62,7 +54,7 @@ public class CatThemeClipShapes
 
     private RoundedRectangleClipShape _smallRounding = new(4);
 
-    public ObservableProperty<RoundedRectangleClipShape> SmallRoundingProperty { get; private set; }
+    public ObservableProperty<RoundedRectangleClipShape> SmallRoundingProperty { get; }
         = new(new RoundedRectangleClipShape(4));
 
     private void SetSmallRounding(RoundedRectangleClipShape? value)

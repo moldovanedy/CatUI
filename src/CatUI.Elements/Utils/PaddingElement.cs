@@ -49,7 +49,13 @@ public class PaddingElement : Element
     }
 
     private EdgeInset _padding = new();
-    public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
+    public ObservableProperty<EdgeInset> PaddingProperty
+    {
+        get => _paddingProperty;
+        set => _paddingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<EdgeInset> _paddingProperty = new(new EdgeInset());
 
     private void SetPadding(EdgeInset value)
     {

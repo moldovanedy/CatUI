@@ -64,7 +64,13 @@ public class GeometricPathElement : AbstractShapeElement
     }
 
     private bool _shouldApplyScaling;
-    public ObservableProperty<bool> ShouldApplyScalingProperty { get; } = new(false);
+    public ObservableProperty<bool> ShouldApplyScalingProperty
+    {
+        get => _shouldApplyScalingProperty;
+        set => _shouldApplyScalingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _shouldApplyScalingProperty = new(false);
 
     private void SetShouldApplyScaling(bool value)
     {
@@ -90,7 +96,13 @@ public class GeometricPathElement : AbstractShapeElement
     }
 
     private bool _shouldRespectContentScaling = true;
-    public ObservableProperty<bool> ShouldRespectContentScalingProperty { get; } = new(true);
+    public ObservableProperty<bool> ShouldRespectContentScalingProperty
+    {
+        get => _shouldRespectContentScalingProperty;
+        set => _shouldRespectContentScalingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _shouldRespectContentScalingProperty = new(true);
 
     private void SetShouldRespectContentScaling(bool value)
     {
@@ -130,7 +142,13 @@ public class GeometricPathElement : AbstractShapeElement
     }
 
     private string _svgPath = "";
-    public ObservableProperty<string> SvgPathProperty { get; } = new("");
+    public ObservableProperty<string> SvgPathProperty
+    {
+        get => _svgPathProperty;
+        set => _svgPathProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<string> _svgPathProperty = new("");
 
     private void SetSvgPath(string? value)
     {

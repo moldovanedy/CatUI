@@ -9,7 +9,7 @@ using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
 
-namespace CatUISample.UI.Pages.Layout;
+namespace CatUISample.UI.Views.Layout;
 
 public class ScrollContainerExamples : ColumnContainer
 {

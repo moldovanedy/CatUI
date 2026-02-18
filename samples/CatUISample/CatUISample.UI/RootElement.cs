@@ -8,12 +8,12 @@ using CatUI.Data.Theming;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Helpers.Navigation;
 using CatUI.Utils;
-using CatUISample.UI.Pages;
-using CatUISample.UI.Pages.Layout;
-using CatUISample.UI.Pages.Misc;
-using CatUISample.UI.Pages.NativeUi;
-using CatUISample.UI.Pages.UiElements;
-using CatUISample.UI.Pages.UiElements.Input;
+using CatUISample.UI.Views;
+using CatUISample.UI.Views.Layout;
+using CatUISample.UI.Views.Misc;
+using CatUISample.UI.Views.NativeUi;
+using CatUISample.UI.Views.UiElements;
+using CatUISample.UI.Views.UiElements.Input;
 using CatUISample.UI.Theming;
 
 namespace CatUISample.UI;
@@ -32,7 +32,7 @@ public class RootElement : RowContainer
             new Navigator(
                 new Dictionary<string, Func<NavArgs?, NavRoute>>
                 {
-                    { "/", _ => new NavRoute(new MainPage()) },
+                    { "/", _ => new NavRoute(new MainView()) },
                     { "/Layout/RowContainer", _ => new NavRoute(new RowContainerExamples()) },
                     { "/Layout/ScrollContainer", _ => new NavRoute(new ScrollContainerExamples()) },
                     { "/UiElements/Buttons", _ => new NavRoute(new ButtonsExample()) },

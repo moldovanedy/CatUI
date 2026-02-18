@@ -159,7 +159,14 @@ public partial class Element
     }
 
     private Dimension2 _position = new(0, 0);
-    public ObservableProperty<Dimension2> PositionProperty { get; } = new(new Dimension2(0, 0));
+
+    public ObservableProperty<Dimension2> PositionProperty
+    {
+        get => _positionProperty;
+        set => _positionProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Dimension2> _positionProperty = new(new Dimension2(0, 0));
 
     private void SetPosition(Dimension2 value)
     {
@@ -179,7 +186,14 @@ public partial class Element
     }
 
     private IBrush _background = new ColorBrush(Color.Default);
-    public ObservableProperty<IBrush> BackgroundProperty { get; } = new(new ColorBrush(Color.Default));
+
+    public ObservableProperty<IBrush> BackgroundProperty
+    {
+        get => _backgroundProperty;
+        set => _backgroundProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<IBrush> _backgroundProperty = new(new ColorBrush(Color.Default));
 
     private void SetBackground(IBrush? value)
     {
@@ -209,7 +223,14 @@ public partial class Element
     }
 
     private ClipShape? _clipPath;
-    public ObservableProperty<ClipShape> ClipPathProperty { get; } = new(null);
+
+    public ObservableProperty<ClipShape> ClipPathProperty
+    {
+        get => _clipPathProperty;
+        set => _clipPathProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ClipShape> _clipPathProperty = new(null);
 
     private void SetClipPath(ClipShape? value)
     {
@@ -233,8 +254,13 @@ public partial class Element
 
     private ClipApplicability _clipType = ClipApplicability.All;
 
-    public ObservableProperty<ClipApplicability> ClipTypeProperty { get; } =
-        new(ClipApplicability.All);
+    public ObservableProperty<ClipApplicability> ClipTypeProperty
+    {
+        get => _clipTypeProperty;
+        set => _clipTypeProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ClipApplicability> _clipTypeProperty = new(ClipApplicability.All);
 
     private void SetClipType(ClipApplicability value)
     {
@@ -295,7 +321,14 @@ public partial class Element
     }
 
     private bool _locallyVisible = true;
-    public ObservableProperty<bool> LocallyVisibleProperty { get; } = new(true);
+
+    public ObservableProperty<bool> LocallyVisibleProperty
+    {
+        get => _locallyVisibleProperty;
+        set => _locallyVisibleProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _locallyVisibleProperty = new(true);
 
     private void SetLocallyVisible(bool value)
     {
@@ -355,7 +388,14 @@ public partial class Element
     }
 
     private bool _locallyEnabled = true;
-    public ObservableProperty<bool> LocallyEnabledProperty { get; } = new(true);
+
+    public ObservableProperty<bool> LocallyEnabledProperty
+    {
+        get => _locallyEnabledProperty;
+        set => _locallyEnabledProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _locallyEnabledProperty = new(true);
 
     private void SetLocallyEnabled(bool value)
     {
@@ -420,7 +460,14 @@ public partial class Element
     }
 
     private int _cursor = CursorIcon.CURSOR_AUTO;
-    public ObservableProperty<int> CursorProperty { get; } = new(CursorIcon.CURSOR_AUTO);
+
+    public ObservableProperty<int> CursorProperty
+    {
+        get => _cursorProperty;
+        set => _cursorProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<int> _cursorProperty = new(CursorIcon.CURSOR_AUTO);
 
     private void SetCursor(int value)
     {
@@ -453,7 +500,14 @@ public partial class Element
     }
 
     private ContainerSizing? _elementContainerSizing;
-    public ObservableProperty<ContainerSizing> ElementContainerSizingProperty { get; } = new();
+
+    public ObservableProperty<ContainerSizing> ElementContainerSizingProperty
+    {
+        get => _elementContainerSizingProperty;
+        set => _elementContainerSizingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<ContainerSizing> _elementContainerSizingProperty = new();
 
     private void SetElementContainerSizing(ContainerSizing? value)
     {

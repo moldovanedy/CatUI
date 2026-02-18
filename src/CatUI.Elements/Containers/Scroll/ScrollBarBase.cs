@@ -33,7 +33,13 @@ public abstract class ScrollBarBase : Element
     }
 
     private bool _shouldDisplayButtons = true;
-    public ObservableProperty<bool> ShouldDisplayButtonsProperty { get; } = new(true);
+    public ObservableProperty<bool> ShouldDisplayButtonsProperty
+    {
+        get => _shouldDisplayButtonsProperty;
+        set => _shouldDisplayButtonsProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<bool> _shouldDisplayButtonsProperty = new(true);
 
     private void SetShouldDisplayButtons(bool value)
     {
@@ -55,8 +61,14 @@ public abstract class ScrollBarBase : Element
 
     private RepositionBehaviorType _repositionBehavior = RepositionBehaviorType.GoToPosition;
 
-    public ObservableProperty<RepositionBehaviorType> RepositionBehaviorProperty { get; }
-        = new(RepositionBehaviorType.GoToPosition);
+    public ObservableProperty<RepositionBehaviorType> RepositionBehaviorProperty
+    {
+        get => _repositionBehaviorProperty;
+        set => _repositionBehaviorProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<RepositionBehaviorType> _repositionBehaviorProperty =
+        new(RepositionBehaviorType.GoToPosition);
 
     private void SetRepositionBehavior(RepositionBehaviorType value)
     {

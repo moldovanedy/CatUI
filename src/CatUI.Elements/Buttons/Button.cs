@@ -48,7 +48,13 @@ public class Button : BaseButton, IPaddingAware
     }
 
     private EdgeInset _padding = new();
-    public ObservableProperty<EdgeInset> PaddingProperty { get; } = new(new EdgeInset());
+    public ObservableProperty<EdgeInset> PaddingProperty
+    {
+        get => _paddingProperty;
+        set => _paddingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<EdgeInset> _paddingProperty = new(new EdgeInset());
 
     private void SetPadding(EdgeInset value)
     {
@@ -67,7 +73,13 @@ public class Button : BaseButton, IPaddingAware
     }
 
     private Dimension _spacing = new();
-    public ObservableProperty<Dimension> SpacingProperty { get; } = new(new Dimension());
+    public ObservableProperty<Dimension> SpacingProperty
+    {
+        get => _spacingProperty;
+        set => _spacingProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Dimension> _spacingProperty = new(new Dimension());
 
     private void SetSpacing(Dimension value)
     {
@@ -91,8 +103,12 @@ public class Button : BaseButton, IPaddingAware
 
     public ObservableProperty<LinearArrangement.JustificationType> HorizontalArrangementProperty
     {
-        get;
-    } = new(LinearArrangement.JustificationType.Center);
+        get => _horizontalArrangementProperty;
+        set => _horizontalArrangementProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<LinearArrangement.JustificationType> _horizontalArrangementProperty =
+        new(LinearArrangement.JustificationType.Center);
 
     private void SetHorizontalArrangement(LinearArrangement.JustificationType value)
     {
@@ -112,8 +128,14 @@ public class Button : BaseButton, IPaddingAware
 
     private VerticalAlignmentType _verticalAlignment = VerticalAlignmentType.Center;
 
-    public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty { get; }
-        = new(VerticalAlignmentType.Center);
+    public ObservableProperty<VerticalAlignmentType> VerticalAlignmentProperty
+    {
+        get => _verticalAlignmentProperty;
+        set => _verticalAlignmentProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<VerticalAlignmentType> _verticalAlignmentProperty =
+        new(VerticalAlignmentType.Center);
 
     private void SetVerticalAlignment(VerticalAlignmentType value)
     {

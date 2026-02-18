@@ -24,7 +24,14 @@ public abstract class TextElement : Element
     }
 
     private string _text = string.Empty;
-    public ObservableProperty<string> TextProperty { get; } = new(string.Empty);
+
+    public ObservableProperty<string> TextProperty
+    {
+        get => _textProperty;
+        set => _textProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<string> _textProperty = new(string.Empty);
 
     private void SetText(string? value)
     {
@@ -40,7 +47,14 @@ public abstract class TextElement : Element
     }
 
     private FontAsset? _font;
-    public ObservableProperty<FontAsset> FontProperty { get; } = new();
+
+    public ObservableProperty<FontAsset> FontProperty
+    {
+        get => _fontProperty;
+        set => _fontProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<FontAsset> _fontProperty = new();
 
     private void SetFont(FontAsset? value)
     {
@@ -64,7 +78,14 @@ public abstract class TextElement : Element
     }
 
     private Dimension _fontSize = new(16);
-    public ObservableProperty<Dimension> FontSizeProperty { get; } = new(new Dimension(16));
+
+    public ObservableProperty<Dimension> FontSizeProperty
+    {
+        get => _fontSizeProperty;
+        set => _fontSizeProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<Dimension> _fontSizeProperty = new(new Dimension(16));
 
     private void SetFontSize(Dimension value)
     {
@@ -87,8 +108,13 @@ public abstract class TextElement : Element
 
     private TextAlignmentType _textAlignment = TextAlignmentType.Left;
 
-    public ObservableProperty<TextAlignmentType> TextAlignmentProperty { get; }
-        = new(TextAlignmentType.Left);
+    public ObservableProperty<TextAlignmentType> TextAlignmentProperty
+    {
+        get => _textAlignmentProperty;
+        set => _textAlignmentProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<TextAlignmentType> _textAlignmentProperty = new(TextAlignmentType.Left);
 
     private void SetTextAlignment(TextAlignmentType value)
     {

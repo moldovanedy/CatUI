@@ -11,6 +11,7 @@ using CatUI.Elements.Buttons;
 using CatUI.Elements.Containers.Linear;
 using CatUI.Elements.Containers.Scroll;
 using CatUI.Elements.ControlFlow;
+using CatUI.Elements.Input;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 
@@ -97,7 +98,7 @@ public static class ItaniaTheme
                 checkBox.Spacing = 10;
 
                 checkBox.IndicatorElement = new TriStateCheckBoxIndicator(
-                    CheckBox.CheckBoxState.Unchecked,
+                    checkBox.Value,
                     new RoundedRectangleElement(new ColorBrush(CatTheme.Colors.Primary))
                     {
                         RoundCornersDescriptor = CatTheme.ClipShapes.SmallRounding.RoundCornersDescriptor,
@@ -263,6 +264,34 @@ public static class ItaniaTheme
             };
         }));
 
+        //text field
+        theme.AddOrUpdateElementTypeDefinition<TextField>(
+            new ThemeDefinition(
+                el =>
+                {
+                    var textField = (TextField)el;
+
+                    //decor outline
+                    textField.InternalContainer.Children[0] =
+                        new RoundedRectangleElement(null, new ColorBrush(CatTheme.Colors.Outline))
+                        {
+                            Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%"),
+                            RoundCornersDescriptor = new CornerInset(5)
+                        };
+                },
+                (el, classes) =>
+                {
+                    var textField = (TextField)el;
+
+                    if (textField.InternalContainer.Children[0] is AbstractShapeElement shape)
+                    {
+                        shape.OutlineBrush =
+                            classes.Contains(IFocusable.PSEUDO_CLASS_FOCUSED)
+                                ? new ColorBrush(CatTheme.Colors.OnPrimary)
+                                : new ColorBrush(CatTheme.Colors.Outline);
+                    }
+                }));
+
         return theme;
 
         void OnFocusableDraw(object sender)
@@ -272,6 +301,8 @@ public static class ItaniaTheme
                 return;
             }
 
+            //TODO: only draw the outline if the navigation was done with the keyboard; also provide a mechanism for
+            // elements to cancel this if they provide their own means of communicating that the element has focus
             element.Document?.Renderer.DrawRectOutline(
                 element.Bounds,
                 new ColorBrush(CatTheme.Colors.OutlineVariant),

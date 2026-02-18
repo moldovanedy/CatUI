@@ -22,7 +22,13 @@ public abstract partial class LinearContainerBase : Container
 
     private LinearArrangement _arrangement = new();
 
-    public ObservableProperty<LinearArrangement> ArrangementProperty { get; } =
+    public ObservableProperty<LinearArrangement> ArrangementProperty
+    {
+        get => _arrangementProperty;
+        set => _arrangementProperty.BindBidirectional(value);
+    }
+
+    private readonly ObservableProperty<LinearArrangement> _arrangementProperty =
         new(new LinearArrangement());
 
     private void SetArrangement(LinearArrangement? value)
