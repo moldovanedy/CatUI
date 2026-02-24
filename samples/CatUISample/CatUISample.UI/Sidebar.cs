@@ -22,7 +22,8 @@ public class Sidebar : ColumnContainer
         ("UI Elements - Text fields", "/UiElements/Input/TextFields"),
         ("Native UI - File picking", "/NativeUi/FilePicking"),
         ("Misc - Cursors", "/Misc/Cursors"),
-        ("Misc - Animation", "/Misc/Animation")
+        ("Misc - Animation", "/Misc/Animation"),
+        ("Misc - Canvas", "/Misc/Canvas")
     ];
 
     public Sidebar(ObjectRef<Navigator> navigatorRef)
