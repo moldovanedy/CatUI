@@ -39,7 +39,8 @@ public class RootElement : RowContainer
                     { "/UiElements/Input/TextFields", _ => new NavRoute(new TextFieldsExample()) },
                     { "/NativeUi/FilePicking", _ => new NavRoute(new FilePickingExamples()) },
                     { "/Misc/Cursors", _ => new NavRoute(new CursorExamples()) },
-                    { "/Misc/Animation", _ => new NavRoute(new AnimationExamples()) }
+                    { "/Misc/Animation", _ => new NavRoute(new AnimationExamples()) },
+                    { "/Misc/Canvas", _ => new NavRoute(new CanvasExamples()) }
                 },
                 "/")
             {
