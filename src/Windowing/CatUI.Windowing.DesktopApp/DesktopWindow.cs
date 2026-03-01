@@ -12,6 +12,7 @@ using CatUI.Elements;
 using CatUI.Platform.NativeUI;
 using CatUI.Platform;
 using CatUI.Platform.CommonInterface;
+using CatUI.Platform.DesktopCommon.OS;
 using CatUI.Windowing.Common;
 using CatUI.Windowing.DesktopApp.GraphicsBackends;
 using CatUI.Windowing.DesktopApp.PlatformImplementations;
@@ -29,6 +30,8 @@ namespace CatUI.Windowing.DesktopApp;
 [SupportedOSPlatform("linux")]
 public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycle
 {
+    private static int _openWindows;
+
     /// <summary>
     /// Represents the window's document. All elements that will appear on this window must be part of this document.
     /// </summary>
@@ -675,6 +678,13 @@ public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycl
 
         GlfwWindow = windowPtr;
         GLFW.SetWindowSizeLimits(GlfwWindow, _minWidth, _minHeight, _maxWidth, _maxHeight);
+        _openWindows++;
+
+        //set the window handle for the clipboard manager
+        if (OS.ClipboardProvider is ClipboardProviderDesktop clipboardProviderDesktop)
+        {
+            clipboardProviderDesktop.SetGlfwWindowHandle((nint)GlfwWindow);
+        }
 
         switch (GraphicsBackend)
         {
@@ -1294,6 +1304,19 @@ public unsafe partial class DesktopWindow : IApplicationWindow, IClassicLifecycl
         {
             GLFW.DestroyWindow(GlfwWindow);
             GlfwWindow = (Window*)0;
+        }
+
+        _openWindows--;
+
+        if (_openWindows <= 0)
+        {
+            //avoid errors from using a freed pointer for clipboard
+            if (OS.ClipboardProvider is ClipboardProviderDesktop clipboardProviderDesktop)
+            {
+                clipboardProviderDesktop.SetGlfwWindowHandle(0);
+            }
+
+            GLFW.Terminate();
         }
 
         CatLogger.LogVerbose("Window terminated.");

@@ -21,6 +21,7 @@ using CatUI.Elements.Containers.Scroll;
 using CatUI.Elements.Shapes;
 using CatUI.Elements.Text;
 using CatUI.Elements.Utils;
+using CatUI.Platform;
 using CatUI.RenderingEngine.GraphicsCaching;
 using CatUI.Utils;
 
@@ -281,6 +282,7 @@ public partial class TextField : InputField, IFocusable
     }
 
     private bool _isFocusEnabled = true;
+
     public ObservableProperty<bool> IsFocusEnabledProperty
     {
         get => _isFocusEnabledProperty;
@@ -499,11 +501,6 @@ public partial class TextField : InputField, IFocusable
 
     private void PrivateOnKey(object sender, KeyEventArgs e)
     {
-        if (_label.Text.Length == 0)
-        {
-            return;
-        }
-
         if (e.Action == KeyAction.Released)
         {
             return;
@@ -512,15 +509,30 @@ public partial class TextField : InputField, IFocusable
         //deletion
         if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_DELETE_FROM_BEGINNING))
         {
+            if (_label.Text.Length == 0)
+            {
+                return;
+            }
+
             Delete(true);
         }
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_DELETE_FROM_END))
         {
+            if (_label.Text.Length == 0)
+            {
+                return;
+            }
+
             Delete(false);
         }
         //one char navigation
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_LEFT))
         {
+            if (_label.Text.Length == 0)
+            {
+                return;
+            }
+
             if (CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft)
             {
                 EndNav(1);
@@ -532,6 +544,11 @@ public partial class TextField : InputField, IFocusable
         }
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_RIGHT))
         {
+            if (_label.Text.Length == 0)
+            {
+                return;
+            }
+
             if (CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft)
             {
                 HomeNav(1);
@@ -544,17 +561,32 @@ public partial class TextField : InputField, IFocusable
         //one word navigation
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_NEXT_WORD))
         {
+            if (_label.Text.Length == 0)
+            {
+                return;
+            }
+
             int pos = GoToAdjacentWord(true);
             EndNav(pos - Selection.End.Value);
         }
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_PREVIOUS_WORD))
         {
+            if (_label.Text.Length == 0)
+            {
+                return;
+            }
+
             int pos = GoToAdjacentWord(false);
             HomeNav(Selection.Start.Value - pos);
         }
         //entire row navigation
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_BEGINNING))
         {
+            if (_label.Text.Length == 0)
+            {
+                return;
+            }
+
             //an enormous value to ensure that an end is reached (will get clamped anyway) while avoiding overflow;
             // this the middle of the integer range
             HomeNav(1 << 30);
@@ -562,6 +594,41 @@ public partial class TextField : InputField, IFocusable
         else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_END))
         {
             EndNav(1 << 30);
+        }
+        //cut, copy, paste
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_CUT))
+        {
+            if (Selection.End.Value - Selection.Start.Value > 0)
+            {
+                bool isSuccess =
+                    OS.ClipboardProvider?.SetClipboardContent(
+                        _label.Text.Substring(Selection.Start.Value, Selection.End.Value - Selection.Start.Value))
+                 ?? false;
+                if (!isSuccess)
+                {
+                    CatLogger.LogInfo("Setting clipboard content failed");
+                }
+            }
+
+            Delete(true);
+        }
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_COPY))
+        {
+            if (Selection.End.Value - Selection.Start.Value > 0)
+            {
+                bool isSuccess =
+                    OS.ClipboardProvider?.SetClipboardContent(
+                        _label.Text.Substring(Selection.Start.Value, Selection.End.Value - Selection.Start.Value))
+                 ?? false;
+                if (!isSuccess)
+                {
+                    CatLogger.LogInfo("Setting clipboard content failed");
+                }
+            }
+        }
+        else if (InputManager.IsShortcutCurrentlyTriggered(DefaultShortcutNames.TEXT_PASTE))
+        {
+            AppendString(OS.ClipboardProvider?.GetClipboardContent() ?? string.Empty);
         }
     }
 
@@ -731,6 +798,50 @@ public partial class TextField : InputField, IFocusable
         }
 
         return startIdx - prevMatches[^1].Length;
+    }
+
+    private void AppendString(string text)
+    {
+        if (text.Length == 0)
+        {
+            return;
+        }
+
+        text = text.Replace("\n", " ");
+
+        //this will make the regular adjustments: delete the already selected text (if exists), add the char to the
+        // text, and update the selection and caret
+        PrivateOnCharTyped(this, new CharTypedEventArgs(text[0]));
+
+        for (int i = 1; i < text.Length; i++)
+        {
+            float charSize = TextMeasuringCache.GetValueOrCalculate(
+                text[i].ToString(),
+                CalculateDimension(_label.FontSize),
+                _label.Font ?? FontAsset.Default);
+
+            if (Selection.Start.Value + i - 1 == _characterSizes.Count)
+            {
+                _characterSizes.Add(charSize);
+            }
+            else
+            {
+                _characterSizes.Insert(Selection.Start.Value + i - 1, charSize);
+            }
+        }
+
+        text = text.Substring(1);
+        if (Selection.Start.Value == _label.Text.Length)
+        {
+            _label.Text += text;
+        }
+        else
+        {
+            _label.Text = _label.Text.Insert(Selection.Start.Value, text);
+        }
+
+        UpdateSelectionAndCaret(
+            new Range(Selection.Start.Value + text.Length, Selection.Start.Value + text.Length));
     }
 
     private void Delete(bool isFromBackspace)
