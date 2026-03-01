@@ -164,6 +164,13 @@ public class CatApplication
             new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.Home));
         InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_NAVIGATE_TO_ROW_END] =
             new Shortcut(new Shortcut.KeyCombination(KeyModifiers.None, PhysicalKey.End));
+
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_CUT] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Control, PhysicalKey.X));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_COPY] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Control, PhysicalKey.C));
+        InputManager.CurrentShortcuts[DefaultShortcutNames.TEXT_PASTE] =
+            new Shortcut(new Shortcut.KeyCombination(KeyModifiers.Control, PhysicalKey.V));
     }
 
     /// <summary>

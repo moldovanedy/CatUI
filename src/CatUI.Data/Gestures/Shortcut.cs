@@ -66,6 +66,22 @@ public static class DefaultShortcutNames
     /// Moves the caret to the row end (right in most languages) (default is End).
     /// </summary>
     public const string TEXT_NAVIGATE_TO_ROW_END = nameof(TEXT_NAVIGATE_TO_ROW_END);
+
+
+    /// <summary>
+    /// Removes the text and adds it to the clipboard.
+    /// </summary>
+    public const string TEXT_CUT = nameof(TEXT_CUT);
+
+    /// <summary>
+    /// Adds the text to the clipboard.
+    /// </summary>
+    public const string TEXT_COPY = nameof(TEXT_COPY);
+
+    /// <summary>
+    /// Adds the text from the clipboard.
+    /// </summary>
+    public const string TEXT_PASTE = nameof(TEXT_PASTE);
 }
 
 /// <summary>

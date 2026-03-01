@@ -33,6 +33,15 @@ public static class OS
     public static ICursorProvider? CursorProvider { get; private set; }
 
     /// <summary>
+    /// Provides access to the user's clipboard. See <see cref="IClipboardProvider"/> for more info.
+    /// </summary>
+    /// <remarks>
+    /// On desktop, the clipboard is only available after creating a window and before the last window is destroyed.
+    /// When your app has no opened windows, it doesn't work.
+    /// </remarks>
+    public static IClipboardProvider? ClipboardProvider { get; private set; }
+
+    /// <summary>
     /// Provides access to the window icon. IApplicationWindow.GetWindowIcon provides more sizes and also caches the
     /// result, so it's the preferred method to get the window icon instead of this.
     /// </summary>
@@ -178,6 +187,13 @@ public static class OS
         if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() || OperatingSystem.IsLinux())
         {
             CursorProvider = new CursorProviderDesktop();
+        }
+#endif
+
+#if CAT_WINDOWS || CAT_MACOS || CAT_LINUX || CAT_ANY_PLATFORM
+        if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() || OperatingSystem.IsLinux())
+        {
+            ClipboardProvider = new ClipboardProviderDesktop();
         }
 #endif
     }
