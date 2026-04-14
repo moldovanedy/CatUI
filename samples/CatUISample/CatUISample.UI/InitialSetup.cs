@@ -1,6 +1,12 @@
+using System.Reflection;
+using CatUI.CoreExtensions.I18n;
+using CatUI.CoreExtensions.I18n.GetText;
 using CatUI.Data;
+using CatUI.Data.Assets;
+using CatUI.Data.Managers;
 using CatUI.Data.Theming;
 using CatUI.Data.Theming.Colors;
+using CatUISample.UI.Views;
 
 namespace CatUISample.UI
 {
@@ -253,6 +259,13 @@ namespace CatUISample.UI
 
             CatThemeBuilder.ApplyTheme();
             CatTheme.Settings.IsDarkModeEnabled = new CatPlatformDependentSetting<bool>(true, true);
+
+            AssetsManager.AddAssetAssembly(Assembly.GetAssembly(typeof(MainView))!);
+            var i18NAsset = AssetsManager.LoadFromAssembly<I18NStreamAsset>("/Assets/Strings/en_US.mo");
+            if (i18NAsset != null)
+            {
+                StringMgr.Instance.SetLocalizationManager(new GetTextLocalizationManager("en_US", i18NAsset));
+            }
         }
     }
 }

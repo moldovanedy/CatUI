@@ -1,0 +1,25 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2026-04-12 14:27+0300\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Hello world in English!"
+msgstr "Hello world in English!"
+
+msgid "I have {0} apple."
+msgid_plural "I have {0} apples."
+msgstr[0] "I have an apple."
+msgstr[1] "I have {0} apples."
+
+msgctxt "Verb"
+msgid "File"
+msgstr "File"
+
+msgctxt "Noun"
+msgid "File"
+msgstr "File"

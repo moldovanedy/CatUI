@@ -89,13 +89,15 @@ public class ObservableProperty<T> where T : notnull
 
     /// <summary>
     /// Connects the given property to this one such as when that property changes, this one will take its value
-    /// and use it. The opposite (when this property changes) will not work (i.e. the other property won't be notified).
-    /// So it makes the two properties connected, but only in one way.
+    /// and use it. The opposite (when this property changes) will not work (i.e., the other property won't be notified).
+    /// So it makes the two properties connected, but only in one way. Will set this <see cref="Value"/> to the value
+    /// of the otherProperty.
     /// </summary>
     /// <param name="otherProperty">The property to listen to.</param>
     public void BindUnidirectional(ObservableProperty<T> otherProperty)
     {
         otherProperty.ValueChangedEvent += OnChangeCall;
+        Value = otherProperty.Value;
     }
 
     /// <summary>
@@ -110,13 +112,14 @@ public class ObservableProperty<T> where T : notnull
     /// <summary>
     /// Connects the given property to this one and viceversa, so when either of the properties change its
     /// value, the other one will be notified and will change its value as well. It makes the two properties
-    /// completely connected.
+    /// completely connected. Will set this <see cref="Value"/> to the value of the otherProperty.
     /// </summary>
     /// <param name="otherProperty">The property to listen to and from.</param>
     public void BindBidirectional(ObservableProperty<T> otherProperty)
     {
         otherProperty.ValueChangedEvent += OnChangeCall;
         ValueChangedEvent += otherProperty.OnChangeCall;
+        Value = otherProperty.Value;
     }
 
     /// <summary>
@@ -140,4 +143,4 @@ public class ObservableProperty<T> where T : notnull
     }
 }
 
-public delegate void ValueChangedEventArgs<T>(T? newValue);
+public delegate void ValueChangedEventArgs<in T>(T? newValue);

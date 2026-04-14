@@ -23,7 +23,8 @@ public class Sidebar : ColumnContainer
         ("Native UI - File picking", "/NativeUi/FilePicking"),
         ("Misc - Cursors", "/Misc/Cursors"),
         ("Misc - Animation", "/Misc/Animation"),
-        ("Misc - Canvas", "/Misc/Canvas")
+        ("Misc - Canvas", "/Misc/Canvas"),
+        ("Misc - Internationalization", "/Misc/Internationalization")
     ];
 
     public Sidebar(ObjectRef<Navigator> navigatorRef)

@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
 
         <PublishAot>true</PublishAot>
-        <InvariantGlobalization>true</InvariantGlobalization>
+        <InvariantGlobalization>false</InvariantGlobalization>
         <TrimmerSingleWarn>false</TrimmerSingleWarn>
 
         <ApplicationIcon>./icon.ico</ApplicationIcon>

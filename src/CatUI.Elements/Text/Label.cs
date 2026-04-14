@@ -45,6 +45,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private bool _wordWrap;
+
     public ObservableProperty<bool> WordWrapProperty
     {
         get => _wordWrapProperty;
@@ -92,6 +93,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private string _overflowString = "\u2026";
+
     public ObservableProperty<string> OverflowStringProperty
     {
         get => _overflowStringProperty;
@@ -148,6 +150,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private char _hyphenCharacter = '-';
+
     public ObservableProperty<char> HyphenCharacterProperty
     {
         get => _hyphenCharacterProperty;
@@ -173,6 +176,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private IBrush _textBrush = new ColorBrush(new Color(0));
+
     public ObservableProperty<IBrush> TextBrushProperty
     {
         get => _textBrushProperty;
@@ -237,6 +241,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private float _lineHeight = 1.2f;
+
     public ObservableProperty<float> LineHeightProperty
     {
         get => _lineHeightProperty;
@@ -265,6 +270,7 @@ public class Label : TextElement, IWordWrappable, ITextOverflowAware
     }
 
     private bool _canExpand = true;
+
     public ObservableProperty<bool> CanExpandProperty
     {
         get => _canExpandProperty;

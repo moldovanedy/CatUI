@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CatUI.CoreExtensions.I18n\CatUI.CoreExtensions.I18n.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="GetText.NET" />
+    </ItemGroup>
+
+</Project>
