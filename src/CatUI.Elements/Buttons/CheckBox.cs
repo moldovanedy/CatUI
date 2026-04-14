@@ -55,6 +55,16 @@ public class CheckBox : BaseButton, IToggleable
     {
         _value = value;
         SetLocalValue(nameof(Value), value);
+
+        if (value == CheckBoxState.Checked)
+        {
+            AddPseudoClass(IToggleable.PSEUDO_CLASS_ACTIVE);
+        }
+        else
+        {
+            RemovePseudoClass(IToggleable.PSEUDO_CLASS_ACTIVE);
+        }
+
         MarkLayoutDirty();
     }
 

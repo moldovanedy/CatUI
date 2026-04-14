@@ -376,3 +376,6 @@ docs/api/
 **/.directory
 **/.DS_Store
 **/desktop.ini
+
+# Compiled internationalization messages
+*.mo

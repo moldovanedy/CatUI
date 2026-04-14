@@ -9,6 +9,8 @@
     <ItemGroup>
         <ProjectReference Include="../../../src/CatUI/CatUI.csproj" />
         <ProjectReference Include="../../../src/CoreExtensions/CatUI.CoreExtensions.Itania/CatUI.CoreExtensions.Itania.csproj" />
+        <ProjectReference Include="../../../src/CoreExtensions/CatUI.CoreExtensions.I18n/CatUI.CoreExtensions.I18n.csproj" />
+        <ProjectReference Include="../../../src/CoreExtensions/CatUI.CoreExtensions.I18n.GetText/CatUI.CoreExtensions.I18n.GetText.csproj" />
     </ItemGroup>
 
     <ItemGroup>

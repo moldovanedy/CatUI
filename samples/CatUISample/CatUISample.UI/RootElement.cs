@@ -40,7 +40,8 @@ public class RootElement : RowContainer
                     { "/NativeUi/FilePicking", _ => new NavRoute(new FilePickingExamples()) },
                     { "/Misc/Cursors", _ => new NavRoute(new CursorExamples()) },
                     { "/Misc/Animation", _ => new NavRoute(new AnimationExamples()) },
-                    { "/Misc/Canvas", _ => new NavRoute(new CanvasExamples()) }
+                    { "/Misc/Canvas", _ => new NavRoute(new CanvasExamples()) },
+                    { "/Misc/Internationalization", _ => new NavRoute(new InternationalizationExamples()) }
                 },
                 "/")
             {

@@ -51,6 +51,16 @@ public class RadioButton : BaseButton, IToggleable
     {
         _value = value;
         SetLocalValue(nameof(Value), value);
+
+        if (value)
+        {
+            AddPseudoClass(IToggleable.PSEUDO_CLASS_ACTIVE);
+        }
+        else
+        {
+            RemovePseudoClass(IToggleable.PSEUDO_CLASS_ACTIVE);
+        }
+
         MarkLayoutDirty();
     }
 
@@ -64,6 +74,7 @@ public class RadioButton : BaseButton, IToggleable
     }
 
     private Dimension _spacing = new();
+
     public ObservableProperty<Dimension> SpacingProperty
     {
         get => _spacingProperty;
@@ -340,6 +351,9 @@ public class RadioButton : BaseButton, IToggleable
 
     private void PrivateOnClick(object sender, ClickEventArgs e)
     {
-        Value = !Value;
+        if (!Value)
+        {
+            Value = true;
+        }
     }
 }

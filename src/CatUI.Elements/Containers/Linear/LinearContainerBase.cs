@@ -381,7 +381,7 @@ public abstract partial class LinearContainerBase : Container
                     {
                         CatLogger.LogWarning(
                             "An element didn't obey the enforced size. Make sure you take the parentEnforcedSize into" +
-                            "consideration when you override Element.RecomputeLayout. The layout might be corrupted.");
+                            " consideration when you override Element.RecomputeLayout. The layout might be corrupted.");
                     }
                 }
 

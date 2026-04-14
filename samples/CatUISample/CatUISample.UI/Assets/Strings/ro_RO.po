@@ -1,0 +1,27 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2026-04-12 14:28+0300\n"
+"Language-Team: Romanian \n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
+
+msgid "Hello world in English!"
+msgstr "Salut lume in română!"
+
+msgid "I have {0} apple."
+msgid_plural "I have {0} apples."
+msgstr[0] "Am un măr."
+msgstr[1] "Am {0} mere."
+msgstr[2] "Am {0} de mere."
+
+msgctxt "Verb"
+msgid "File"
+msgstr "Depune"
+
+msgctxt "Noun"
+msgid "File"
+msgstr "Fișier"

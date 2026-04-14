@@ -1,4 +1,3 @@
-using System.Reflection;
 using CatUI.Data;
 using CatUI.Data.Assets;
 using CatUI.Data.Brushes;
@@ -23,8 +22,6 @@ public class MainView : ColumnContainer
     {
         Layout = new ElementLayout().SetFixedWidth("100%").SetFixedHeight("100%");
         Arrangement = new LinearArrangement(LinearArrangement.JustificationType.Start, 20);
-
-        AssetsManager.AddAssetAssembly(Assembly.GetAssembly(typeof(MainView))!);
     }
 
     protected override void EnterDocument(object sender)

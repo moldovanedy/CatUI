@@ -51,6 +51,16 @@ public class SwitchButton : BaseButton, IToggleable
     {
         _value = value;
         SetLocalValue(nameof(Value), value);
+
+        if (value)
+        {
+            AddPseudoClass(IToggleable.PSEUDO_CLASS_ACTIVE);
+        }
+        else
+        {
+            RemovePseudoClass(IToggleable.PSEUDO_CLASS_ACTIVE);
+        }
+
         MarkLayoutDirty();
     }
 
@@ -64,6 +74,7 @@ public class SwitchButton : BaseButton, IToggleable
     }
 
     private Dimension _spacing = new();
+
     public ObservableProperty<Dimension> SpacingProperty
     {
         get => _spacingProperty;

@@ -1,0 +1,18 @@
+msgid ""
+msgstr ""
+
+msgid "Hello world in English!"
+msgstr ""
+
+msgid "I have {0} apple."
+msgid_plural "I have {0} apples."
+msgstr[0] ""
+msgstr[1] ""
+
+msgctxt "Verb"
+msgid "File"
+msgstr ""
+
+msgctxt "Noun"
+msgid "File"
+msgstr ""
