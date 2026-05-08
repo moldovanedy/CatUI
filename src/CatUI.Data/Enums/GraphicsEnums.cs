@@ -28,33 +28,34 @@ public enum GraphicsApi
     OpenGlEs = 4,
 
     /// <summary>
-    /// OpenGL core through ANGLE (desktop only).
+    /// OpenGL core through ANGLE (not implemented yet) (desktop only).
     /// </summary>
     OpenGlCoreAngle = 0x80 | 0,
 
     /// <summary>
-    /// Vulkan through ANGLE (Windows, Linux, and Android only).
+    /// Vulkan through ANGLE (not implemented yet) (Windows, Linux, and Android only).
     /// </summary>
     VulkanAngle = 0x80 | 2,
 
     /// <summary>
-    /// Metal through ANGLE (macOS/iOS only).
+    /// Metal through ANGLE (not implemented yet) (macOS/iOS only).
     /// </summary>
     VulkanMetal = 0x80 | 3,
 
     /// <summary>
-    /// DirectX 9 through ANGLE (Windows only).
+    /// DirectX 9 through ANGLE (not implemented yet) (Windows only).
     /// </summary>
     Dx9Angle = 0x80 | 5,
 
     /// <summary>
-    /// DirectX 11 through ANGLE (Windows only).
+    /// DirectX 11 through ANGLE (not implemented yet) (Windows only).
     /// </summary>
     Dx11Angle = 0x80 | 6,
 
     /// <summary>
     /// Software rendering, no GPU acceleration. Should work on any platform as long as an implementation is
-    /// available on that platform (Windows and Linux at the moment), but is very slow for complex UIs.
+    /// available on that platform (Windows and Linux at the moment), but is very slow for complex UIs or
+    /// high-resolution displays.
     /// </summary>
     Software = 0xff
 }
